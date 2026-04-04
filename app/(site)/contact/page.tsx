@@ -109,8 +109,9 @@ export default function ContactPage() {
               </div>
               <p className="text-sm text-black/40 leading-relaxed">
                 The Leadership Federation<br />
-                Bengaluru, Karnataka<br />
-                India
+                Office No. 44-43, Building of Dubai Municipality<br />
+                Bur Dubai - Al Fahidi<br />
+                Dubai, United Arab Emirates
               </p>
             </div>
 
@@ -122,12 +123,14 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-sm font-bold text-black">Email</h3>
               </div>
-              <a
-                href="mailto:register@theleadershipfederation.com"
-                className="text-sm text-black/50 hover:text-[#e7ab1c] transition-colors block mb-1"
-              >
-                register@theleadershipfederation.com
-              </a>
+              <div className="space-y-1.5">
+                <a href="mailto:register@theleadershipfederation.com" className="text-sm text-black/50 hover:text-[#e7ab1c] transition-colors block">
+                  register@theleadershipfederation.com
+                </a>
+                <a href="mailto:Hello@theleadershipfederation.com" className="text-sm text-black/50 hover:text-[#e7ab1c] transition-colors block">
+                  Hello@theleadershipfederation.com
+                </a>
+              </div>
             </div>
 
             {/* Key Contacts */}
@@ -138,22 +141,32 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-sm font-bold text-black">Key Contacts</h3>
               </div>
-              <div className="space-y-3 text-sm">
+              <div className="space-y-4 text-sm">
                 <div>
                   <p className="font-medium text-black/60">Harshal Patel</p>
-                  <p className="text-black/30 text-xs">Business Development</p>
+                  <p className="text-black/30 text-xs mb-0.5">Sponsorship & Exhibitor Opportunities</p>
+                  <a href="tel:+917227993338" className="text-xs text-[#e7ab1c] hover:underline">+91 72279 93338</a>
+                  <span className="text-black/15 mx-1.5">·</span>
+                  <a href="mailto:Harshal@theleadershipfederation.com" className="text-xs text-black/35 hover:text-[#e7ab1c]">Harshal@theleadershipfederation.com</a>
                 </div>
                 <div>
                   <p className="font-medium text-black/60">Ovais Kapadia</p>
-                  <p className="text-black/30 text-xs">Partnerships</p>
+                  <p className="text-black/30 text-xs mb-0.5">Award Nomination & Speaker Opportunities</p>
+                  <a href="tel:+919106033979" className="text-xs text-[#e7ab1c] hover:underline">+91 91060 33979</a>
+                  <span className="text-black/15 mx-1.5">·</span>
+                  <a href="mailto:Ovais@theleadershipfederation.com" className="text-xs text-black/35 hover:text-[#e7ab1c]">Ovais@theleadershipfederation.com</a>
                 </div>
                 <div>
                   <p className="font-medium text-black/60">Manan Desai</p>
-                  <p className="text-black/30 text-xs">Operations</p>
+                  <p className="text-black/30 text-xs mb-0.5">Award Nomination & Speaker Opportunities</p>
+                  <a href="tel:+919978257508" className="text-xs text-[#e7ab1c] hover:underline">+91 99782 57508</a>
+                  <span className="text-black/15 mx-1.5">·</span>
+                  <a href="mailto:Manan@theleadershipfederation.com" className="text-xs text-black/35 hover:text-[#e7ab1c]">Manan@theleadershipfederation.com</a>
                 </div>
                 <div>
                   <p className="font-medium text-black/60">Jessica Morgan</p>
-                  <p className="text-black/30 text-xs">International Relations</p>
+                  <p className="text-black/30 text-xs mb-0.5">VP Marketing</p>
+                  <a href="mailto:Hello@theleadershipfederation.com" className="text-xs text-black/35 hover:text-[#e7ab1c]">Hello@theleadershipfederation.com</a>
                 </div>
               </div>
             </div>

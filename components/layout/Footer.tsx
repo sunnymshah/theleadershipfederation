@@ -91,10 +91,14 @@ export function Footer() {
           <p className="text-[12px] text-white/15" style={sfText}>
             &copy; {new Date().getFullYear()} The Leadership Federation. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
-            <span className="text-[12px] text-white/15" style={sfText}>
+          <div className="flex items-center gap-4 text-[12px] text-white/15" style={sfText}>
+            <a href="mailto:register@theleadershipfederation.com" className="hover:text-[#e7ab1c] transition-colors">
               register@theleadershipfederation.com
-            </span>
+            </a>
+            <span className="text-white/10">·</span>
+            <a href="tel:+917227993338" className="hover:text-[#e7ab1c] transition-colors">
+              +91 72279 93338
+            </a>
           </div>
         </div>
       </div>
