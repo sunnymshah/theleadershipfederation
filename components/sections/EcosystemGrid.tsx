@@ -2,129 +2,106 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { CalendarDays, Users, Award, Mic2, Globe, Handshake } from "lucide-react"
-
-/**
- * Bento-box ecosystem grid — showcases the TLF platform pillars
- * in an asymmetric grid layout with thin-stroke Lucide icons.
- */
-
-const fadeUp = {
-  hidden:  { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0 },
-}
-const ease = [0.16, 1, 0.3, 1] as const
+import { CalendarDays, Crown, Mic2 } from "lucide-react"
 
 const pillars = [
   {
     icon: CalendarDays,
-    title: "Leadership Conclaves",
-    description: "India's largest gatherings of GCC leaders, CXOs, and transformation architects. Multi-day immersive experiences with keynotes, round-tables, and fireside conversations.",
-    href: "/events",
-    span: "md:col-span-2",
+    title: "Global Conclaves & Summits",
+    description: "India's largest gatherings of GCC leaders, CXOs, and transformation architects. Multi-day immersive experiences with keynotes, round-tables, and fireside conversations across 30+ countries.",
+    cta: { label: "View Events", href: "/events" },
     accent: true,
   },
   {
-    icon: Award,
-    title: "Asia Leadership Awards",
-    description: "Celebrating extraordinary contributions to leadership and innovation across Asia and the Middle East.",
-    href: "/events",
-    span: "md:col-span-1",
-  },
-  {
-    icon: Users,
-    title: "Inner Circle",
-    description: "An exclusive, invite-only membership for senior leaders seeking curated access, peer connections, and strategic dialogue.",
-    href: "/platforms",
-    span: "md:col-span-1",
+    icon: Crown,
+    title: "The Inner Circle",
+    description: "An exclusive, invite-only membership for senior leaders seeking curated access, private roundtables, strategic peer connections, and privileged dialogue with global decision-makers.",
+    cta: { label: "Apply Now", href: "/platforms" },
+    accent: false,
   },
   {
     icon: Mic2,
-    title: "Thought Leadership",
-    description: "Podcasts, publications, and media spotlights amplifying the voices shaping global business.",
-    href: "/media",
-    span: "md:col-span-1",
-  },
-  {
-    icon: Globe,
-    title: "Global Network",
-    description: "Operating across 30+ countries connecting leaders from Bengaluru to Dubai, Kuala Lumpur to Bangkok.",
-    href: "/about",
-    span: "md:col-span-1",
-  },
-  {
-    icon: Handshake,
-    title: "Strategic Partnerships",
-    description: "Building bridges between enterprises, GCCs, government bodies, and industry pioneers for mutual growth.",
-    href: "/partners",
-    span: "md:col-span-2",
-    accent: true,
+    title: "Media & Thought Leadership",
+    description: "The Sunny Shah Show, podcasts, publications, and media spotlights amplifying the voices shaping global business. C-suite conversations that move industries forward.",
+    cta: { label: "Watch Now", href: "/media" },
+    accent: false,
   },
 ]
 
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0 },
+}
+
 export function EcosystemGrid() {
   return (
-    <section className="bg-[#FAECD2] py-28 overflow-hidden">
-      <div className="max-w-6xl mx-auto px-6 sm:px-10">
-        {/* Section header */}
+    <section className="py-24 lg:py-32 bg-[#F4F8FF]">
+      <div className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <motion.div
-          variants={fadeUp}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease }}
-          className="mb-16 max-w-xl"
+          transition={{ duration: 0.6 }}
+          variants={fadeInUp}
+          className="text-center mb-16"
         >
-          <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.2em] mb-4 block">
+          <span className="text-[11px] tracking-[0.2em] uppercase text-[#1a1a2e]/30 font-semibold">
             Our Ecosystem
           </span>
-          <h2 className="font-serif text-[#000] leading-[1.1]" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
+          <h2 className="mt-4 font-serif text-[clamp(2rem,4.5vw,3.5rem)] leading-[1.1] text-[#1a1a2e]">
             A Platform Built for{" "}
-            <span className="text-[#e7ab1c]">Impact</span>
+            <span className="text-[#1a1a2e]/40">Impact</span>
           </h2>
-          <p className="mt-4 text-black/45 leading-[1.7] text-[15px]">
-            Six interconnected pillars driving leadership excellence across industries and borders.
+          <p className="mt-5 max-w-xl mx-auto text-[#1a1a2e]/45 text-[16px] leading-relaxed">
+            Three interconnected pillars driving leadership excellence across industries and borders.
           </p>
         </motion.div>
 
-        {/* Bento grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {pillars.map(({ icon: Icon, title, description, href, span, accent }, i) => (
-            <motion.div
-              key={title}
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.6, delay: i * 0.08, ease }}
-              className={span}
-            >
-              <Link
-                href={href}
-                className={`group block h-full rounded-2xl p-7 sm:p-8 transition-all duration-300 border ${
-                  accent
-                    ? "bg-[#000] text-white border-transparent hover:shadow-[0_8px_40px_rgba(0,0,0,0.15)]"
-                    : "bg-white/60 text-[#000] border-black/[0.06] hover:bg-white hover:border-black/[0.1] hover:shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
-                }`}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {pillars.map((pillar, i) => {
+            const Icon = pillar.icon
+            return (
+              <motion.div
+                key={pillar.title}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                variants={fadeInUp}
               >
-                <Icon
-                  size={28}
-                  strokeWidth={1.4}
-                  className={`mb-5 transition-colors duration-300 ${
-                    accent
-                      ? "text-[#e7ab1c]"
-                      : "text-[#e7ab1c]/70 group-hover:text-[#e7ab1c]"
+                <div
+                  className={`rounded-2xl p-8 h-full flex flex-col transition-all duration-300 hover:scale-[1.02] ${
+                    pillar.accent
+                      ? "bg-[#1a1a2e] text-white"
+                      : "bg-white/70 border border-[#1a1a2e]/[0.05]"
                   }`}
-                />
-                <h3 className={`text-[17px] font-bold mb-2 ${accent ? "text-white" : "text-black"}`}>
-                  {title}
-                </h3>
-                <p className={`text-[14px] leading-[1.65] ${accent ? "text-white/50" : "text-black/45"}`}>
-                  {description}
-                </p>
-              </Link>
-            </motion.div>
-          ))}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 ${
+                    pillar.accent ? "bg-white/10" : "bg-[#1a1a2e]/[0.04]"
+                  }`}>
+                    <Icon size={22} strokeWidth={1.5} className={pillar.accent ? "text-white/70" : "text-[#1a1a2e]/40"} />
+                  </div>
+                  <h3 className={`text-[20px] font-bold mb-3 ${pillar.accent ? "text-white" : "text-[#1a1a2e]"}`}>
+                    {pillar.title}
+                  </h3>
+                  <p className={`text-[14.5px] leading-[1.7] flex-1 ${
+                    pillar.accent ? "text-white/60" : "text-[#1a1a2e]/45"
+                  }`}>
+                    {pillar.description}
+                  </p>
+                  <Link
+                    href={pillar.cta.href}
+                    className={`mt-6 inline-flex items-center gap-2 text-[13px] font-semibold ${
+                      pillar.accent ? "text-white/70 hover:text-white" : "text-[#1a1a2e]/50 hover:text-[#1a1a2e]"
+                    } transition-colors duration-200`}
+                  >
+                    {pillar.cta.label}
+                    <span className="text-[16px]">&rarr;</span>
+                  </Link>
+                </div>
+              </motion.div>
+            )
+          })}
         </div>
       </div>
     </section>

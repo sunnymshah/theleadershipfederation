@@ -2,147 +2,112 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight, Calendar, MapPin, Users } from "lucide-react"
+import { ArrowRight, Calendar, MapPin, Users, Award, Clock, Mic2 } from "lucide-react"
 
-/**
- * Dark #000 featured event callout section — highlights the next
- * major event with a full-width black background and editorial layout.
- */
-
-interface EventCalloutProps {
-  event: {
+interface FeaturedEventCalloutProps {
+  event?: {
     title: string
-    slug: string
     start_date: string
     end_date: string
     venue: string
-    description: string | null
-  } | null
+    description: string
+    attendee_count?: number
+    speaker_count?: number
+  }
 }
 
-const fadeUp = {
-  hidden:  { opacity: 0, y: 28 },
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0 },
 }
-const ease = [0.16, 1, 0.3, 1] as const
 
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
-}
+export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
+  const e = event ?? {
+    title: "6th GCC Leadership Conclave",
+    start_date: "2026-04-07",
+    end_date: "2026-04-08",
+    venue: "JW Marriott Hotel Bengaluru, India",
+    description: "India's largest and most influential gathering of GCC leaders. The 6th Edition brings together 650+ CXOs, innovators, and policymakers to discuss AI integration, talent-first GCC operations, and cross-border leadership strategies.",
+    attendee_count: 650,
+    speaker_count: 67,
+  }
 
-export function FeaturedEventCallout({ event }: EventCalloutProps) {
-  if (!event) return null
+  const stats = [
+    { label: "Edition", value: "6th", icon: Award },
+    { label: "CXOs", value: `${e.attendee_count ?? 650}+`, icon: Users },
+    { label: "Speakers", value: `${e.speaker_count ?? 67}`, icon: Mic2 },
+    { label: "Days", value: "2", icon: Clock },
+  ]
+
+  const startDate = new Date(e.start_date)
+  const endDate = new Date(e.end_date)
+  const dateStr = `${startDate.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} — ${endDate.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
 
   return (
-    <section className="bg-[#000] py-28 overflow-hidden">
-      <div className="max-w-6xl mx-auto px-6 sm:px-10">
+    <section className="py-24 lg:py-32 bg-[#1a1a2e]">
+      <div className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-          {/* ── Left: editorial text ─────────────────────────────── */}
-          <div>
-            <motion.span
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, ease }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.15em] border border-[#e7ab1c]/20 bg-[#e7ab1c]/[0.06] mb-6"
-            >
-              <span className="w-[5px] h-[5px] rounded-full bg-[#e7ab1c] animate-pulse-gold" />
-              Featured Event
-            </motion.span>
-
-            <motion.h2
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.1, ease }}
-              className="font-serif text-white leading-[1.1] mb-6"
-              style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}
-            >
-              {event.title}
-            </motion.h2>
-
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.2, ease }}
-              className="space-y-3 mb-8"
-            >
-              <div className="flex items-center gap-3 text-white/45 text-[14px]">
-                <Calendar size={16} strokeWidth={1.5} className="text-[#e7ab1c]/60 shrink-0" />
-                {fmtDate(event.start_date)} — {fmtDate(event.end_date)}
-              </div>
-              <div className="flex items-start gap-3 text-white/45 text-[14px]">
-                <MapPin size={16} strokeWidth={1.5} className="text-[#e7ab1c]/60 shrink-0 mt-0.5" />
-                {event.venue}
-              </div>
-              <div className="flex items-center gap-3 text-white/45 text-[14px]">
-                <Users size={16} strokeWidth={1.5} className="text-[#e7ab1c]/60 shrink-0" />
-                650+ CXOs & Industry Leaders Expected
-              </div>
-            </motion.div>
-
-            {event.description && (
-              <motion.p
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.3, ease }}
-                className="text-white/35 text-[15px] leading-[1.7] mb-10 max-w-lg"
-              >
-                {event.description}
-              </motion.p>
-            )}
-
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.4, ease }}
-            >
-              <Link
-                href={`/events/${event.slug}`}
-                className="group inline-flex items-center gap-2.5 px-8 py-[15px] rounded-full font-semibold text-[15px] text-[#000] bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_28px_rgba(231,171,28,0.35)]"
-              >
-                Register Now
-                <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* ── Right: stats / key numbers ────────────────────────── */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            variants={fadeInUp}
+          >
+            <span className="text-[11px] tracking-[0.2em] uppercase text-white/25 font-semibold">
+              Featured Event
+            </span>
+            <h2 className="mt-5 font-serif text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-white">
+              {e.title}
+            </h2>
+
+            <div className="mt-8 space-y-4">
+              <div className="flex items-start gap-3">
+                <Calendar size={16} strokeWidth={1.5} className="text-white/30 mt-0.5 shrink-0" />
+                <span className="text-white/50 text-[15px]">{dateStr}</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <MapPin size={16} strokeWidth={1.5} className="text-white/30 mt-0.5 shrink-0" />
+                <span className="text-white/50 text-[15px]">{e.venue}</span>
+              </div>
+            </div>
+
+            <p className="mt-8 text-white/35 text-[15px] leading-[1.8] max-w-lg">
+              {e.description}
+            </p>
+
+            <Link
+              href="/events"
+              className="mt-10 inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[14px] text-[#1a1a2e] bg-white hover:bg-white/90 transition-all duration-200 hover:scale-[1.02]"
+            >
+              Register Now
+              <ArrowRight size={15} />
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            variants={fadeInUp}
             className="grid grid-cols-2 gap-4"
           >
-            {[
-              { number: "6th", label: "Edition", sub: "Biggest yet" },
-              { number: "650+", label: "CXOs", sub: "Expected attendance" },
-              { number: "67", label: "Speakers", sub: "Industry leaders" },
-              { number: "2 Days", label: "Of Immersion", sub: "Apr 7-8, 2026" },
-            ].map(({ number, label, sub }, i) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.3 + i * 0.1, ease }}
-                className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-center"
-              >
-                <div className="text-[32px] font-bold text-[#e7ab1c] leading-none mb-1">{number}</div>
-                <div className="text-[14px] font-semibold text-white/80 mb-0.5">{label}</div>
-                <div className="text-[11px] text-white/30">{sub}</div>
-              </motion.div>
-            ))}
+            {stats.map((s) => {
+              const Icon = s.icon
+              return (
+                <div
+                  key={s.label}
+                  className="bg-white/[0.05] border border-white/[0.06] rounded-2xl p-6 text-center"
+                >
+                  <Icon size={20} strokeWidth={1.5} className="text-white/20 mx-auto mb-3" />
+                  <div className="text-[28px] font-bold text-white leading-none">{s.value}</div>
+                  <div className="text-[11px] text-white/30 uppercase tracking-[0.12em] font-medium mt-2">
+                    {s.label}
+                  </div>
+                </div>
+              )
+            })}
           </motion.div>
         </div>
       </div>

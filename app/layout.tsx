@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
-      <body className="min-h-full bg-[#050505] text-[#f0f0f0] font-sans">
+      <body className="min-h-full bg-[#F4F8FF] text-[#1a1a2e] font-sans">
         {children}
       </body>
     </html>
