@@ -40,12 +40,13 @@ export function HeroSection() {
       <GoldChevrons />
       <GoldOrbs />
 
-      {/* Subtle grid overlay */}
+      {/* Angular grid overlay */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden
         style={{
-          backgroundImage: "linear-gradient(rgba(231,171,28,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(231,171,28,0.02) 1px, transparent 1px)",
+          backgroundImage:
+            "linear-gradient(rgba(231,171,28,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(231,171,28,0.025) 1px, transparent 1px)",
           backgroundSize: "80px 80px",
         }}
       />
@@ -73,7 +74,7 @@ export function HeroSection() {
               transition={{ duration: 0.7, ease }}
               className="leading-[0.95] tracking-[-0.03em] text-black"
               style={{
-                fontSize: "clamp(2.8rem, 6vw, 5.5rem)",
+                fontSize: "clamp(2.8rem, 5.5vw, 5rem)",
                 fontWeight: 700,
                 ...sfDisplay,
               }}
@@ -146,22 +147,22 @@ export function HeroSection() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.15, ease }}
           >
-            <div className="relative w-full max-w-[500px]">
-              {/* Gold accent ring behind image */}
+            <div className="relative w-full max-w-[480px]">
+              {/* Gold accent ring */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                className="absolute -inset-6 rounded-[2rem] border border-dashed border-[#e7ab1c]/10"
+                className="absolute -inset-5 rounded-[2rem] border-2 border-dashed border-[#e7ab1c]/15"
               />
 
-              <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+              <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.10)]">
                 <motion.img
                   src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop"
                   alt="GCC Leadership Conclave"
                   className="w-full h-full object-cover"
                   style={{ y: imageY, scale: imageScale }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
               </div>
 
               {/* Next event badge */}
@@ -169,14 +170,14 @@ export function HeroSection() {
                 initial={{ opacity: 0, y: 16, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.9, duration: 0.7, ease }}
-                className="absolute -bottom-4 -left-4 lg:-left-8 bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-black/[0.04]"
+                className="absolute -bottom-4 -left-4 lg:-left-8 bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-black/[0.04]"
               >
                 <div className="text-[10px] text-[#e7ab1c] uppercase tracking-[0.12em] font-bold mb-1">Next Event</div>
                 <div className="text-[14px] font-bold text-black">6th GCC Leadership Conclave</div>
                 <div className="text-[12px] text-black/40">Apr 7-8 &middot; Bengaluru</div>
               </motion.div>
 
-              {/* Small floating badge — top right */}
+              {/* Edition badge — top right */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}

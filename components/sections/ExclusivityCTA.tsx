@@ -14,27 +14,51 @@ export function ExclusivityCTA() {
     <section className="relative py-20 lg:py-28 bg-[#F4F8FF] overflow-hidden">
       <GoldOrbs />
 
-      {/* Subtle chevron accent */}
-      <svg className="absolute right-0 top-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 600" fill="none" aria-hidden>
+      {/* Bold chevron arrows — right side */}
+      <svg className="absolute right-0 top-0 h-full w-2/5 pointer-events-none" viewBox="0 0 400 600" fill="none" aria-hidden>
         <motion.path
-          d="M100 50L350 300L100 550"
-          stroke="rgba(231,171,28,0.06)"
+          d="M80 30L370 300L80 570"
+          stroke="rgba(231,171,28,0.14)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          initial={{ pathLength: 0 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.8 }}
+        />
+        <motion.path
+          d="M30 80L300 300L30 520"
+          stroke="rgba(231,171,28,0.09)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          initial={{ pathLength: 0 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.8, delay: 0.2 }}
+        />
+        <motion.path
+          d="M-10 130L240 300L-10 470"
+          stroke="rgba(231,171,28,0.05)"
           strokeWidth="2"
           strokeLinecap="round"
           initial={{ pathLength: 0 }}
           whileInView={{ pathLength: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 2 }}
+          transition={{ duration: 1.8, delay: 0.4 }}
         />
+      </svg>
+
+      {/* Left side accent chevron (mirror) */}
+      <svg className="absolute left-0 top-0 h-full w-1/4 pointer-events-none" viewBox="0 0 300 600" fill="none" aria-hidden>
         <motion.path
-          d="M50 100L280 300L50 500"
-          stroke="rgba(231,171,28,0.04)"
-          strokeWidth="1.5"
+          d="M250 80L50 300L250 520"
+          stroke="rgba(231,171,28,0.08)"
+          strokeWidth="2"
           strokeLinecap="round"
           initial={{ pathLength: 0 }}
           whileInView={{ pathLength: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 2, delay: 0.3 }}
+          transition={{ duration: 1.8, delay: 0.3 }}
         />
       </svg>
 

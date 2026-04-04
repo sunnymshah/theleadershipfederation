@@ -51,7 +51,13 @@ const cardVariants = {
 export function EcosystemGrid() {
   return (
     <section className="relative py-20 lg:py-28 bg-[#F4F8FF] overflow-hidden">
-      <DotGrid className="opacity-50" />
+      <DotGrid className="opacity-40" />
+
+      {/* Chevron accent in background */}
+      <svg className="absolute top-0 right-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 700" fill="none" aria-hidden>
+        <path d="M150 50L380 350L150 650" stroke="rgba(231,171,28,0.08)" strokeWidth="2" strokeLinecap="round" />
+        <path d="M100 100L310 350L100 600" stroke="rgba(231,171,28,0.05)" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <motion.div
