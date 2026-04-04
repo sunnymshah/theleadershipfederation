@@ -31,10 +31,16 @@ const footerLinks = {
 export function Footer() {
   return (
     <footer className="bg-black relative overflow-hidden">
-      {/* Subtle top accent line */}
-      <div className="h-px bg-gradient-to-r from-transparent via-[#e7ab1c]/30 to-transparent" />
+      {/* Top accent line */}
+      <div className="h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c]/40 to-transparent" />
 
-      <div className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 pt-16 pb-10">
+      {/* Background chevron accent */}
+      <svg className="absolute top-0 right-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 500" fill="none" aria-hidden>
+        <path d="M150 30L380 250L150 470" stroke="rgba(231,171,28,0.04)" strokeWidth="2" strokeLinecap="round" />
+        <path d="M100 70L330 250L100 430" stroke="rgba(231,171,28,0.03)" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 pt-16 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
           {/* Brand */}
           <div className="md:col-span-4">

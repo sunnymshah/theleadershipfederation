@@ -35,18 +35,19 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
 
       {/* Gold gradient glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(231,171,28,0.06) 0%, transparent 60%)",
+          background: "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 60%)",
         }}
         aria-hidden
       />
 
-      {/* Chevron lines */}
+      {/* Diagonal cross lines */}
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" aria-hidden>
         <motion.line
           x1="0" y1="0" x2="100%" y2="100%"
-          stroke="rgba(231,171,28,0.04)" strokeWidth="1"
+          stroke="rgba(231,171,28,0.07)"
+          strokeWidth="1.5"
           initial={{ pathLength: 0 }}
           whileInView={{ pathLength: 1 }}
           viewport={{ once: true }}
@@ -54,7 +55,8 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
         />
         <motion.line
           x1="100%" y1="0" x2="0" y2="100%"
-          stroke="rgba(231,171,28,0.03)" strokeWidth="1"
+          stroke="rgba(231,171,28,0.05)"
+          strokeWidth="1.5"
           initial={{ pathLength: 0 }}
           whileInView={{ pathLength: 1 }}
           viewport={{ once: true }}
