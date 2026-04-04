@@ -41,21 +41,21 @@ export function LogoMarquee() {
         <div className="absolute left-0 top-0 bottom-0 w-28 z-10 bg-gradient-to-r from-[#F4F8FF] to-transparent" />
         <div className="absolute right-0 top-0 bottom-0 w-28 z-10 bg-gradient-to-l from-[#F4F8FF] to-transparent" />
 
-        {/* Scrolling logos — using native img for reliability */}
+        {/* Scrolling logos with company names */}
         <div className="flex animate-marquee items-center whitespace-nowrap">
           {doubled.map((p, i) => (
             <div
               key={`${p.name}-${i}`}
-              className="mx-10 shrink-0 flex flex-col items-center gap-2 opacity-70 hover:opacity-100 transition-opacity duration-300"
+              className="mx-10 shrink-0 flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity duration-300"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.src}
                 alt={p.name}
                 loading="lazy"
-                className="h-[36px] w-auto max-w-[130px] object-contain"
+                className="h-[36px] w-auto max-w-[100px] object-contain"
               />
-              <span className="text-[9px] font-semibold text-black/35 uppercase tracking-[0.08em] whitespace-nowrap" style={sfText}>
+              <span className="text-[13px] font-bold text-black/50 whitespace-nowrap" style={sfText}>
                 {p.name}
               </span>
             </div>
