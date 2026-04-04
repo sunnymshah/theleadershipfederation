@@ -15,6 +15,7 @@ import {
   Ticket,
   Users,
   Radio,
+  Building2,
   Settings,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -26,6 +27,7 @@ const navItems = [
   { label: "Tickets",    href: "/admin/tickets",   icon: Ticket },
   { label: "Speakers",   href: "/admin/speakers",  icon: Radio },
   { label: "Attendees",  href: "/admin/attendees",  icon: Users },
+  { label: "Sponsors",   href: "/admin/sponsors",   icon: Building2 },
   { label: "Settings",   href: "/admin/settings",  icon: Settings },
 ]
 
