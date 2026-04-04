@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { sendConfirmationEmail } from "@/app/actions/emailActions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -163,6 +164,22 @@ export async function deleteAttendee(attendeeId: string) {
     if (error) return { success: false, error: error.message }
     if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+export async function sendAttendeeConfirmation(attendeeId: string) {
+  try {
+    const result = await sendConfirmationEmail(attendeeId)
+
+    if (result.success) {
+      // Revalidate attendee pages so the confirmation_sent_at timestamp is reflected
+      revalidatePath("/admin/attendees", "page")
+      revalidatePath("/admin", "page")
+    }
+
+    return result
   } catch (err) {
     return { success: false, error: (err as Error).message }
   }

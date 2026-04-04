@@ -1,136 +1,281 @@
 "use client"
 
-import { useState } from "react"
-import { verifyQrToken } from "@/app/actions/registrationActions"
-import { ScanLine, CheckCircle2, XCircle, Loader2, Camera } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import {
+  getCheckInStats,
+  getRecentCheckIns,
+  getActiveEvents,
+} from "@/app/actions/checkInActions"
+import QrScanner from "@/components/admin/QrScanner"
+import {
+  ScanLine,
+  Users,
+  UserCheck,
+  Clock,
+  ChevronDown,
+  Loader2,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
-interface VerifiedAttendee {
+/* ──────────────────────────────────────────────────────────────────────── */
+/*  Types                                                                  */
+/* ──────────────────────────────────────────────────────────────────────── */
+
+interface Event {
+  id: string
+  title: string
+  slug: string
+  start_date: string
+  status: string
+}
+
+interface Stats {
+  total: number
+  checkedIn: number
+  pending: number
+}
+
+interface RecentCheckIn {
+  id: string
   name: string
   email: string
   company: string | null
-  designation: string | null
-  status: string
   check_in_at: string | null
-  events: { title: string; venue: string; start_date: string } | null
   tickets: { name: string } | null
 }
 
+/* ──────────────────────────────────────────────────────────────────────── */
+/*  Page Component                                                         */
+/* ──────────────────────────────────────────────────────────────────────── */
+
 export default function CheckInPage() {
-  const [qrInput, setQrInput] = useState("")
-  const [scanning, setScanning] = useState(false)
-  const [result, setResult] = useState<{ success: boolean; error?: string; attendee?: VerifiedAttendee } | null>(null)
+  const [events, setEvents] = useState<Event[]>([])
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [stats, setStats] = useState<Stats>({ total: 0, checkedIn: 0, pending: 0 })
+  const [recentCheckIns, setRecentCheckIns] = useState<RecentCheckIn[]>([])
+  const [loadingEvents, setLoadingEvents] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(false)
 
-  async function handleScan(e: React.FormEvent) {
-    e.preventDefault()
-    if (!qrInput.trim()) return
-
-    setScanning(true)
-    setResult(null)
-
-    const res = await verifyQrToken(qrInput.trim())
-    setResult(res as { success: boolean; error?: string; attendee?: VerifiedAttendee })
-    setScanning(false)
-
-    // Auto-clear after success for next scan
-    if (res.success) {
-      setTimeout(() => { setQrInput(""); setResult(null) }, 5000)
+  /* ── Fetch events on mount ─────────────────────────────────────────── */
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const result = await getActiveEvents()
+        if (result.success) {
+          setEvents(result.events as Event[])
+          if (result.events.length > 0) {
+            setSelectedEventId(result.events[0].id)
+          }
+        }
+      } catch {
+        // Fallback: no events
+      } finally {
+        setLoadingEvents(false)
+      }
     }
+    fetchEvents()
+  }, [])
+
+  /* ── Refresh stats and recent check-ins ────────────────────────────── */
+  const refreshData = useCallback(async () => {
+    if (!selectedEventId) return
+    setLoadingStats(true)
+    try {
+      const [statsResult, recentResult] = await Promise.all([
+        getCheckInStats(selectedEventId),
+        getRecentCheckIns(selectedEventId),
+      ])
+      if (statsResult.success && statsResult.stats) {
+        setStats(statsResult.stats)
+      }
+      if (recentResult.success) {
+        setRecentCheckIns(recentResult.checkIns as RecentCheckIn[])
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoadingStats(false)
+    }
+  }, [selectedEventId])
+
+  useEffect(() => {
+    refreshData()
+  }, [refreshData])
+
+  /* ── After check-in callback ───────────────────────────────────────── */
+  function handleCheckIn() {
+    refreshData()
   }
 
-  return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-1">Check-In Scanner</h2>
-        <p className="text-sm text-white/40">Scan or paste QR code tokens to verify and check in attendees</p>
-      </div>
+  /* ── Helpers ───────────────────────────────────────────────────────── */
+  const percentage = stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0
 
-      {/* Scanner Input */}
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8 mb-6">
-        <div className="flex items-center justify-center mb-6">
-          <div className="w-20 h-20 rounded-2xl bg-[#c9a84c]/10 flex items-center justify-center">
-            <Camera size={32} className="text-[#c9a84c]" />
+  function formatTime(dateStr: string | null) {
+    if (!dateStr) return "—"
+    return new Date(dateStr).toLocaleString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })
+  }
+
+  /* ──────────────────────────────────────────────────────────────────── */
+  /*  Render                                                              */
+  /* ──────────────────────────────────────────────────────────────────── */
+
+  return (
+    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+      {/* ── Header ───────────────────────────────────────────────── */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-[#c9a84c]/10 flex items-center justify-center">
+            <ScanLine size={20} className="text-[#c9a84c]" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Event Check-In</h2>
+            <p className="text-sm text-white/40">
+              Scan QR codes to check in attendees at the venue
+            </p>
           </div>
         </div>
-
-        <form onSubmit={handleScan} className="space-y-4">
-          <div>
-            <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">QR Code Token</label>
-            <input
-              type="text"
-              value={qrInput}
-              onChange={(e) => setQrInput(e.target.value)}
-              placeholder="Scan QR code or paste token here…"
-              autoFocus
-              className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors text-center font-mono tracking-wider"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={scanning || !qrInput.trim()}
-            className="w-full py-3 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-          >
-            {scanning ? <><Loader2 size={16} className="animate-spin" /> Verifying…</> : <><ScanLine size={16} /> Verify & Check In</>}
-          </button>
-        </form>
-
-        <p className="text-center text-[11px] text-white/20 mt-4">
-          Use a barcode scanner or camera app to scan the QR code. The token will auto-fill.
-        </p>
       </div>
 
-      {/* Result */}
-      {result && (
-        <div className={cn(
-          "rounded-xl border p-6 transition-all",
-          result.success
-            ? "border-emerald-500/20 bg-emerald-500/5"
-            : "border-red-500/20 bg-red-500/5"
-        )}>
-          <div className="flex items-start gap-4">
-            {result.success ? (
-              <CheckCircle2 size={28} className="text-emerald-400 shrink-0 mt-0.5" />
-            ) : (
-              <XCircle size={28} className="text-red-400 shrink-0 mt-0.5" />
-            )}
-            <div className="flex-1">
-              <h3 className={cn("text-lg font-semibold mb-1", result.success ? "text-emerald-400" : "text-red-400")}>
-                {result.success ? "Check-In Successful!" : "Verification Failed"}
-              </h3>
+      {/* ── Event selector ───────────────────────────────────────── */}
+      <div className="mb-6">
+        <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+          Select Event
+        </label>
+        {loadingEvents ? (
+          <div className="flex items-center gap-2 text-white/30 text-sm py-3">
+            <Loader2 size={14} className="animate-spin" /> Loading events...
+          </div>
+        ) : events.length === 0 ? (
+          <p className="text-sm text-white/30">No active events found.</p>
+        ) : (
+          <div className="relative">
+            <select
+              value={selectedEventId ?? ""}
+              onChange={(e) => setSelectedEventId(e.target.value)}
+              className="w-full appearance-none px-4 py-3 pr-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors cursor-pointer"
+            >
+              {events.map((event) => (
+                <option key={event.id} value={event.id} className="bg-[#0a0a0a] text-white">
+                  {event.title} — {new Date(event.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+          </div>
+        )}
+      </div>
 
-              {result.error && <p className="text-sm text-white/50 mb-3">{result.error}</p>}
-
-              {result.attendee && (
-                <div className="space-y-2 mt-4 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Name</span>
-                    <span className="text-white font-medium">{result.attendee.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/40">Email</span>
-                    <span className="text-white/70">{result.attendee.email}</span>
-                  </div>
-                  {result.attendee.company && (
-                    <div className="flex justify-between">
-                      <span className="text-white/40">Company</span>
-                      <span className="text-white/70">{result.attendee.designation ? `${result.attendee.designation}, ` : ""}{result.attendee.company}</span>
-                    </div>
-                  )}
-                  {result.attendee.events && (
-                    <div className="flex justify-between">
-                      <span className="text-white/40">Event</span>
-                      <span className="text-white/70">{result.attendee.events.title}</span>
-                    </div>
-                  )}
-                  {result.attendee.tickets && (
-                    <div className="flex justify-between">
-                      <span className="text-white/40">Ticket</span>
-                      <span className="text-white/70">{result.attendee.tickets.name}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+      {/* ── Stats cards ──────────────────────────────────────────── */}
+      {selectedEventId && (
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+            <div className="flex items-center gap-2 mb-2">
+              <Users size={14} className="text-blue-400" />
+              <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Registered</span>
             </div>
+            <p className="text-2xl font-bold text-blue-400">
+              {loadingStats ? "—" : stats.total}
+            </p>
+          </div>
+          <div className="p-4 rounded-xl border border-emerald-500/10 bg-emerald-500/[0.02]">
+            <div className="flex items-center gap-2 mb-2">
+              <UserCheck size={14} className="text-emerald-400" />
+              <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Checked In</span>
+            </div>
+            <p className="text-2xl font-bold text-emerald-400">
+              {loadingStats ? "—" : stats.checkedIn}
+            </p>
+          </div>
+          <div className="p-4 rounded-xl border border-[#c9a84c]/10 bg-[#c9a84c]/[0.02]">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock size={14} className="text-[#c9a84c]" />
+              <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Pending</span>
+            </div>
+            <p className="text-2xl font-bold text-[#c9a84c]">
+              {loadingStats ? "—" : stats.pending}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Progress bar ─────────────────────────────────────────── */}
+      {selectedEventId && stats.total > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-white/40">Check-in progress</span>
+            <span className="text-xs font-bold text-[#c9a84c]">{percentage}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#c9a84c] to-emerald-400 transition-all duration-700 ease-out"
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-white/25 mt-1.5">
+            {stats.checkedIn} of {stats.total} attendees checked in
+          </p>
+        </div>
+      )}
+
+      {/* ── QR Scanner ───────────────────────────────────────────── */}
+      {selectedEventId && (
+        <QrScanner selectedEventId={selectedEventId} onCheckIn={handleCheckIn} />
+      )}
+
+      {/* ── Recent check-ins ─────────────────────────────────────── */}
+      {selectedEventId && recentCheckIns.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">
+            Recent Check-Ins
+          </h3>
+          <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider hidden sm:table-cell">
+                    Company
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider hidden md:table-cell">
+                    Ticket
+                  </th>
+                  <th className="text-right px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+                    Time
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentCheckIns.map((ci) => (
+                  <tr
+                    key={ci.id}
+                    className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.015] transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-white/90 text-xs">{ci.name}</div>
+                      <div className="text-[10px] text-white/30">{ci.email}</div>
+                    </td>
+                    <td className="px-4 py-3 text-white/50 text-xs hidden sm:table-cell">
+                      {ci.company ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-white/50 text-xs hidden md:table-cell">
+                      {ci.tickets?.name ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-emerald-400/80 text-xs font-mono">
+                        {formatTime(ci.check_in_at)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
