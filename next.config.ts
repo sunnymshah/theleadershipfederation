@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "staticprintenglish.theprint.in" },
       { protocol: "https", hostname: "pnn.digital" },
       { protocol: "https", hostname: "st1.latestly.com" },
+      { protocol: "https", hostname: "media.telanganatoday.com" },
     ],
   },
 };

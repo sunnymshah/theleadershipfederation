@@ -27,10 +27,10 @@ export function LogoMarquee() {
   const doubled = [...partners, ...partners]
 
   return (
-    <section className="py-10 bg-[#F4F8FF] overflow-hidden border-y border-black/[0.04]">
-      <div className="text-center mb-6">
+    <section className="py-14 bg-[#F4F8FF] overflow-hidden border-y border-black/[0.06]">
+      <div className="text-center mb-8">
         <span
-          className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]"
+          className="text-[13px] font-extrabold text-black/40 uppercase tracking-[0.2em]"
           style={sfText}
         >
           Trusted by leading enterprises worldwide
@@ -38,24 +38,24 @@ export function LogoMarquee() {
       </div>
       <div className="relative">
         {/* Edge fades */}
-        <div className="absolute left-0 top-0 bottom-0 w-28 z-10 bg-gradient-to-r from-[#F4F8FF] to-transparent" />
-        <div className="absolute right-0 top-0 bottom-0 w-28 z-10 bg-gradient-to-l from-[#F4F8FF] to-transparent" />
+        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-r from-[#F4F8FF] to-transparent" />
+        <div className="absolute right-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-l from-[#F4F8FF] to-transparent" />
 
         {/* Scrolling logos with company names */}
         <div className="flex animate-marquee items-center whitespace-nowrap">
           {doubled.map((p, i) => (
             <div
               key={`${p.name}-${i}`}
-              className="mx-10 shrink-0 flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity duration-300"
+              className="mx-10 shrink-0 flex items-center gap-4 hover:opacity-100 transition-opacity duration-300"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.src}
                 alt={p.name}
                 loading="lazy"
-                className="h-[36px] w-auto max-w-[100px] object-contain"
+                className="h-[52px] w-auto max-w-[140px] object-contain"
               />
-              <span className="text-[13px] font-bold text-black/50 whitespace-nowrap" style={sfText}>
+              <span className="text-[16px] font-extrabold text-black/60 whitespace-nowrap" style={sfText}>
                 {p.name}
               </span>
             </div>

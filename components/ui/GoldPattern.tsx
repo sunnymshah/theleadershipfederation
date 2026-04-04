@@ -19,19 +19,19 @@ export function GoldChevrons({ className = "" }: { className?: string }) {
         fill="none"
       >
         {/* Filled wedge glow */}
-        <path d="M350 100L650 350L350 600L400 350Z" fill="url(#totyFill)" opacity="0.06" />
+        <path d="M350 100L650 350L350 600L400 350Z" fill="url(#totyFill)" opacity="0.12" />
         {/* Bold outer arrow */}
-        <path d="M300 50L660 350L300 650" stroke="url(#totyGrad)" strokeWidth="4" strokeLinecap="round" opacity="0.30" />
+        <path d="M300 50L660 350L300 650" stroke="url(#totyGrad)" strokeWidth="5" strokeLinecap="round" opacity="0.50" />
         {/* Second arrow */}
-        <path d="M250 100L600 350L250 600" stroke="url(#totyGrad)" strokeWidth="3.5" strokeLinecap="round" opacity="0.22" />
+        <path d="M250 100L600 350L250 600" stroke="url(#totyGrad)" strokeWidth="4.5" strokeLinecap="round" opacity="0.40" />
         {/* Third arrow */}
-        <path d="M200 145L540 350L200 555" stroke="url(#totyGrad)" strokeWidth="3" strokeLinecap="round" opacity="0.16" />
+        <path d="M200 145L540 350L200 555" stroke="url(#totyGrad)" strokeWidth="4" strokeLinecap="round" opacity="0.30" />
         {/* Fourth arrow */}
-        <path d="M160 185L480 350L160 515" stroke="url(#totyGrad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.11" />
+        <path d="M160 185L480 350L160 515" stroke="url(#totyGrad)" strokeWidth="3.5" strokeLinecap="round" opacity="0.22" />
         {/* Fifth inner arrow */}
-        <path d="M130 220L420 350L130 480" stroke="#e7ab1c" strokeWidth="2" strokeLinecap="round" opacity="0.08" />
+        <path d="M130 220L420 350L130 480" stroke="#e7ab1c" strokeWidth="3" strokeLinecap="round" opacity="0.15" />
         {/* Sixth innermost */}
-        <path d="M110 255L370 350L110 445" stroke="#e7ab1c" strokeWidth="1.5" strokeLinecap="round" opacity="0.05" />
+        <path d="M110 255L370 350L110 445" stroke="#e7ab1c" strokeWidth="2.5" strokeLinecap="round" opacity="0.10" />
         <defs>
           <linearGradient id="totyGrad" x1="100" y1="50" x2="660" y2="650">
             <stop offset="0%" stopColor="#e7ab1c" />
@@ -54,9 +54,9 @@ export function GoldChevrons({ className = "" }: { className?: string }) {
         viewBox="0 0 400 400"
         fill="none"
       >
-        <path d="M300 40L60 200L300 360" stroke="url(#totyGradL)" strokeWidth="3.5" strokeLinecap="round" opacity="0.20" />
-        <path d="M280 80L100 200L280 320" stroke="url(#totyGradL)" strokeWidth="3" strokeLinecap="round" opacity="0.14" />
-        <path d="M260 115L140 200L260 285" stroke="#e7ab1c" strokeWidth="2" strokeLinecap="round" opacity="0.09" />
+        <path d="M300 40L60 200L300 360" stroke="url(#totyGradL)" strokeWidth="4.5" strokeLinecap="round" opacity="0.40" />
+        <path d="M280 80L100 200L280 320" stroke="url(#totyGradL)" strokeWidth="4" strokeLinecap="round" opacity="0.30" />
+        <path d="M260 115L140 200L260 285" stroke="#e7ab1c" strokeWidth="3" strokeLinecap="round" opacity="0.20" />
         <defs>
           <linearGradient id="totyGradL" x1="300" y1="40" x2="60" y2="360">
             <stop offset="0%" stopColor="#e7ab1c" />
@@ -70,15 +70,15 @@ export function GoldChevrons({ className = "" }: { className?: string }) {
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 1.4, delay: 0.3 }}
-        className="absolute top-[36%] left-0 right-0 h-[2px] origin-left"
-        style={{ background: "linear-gradient(90deg, transparent 5%, rgba(231,171,28,0.12) 30%, rgba(231,171,28,0.12) 70%, transparent 95%)" }}
+        className="absolute top-[36%] left-0 right-0 h-[2.5px] origin-left"
+        style={{ background: "linear-gradient(90deg, transparent 5%, rgba(231,171,28,0.22) 30%, rgba(231,171,28,0.22) 70%, transparent 95%)" }}
       />
       <motion.div
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 1.4, delay: 0.5 }}
-        className="absolute top-[40%] left-0 right-0 h-px origin-right"
-        style={{ background: "linear-gradient(90deg, transparent 10%, rgba(231,171,28,0.07) 30%, rgba(231,171,28,0.07) 70%, transparent 90%)" }}
+        className="absolute top-[40%] left-0 right-0 h-[1.5px] origin-right"
+        style={{ background: "linear-gradient(90deg, transparent 10%, rgba(231,171,28,0.14) 30%, rgba(231,171,28,0.14) 70%, transparent 90%)" }}
       />
     </div>
   )
@@ -138,14 +138,14 @@ export function GoldOrbs({ className = "" }: { className?: string }) {
       <motion.div
         animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[10%] right-[15%] w-[500px] h-[500px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 70%)" }}
+        className="absolute top-[10%] right-[15%] w-[600px] h-[600px] rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.14) 0%, transparent 70%)" }}
       />
       <motion.div
         animate={{ y: [0, 15, 0], x: [0, -8, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[5%] left-[10%] w-[400px] h-[400px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.06) 0%, transparent 70%)" }}
+        className="absolute bottom-[5%] left-[10%] w-[500px] h-[500px] rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.10) 0%, transparent 70%)" }}
       />
     </div>
   )
@@ -156,13 +156,13 @@ export function GoldStarburst({ className = "" }: { className?: string }) {
   return (
     <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
       <svg className="absolute right-0 top-0 w-2/5 h-full" viewBox="0 0 500 700" fill="none">
-        <path d="M100 20L480 350L100 680" stroke="rgba(231,171,28,0.18)" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M60 70L420 350L60 630" stroke="rgba(231,171,28,0.12)" strokeWidth="3" strokeLinecap="round" />
-        <path d="M30 120L360 350L30 580" stroke="rgba(231,171,28,0.07)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M100 20L480 350L100 680" stroke="rgba(231,171,28,0.35)" strokeWidth="4.5" strokeLinecap="round" />
+        <path d="M60 70L420 350L60 630" stroke="rgba(231,171,28,0.25)" strokeWidth="4" strokeLinecap="round" />
+        <path d="M30 120L360 350L30 580" stroke="rgba(231,171,28,0.16)" strokeWidth="3" strokeLinecap="round" />
       </svg>
       <svg className="absolute left-0 top-0 w-1/4 h-full" viewBox="0 0 300 700" fill="none">
-        <path d="M250 50L40 350L250 650" stroke="rgba(231,171,28,0.10)" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M230 110L80 350L230 590" stroke="rgba(231,171,28,0.06)" strokeWidth="2" strokeLinecap="round" />
+        <path d="M250 50L40 350L250 650" stroke="rgba(231,171,28,0.22)" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M230 110L80 350L230 590" stroke="rgba(231,171,28,0.14)" strokeWidth="2.5" strokeLinecap="round" />
       </svg>
     </div>
   )
