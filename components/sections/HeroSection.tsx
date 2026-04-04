@@ -3,19 +3,23 @@
 import { useRef } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import Link from "next/link"
-import { ArrowRight, Globe, CalendarDays, Users } from "lucide-react"
+import { ArrowRight } from "lucide-react"
+import { GoldChevrons, GoldOrbs } from "@/components/ui/GoldPattern"
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
 
 const ease = [0.16, 1, 0.3, 1] as const
 
-const fadeUp = {
-  hidden:  { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0 },
+const sfDisplay = {
+  fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
+}
+const sfText = {
+  fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
 }
 
 const stats = [
-  { value: "30+", label: "Countries" },
-  { value: "50+", label: "Events" },
-  { value: "2,000+", label: "Leaders" },
+  { value: 30, suffix: "+", label: "Countries" },
+  { value: 50, suffix: "+", label: "Events" },
+  { value: 2000, suffix: "+", label: "Leaders" },
 ]
 
 export function HeroSection() {
@@ -32,42 +36,73 @@ export function HeroSection() {
       ref={sectionRef}
       className="relative min-h-[92vh] flex items-center overflow-hidden bg-[#F4F8FF]"
     >
+      {/* Background elements */}
+      <GoldChevrons />
+      <GoldOrbs />
+
+      {/* Subtle grid overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        aria-hidden
+        style={{
+          backgroundImage: "linear-gradient(rgba(231,171,28,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(231,171,28,0.02) 1px, transparent 1px)",
+          backgroundSize: "80px 80px",
+        }}
+      />
+
       <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-28 pb-20 lg:pt-0 lg:pb-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[80vh]">
 
           {/* LEFT — Copy */}
           <div className="order-2 lg:order-1">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-6"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e7ab1c] animate-pulse" />
+              <span className="text-[11px] font-semibold text-[#e7ab1c] tracking-[0.05em] uppercase" style={sfText}>
+                6th GCC Leadership Conclave — Apr 7-8
+              </span>
+            </motion.div>
+
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease }}
-              className="leading-[1] tracking-[-0.03em] text-black"
+              className="leading-[0.95] tracking-[-0.03em] text-black"
               style={{
                 fontSize: "clamp(2.8rem, 6vw, 5.5rem)",
-                fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
                 fontWeight: 700,
+                ...sfDisplay,
               }}
             >
               Direct Access to{" "}
-              <span className="text-[#e7ab1c]">Global Leaders</span>
+              <motion.span
+                className="text-[#e7ab1c] inline-block"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, delay: 0.3, ease }}
+              >
+                Global Leaders
+              </motion.span>
             </motion.h1>
 
             <motion.p
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2, ease }}
               className="mt-6 max-w-[440px] text-black/40 leading-[1.7] text-[16px]"
-              style={{ fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif" }}
+              style={sfText}
             >
               Connecting GCC leaders, CXOs, and decision-makers through
               high-value conversations, strategic partnerships, and curated access.
             </motion.p>
 
             <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.35, ease }}
               className="mt-8 flex flex-wrap items-center gap-4"
             >
@@ -86,17 +121,18 @@ export function HeroSection() {
               </Link>
             </motion.div>
 
-            {/* Stats row */}
+            {/* Animated stats */}
             <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.5, ease }}
               className="mt-14 flex items-center gap-10"
             >
-              {stats.map(({ value, label }) => (
+              {stats.map(({ value, suffix, label }, i) => (
                 <div key={label}>
-                  <div className="text-[26px] font-bold text-black tracking-tight leading-none">{value}</div>
+                  <div className="text-[26px] font-bold text-black tracking-tight leading-none">
+                    <AnimatedCounter value={value} suffix={suffix} duration={2000 + i * 300} />
+                  </div>
                   <div className="text-[11px] text-black/30 tracking-[0.1em] uppercase font-medium mt-1">{label}</div>
                 </div>
               ))}
@@ -111,6 +147,13 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.15, ease }}
           >
             <div className="relative w-full max-w-[500px]">
+              {/* Gold accent ring behind image */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                className="absolute -inset-6 rounded-[2rem] border border-dashed border-[#e7ab1c]/10"
+              />
+
               <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
                 <motion.img
                   src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop"
@@ -123,14 +166,25 @@ export function HeroSection() {
 
               {/* Next event badge */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.9, duration: 0.7, ease }}
-                className="absolute -bottom-4 -left-4 lg:-left-8 bg-white rounded-2xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.06)]"
+                className="absolute -bottom-4 -left-4 lg:-left-8 bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-black/[0.04]"
               >
                 <div className="text-[10px] text-[#e7ab1c] uppercase tracking-[0.12em] font-bold mb-1">Next Event</div>
                 <div className="text-[14px] font-bold text-black">6th GCC Leadership Conclave</div>
                 <div className="text-[12px] text-black/40">Apr 7-8 &middot; Bengaluru</div>
+              </motion.div>
+
+              {/* Small floating badge — top right */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.2, duration: 0.6 }}
+                className="absolute -top-3 -right-3 w-16 h-16 bg-[#e7ab1c] rounded-2xl flex flex-col items-center justify-center shadow-[0_8px_24px_rgba(231,171,28,0.3)] rotate-6"
+              >
+                <span className="text-[18px] font-bold text-white leading-none">6th</span>
+                <span className="text-[8px] text-white/70 uppercase tracking-wider font-semibold">Edition</span>
               </motion.div>
             </div>
           </motion.div>
