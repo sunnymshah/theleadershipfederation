@@ -43,7 +43,9 @@ const PARTNER_CATEGORIES: PartnerCategory[] = [
     title: "Associate Partners",
     partners: [
       { name: "Apollo", logo: "/partners/apollo.png" },
-      { name: "Cadila", logo: "/partners/cadila.png" },
+      { name: "Cadila Pharmaceuticals", logo: "/partners/cadila.png" },
+      { name: "Prabhudas Lilladher", logo: "/partners/prabhudas-lilladher.png" },
+      { name: "SIBAE", logo: "/partners/sibae.png" },
       { name: "Frost & Sullivan", logo: "/partners/frost-sullivan.png" },
       { name: "H&M", logo: "/partners/hm.png" },
     ],

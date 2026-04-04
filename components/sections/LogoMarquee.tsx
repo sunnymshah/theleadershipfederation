@@ -3,20 +3,22 @@
 import Image from "next/image"
 
 const partners = [
-  { name: "Axis Bank",     src: "/partners/axis-bank.png" },
-  { name: "Tata",          src: "/partners/tata.jpg" },
-  { name: "Reliance Jio",  src: "/partners/reliance-jio.png" },
-  { name: "HCL Tech",      src: "/partners/hcltech.png" },
-  { name: "Atos",          src: "/partners/atos.png" },
-  { name: "Apollo",        src: "/partners/apollo.png" },
-  { name: "Barclays",      src: "/partners/barclays.png" },
-  { name: "EY",            src: "/partners/ey.png" },
-  { name: "ICICI Bank",    src: "/partners/icici-bank.png" },
-  { name: "Cadila",        src: "/partners/cadila.png" },
-  { name: "H&M",           src: "/partners/hm.png" },
-  { name: "SBI",           src: "/partners/sbi.png" },
-  { name: "Gulf News",     src: "/partners/gulf-news.png" },
-  { name: "Frost & Sullivan", src: "/partners/frost-sullivan.png" },
+  { name: "Axis Bank",              src: "/partners/axis-bank.png" },
+  { name: "Tata",                   src: "/partners/tata.jpg" },
+  { name: "Reliance Jio",           src: "/partners/reliance-jio.png" },
+  { name: "HCLTech",                src: "/partners/hcltech.png" },
+  { name: "Atos",                   src: "/partners/atos.png" },
+  { name: "Apollo",                 src: "/partners/apollo.png" },
+  { name: "Barclays",               src: "/partners/barclays.png" },
+  { name: "EY",                     src: "/partners/ey.png" },
+  { name: "ICICI Bank",             src: "/partners/icici-bank.png" },
+  { name: "Prabhudas Lilladher",    src: "/partners/prabhudas-lilladher.png" },
+  { name: "Cadila Pharmaceuticals", src: "/partners/cadila.png" },
+  { name: "SIBAE",                  src: "/partners/sibae.png" },
+  { name: "H&M",                    src: "/partners/hm.png" },
+  { name: "SBI",                    src: "/partners/sbi.png" },
+  { name: "Gulf News",              src: "/partners/gulf-news.png" },
+  { name: "Frost & Sullivan",       src: "/partners/frost-sullivan.png" },
 ]
 
 export function LogoMarquee() {
