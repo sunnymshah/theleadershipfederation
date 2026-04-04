@@ -1,3 +1,5 @@
+import { cookies } from "next/headers"
+import { createClient } from "@/utils/supabase/server"
 import Link from "next/link"
 import { Calendar, MapPin, ArrowRight, ExternalLink } from "lucide-react"
 import { GoldStarburst } from "@/components/ui/GoldPattern"
@@ -13,94 +15,28 @@ const sfFont = {
     "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
 }
 
-const legacyEvents = [
-  {
-    edition: "6th",
-    title: "6th GCC Leadership Conclave",
-    date: "September 8-9, 2025",
-    venue: "Bengaluru, India",
-    slug: "6th-gcc-leadership-conclave",
-    highlights: [
-      "500+ CXOs and GCC Leaders",
-      "AI & Digital Transformation",
-      "Cross-border leadership panels",
-    ],
-    coverImage:
-      "https://img.einpresswire.com/large/757972/3rd-edition-middle-east-asia-le.png",
-  },
-  {
-    edition: "5th",
-    title: "5th GCC Leadership Conclave",
-    date: "January 21-22, 2026",
-    venue: "Pune, India",
-    slug: "5th-gcc-leadership-conclave",
-    highlights: [
-      "400+ Senior Leaders",
-      "Innovation & Talent Strategy",
-      "GCC Excellence Awards",
-    ],
-    coverImage:
-      "https://img.einpresswire.com/large/713803/4th-asia-leadership-awards.png",
-  },
-  {
-    edition: "4th",
-    title: "4th Asia Leadership Awards",
-    date: "2024",
-    venue: "Bangkok, Thailand",
-    slug: "4th-asia-leadership-awards",
-    highlights: [
-      "Asia-wide leadership recognition",
-      "C-suite roundtables",
-      "Award ceremony gala",
-    ],
-    coverImage:
-      "https://img.einpresswire.com/large/713803/4th-asia-leadership-awards.png",
-  },
-  {
-    edition: "3rd",
-    title: "3rd Middle East Asia Leadership Summit",
-    date: "2024",
-    venue: "Dubai, UAE",
-    slug: "3rd-middle-east-asia-leadership-summit",
-    highlights: [
-      "GCC-Asia corridor leadership",
-      "Cross-border investment panels",
-      "Regional policy dialogue",
-    ],
-    coverImage:
-      "https://img.einpresswire.com/large/757972/3rd-edition-middle-east-asia-le.png",
-  },
-  {
-    edition: "",
-    title: "Bharat Leadership Excellence Awards 2024",
-    date: "2024",
-    venue: "New Delhi, India",
-    slug: "bharat-leadership-excellence-awards-2024",
-    highlights: [
-      "National leadership honours",
-      "Industry visionary awards",
-      "Policy & governance leaders",
-    ],
-    coverImage:
-      "https://img.einpresswire.com/large/733208/bharat-leadership-excellence-aw.png",
-  },
-  {
-    edition: "",
-    title: "Bharat Leadership Awards",
-    date: "2024",
-    venue: "India",
-    slug: "bharat-leadership-awards",
-    highlights: [
-      "Pan-India recognition",
-      "Emerging leader spotlights",
-      "Industry transformation awards",
-    ],
-    coverImage:
-      "https://img.einpresswire.com/large/733210/bharat-leadership-awards.png",
-  },
-]
+function fmtDate(d: string) {
+  return new Date(d).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
 
-export default function ArchivePage() {
+export default async function ArchivePage() {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+
+  const { data: events } = await supabase
+    .from("events")
+    .select(
+      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status"
+    )
+    .eq("status", "completed")
+    .order("start_date", { ascending: false })
+
+  const pastEvents = events ?? []
+
   return (
     <main className="min-h-screen bg-[#F4F8FF]">
       {/* Hero */}
@@ -160,75 +96,80 @@ export default function ArchivePage() {
         </Link>
       </section>
 
-      {/* Archive Grid */}
+      {/* Archive Grid — real data from Supabase */}
       <section className="max-w-6xl mx-auto px-6 pb-24">
         <h2 className="text-xs font-bold text-black/25 uppercase tracking-[0.2em] mb-10">
-          Past Editions
+          Past Editions ({pastEvents.length} events)
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {legacyEvents.map((event) => (
-            <div
-              key={event.slug}
-              className="group relative rounded-2xl overflow-hidden bg-white border border-black/[0.06] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300"
-            >
-              {/* Cover image */}
-              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#e7ab1c]/10 to-[#e7ab1c]/5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={event.coverImage}
-                  alt={event.title}
-                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                />
-                {event.edition && (
-                  <div className="absolute top-4 right-4 bg-[#e7ab1c] text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                    {event.edition} Edition
+        {pastEvents.length > 0 ? (
+          <div className="grid md:grid-cols-2 gap-6">
+            {pastEvents.map((event) => (
+              <Link
+                key={event.id}
+                href={`/events/${event.slug}`}
+                className="group relative block rounded-2xl overflow-hidden bg-white border border-black/[0.06] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300"
+              >
+                {/* Cover image */}
+                <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#e7ab1c]/10 to-[#e7ab1c]/5">
+                  {event.cover_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={event.cover_image_url}
+                      alt={event.title}
+                      className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-4xl font-bold text-[#e7ab1c]/20">
+                        TLF
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">
+                    Completed
                   </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <h3
-                  className="text-xl font-bold text-black mb-3"
-                  style={sfFont}
-                >
-                  {event.title}
-                </h3>
-                <div className="flex flex-wrap gap-4 text-sm text-black/35 mb-4">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar size={13} /> {event.date}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <MapPin size={13} /> {event.venue}
-                  </span>
                 </div>
 
-                {/* Highlights */}
-                <ul className="space-y-1.5 mb-5">
-                  {event.highlights.map((h) => (
-                    <li
-                      key={h}
-                      className="text-sm text-black/40 flex items-start gap-2"
-                    >
-                      <span className="w-1 h-1 rounded-full bg-[#e7ab1c] mt-2 shrink-0" />
-                      {h}
-                    </li>
-                  ))}
-                </ul>
+                {/* Content */}
+                <div className="p-6">
+                  <h3
+                    className="text-xl font-bold text-black mb-3 group-hover:text-[#e7ab1c] transition-colors"
+                    style={sfFont}
+                  >
+                    {event.title}
+                  </h3>
+                  <div className="flex flex-wrap gap-4 text-sm text-black/35 mb-4">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar size={13} /> {fmtDate(event.start_date)}
+                      {event.end_date &&
+                        ` — ${fmtDate(event.end_date)}`}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MapPin size={13} /> {event.venue}
+                    </span>
+                  </div>
 
-                {/* SEO-preserving link to old event slug */}
-                <Link
-                  href={`/events/${event.slug}`}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#e7ab1c] hover:text-[#d49c10] transition-colors"
-                >
-                  View Event Details{" "}
-                  <ExternalLink size={13} />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+                  {event.description && (
+                    <p className="text-sm text-black/35 line-clamp-2 mb-4">
+                      {event.description}
+                    </p>
+                  )}
+
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#e7ab1c] group-hover:text-[#d49c10] transition-colors">
+                    View Event Details <ExternalLink size={13} />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-black/30 text-lg">
+              No archived events yet.
+            </p>
+          </div>
+        )}
       </section>
     </main>
   )

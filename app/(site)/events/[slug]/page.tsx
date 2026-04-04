@@ -46,7 +46,7 @@ export default async function EventDetailPage({ params }: Props) {
     .from("events")
     .select("*")
     .eq("slug", slug)
-    .eq("status", "published")
+    .in("status", ["published", "completed"])
     .single()
 
   if (!event) notFound()
