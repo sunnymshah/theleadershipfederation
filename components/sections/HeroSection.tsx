@@ -4,8 +4,8 @@
  *  HERO SECTION — "Editorial Luxury" 50/50 Split
  *
  *  Left  50 %: Massive Playfair serif headline with staggered fade-up.
- *  Right 50 %: Circular frame with deep parallax scroll (useScroll +
- *              useTransform) on a high-quality event image.
+ *  Right 50 %: Rectangular rounded frame with deep parallax scroll
+ *              (useScroll + useTransform) on a high-quality event image.
  *  Bottom:     Sticky frosted-glass floating action bar.
  *
  *  Color tokens:
@@ -199,21 +199,20 @@ export function HeroSection() {
               </motion.div>
             </div>
 
-            {/* ── RIGHT 50 %: Parallax Circular Frame ─────────────── */}
+            {/* ── RIGHT 50 %: Parallax Rectangular Frame ────────────── */}
             <motion.div
               className="order-1 lg:order-2 flex items-center justify-center"
-              initial={{ opacity: 0, scale: 0.88, rotate: -2 }}
+              initial={{ opacity: 0, scale: 0.88, rotate: -1 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ duration: 1.2, delay: 0.2, ease }}
             >
-              <div className="relative w-full max-w-[540px] aspect-square">
-                {/* Outer decorative rings */}
-                <div className="absolute inset-[-10px] rounded-full border border-[#e7ab1c]/12" />
-                <div className="absolute inset-[-24px] rounded-full border border-[#e7ab1c]/[0.05]" />
-                <div className="absolute inset-[-40px] rounded-full border border-[#e7ab1c]/[0.02]" />
+              <div className="relative w-full max-w-[560px]">
+                {/* Outer decorative border */}
+                <div className="absolute inset-[-10px] rounded-[2rem] border border-[#e7ab1c]/12" />
+                <div className="absolute inset-[-22px] rounded-[2.4rem] border border-[#e7ab1c]/[0.05]" />
 
-                {/* Main circular frame with parallax image */}
-                <div className="relative w-full h-full rounded-full overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.1)]">
+                {/* Main rectangular frame with parallax image */}
+                <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.12)]">
                   <motion.img
                     src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop"
                     alt="Leadership conference gathering"
@@ -221,7 +220,7 @@ export function HeroSection() {
                     style={{ y: imageY, scale: imageScale }}
                   />
                   {/* Bottom vignette */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                 </div>
 
                 {/* Floating badge — event info */}
@@ -229,7 +228,7 @@ export function HeroSection() {
                   initial={{ opacity: 0, y: 20, x: -10 }}
                   animate={{ opacity: 1, y: 0, x: 0 }}
                   transition={{ delay: 1.1, duration: 0.8, ease }}
-                  className="absolute -bottom-3 -left-6 lg:-left-10 bg-white rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-black/[0.04] animate-float"
+                  className="absolute -bottom-5 -left-6 lg:-left-10 bg-white rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-black/[0.04] animate-float"
                 >
                   <div className="flex items-center gap-2 mb-1.5">
                     <CalendarDays size={12} strokeWidth={1.8} className="text-[#e7ab1c]" />
@@ -244,7 +243,7 @@ export function HeroSection() {
                   initial={{ opacity: 0, y: -16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.3, duration: 0.8, ease }}
-                  className="absolute -top-2 -right-4 lg:-right-8 bg-white rounded-xl px-4 py-3 shadow-[0_8px_28px_rgba(0,0,0,0.06)] border border-black/[0.04]"
+                  className="absolute -top-4 -right-4 lg:-right-8 bg-white rounded-xl px-4 py-3 shadow-[0_8px_28px_rgba(0,0,0,0.06)] border border-black/[0.04]"
                 >
                   <div className="text-[20px] font-bold text-[#e7ab1c] leading-none">650+</div>
                   <div className="text-[10px] text-black/40 uppercase tracking-wider font-medium mt-0.5">CXOs Expected</div>
@@ -252,7 +251,7 @@ export function HeroSection() {
 
                 {/* Dot accents */}
                 <div className="absolute top-[6%] left-[4%] w-3 h-3 rounded-full bg-[#e7ab1c]/25" />
-                <div className="absolute bottom-[20%] right-[-4%] w-2 h-2 rounded-full bg-[#e7ab1c]/20" />
+                <div className="absolute bottom-[15%] right-[-3%] w-2 h-2 rounded-full bg-[#e7ab1c]/20" />
               </div>
             </motion.div>
           </div>
