@@ -1,30 +1,18 @@
-/* ═══════════════════════════════════════════════════════════════════════════
- *  ABOUT PAGE — Server Component
- *
- *  Premium "About" page for The Leadership Federation.
- *  Frost background, serif headings, generous whitespace.
- * ═══════════════════════════════════════════════════════════════════════════ */
-
 import Link from "next/link"
 import {
   MessageSquare,
   Globe,
   ShieldCheck,
   Handshake,
-  CalendarDays,
   Users,
-  Mic2,
-  MapPin,
   ArrowRight,
 } from "lucide-react"
 
 export const metadata = {
-  title: "About",
+  title: "About | The Leadership Federation",
   description:
     "The Leadership Federation is a global platform connecting GCC leaders, CXOs, decision-makers, innovators, policymakers, and ecosystem builders.",
 }
-
-/* ─── Data ────────────────────────────────────────────────────────────────── */
 
 const WHY_TLF = [
   {
@@ -60,24 +48,24 @@ const STATS = [
   { value: "500+", label: "Speakers" },
 ]
 
-/* ═══════════════════════════════════════════════════════════════════════════ */
+const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
 export default function AboutPage() {
   return (
     <main className="bg-[#F4F8FF]">
-      {/* ── Hero ──────────────────────────────────────────────────── */}
+      {/* Hero */}
       <section className="pt-36 pb-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#1a1a2e]/40 uppercase tracking-[0.25em] mb-6">
+          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
             About Us
           </span>
           <h1
-            className="font-serif text-[#1a1a2e] leading-[1.08] mb-8"
-            style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
+            className="text-black leading-[1.08] font-bold mb-8"
+            style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
           >
             The Leadership Federation
           </h1>
-          <p className="text-lg md:text-xl text-[#1a1a2e]/50 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-black/40 leading-relaxed max-w-3xl mx-auto">
             A global leadership platform connecting GCC leaders, CXOs,
             decision-makers, innovators, policymakers, and ecosystem builders
             to drive meaningful impact across industries and borders.
@@ -85,16 +73,16 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Vision ────────────────────────────────────────────────── */}
+      {/* Vision */}
       <section className="pb-28 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-[#1a1a2e] p-12 md:p-20 text-center">
-            <span className="inline-block text-[11px] font-bold text-white/30 uppercase tracking-[0.25em] mb-6">
+          <div className="rounded-3xl bg-black p-12 md:p-20 text-center">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
               Our Vision
             </span>
             <h2
-              className="font-serif text-white leading-[1.12] max-w-3xl mx-auto"
-              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
+              className="text-white leading-[1.12] font-bold max-w-3xl mx-auto"
+              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
             >
               To build the world&rsquo;s most impactful leadership ecosystem
             </h2>
@@ -107,48 +95,46 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Founder ───────────────────────────────────────────────── */}
+      {/* Founder */}
       <section className="pb-28 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-5 gap-12 md:gap-16 items-start">
-            {/* Portrait placeholder */}
             <div className="md:col-span-2">
-              <div className="aspect-[3/4] rounded-2xl bg-[#1a1a2e]/[0.06] border border-[#1a1a2e]/[0.08] flex items-center justify-center">
+              <div className="aspect-[3/4] rounded-2xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center">
                 <div className="text-center px-8">
-                  <div className="w-20 h-20 rounded-full bg-[#1a1a2e]/[0.08] mx-auto mb-4 flex items-center justify-center">
-                    <Users size={32} strokeWidth={1.2} className="text-[#1a1a2e]/30" />
+                  <div className="w-20 h-20 rounded-full bg-[#e7ab1c]/10 mx-auto mb-4 flex items-center justify-center">
+                    <Users size={32} strokeWidth={1.2} className="text-[#e7ab1c]" />
                   </div>
-                  <p className="text-sm font-semibold text-[#1a1a2e]/60">Sunny Shah</p>
-                  <p className="text-xs text-[#1a1a2e]/30 mt-1">Founder & CEO</p>
+                  <p className="text-sm font-semibold text-black/60">Sunny Shah</p>
+                  <p className="text-xs text-black/30 mt-1">Founder & CEO</p>
                 </div>
               </div>
             </div>
 
-            {/* Bio */}
             <div className="md:col-span-3">
-              <span className="inline-block text-[11px] font-bold text-[#1a1a2e]/40 uppercase tracking-[0.25em] mb-5">
+              <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
                 The Founder
               </span>
               <h2
-                className="font-serif text-[#1a1a2e] leading-[1.12] mb-6"
-                style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)" }}
+                className="text-black leading-[1.12] font-bold mb-6"
+                style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
               >
                 Sunny Shah
               </h2>
-              <p className="text-[15px] text-[#1a1a2e]/50 leading-[1.8] mb-5">
+              <p className="text-[15px] text-black/45 leading-[1.8] mb-5">
                 As Founder & CEO of The Leadership Federation, Sunny Shah
                 envisioned a platform that transcends traditional conferences
                 and networking events. His vision centres on creating lasting
                 bridges between enterprises, Global Capability Centres,
                 governments, and emerging ecosystems.
               </p>
-              <p className="text-[15px] text-[#1a1a2e]/50 leading-[1.8] mb-5">
+              <p className="text-[15px] text-black/45 leading-[1.8] mb-5">
                 Under his leadership, TLF has grown into one of the most
                 respected leadership platforms in the GCC and Asia-Pacific
                 region, convening decision-makers from over 30 countries and
                 facilitating the strategic conversations that shape industries.
               </p>
-              <p className="text-[15px] text-[#1a1a2e]/50 leading-[1.8]">
+              <p className="text-[15px] text-black/45 leading-[1.8]">
                 His approach is rooted in a singular belief: that the right
                 conversation between the right leaders at the right time can
                 transform enterprises, economies, and communities. This
@@ -160,16 +146,16 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Why TLF Exists ────────────────────────────────────────── */}
+      {/* Why TLF Exists */}
       <section className="pb-28 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block text-[11px] font-bold text-[#1a1a2e]/40 uppercase tracking-[0.25em] mb-5">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
               Our Pillars
             </span>
             <h2
-              className="font-serif text-[#1a1a2e] leading-[1.12]"
-              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
+              className="text-black leading-[1.12] font-bold"
+              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
             >
               Why TLF Exists
             </h2>
@@ -179,17 +165,15 @@ export default function AboutPage() {
             {WHY_TLF.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
-                className="rounded-2xl bg-white p-8 md:p-10 border border-[#1a1a2e]/[0.06] transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(26,26,46,0.04)]"
+                className="rounded-2xl bg-white/70 p-8 md:p-10 border border-black/[0.04] transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
               >
-                <Icon
-                  size={28}
-                  strokeWidth={1.4}
-                  className="text-[#1a1a2e]/60 mb-5"
-                />
-                <h3 className="text-[17px] font-bold text-[#1a1a2e] mb-3">
+                <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/10 flex items-center justify-center mb-5">
+                  <Icon size={22} strokeWidth={1.4} className="text-[#e7ab1c]" />
+                </div>
+                <h3 className="text-[17px] font-bold text-black mb-3">
                   {title}
                 </h3>
-                <p className="text-[14px] text-[#1a1a2e]/45 leading-[1.7]">
+                <p className="text-[14px] text-black/35 leading-[1.7]">
                   {description}
                 </p>
               </div>
@@ -198,20 +182,20 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Stats ─────────────────────────────────────────────────── */}
+      {/* Stats */}
       <section className="pb-28 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] p-10 md:p-16">
+          <div className="rounded-3xl bg-white/70 border border-black/[0.04] p-10 md:p-16">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
               {STATS.map(({ value, label }) => (
                 <div key={label}>
                   <p
-                    className="font-serif text-[#1a1a2e] leading-none mb-2"
-                    style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)" }}
+                    className="text-[#e7ab1c] leading-none font-bold mb-2"
+                    style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", ...sfFont }}
                   >
                     {value}
                   </p>
-                  <p className="text-[13px] font-semibold text-[#1a1a2e]/35 uppercase tracking-[0.15em]">
+                  <p className="text-[13px] font-semibold text-black/35 uppercase tracking-[0.15em]">
                     {label}
                   </p>
                 </div>
@@ -221,23 +205,23 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────────────────── */}
+      {/* CTA */}
       <section className="pb-32 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2
-            className="font-serif text-[#1a1a2e] leading-[1.12] mb-5"
-            style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)" }}
+            className="text-black leading-[1.12] font-bold mb-5"
+            style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", ...sfFont }}
           >
             Join the Ecosystem
           </h2>
-          <p className="text-[#1a1a2e]/45 text-base leading-relaxed mb-10 max-w-xl mx-auto">
+          <p className="text-black/35 text-base leading-relaxed mb-10 max-w-xl mx-auto">
             Whether you are a CXO seeking strategic connections, a GCC leader
             driving transformation, or a policymaker shaping the future, there
             is a place for you in The Leadership Federation.
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#1a1a2e] text-white text-sm font-semibold tracking-wide transition-all duration-300 hover:bg-[#1a1a2e]/90 hover:shadow-[0_8px_32px_rgba(26,26,46,0.2)]"
+            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#e7ab1c] text-white text-sm font-semibold transition-all duration-200 hover:bg-[#d49c10] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
           >
             Get in Touch
             <ArrowRight size={16} />

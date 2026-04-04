@@ -1,31 +1,42 @@
 "use client"
 
-const logos = [
-  "HSBC", "GOOGLE", "ADOBE", "SCHNEIDER ELECTRIC", "DIAGEO", "BEST BUY",
-  "SAP LABS", "TATA", "HCL TECH", "RELIANCE", "KPMG", "DELOITTE",
-  "EY", "CITI", "DBS BANK", "SAMSUNG", "UBER", "NOVARTIS", "BOSCH",
-  "AXIS BANK",
+import Image from "next/image"
+
+const partners = [
+  { name: "Axis Bank",     src: "/partners/axis-bank.png" },
+  { name: "Tata",          src: "/partners/tata.jpg" },
+  { name: "Reliance Jio",  src: "/partners/reliance-jio.png" },
+  { name: "HCL Tech",      src: "/partners/hcltech.png" },
+  { name: "Atos",          src: "/partners/atos.png" },
+  { name: "Apollo",        src: "/partners/apollo.png" },
+  { name: "Barclays",      src: "/partners/barclays.png" },
+  { name: "EY",            src: "/partners/ey.png" },
+  { name: "ICICI Bank",    src: "/partners/icici-bank.png" },
+  { name: "Cadila",        src: "/partners/cadila.png" },
+  { name: "H&M",           src: "/partners/hm.png" },
+  { name: "SBI",           src: "/partners/sbi.png" },
+  { name: "Gulf News",     src: "/partners/gulf-news.png" },
+  { name: "Frost & Sullivan", src: "/partners/frost-sullivan.png" },
 ]
 
 export function LogoMarquee() {
   return (
-    <section className="py-10 bg-[#F4F8FF] overflow-hidden">
-      <p className="text-center text-[11px] tracking-[0.2em] uppercase text-[#1a1a2e]/30 font-semibold mb-8">
-        Leaders from world-class organizations
-      </p>
-
+    <section className="py-8 bg-[#F4F8FF] overflow-hidden border-y border-black/[0.04]">
       <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-[#F4F8FF] to-transparent" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-[#F4F8FF] to-transparent" />
+        <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-[#F4F8FF] to-transparent" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-l from-[#F4F8FF] to-transparent" />
 
-        <div className="flex animate-marquee whitespace-nowrap">
-          {[...logos, ...logos].map((logo, i) => (
-            <span
-              key={`${logo}-${i}`}
-              className="mx-8 text-[13px] font-bold tracking-[0.15em] uppercase text-[#1a1a2e]/15 select-none"
-            >
-              {logo}
-            </span>
+        <div className="flex animate-marquee items-center whitespace-nowrap">
+          {[...partners, ...partners].map((p, i) => (
+            <div key={`${p.name}-${i}`} className="mx-8 shrink-0 opacity-40 hover:opacity-70 transition-opacity">
+              <Image
+                src={p.src}
+                alt={p.name}
+                width={100}
+                height={40}
+                className="h-[28px] w-auto object-contain grayscale"
+              />
+            </div>
           ))}
         </div>
       </div>
