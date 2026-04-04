@@ -44,7 +44,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
 
       {/* Gold glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[700px] h-[90vw] max-h-[700px] pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(231,171,28,0.10) 0%, transparent 60%)" }}
         aria-hidden
       />
