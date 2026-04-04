@@ -20,21 +20,22 @@ import {
   Tag,
   ScanLine,
   Settings,
+  UserCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AdminLogoutButton } from "./AdminLogoutButton"
 
 const navItems = [
-  { label: "Dashboard",  href: "/admin",           icon: LayoutDashboard },
-  { label: "Events",     href: "/admin/events",    icon: Calendar },
-  { label: "Tickets",    href: "/admin/tickets",   icon: Ticket },
-  { label: "Speakers",   href: "/admin/speakers",  icon: Radio },
-  { label: "Attendees",  href: "/admin/attendees",  icon: Users },
-  { label: "Sponsors",   href: "/admin/sponsors",   icon: Building2 },
-  { label: "Sessions",   href: "/admin/sessions",   icon: ClipboardList },
-  { label: "Promo Codes", href: "/admin/promo-codes", icon: Tag },
-  { label: "Check-In",   href: "/admin/check-in",   icon: ScanLine },
-  { label: "Settings",   href: "/admin/settings",  icon: Settings },
+  { label: "Dashboard",   href: "/admin",             icon: LayoutDashboard, section: "main" },
+  { label: "Events",      href: "/admin/events",      icon: Calendar,        section: "main" },
+  { label: "Tickets",     href: "/admin/tickets",     icon: Ticket,          section: "manage" },
+  { label: "Speakers",    href: "/admin/speakers",    icon: Radio,           section: "manage" },
+  { label: "CRM / Leads", href: "/admin/attendees",   icon: UserCheck,       section: "manage" },
+  { label: "Sponsors",    href: "/admin/sponsors",    icon: Building2,       section: "manage" },
+  { label: "Sessions",    href: "/admin/sessions",    icon: ClipboardList,   section: "manage" },
+  { label: "Promo Codes", href: "/admin/promo-codes", icon: Tag,             section: "manage" },
+  { label: "Check-In",    href: "/admin/check-in",    icon: ScanLine,        section: "ops" },
+  { label: "Settings",    href: "/admin/settings",    icon: Settings,        section: "ops" },
 ]
 
 export function AdminSidebar({ userEmail }: { userEmail: string }) {
@@ -62,36 +63,51 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
       </div>
 
       {/* ── Navigation ───────────────────────────────────────────── */}
-      <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ label, href, icon: Icon }) => {
-          // Match exact for dashboard, prefix for others
-          const isActive =
-            href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(href)
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        {/* Main */}
+        <div className="space-y-0.5 mb-5">
+          {navItems.filter(n => n.section === "main").map(({ label, href, icon: Icon }) => {
+            const isActive = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href)
+            return (
+              <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150", isActive ? "bg-white/[0.07] text-white" : "text-white/45 hover:text-white/75 hover:bg-white/[0.03]")}>
+                <Icon size={17} className={cn("shrink-0 transition-colors", isActive ? "text-[#c9a84c]" : "")} />
+                {label}
+              </Link>
+            )
+          })}
+        </div>
 
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150",
-                isActive
-                  ? "bg-white/[0.07] text-white"
-                  : "text-white/45 hover:text-white/75 hover:bg-white/[0.03]"
-              )}
-            >
-              <Icon
-                size={17}
-                className={cn(
-                  "shrink-0 transition-colors",
-                  isActive ? "text-[#c9a84c]" : ""
-                )}
-              />
-              {label}
-            </Link>
-          )
-        })}
+        {/* Manage Section */}
+        <div className="mb-5">
+          <p className="px-3 text-[10px] text-white/20 uppercase tracking-[0.15em] font-semibold mb-2">Manage</p>
+          <div className="space-y-0.5">
+            {navItems.filter(n => n.section === "manage").map(({ label, href, icon: Icon }) => {
+              const isActive = pathname.startsWith(href)
+              return (
+                <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150", isActive ? "bg-white/[0.07] text-white" : "text-white/45 hover:text-white/75 hover:bg-white/[0.03]")}>
+                  <Icon size={17} className={cn("shrink-0 transition-colors", isActive ? "text-[#c9a84c]" : "")} />
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Operations Section */}
+        <div>
+          <p className="px-3 text-[10px] text-white/20 uppercase tracking-[0.15em] font-semibold mb-2">Operations</p>
+          <div className="space-y-0.5">
+            {navItems.filter(n => n.section === "ops").map(({ label, href, icon: Icon }) => {
+              const isActive = pathname.startsWith(href)
+              return (
+                <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150", isActive ? "bg-white/[0.07] text-white" : "text-white/45 hover:text-white/75 hover:bg-white/[0.03]")}>
+                  <Icon size={17} className={cn("shrink-0 transition-colors", isActive ? "text-[#c9a84c]" : "")} />
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
       </nav>
 
       {/* ── User & Logout ────────────────────────────────────────── */}

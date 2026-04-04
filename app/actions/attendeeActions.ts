@@ -12,9 +12,23 @@ async function getAuthenticatedClient() {
   return { supabase, user }
 }
 
-function invalidateCaches() {
+async function invalidateCaches(supabase: ReturnType<typeof createClient>, eventId: string) {
   revalidatePath("/admin/attendees", "page")
+  revalidatePath("/admin/events", "page")
   revalidatePath("/admin", "page")
+  revalidatePath(`/admin/events/${eventId}`, "page")
+
+  const { data: event } = await supabase
+    .from("events")
+    .select("slug")
+    .eq("id", eventId)
+    .single()
+
+  if (event?.slug) {
+    revalidatePath(`/events/${event.slug}`, "page")
+  }
+  revalidatePath("/events", "page")
+  revalidatePath("/", "layout")
 }
 
 export async function createAttendee(formData: FormData) {
@@ -39,7 +53,8 @@ export async function createAttendee(formData: FormData) {
       .insert({
         event_id: eventId,
         ticket_id: ticketId || null,
-        name, email,
+        name,
+        email,
         phone: phone || null,
         company: company || null,
         designation: designation || null,
@@ -51,7 +66,6 @@ export async function createAttendee(formData: FormData) {
 
     if (error) return { success: false, error: error.message }
 
-    // Increment ticket sold count if ticket assigned
     if (ticketId) {
       const { data: ticket } = await supabase.from("tickets").select("sold").eq("id", ticketId).single()
       if (ticket) {
@@ -59,7 +73,7 @@ export async function createAttendee(formData: FormData) {
       }
     }
 
-    invalidateCaches()
+    await invalidateCaches(supabase, eventId)
     return { success: true, attendee: data }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -69,6 +83,12 @@ export async function createAttendee(formData: FormData) {
 export async function updateAttendee(attendeeId: string, formData: FormData) {
   try {
     const { supabase } = await getAuthenticatedClient()
+
+    const { data: existing } = await supabase
+      .from("attendees")
+      .select("event_id")
+      .eq("id", attendeeId)
+      .single()
 
     const name        = formData.get("name") as string
     const email       = formData.get("email") as string
@@ -83,7 +103,8 @@ export async function updateAttendee(attendeeId: string, formData: FormData) {
     const { data, error } = await supabase
       .from("attendees")
       .update({
-        name, email,
+        name,
+        email,
         phone: phone || null,
         company: company || null,
         designation: designation || null,
@@ -96,7 +117,7 @@ export async function updateAttendee(attendeeId: string, formData: FormData) {
       .single()
 
     if (error) return { success: false, error: error.message }
-    invalidateCaches()
+    if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true, attendee: data }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -107,6 +128,12 @@ export async function checkInAttendee(attendeeId: string) {
   try {
     const { supabase } = await getAuthenticatedClient()
 
+    const { data: existing } = await supabase
+      .from("attendees")
+      .select("event_id")
+      .eq("id", attendeeId)
+      .single()
+
     const { data, error } = await supabase
       .from("attendees")
       .update({ status: "checked_in", check_in_at: new Date().toISOString(), updated_at: new Date().toISOString() })
@@ -115,7 +142,7 @@ export async function checkInAttendee(attendeeId: string) {
       .single()
 
     if (error) return { success: false, error: error.message }
-    invalidateCaches()
+    if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true, attendee: data }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -125,9 +152,16 @@ export async function checkInAttendee(attendeeId: string) {
 export async function deleteAttendee(attendeeId: string) {
   try {
     const { supabase } = await getAuthenticatedClient()
+
+    const { data: existing } = await supabase
+      .from("attendees")
+      .select("event_id")
+      .eq("id", attendeeId)
+      .single()
+
     const { error } = await supabase.from("attendees").delete().eq("id", attendeeId)
     if (error) return { success: false, error: error.message }
-    invalidateCaches()
+    if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }

@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
 import { createEvent, updateEvent, deleteEvent } from "@/app/actions/eventActions"
 import {
@@ -26,6 +27,7 @@ import {
   X,
   Calendar,
   Loader2,
+  ExternalLink,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -229,12 +231,14 @@ export default function AdminEventsPage() {
                   className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.015] transition-colors"
                 >
                   <td className="px-5 py-4">
-                    <div className="font-medium text-white/90">
-                      {event.title}
-                    </div>
-                    <div className="text-[11px] text-white/30 mt-0.5">
-                      /{event.slug}
-                    </div>
+                    <Link href={`/admin/events/${event.id}`} className="block group/link">
+                      <div className="font-medium text-white/90 group-hover/link:text-[#c9a84c] transition-colors">
+                        {event.title}
+                      </div>
+                      <div className="text-[11px] text-white/30 mt-0.5">
+                        /{event.slug}
+                      </div>
+                    </Link>
                   </td>
                   <td className="px-5 py-4 text-white/50 text-xs whitespace-nowrap">
                     {fmtDate(event.start_date)} — {fmtDate(event.end_date)}
@@ -253,6 +257,13 @@ export default function AdminEventsPage() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/admin/events/${event.id}`}
+                        className="p-2 rounded-md text-white/30 hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+                        title="Manage event"
+                      >
+                        <ExternalLink size={15} />
+                      </Link>
                       <button
                         onClick={() => openEdit(event)}
                         className="p-2 rounded-md text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-colors"
