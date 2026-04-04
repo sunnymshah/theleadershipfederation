@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin, Users } from "lucide-react"
@@ -50,28 +49,6 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
         aria-hidden
       />
 
-      {/* TOTY diagonal lines */}
-      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" aria-hidden>
-        <motion.line
-          x1="0" y1="0" x2="100%" y2="100%"
-          stroke="rgba(231,171,28,0.08)"
-          strokeWidth="2"
-          initial={{ pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 2 }}
-        />
-        <motion.line
-          x1="100%" y1="0" x2="0" y2="100%"
-          stroke="rgba(231,171,28,0.06)"
-          strokeWidth="2"
-          initial={{ pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 2, delay: 0.3 }}
-        />
-      </svg>
-
       {/* TOTY chevron arrows on right */}
       <svg className="absolute right-0 top-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 600" fill="none" aria-hidden>
         <path d="M100 20L380 300L100 580" stroke="rgba(231,171,28,0.12)" strokeWidth="3" strokeLinecap="round" />
@@ -80,24 +57,13 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
       </svg>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 mb-6"
-          >
+        <div className="animate-fade-in-up">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e7ab1c] animate-pulse" />
             <span className="text-[11px] tracking-[0.2em] uppercase text-[#e7ab1c] font-semibold">
               Featured Event
             </span>
-          </motion.span>
+          </span>
 
           <h2
             className="mt-4 text-[clamp(1.6rem,4vw,2.8rem)] leading-[1.1] text-white font-bold tracking-[-0.02em]"
@@ -106,49 +72,26 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             {e.title}
           </h2>
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="mt-6 flex flex-wrap items-center justify-center gap-6 text-white/40 text-[14px]"
-          >
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-white/40 text-[14px] animate-fade-in-up" style={{ animationDelay: "150ms" }}>
             <span className="inline-flex items-center gap-2"><Calendar size={14} strokeWidth={1.5} /> May 21-22, 2026</span>
             <span className="inline-flex items-center gap-2"><MapPin size={14} strokeWidth={1.5} /> Mumbai, India</span>
             <span className="inline-flex items-center gap-2"><Users size={14} strokeWidth={1.5} /> 700+ CXOs</span>
-          </motion.div>
+          </div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="mt-6 max-w-xl mx-auto text-white/30 text-[15px] leading-[1.7]"
-          >
+          <p className="mt-6 max-w-xl mx-auto text-white/30 text-[15px] leading-[1.7] animate-fade-in-up" style={{ animationDelay: "250ms" }}>
             {e.description}
-          </motion.p>
+          </p>
 
           {/* Event highlights */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.45, duration: 0.5 }}
-            className="mt-8 flex flex-wrap items-center justify-center gap-3"
-          >
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in-up" style={{ animationDelay: "350ms" }}>
             {["AI & Digital Transformation", "Cross-Border Leadership", "Innovation Awards"].map((tag) => (
               <span key={tag} className="px-3 py-1 rounded-full text-[11px] font-medium text-[#e7ab1c]/70 border border-[#e7ab1c]/15 bg-[#e7ab1c]/[0.05]">
                 {tag}
               </span>
             ))}
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
+          <div className="animate-fade-in-up" style={{ animationDelay: "400ms" }}>
             <Link
               href="/events"
               className="mt-8 inline-flex items-center gap-2 px-8 py-[14px] rounded-full font-semibold text-[14px] text-black bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
@@ -156,8 +99,8 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               Register Now
               <ArrowRight size={15} />
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </section>
   )
