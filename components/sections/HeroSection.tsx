@@ -2,6 +2,7 @@
 
 import { useRef } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
+import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { GoldChevrons, GoldOrbs } from "@/components/ui/GoldPattern"
@@ -36,11 +37,11 @@ export function HeroSection() {
       ref={sectionRef}
       className="relative min-h-[92vh] flex items-center overflow-hidden bg-[#F4F8FF]"
     >
-      {/* Background elements */}
+      {/* TOTY-style bold gold arrows */}
       <GoldChevrons />
       <GoldOrbs />
 
-      {/* Angular grid overlay */}
+      {/* Grid overlay */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden
@@ -64,7 +65,7 @@ export function HeroSection() {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#e7ab1c] animate-pulse" />
               <span className="text-[11px] font-semibold text-[#e7ab1c] tracking-[0.05em] uppercase" style={sfText}>
-                6th GCC Leadership Conclave — Apr 7-8
+                7th GCC Leadership Conclave — May 21-22, Mumbai
               </span>
             </motion.div>
 
@@ -140,7 +141,7 @@ export function HeroSection() {
             </motion.div>
           </div>
 
-          {/* RIGHT — Image */}
+          {/* RIGHT — Real TLF event image */}
           <motion.div
             className="order-1 lg:order-2 flex items-center justify-center"
             initial={{ opacity: 0, scale: 0.92 }}
@@ -148,7 +149,7 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.15, ease }}
           >
             <div className="relative w-full max-w-[480px]">
-              {/* Gold accent ring */}
+              {/* Gold dashed ring */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
@@ -156,12 +157,15 @@ export function HeroSection() {
               />
 
               <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.10)]">
-                <motion.img
-                  src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop"
-                  alt="GCC Leadership Conclave"
-                  className="w-full h-full object-cover"
-                  style={{ y: imageY, scale: imageScale }}
-                />
+                <motion.div style={{ y: imageY, scale: imageScale }} className="w-full h-full">
+                  <Image
+                    src="https://img.einpresswire.com/large/733208/bharat-leadership-excellence-aw.png"
+                    alt="The Leadership Federation — Bharat Leadership Excellence Awards"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </motion.div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
               </div>
 
@@ -173,18 +177,18 @@ export function HeroSection() {
                 className="absolute -bottom-4 -left-4 lg:-left-8 bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-black/[0.04]"
               >
                 <div className="text-[10px] text-[#e7ab1c] uppercase tracking-[0.12em] font-bold mb-1">Next Event</div>
-                <div className="text-[14px] font-bold text-black">6th GCC Leadership Conclave</div>
-                <div className="text-[12px] text-black/40">Apr 7-8 &middot; Bengaluru</div>
+                <div className="text-[14px] font-bold text-black">7th GCC Leadership Conclave</div>
+                <div className="text-[12px] text-black/40">May 21-22 &middot; Mumbai</div>
               </motion.div>
 
-              {/* Edition badge — top right */}
+              {/* Edition badge */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1.2, duration: 0.6 }}
                 className="absolute -top-3 -right-3 w-16 h-16 bg-[#e7ab1c] rounded-2xl flex flex-col items-center justify-center shadow-[0_8px_24px_rgba(231,171,28,0.3)] rotate-6"
               >
-                <span className="text-[18px] font-bold text-white leading-none">6th</span>
+                <span className="text-[18px] font-bold text-white leading-none">7th</span>
                 <span className="text-[8px] text-white/70 uppercase tracking-wider font-semibold">Edition</span>
               </motion.div>
             </div>

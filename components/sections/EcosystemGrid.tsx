@@ -1,9 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Image from "next/image"
 import Link from "next/link"
 import { CalendarDays, Crown, Mic2, ArrowRight } from "lucide-react"
-import { DotGrid } from "@/components/ui/GoldPattern"
+import { DotGrid, GoldStarburst } from "@/components/ui/GoldPattern"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -17,6 +18,7 @@ const pillars = [
     href: "/events",
     stat: "50+",
     statLabel: "Events",
+    image: "https://img.einpresswire.com/large/757972/3rd-edition-middle-east-asia-le.png",
   },
   {
     icon: Crown,
@@ -25,6 +27,7 @@ const pillars = [
     href: "/platforms",
     stat: "500+",
     statLabel: "Members",
+    image: "https://img.einpresswire.com/large/713803/4th-asia-leadership-awards.png",
   },
   {
     icon: Mic2,
@@ -33,6 +36,7 @@ const pillars = [
     href: "/media",
     stat: "60+",
     statLabel: "Episodes",
+    image: "https://img.einpresswire.com/large/733210/bharat-leadership-awards.png",
   },
 ]
 
@@ -52,12 +56,7 @@ export function EcosystemGrid() {
   return (
     <section className="relative py-20 lg:py-28 bg-[#F4F8FF] overflow-hidden">
       <DotGrid className="opacity-40" />
-
-      {/* Chevron accent in background */}
-      <svg className="absolute top-0 right-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 700" fill="none" aria-hidden>
-        <path d="M150 50L380 350L150 650" stroke="rgba(231,171,28,0.08)" strokeWidth="2" strokeLinecap="round" />
-        <path d="M100 100L310 350L100 600" stroke="rgba(231,171,28,0.05)" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
+      <GoldStarburst />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <motion.div
@@ -97,23 +96,31 @@ export function EcosystemGrid() {
               <motion.div key={p.title} variants={cardVariants}>
                 <Link
                   href={p.href}
-                  className="group block bg-white/70 border border-black/[0.04] rounded-2xl p-7 h-full hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] hover:border-[#e7ab1c]/20 transition-all duration-300 relative overflow-hidden"
+                  className="group block bg-white/70 border border-black/[0.04] rounded-2xl overflow-hidden h-full hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] hover:border-[#e7ab1c]/20 transition-all duration-300 relative"
                 >
-                  {/* Hover gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#e7ab1c]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/10 flex items-center justify-center group-hover:bg-[#e7ab1c]/15 transition-colors duration-300">
-                        <Icon size={20} strokeWidth={1.5} className="text-[#e7ab1c]" />
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[20px] font-bold text-[#e7ab1c]/80 leading-none">{p.stat}</div>
-                        <div className="text-[10px] text-black/25 uppercase tracking-wider font-medium">{p.statLabel}</div>
-                      </div>
+                  {/* Card image */}
+                  <div className="relative h-36 overflow-hidden">
+                    <Image
+                      src={p.image}
+                      alt={p.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/20 to-transparent" />
+                    <div className="absolute top-3 right-3 text-right">
+                      <div className="text-[18px] font-bold text-white leading-none drop-shadow-md">{p.stat}</div>
+                      <div className="text-[9px] text-white/80 uppercase tracking-wider font-medium drop-shadow-md">{p.statLabel}</div>
                     </div>
-                    <h3 className="text-[17px] font-bold text-black mb-2">{p.title}</h3>
-                    <p className="text-[14px] text-black/35 leading-[1.7] mb-5">{p.description}</p>
+                  </div>
+
+                  <div className="p-6 pt-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center group-hover:bg-[#e7ab1c]/15 transition-colors duration-300">
+                        <Icon size={18} strokeWidth={1.5} className="text-[#e7ab1c]" />
+                      </div>
+                      <h3 className="text-[16px] font-bold text-black">{p.title}</h3>
+                    </div>
+                    <p className="text-[13px] text-black/35 leading-[1.7] mb-4">{p.description}</p>
                     <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">
                       Learn more <ArrowRight size={13} />
                     </span>
