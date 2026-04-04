@@ -64,7 +64,7 @@ const pillars = [
 
 export function EcosystemGrid() {
   return (
-    <section className="bg-[#FEFBEA] py-28 overflow-hidden">
+    <section className="bg-[#FAECD2] py-28 overflow-hidden">
       <div className="max-w-6xl mx-auto px-6 sm:px-10">
         {/* Section header */}
         <motion.div

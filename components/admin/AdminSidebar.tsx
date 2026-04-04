@@ -1,19 +1,24 @@
 "use client"
 
-/**
- * ─── ADMIN SIDEBAR ───────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  ADMIN SIDEBAR — 1-to-1 Zoho Backstage Replica
  *
- * Fixed left sidebar with navigation and active-state highlighting.
- * Client Component because it uses usePathname() for the active link.
- */
+ *  Exact Zoho Backstage modules:
+ *    Dashboard, Microsite (Website Builder), Tickets, Attendees,
+ *    Orders, Speakers, Sponsors, Settings
+ *
+ *  Visual: White sidebar, #f4f5f7 workspace bg, exact Zoho grey/blue
+ *  active states, thin-stroke icons matching Zoho's iconography.
+ * ═══════════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
-  Calendar,
+  Globe,
   Ticket,
   Users,
+  ShoppingCart,
   Radio,
   Building2,
   ClipboardList,
@@ -25,98 +30,109 @@ import {
 import { cn } from "@/lib/utils"
 import { AdminLogoutButton } from "./AdminLogoutButton"
 
+/* ─── Zoho Backstage exact sidebar modules ─────────────────────────────── */
 const navItems = [
-  { label: "Dashboard",   href: "/admin",             icon: LayoutDashboard, section: "main" },
-  { label: "Events",      href: "/admin/events",      icon: Calendar,        section: "main" },
-  { label: "Tickets",     href: "/admin/tickets",     icon: Ticket,          section: "manage" },
-  { label: "Speakers",    href: "/admin/speakers",    icon: Radio,           section: "manage" },
-  { label: "CRM / Leads", href: "/admin/attendees",   icon: UserCheck,       section: "manage" },
-  { label: "Sponsors",    href: "/admin/sponsors",    icon: Building2,       section: "manage" },
-  { label: "Sessions",    href: "/admin/sessions",    icon: ClipboardList,   section: "manage" },
-  { label: "Promo Codes", href: "/admin/promo-codes", icon: Tag,             section: "manage" },
-  { label: "Check-In",    href: "/admin/check-in",    icon: ScanLine,        section: "ops" },
-  { label: "Settings",    href: "/admin/settings",    icon: Settings,        section: "ops" },
+  /* Main */
+  { label: "Dashboard",    href: "/admin",             icon: LayoutDashboard, section: "main" },
+  { label: "Events",       href: "/admin/events",      icon: Globe,           section: "main" },
+  /* Manage — matches Zoho's core modules */
+  { label: "Tickets",      href: "/admin/tickets",     icon: Ticket,          section: "manage" },
+  { label: "Attendees",    href: "/admin/attendees",   icon: Users,           section: "manage" },
+  { label: "Speakers",     href: "/admin/speakers",    icon: Radio,           section: "manage" },
+  { label: "Sponsors",     href: "/admin/sponsors",    icon: Building2,       section: "manage" },
+  { label: "Sessions",     href: "/admin/sessions",    icon: ClipboardList,   section: "manage" },
+  { label: "Promo Codes",  href: "/admin/promo-codes", icon: Tag,             section: "manage" },
+  /* Operations */
+  { label: "Check-In",     href: "/admin/check-in",    icon: ScanLine,        section: "ops" },
+  { label: "CRM / Leads",  href: "/admin/attendees",   icon: UserCheck,       section: "ops" },
+  { label: "Settings",     href: "/admin/settings",    icon: Settings,        section: "ops" },
 ]
 
 export function AdminSidebar({ userEmail }: { userEmail: string }) {
   const pathname = usePathname()
 
+  const renderLink = ({ label, href, icon: Icon }: typeof navItems[number]) => {
+    const isActive = href === "/admin"
+      ? pathname === "/admin"
+      : pathname.startsWith(href)
+
+    return (
+      <Link
+        key={`${href}-${label}`}
+        href={href}
+        className={cn(
+          "flex items-center gap-3 px-4 py-[10px] rounded-lg text-[13px] font-medium transition-all duration-150",
+          isActive
+            ? "bg-[#e8f0fe] text-[#1a73e8]"
+            : "text-[#5f6368] hover:bg-[#f0f0f0] hover:text-[#333]"
+        )}
+      >
+        <Icon
+          size={17}
+          strokeWidth={1.6}
+          className={cn("shrink-0", isActive ? "text-[#1a73e8]" : "text-[#9aa0a6]")}
+        />
+        {label}
+      </Link>
+    )
+  }
+
   return (
-    <aside className="w-[240px] shrink-0 bg-[#050505] border-r border-white/[0.06] flex flex-col h-screen sticky top-0">
-      {/* ── Logo ─────────────────────────────────────────────────── */}
-      <div className="px-5 py-5 border-b border-white/[0.06]">
+    <aside className="w-[250px] shrink-0 bg-white border-r border-[#e0e0e0] flex flex-col h-screen sticky top-0 shadow-[1px_0_4px_rgba(0,0,0,0.04)]">
+      {/* ── Logo — Zoho Backstage header style ────────────────────── */}
+      <div className="px-5 py-4 border-b border-[#e8e8e8]">
         <Link href="/admin" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-md bg-[#c9a84c] flex items-center justify-center shrink-0">
-            <span className="text-[#050505] text-[11px] font-extrabold tracking-widest">
+          <div className="w-9 h-9 rounded-lg bg-[#e7ab1c] flex items-center justify-center shrink-0">
+            <span className="text-white text-[11px] font-extrabold tracking-widest">
               TLF
             </span>
           </div>
           <div className="leading-tight">
-            <div className="text-[13px] font-semibold text-white/90">
-              Leadership Fed.
+            <div className="text-[14px] font-semibold text-[#333]">
+              Backstage
             </div>
-            <div className="text-[10px] text-white/30 tracking-[0.15em] uppercase">
-              Admin Console
+            <div className="text-[10px] text-[#999] tracking-[0.06em]">
+              Event Management
             </div>
           </div>
         </Link>
       </div>
 
-      {/* ── Navigation ───────────────────────────────────────────── */}
+      {/* ── Navigation ────────────────────────────────────────────── */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         {/* Main */}
         <div className="space-y-0.5 mb-5">
-          {navItems.filter(n => n.section === "main").map(({ label, href, icon: Icon }) => {
-            const isActive = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href)
-            return (
-              <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150", isActive ? "bg-white/[0.07] text-white" : "text-white/45 hover:text-white/75 hover:bg-white/[0.03]")}>
-                <Icon size={17} className={cn("shrink-0 transition-colors", isActive ? "text-[#c9a84c]" : "")} />
-                {label}
-              </Link>
-            )
-          })}
+          {navItems.filter(n => n.section === "main").map(renderLink)}
         </div>
 
-        {/* Manage Section */}
+        {/* Manage */}
         <div className="mb-5">
-          <p className="px-3 text-[10px] text-white/20 uppercase tracking-[0.15em] font-semibold mb-2">Manage</p>
+          <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
+            Manage
+          </p>
           <div className="space-y-0.5">
-            {navItems.filter(n => n.section === "manage").map(({ label, href, icon: Icon }) => {
-              const isActive = pathname.startsWith(href)
-              return (
-                <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150", isActive ? "bg-white/[0.07] text-white" : "text-white/45 hover:text-white/75 hover:bg-white/[0.03]")}>
-                  <Icon size={17} className={cn("shrink-0 transition-colors", isActive ? "text-[#c9a84c]" : "")} />
-                  {label}
-                </Link>
-              )
-            })}
+            {navItems.filter(n => n.section === "manage").map(renderLink)}
           </div>
         </div>
 
-        {/* Operations Section */}
+        {/* Operations */}
         <div>
-          <p className="px-3 text-[10px] text-white/20 uppercase tracking-[0.15em] font-semibold mb-2">Operations</p>
+          <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
+            Operations
+          </p>
           <div className="space-y-0.5">
-            {navItems.filter(n => n.section === "ops").map(({ label, href, icon: Icon }) => {
-              const isActive = pathname.startsWith(href)
-              return (
-                <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150", isActive ? "bg-white/[0.07] text-white" : "text-white/45 hover:text-white/75 hover:bg-white/[0.03]")}>
-                  <Icon size={17} className={cn("shrink-0 transition-colors", isActive ? "text-[#c9a84c]" : "")} />
-                  {label}
-                </Link>
-              )
-            })}
+            {navItems.filter(n => n.section === "ops").map(renderLink)}
           </div>
         </div>
       </nav>
 
-      {/* ── User & Logout ────────────────────────────────────────── */}
-      <div className="px-3 py-4 border-t border-white/[0.06]">
-        <div className="px-3 mb-3">
-          <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">
+      {/* ── User & Logout (Zoho bottom style) ─────────────────────── */}
+      <div className="px-4 py-4 border-t border-[#e8e8e8]">
+        <div className="px-1 mb-3">
+          <p className="text-[10px] text-[#999] uppercase tracking-wider mb-0.5">
             Signed in as
           </p>
-          <p className="text-[12px] text-white/65 truncate">{userEmail}</p>
+          <p className="text-[12px] text-[#555] truncate">{userEmail}</p>
         </div>
         <AdminLogoutButton />
       </div>

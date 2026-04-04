@@ -1,14 +1,23 @@
-/**
- * ─── ADMIN CONSOLE LAYOUT ────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  ADMIN CONSOLE LAYOUT — 1-to-1 Zoho Backstage Replica
  *
- * This layout wraps ONLY authenticated admin pages (not /admin/login).
- * It provides:
- *   1. Auth gate → redirects to login if session is missing
- *   2. Fixed left sidebar with navigation
- *   3. Scrollable main content area
+ *  Structural shell:
+ *    ┌──────────────────────────────────────────────────────────────┐
+ *    │  TOP CONTEXT BAR  — Event Switcher · Admin Profile          │
+ *    ├────────────┬─────────────────────────────────────────────────┤
+ *    │            │                                                │
+ *    │  LEFT      │  MAIN WORKSPACE                                │
+ *    │  SIDEBAR   │  (grey #f4f5f7 background,                     │
+ *    │  (white)   │   crisp white elevated data tables)            │
+ *    │            │                                                │
+ *    └────────────┴─────────────────────────────────────────────────┘
  *
- * The (console) route group means this layout does NOT affect /admin/login.
- */
+ *  Modules match Zoho Backstage exactly:
+ *    Dashboard, Microsite, Tickets, Attendees, Orders,
+ *    Speakers, Sponsors, Settings
+ *
+ *  Auth-gated: redirects to /admin/login if no session.
+ * ═══════════════════════════════════════════════════════════════════════════ */
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
@@ -20,10 +29,9 @@ export default async function ConsoleLayout({
 }: {
   children: React.ReactNode
 }) {
-  // ── Auth gate ────────────────────────────────────────────────────────
+  /* ── Auth gate ──────────────────────────────────────────────────── */
   const cookieStore = await cookies()
   const supabase    = createClient(cookieStore)
-
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
@@ -31,21 +39,36 @@ export default async function ConsoleLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0a]">
-      {/* Fixed sidebar */}
+    <div className="flex min-h-screen bg-[#f4f5f7] admin-scrollbar">
+      {/* ── Fixed Zoho-style sidebar (white, elevated) ──────────── */}
       <AdminSidebar userEmail={user.email ?? "admin"} />
 
-      {/* Main content */}
+      {/* ── Right side: top bar + workspace ─────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="h-14 shrink-0 border-b border-white/[0.06] flex items-center px-8 bg-[#0a0a0a]">
-          <span className="text-[13px] text-white/30 font-medium">
-            The Leadership Federation — Admin Console
-          </span>
+        {/* Top context bar — Zoho's slim header */}
+        <header className="h-[52px] shrink-0 bg-white border-b border-[#e0e0e0] flex items-center justify-between px-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center gap-3">
+            <span className="text-[14px] font-semibold text-[#333]">
+              The Leadership Federation
+            </span>
+            <span className="text-[11px] text-[#888] px-2 py-0.5 bg-[#f0f0f0] rounded font-medium">
+              Admin Console
+            </span>
+          </div>
+
+          {/* Admin profile indicator */}
+          <div className="flex items-center gap-3">
+            <span className="text-[12px] text-[#666] hidden sm:block">{user.email}</span>
+            <div className="w-8 h-8 rounded-full bg-[#e7ab1c] flex items-center justify-center">
+              <span className="text-white text-[11px] font-bold">
+                {(user.email?.[0] ?? "A").toUpperCase()}
+              </span>
+            </div>
+          </div>
         </header>
 
-        {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Scrollable grey workspace (Zoho-exact #f4f5f7 bg) */}
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   )
