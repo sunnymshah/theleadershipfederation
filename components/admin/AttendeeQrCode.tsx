@@ -40,7 +40,7 @@ export function AttendeeQrCode({ attendeeName, qrToken }: Props) {
     <>
       <button
         onClick={generateQr}
-        className="p-2 rounded-md text-white/30 hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+        className="p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
         title="View QR Code"
       >
         <QrCode size={15} />
@@ -50,32 +50,32 @@ export function AttendeeQrCode({ attendeeName, qrToken }: Props) {
         <>
           <div className="fixed inset-0 bg-black/60 z-40" onClick={() => setOpen(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111] border border-white/[0.08] rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="bg-white border border-[#e0e0e0] rounded-2xl shadow-2xl w-full max-w-sm p-6">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-lg font-semibold text-white">QR Code</h3>
-                <button onClick={() => setOpen(false)} className="p-1.5 rounded-md text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-colors">
+                <h3 className="text-lg font-semibold text-[#333]">QR Code</h3>
+                <button onClick={() => setOpen(false)} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors">
                   <X size={18} />
                 </button>
               </div>
 
-              <p className="text-sm text-white/50 mb-4 text-center">{attendeeName}</p>
+              <p className="text-sm text-[#777] mb-4 text-center">{attendeeName}</p>
 
               <div className="flex items-center justify-center mb-5">
                 {loading ? (
                   <div className="w-[280px] h-[280px] flex items-center justify-center">
-                    <Loader2 size={24} className="animate-spin text-white/30" />
+                    <Loader2 size={24} className="animate-spin text-[#aaa]" />
                   </div>
                 ) : dataUrl ? (
                   <img src={dataUrl} alt={`QR code for ${attendeeName}`} className="w-[280px] h-[280px] rounded-lg" />
                 ) : null}
               </div>
 
-              <p className="text-[10px] text-white/20 text-center font-mono mb-5 break-all">{qrToken.slice(0, 16)}…</p>
+              <p className="text-[10px] text-[#bbb] text-center font-mono mb-5 break-all">{qrToken.slice(0, 16)}…</p>
 
               <button
                 onClick={handleDownload}
                 disabled={!dataUrl}
-                className="w-full py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
               >
                 <Download size={14} /> Download PNG
               </button>

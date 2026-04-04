@@ -45,10 +45,10 @@ interface Event {
 
 // ── Status badge config ──────────────────────────────────────────────────
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
-  draft:     { bg: "bg-yellow-500/10", text: "text-yellow-400" },
-  published: { bg: "bg-emerald-500/10", text: "text-emerald-400" },
-  completed: { bg: "bg-blue-500/10",   text: "text-blue-400" },
-  cancelled: { bg: "bg-red-500/10",    text: "text-red-400" },
+  draft:     { bg: "bg-yellow-500/10", text: "text-yellow-600" },
+  published: { bg: "bg-emerald-500/10", text: "text-emerald-600" },
+  completed: { bg: "bg-blue-500/10",   text: "text-blue-600" },
+  cancelled: { bg: "bg-red-500/10",    text: "text-red-600" },
 }
 
 // ── Component ────────────────────────────────────────────────────────────
@@ -148,8 +148,8 @@ export default function AdminEventsPage() {
       {/* ── Page Header ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-1">Events</h2>
-          <p className="text-sm text-white/40">
+          <h2 className="text-2xl font-bold text-[#333] mb-1">Events</h2>
+          <p className="text-sm text-[#888]">
             Create, edit, and manage all events
           </p>
         </div>
@@ -166,14 +166,14 @@ export default function AdminEventsPage() {
       <div className="relative mb-6">
         <Search
           size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#bbb]"
         />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search events by name or venue…"
-          className="w-full pl-10 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-lg text-sm text-white placeholder-white/25 focus:outline-none focus:border-white/15 transition-colors"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
         />
       </div>
 
@@ -188,16 +188,16 @@ export default function AdminEventsPage() {
       )}
 
       {/* ── Data Table ───────────────────────────────────────────── */}
-      <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+      <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-white/30 gap-2">
+          <div className="flex items-center justify-center py-20 text-[#aaa] gap-2">
             <Loader2 size={18} className="animate-spin" />
             Loading events…
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center">
-            <Calendar size={32} className="mx-auto mb-3 text-white/15" />
-            <p className="text-white/35 text-sm">
+            <Calendar size={32} className="mx-auto mb-3 text-[#ccc]" />
+            <p className="text-[#999] text-sm">
               {searchQuery
                 ? "No events match your search."
                 : "No events yet. Create your first event."}
@@ -206,20 +206,20 @@ export default function AdminEventsPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+              <tr className="border-b border-[#e0e0e0] bg-white">
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">
                   Event Name
                 </th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">
                   Dates
                 </th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">
                   Venue
                 </th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">
                   Status
                 </th>
-                <th className="text-right px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+                <th className="text-right px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -228,28 +228,28 @@ export default function AdminEventsPage() {
               {filtered.map((event) => (
                 <tr
                   key={event.id}
-                  className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.015] transition-colors"
+                  className="border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors"
                 >
                   <td className="px-5 py-4">
                     <Link href={`/admin/events/${event.id}`} className="block group/link">
-                      <div className="font-medium text-white/90 group-hover/link:text-[#c9a84c] transition-colors">
+                      <div className="font-medium text-[#333] group-hover/link:text-[#c9a84c] transition-colors">
                         {event.title}
                       </div>
-                      <div className="text-[11px] text-white/30 mt-0.5">
+                      <div className="text-[11px] text-[#aaa] mt-0.5">
                         /{event.slug}
                       </div>
                     </Link>
                   </td>
-                  <td className="px-5 py-4 text-white/50 text-xs whitespace-nowrap">
+                  <td className="px-5 py-4 text-[#777] text-xs whitespace-nowrap">
                     {fmtDate(event.start_date)} — {fmtDate(event.end_date)}
                   </td>
-                  <td className="px-5 py-4 text-white/50">{event.venue}</td>
+                  <td className="px-5 py-4 text-[#777]">{event.venue}</td>
                   <td className="px-5 py-4">
                     <span
                       className={cn(
                         "inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider",
-                        STATUS_STYLES[event.status]?.bg ?? "bg-white/5",
-                        STATUS_STYLES[event.status]?.text ?? "text-white/40"
+                        STATUS_STYLES[event.status]?.bg ?? "bg-gray-100",
+                        STATUS_STYLES[event.status]?.text ?? "text-[#888]"
                       )}
                     >
                       {event.status}
@@ -259,14 +259,14 @@ export default function AdminEventsPage() {
                     <div className="flex items-center justify-end gap-1">
                       <Link
                         href={`/admin/events/${event.id}`}
-                        className="p-2 rounded-md text-white/30 hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+                        className="p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
                         title="Manage event"
                       >
                         <ExternalLink size={15} />
                       </Link>
                       <button
                         onClick={() => openEdit(event)}
-                        className="p-2 rounded-md text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-colors"
+                        className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-gray-100 transition-colors"
                         title="Edit event"
                       >
                         <Pencil size={15} />
@@ -274,7 +274,7 @@ export default function AdminEventsPage() {
                       <button
                         onClick={() => handleDelete(event.id)}
                         disabled={deletingId === event.id}
-                        className="p-2 rounded-md text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
+                        className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
                         title="Delete event"
                       >
                         {deletingId === event.id ? (
@@ -302,15 +302,15 @@ export default function AdminEventsPage() {
           />
 
           {/* Drawer */}
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a] border-l border-white/[0.08] z-50 shadow-2xl overflow-y-auto">
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
             {/* Drawer header */}
-            <div className="sticky top-0 bg-[#0a0a0a] border-b border-white/[0.06] px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-lg font-semibold text-white">
+            <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-lg font-semibold text-[#333]">
                 {editingEvent ? "Edit Event" : "Create New Event"}
               </h3>
               <button
                 onClick={() => { setDrawerOpen(false); setEditingEvent(null) }}
-                className="p-1.5 rounded-md text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-colors"
+                className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-gray-100 transition-colors"
               >
                 <X size={18} />
               </button>
@@ -320,7 +320,7 @@ export default function AdminEventsPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {/* Title */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                   Event Title *
                 </label>
                 <input
@@ -328,14 +328,14 @@ export default function AdminEventsPage() {
                   name="title"
                   required
                   defaultValue={editingEvent?.title ?? ""}
-                  className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="Asia Leadership Summit 2025"
                 />
               </div>
 
               {/* Slug */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                   URL Slug *
                 </label>
                 <input
@@ -343,7 +343,7 @@ export default function AdminEventsPage() {
                   name="slug"
                   required
                   defaultValue={editingEvent?.slug ?? ""}
-                  className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="asia-leadership-summit-2025"
                 />
               </div>
@@ -351,7 +351,7 @@ export default function AdminEventsPage() {
               {/* Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                     Start Date *
                   </label>
                   <input
@@ -359,11 +359,11 @@ export default function AdminEventsPage() {
                     name="startDate"
                     required
                     defaultValue={editingEvent ? new Date(editingEvent.start_date).toISOString().slice(0, 16) : ""}
-                    className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                     End Date *
                   </label>
                   <input
@@ -371,14 +371,14 @@ export default function AdminEventsPage() {
                     name="endDate"
                     required
                     defaultValue={editingEvent ? new Date(editingEvent.end_date).toISOString().slice(0, 16) : ""}
-                    className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Venue */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                   Venue *
                 </label>
                 <input
@@ -386,21 +386,21 @@ export default function AdminEventsPage() {
                   name="venue"
                   required
                   defaultValue={editingEvent?.venue ?? ""}
-                  className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="Jio World Centre, Mumbai"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                   Description
                 </label>
                 <textarea
                   name="description"
                   rows={3}
                   defaultValue=""
-                  className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
                   placeholder="Brief overview of the event…"
                 />
               </div>
@@ -408,13 +408,13 @@ export default function AdminEventsPage() {
               {/* Status (only when editing) */}
               {editingEvent && (
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                   Status
                 </label>
                 <select
                   name="status"
                   defaultValue={editingEvent.status}
-                  className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
@@ -436,7 +436,7 @@ export default function AdminEventsPage() {
                 <button
                   type="button"
                   onClick={() => { setDrawerOpen(false); setEditingEvent(null) }}
-                  className="flex-1 py-2.5 rounded-lg border border-white/[0.08] text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.03] transition-colors"
+                  className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors"
                 >
                   Cancel
                 </button>

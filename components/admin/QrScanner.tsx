@@ -289,7 +289,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
             "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
             !manualMode
               ? "bg-[#c9a84c]/15 text-[#c9a84c] border border-[#c9a84c]/30"
-              : "bg-white/[0.03] text-white/40 border border-white/[0.06] hover:text-white/60",
+              : "bg-white text-[#888] border border-[#e0e0e0] hover:text-[#666]",
           )}
         >
           <Camera size={16} />
@@ -301,7 +301,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
             "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
             manualMode
               ? "bg-[#c9a84c]/15 text-[#c9a84c] border border-[#c9a84c]/30"
-              : "bg-white/[0.03] text-white/40 border border-white/[0.06] hover:text-white/60",
+              : "bg-white text-[#888] border border-[#e0e0e0] hover:text-[#666]",
           )}
         >
           <Keyboard size={16} />
@@ -311,7 +311,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
 
       {/* ── Scanner area ─────────────────────────────────────────── */}
       {!manualMode && state.kind !== "found" && state.kind !== "checked_in" && state.kind !== "already_checked_in" && (
-        <div className="relative rounded-2xl border border-white/[0.06] bg-[#050505] overflow-hidden">
+        <div className="relative rounded-2xl border border-[#e0e0e0] bg-[#050505] overflow-hidden">
           {/* Camera viewfinder */}
           <div className="relative w-full" style={{ minHeight: 360 }}>
             <div id={scannerContainerId} className="w-full" />
@@ -382,24 +382,24 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
           </div>
 
           {/* Status bar below camera */}
-          <div className="px-5 py-3 border-t border-white/[0.06] bg-white/[0.02] flex items-center justify-between">
+          <div className="px-5 py-3 border-t border-[#e0e0e0] bg-white flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                cameraActive ? "bg-emerald-400 animate-pulse" : "bg-white/20",
+                cameraActive ? "bg-emerald-400 animate-pulse" : "bg-[#ccc]",
               )} />
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-[#888]">
                 {cameraActive ? "Scanning for QR codes..." : "Camera inactive"}
               </span>
             </div>
-            <span className="text-[10px] text-white/20">Point camera at QR code</span>
+            <span className="text-[10px] text-[#bbb]">Point camera at QR code</span>
           </div>
         </div>
       )}
 
       {/* ── Manual entry ─────────────────────────────────────────── */}
       {manualMode && state.kind !== "found" && state.kind !== "checked_in" && state.kind !== "already_checked_in" && (
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8">
+        <div className="rounded-2xl border border-[#e0e0e0] bg-white p-8">
           <div className="flex items-center justify-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-[#c9a84c]/10 flex items-center justify-center">
               <Keyboard size={28} className="text-[#c9a84c]" />
@@ -407,7 +407,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
           </div>
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div>
-              <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                 QR Code Token
               </label>
               <input
@@ -416,13 +416,13 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
                 onChange={(e) => setManualInput(e.target.value)}
                 placeholder="Paste or type QR code token..."
                 autoFocus
-                className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono tracking-wider"
+                className="w-full px-4 py-3.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono tracking-wider"
               />
             </div>
             <button
               type="submit"
               disabled={state.kind === "loading" || !manualInput.trim()}
-              className="w-full py-3.5 rounded-lg bg-[#c9a84c] text-[#050505] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
               {state.kind === "loading" ? (
                 <>
@@ -447,12 +447,12 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-red-400 mb-1">Not Found</h3>
-              <p className="text-sm text-white/50">{state.message}</p>
+              <p className="text-sm text-[#777]">{state.message}</p>
             </div>
           </div>
           <button
             onClick={handleReset}
-            className="mt-5 w-full py-3 rounded-lg bg-white/[0.06] text-white/70 text-sm font-medium hover:bg-white/[0.1] transition-colors flex items-center justify-center gap-2"
+            className="mt-5 w-full py-3 rounded-lg bg-[#f0f0f0] text-[#555] text-sm font-medium hover:bg-[#e8e8e8] transition-colors flex items-center justify-center gap-2"
           >
             <RotateCcw size={16} /> Scan Next
           </button>
@@ -466,36 +466,36 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
             <div className="w-14 h-14 rounded-full bg-[#c9a84c]/10 flex items-center justify-center mx-auto mb-3">
               <User size={24} className="text-[#c9a84c]" />
             </div>
-            <h3 className="text-xl font-bold text-white">{state.attendee.name}</h3>
+            <h3 className="text-xl font-bold text-[#333]">{state.attendee.name}</h3>
             {state.attendee.designation && state.attendee.company && (
-              <p className="text-sm text-white/40 mt-0.5">
+              <p className="text-sm text-[#888] mt-0.5">
                 {state.attendee.designation}, {state.attendee.company}
               </p>
             )}
           </div>
 
           {/* Details grid */}
-          <div className="space-y-3 bg-white/[0.02] rounded-xl p-4">
+          <div className="space-y-3 bg-white rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <Mail size={14} className="text-white/30 shrink-0" />
-              <span className="text-sm text-white/60">{state.attendee.email}</span>
+              <Mail size={14} className="text-[#aaa] shrink-0" />
+              <span className="text-sm text-[#666]">{state.attendee.email}</span>
             </div>
             {state.attendee.company && (
               <div className="flex items-center gap-3">
-                <Building2 size={14} className="text-white/30 shrink-0" />
-                <span className="text-sm text-white/60">{state.attendee.company}</span>
+                <Building2 size={14} className="text-[#aaa] shrink-0" />
+                <span className="text-sm text-[#666]">{state.attendee.company}</span>
               </div>
             )}
             {state.attendee.events && (
               <div className="flex items-center gap-3">
-                <Calendar size={14} className="text-white/30 shrink-0" />
-                <span className="text-sm text-white/60">{state.attendee.events.title}</span>
+                <Calendar size={14} className="text-[#aaa] shrink-0" />
+                <span className="text-sm text-[#666]">{state.attendee.events.title}</span>
               </div>
             )}
             {state.attendee.tickets && (
               <div className="flex items-center gap-3">
-                <Ticket size={14} className="text-white/30 shrink-0" />
-                <span className="text-sm text-white/60">{state.attendee.tickets.name}</span>
+                <Ticket size={14} className="text-[#aaa] shrink-0" />
+                <span className="text-sm text-[#666]">{state.attendee.tickets.name}</span>
               </div>
             )}
           </div>
@@ -504,7 +504,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
           <button
             onClick={() => handleCheckIn(state.attendee.id)}
             disabled={checkingIn}
-            className="w-full py-4 rounded-xl bg-[#c9a84c] text-[#050505] text-base font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#c9a84c]/20"
+            className="w-full py-4 rounded-xl bg-[#c9a84c] text-white text-base font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#c9a84c]/20"
           >
             {checkingIn ? (
               <>
@@ -519,7 +519,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
 
           <button
             onClick={handleReset}
-            className="w-full py-2.5 text-sm text-white/40 hover:text-white/60 transition-colors"
+            className="w-full py-2.5 text-sm text-[#888] hover:text-[#666] transition-colors"
           >
             Cancel
           </button>
@@ -538,12 +538,12 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
           </div>
 
           <h3 className="text-2xl font-bold text-emerald-400 mb-1">Checked In!</h3>
-          <p className="text-lg text-white/80 font-medium">{state.attendee.name}</p>
+          <p className="text-lg text-[#333] font-medium">{state.attendee.name}</p>
           {state.attendee.company && (
-            <p className="text-sm text-white/40 mt-0.5">{state.attendee.company}</p>
+            <p className="text-sm text-[#888] mt-0.5">{state.attendee.company}</p>
           )}
           {state.attendee.events && (
-            <p className="text-xs text-white/30 mt-2">{state.attendee.events.title}</p>
+            <p className="text-xs text-[#aaa] mt-2">{state.attendee.events.title}</p>
           )}
 
           <button
@@ -563,11 +563,11 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
               <AlertTriangle size={28} className="text-yellow-400" />
             </div>
             <h3 className="text-xl font-bold text-yellow-400 mb-1">Already Checked In</h3>
-            <p className="text-lg text-white/80 font-medium">{state.attendee.name}</p>
+            <p className="text-lg text-[#333] font-medium">{state.attendee.name}</p>
             {state.attendee.company && (
-              <p className="text-sm text-white/40 mt-0.5">{state.attendee.company}</p>
+              <p className="text-sm text-[#888] mt-0.5">{state.attendee.company}</p>
             )}
-            <p className="text-sm text-white/40 mt-3">
+            <p className="text-sm text-[#888] mt-3">
               Checked in at <span className="text-yellow-400/80 font-medium">{state.checkInTime}</span>
             </p>
           </div>

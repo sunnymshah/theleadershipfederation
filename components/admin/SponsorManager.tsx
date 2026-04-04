@@ -116,12 +116,12 @@ export function SponsorManager({ eventId }: { eventId: string }) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-[#888]">
           {sponsors.length} sponsor{sponsors.length !== 1 ? "s" : ""} across {Object.keys(grouped).length} tier{Object.keys(grouped).length !== 1 ? "s" : ""}
         </p>
         <button
           onClick={() => openDrawer()}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] transition-colors"
         >
           <Plus size={15} /> Add Sponsor
         </button>
@@ -135,14 +135,14 @@ export function SponsorManager({ eventId }: { eventId: string }) {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-white/30 gap-2">
+        <div className="flex items-center justify-center py-16 text-[#aaa] gap-2">
           <Loader2 size={18} className="animate-spin" /> Loading sponsors…
         </div>
       ) : sponsors.length === 0 ? (
-        <div className="py-16 text-center rounded-xl border border-white/[0.06]">
-          <Building2 size={28} className="mx-auto mb-3 text-white/15" />
-          <p className="text-white/35 text-sm">No sponsors added yet.</p>
-          <p className="text-white/20 text-xs mt-1">Add title sponsors, partners, and exhibitors.</p>
+        <div className="py-16 text-center rounded-xl border border-[#e0e0e0]">
+          <Building2 size={28} className="mx-auto mb-3 text-[#ccc]" />
+          <p className="text-[#999] text-sm">No sponsors added yet.</p>
+          <p className="text-[#bbb] text-xs mt-1">Add title sponsors, partners, and exhibitors.</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -155,35 +155,35 @@ export function SponsorManager({ eventId }: { eventId: string }) {
                   <span className={cn("px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider", tc.bg, tc.color)}>
                     {tc.label}
                   </span>
-                  <div className="flex-1 h-px bg-white/[0.06]" />
-                  <span className="text-[11px] text-white/25">{items.length}</span>
+                  <div className="flex-1 h-px bg-[#e0e0e0]" />
+                  <span className="text-[11px] text-[#bbb]">{items.length}</span>
                 </div>
 
                 {/* Sponsor Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {items.map(s => (
-                    <div key={s.id} className={cn("group rounded-xl border bg-white/[0.02] hover:bg-white/[0.03] transition-all overflow-hidden", tc.border)}>
+                    <div key={s.id} className={cn("group rounded-xl border bg-white hover:bg-[#fafafa] transition-all overflow-hidden", tc.border)}>
                       <div className="p-5 flex items-center gap-4">
                         {/* Logo */}
                         {s.logo_url ? (
-                          <img src={s.logo_url} alt={s.name} className="w-14 h-14 rounded-lg object-contain bg-white/5 p-1 shrink-0" />
+                          <img src={s.logo_url} alt={s.name} className="w-14 h-14 rounded-lg object-contain bg-[#f0f0f0] p-1 shrink-0" />
                         ) : (
-                          <div className="w-14 h-14 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
-                            <Building2 size={20} className="text-white/20" />
+                          <div className="w-14 h-14 rounded-lg bg-[#f0f0f0] flex items-center justify-center shrink-0">
+                            <Building2 size={20} className="text-[#bbb]" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-white/90 text-[14px]">{s.name}</div>
+                          <div className="font-semibold text-[#333] text-[14px]">{s.name}</div>
                           {s.website && (
-                            <a href={s.website} target="_blank" rel="noopener" className="flex items-center gap-1 text-[11px] text-white/30 hover:text-[#c9a84c] transition-colors mt-0.5">
+                            <a href={s.website} target="_blank" rel="noopener" className="flex items-center gap-1 text-[11px] text-[#aaa] hover:text-[#c9a84c] transition-colors mt-0.5">
                               <Globe size={10} /> {s.website.replace(/https?:\/\/(www\.)?/, "").slice(0, 30)}
                             </a>
                           )}
                         </div>
                       </div>
-                      <div className="px-5 py-2 border-t border-white/[0.04] flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openDrawer(s)} className="p-1.5 rounded-md text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-colors"><Pencil size={13} /></button>
-                        <button onClick={() => handleDelete(s.id)} disabled={deletingId === s.id} className="p-1.5 rounded-md text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
+                      <div className="px-5 py-2 border-t border-[#e0e0e0] flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openDrawer(s)} className="p-1.5 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><Pencil size={13} /></button>
+                        <button onClick={() => handleDelete(s.id)} disabled={deletingId === s.id} className="p-1.5 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
                           {deletingId === s.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                         </button>
                       </div>
@@ -200,29 +200,29 @@ export function SponsorManager({ eventId }: { eventId: string }) {
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} />
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a] border-l border-white/[0.08] z-50 shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-[#0a0a0a] border-b border-white/[0.06] px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-lg font-semibold text-white">{editing ? "Edit Sponsor" : "Add Sponsor"}</h3>
-              <button onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="p-1.5 rounded-md text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-colors"><X size={18} /></button>
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-lg font-semibold text-[#333]">{editing ? "Edit Sponsor" : "Add Sponsor"}</h3>
+              <button onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {/* Logo Upload */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-2">Company Logo</label>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-2">Company Logo</label>
                 <div className="flex items-center gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-20 h-20 rounded-xl border-2 border-dashed border-white/[0.1] hover:border-[#c9a84c]/40 flex items-center justify-center cursor-pointer transition-colors overflow-hidden bg-white/[0.02] shrink-0"
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-[#e0e0e0] hover:border-[#c9a84c]/40 flex items-center justify-center cursor-pointer transition-colors overflow-hidden bg-white shrink-0"
                   >
                     {previewUrl ? (
                       <img src={previewUrl} alt="Preview" className="w-full h-full object-contain p-1" />
                     ) : (
-                      <Upload size={18} className="text-white/20" />
+                      <Upload size={18} className="text-[#bbb]" />
                     )}
                   </div>
                   <input ref={fileInputRef} type="file" name="logo" accept="image/*" onChange={handleFileChange} className="hidden" />
                   <div>
-                    <p className="text-[11px] text-white/30">Upload logo (max 5MB)</p>
+                    <p className="text-[11px] text-[#aaa]">Upload logo (max 5MB)</p>
                     {previewUrl && (
                       <button type="button" onClick={() => { setPreviewUrl(null); if (fileInputRef.current) fileInputRef.current.value = "" }} className="text-[11px] text-red-400/60 hover:text-red-400 mt-1">Remove</button>
                     )}
@@ -230,40 +230,40 @@ export function SponsorManager({ eventId }: { eventId: string }) {
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Or paste logo URL</label>
-                <input type="url" name="logoUrl" defaultValue={editing?.logo_url ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://..." />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Or paste logo URL</label>
+                <input type="url" name="logoUrl" defaultValue={editing?.logo_url ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://..." />
               </div>
 
-              <hr className="border-white/[0.06]" />
+              <hr className="border-[#e0e0e0]" />
 
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Sponsor Name *</label>
-                <input type="text" name="name" required defaultValue={editing?.name ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="Acme Corp" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Sponsor Name *</label>
+                <input type="text" name="name" required defaultValue={editing?.name ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="Acme Corp" />
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Tier *</label>
-                <select name="tier" defaultValue={editing?.tier ?? "gold"} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Tier *</label>
+                <select name="tier" defaultValue={editing?.tier ?? "gold"} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
                   {TIER_ORDER.map(t => <option key={t} value={t}>{TIER_CONFIG[t].label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Website</label>
-                <input type="url" name="website" defaultValue={editing?.website ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://acme.com" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Website</label>
+                <input type="url" name="website" defaultValue={editing?.website ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://acme.com" />
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Description</label>
-                <textarea name="description" rows={2} defaultValue={editing?.description ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Brief sponsor description…" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Description</label>
+                <textarea name="description" rows={2} defaultValue={editing?.description ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Brief sponsor description…" />
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Sort Order</label>
-                <input type="number" name="sortOrder" min="0" defaultValue={editing?.sort_order ?? 0} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Sort Order</label>
+                <input type="number" name="sortOrder" min="0" defaultValue={editing?.sort_order ?? 0} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
               </div>
 
               {actionError && <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">{actionError}</div>}
 
               <div className="flex gap-3 pt-3">
-                <button type="button" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="flex-1 py-2.5 rounded-lg border border-white/[0.08] text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.03] transition-colors">Cancel</button>
-                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                <button type="button" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#555] hover:bg-[#fafafa] transition-colors">Cancel</button>
+                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                   {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : editing ? "Update Sponsor" : "Add Sponsor"}
                 </button>
               </div>
