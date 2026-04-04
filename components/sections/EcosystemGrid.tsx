@@ -46,7 +46,7 @@ export function EcosystemGrid() {
       <GoldStarburst />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-        <div className="text-center mb-14 animate-fade-in-up">
+        <div className="text-center mb-14">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-5">
             <span className="text-[11px] font-semibold text-[#e7ab1c] tracking-[0.1em] uppercase">Three Pillars</span>
           </span>
@@ -63,7 +63,7 @@ export function EcosystemGrid() {
           {pillars.map((p, i) => {
             const Icon = p.icon
             return (
-              <div key={p.title} className="animate-fade-in-up" style={{ animationDelay: `${i * 120}ms` }}>
+              <div key={p.title}>
                 <Link
                   href={p.href}
                   className="group block bg-white/70 border border-black/[0.04] rounded-2xl overflow-hidden h-full hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] hover:border-[#e7ab1c]/20 transition-all duration-300 relative"
