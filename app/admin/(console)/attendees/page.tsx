@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { createAttendee, updateAttendee, checkInAttendee, deleteAttendee } from "@/app/actions/attendeeActions"
 import { Plus, Pencil, Trash2, Search, X, Users, Loader2, CheckCircle2, Download } from "lucide-react"
+import { AttendeeQrCode } from "@/components/admin/AttendeeQrCode"
 import { cn } from "@/lib/utils"
 
 interface AttendeeRow {
@@ -18,6 +19,7 @@ interface AttendeeRow {
   registration_date: string
   check_in_at: string | null
   status: string
+  qr_token: string | null
   notes: string | null
   events: { title: string } | null
   tickets: { name: string } | null
@@ -195,6 +197,9 @@ export default function AdminAttendeesPage() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
+                      {a.qr_token && (
+                        <AttendeeQrCode attendeeName={a.name} qrToken={a.qr_token} />
+                      )}
                       {a.status !== "checked_in" && a.status !== "cancelled" && (
                         <button onClick={() => handleCheckIn(a.id)} disabled={checkingInId === a.id} className="p-2 rounded-md text-white/30 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-30" title="Check in">
                           {checkingInId === a.id ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
