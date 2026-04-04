@@ -159,8 +159,8 @@ export function HeroSection() {
               <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.10)]">
                 <motion.div style={{ y: imageY, scale: imageScale }} className="w-full h-full">
                   <Image
-                    src="https://img.einpresswire.com/large/733208/bharat-leadership-excellence-aw.png"
-                    alt="The Leadership Federation — Bharat Leadership Excellence Awards"
+                    src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=1400&auto=format&fit=crop"
+                    alt="Leader speaking at GCC Leadership Conclave"
                     fill
                     className="object-cover"
                     priority
