@@ -1,6 +1,9 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { HeroSection } from "@/components/sections/HeroSection"
+import { LogoMarquee } from "@/components/sections/LogoMarquee"
+import { FeaturedEventCallout } from "@/components/sections/FeaturedEventCallout"
+import { EcosystemGrid } from "@/components/sections/EcosystemGrid"
 import { FeaturedEvents } from "@/components/sections/FeaturedEvents"
 
 export default async function HomePage() {
@@ -15,9 +18,14 @@ export default async function HomePage() {
     .order("start_date", { ascending: true })
     .limit(3)
 
+  const featuredEvent = events?.[0] ?? null
+
   return (
     <main>
       <HeroSection />
+      <LogoMarquee />
+      <EcosystemGrid />
+      <FeaturedEventCallout event={featuredEvent} />
       <FeaturedEvents events={events ?? []} />
     </main>
   )

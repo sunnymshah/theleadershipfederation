@@ -2,6 +2,7 @@
 
 @theme inline {
   --font-sans: var(--font-inter);
+  --font-serif: var(--font-serif);
 }
 
 /* ─── Base resets & rendering ─────────────────────────────────────────────── */
@@ -24,28 +25,36 @@ body {
   overflow-x: hidden;
 }
 
-/* ─── Selection ───────────────────────────────────────────────────────────── */
+/* ─── Selection ──────────────────────────────────────────────────────────── */
 ::selection {
-  background-color: rgba(201, 168, 76, 0.22);
-  color: #f5f5f7;
+  background-color: rgba(231, 171, 28, 0.18);
+  color: #000;
 }
 
-/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #FEFBEA;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(201, 168, 76, 0.28);
+  background: rgba(231, 171, 28, 0.35);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 168, 76, 0.5);
+  background: rgba(231, 171, 28, 0.6);
 }
 
-/* ─── Custom keyframes ────────────────────────────────────────────────────── */
+/* Admin scrollbar override */
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: #050505;
+}
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.28);
+}
+
+/* ─── Custom keyframes ───────────────────────────────────────────────────── */
 @keyframes pulse-gold {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
@@ -53,4 +62,38 @@ body {
 
 .animate-pulse-gold {
   animation: pulse-gold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Marquee scroll */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee-scroll 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Subtle image zoom on load */
+@keyframes hero-zoom {
+  from { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+
+.animate-hero-zoom {
+  animation: hero-zoom 8s ease-out forwards;
+}
+
+/* Scan line for QR scanner */
+@keyframes scan-line {
+  0%, 100% { top: 0; }
+  50%      { top: calc(100% - 2px); }
+}
+
+.animate-scan-line {
+  animation: scan-line 2s ease-in-out infinite;
 }
