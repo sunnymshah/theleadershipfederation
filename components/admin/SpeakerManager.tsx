@@ -115,25 +115,25 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-[#888]">
             {speakers.length} speaker{speakers.length !== 1 ? "s" : ""}
           </p>
           {speakers.length > 0 && (
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#bbb]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search speakers…"
-                className="pl-9 pr-3 py-1.5 bg-white/[0.03] border border-white/[0.06] rounded-lg text-xs text-white placeholder-white/25 focus:outline-none focus:border-white/15 transition-colors w-52"
+                className="pl-9 pr-3 py-1.5 bg-white border border-[#e0e0e0] rounded-lg text-xs text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors w-52"
               />
             </div>
           )}
         </div>
         <button
           onClick={() => openDrawer()}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] transition-colors"
         >
           <Plus size={15} /> Add Speaker
         </button>
@@ -149,21 +149,21 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
 
       {/* Speaker Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-white/30 gap-2">
+        <div className="flex items-center justify-center py-16 text-[#aaa] gap-2">
           <Loader2 size={18} className="animate-spin" /> Loading speakers…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-16 text-center rounded-xl border border-white/[0.06]">
-          <Users size={28} className="mx-auto mb-3 text-white/15" />
-          <p className="text-white/35 text-sm">{searchQuery ? "No speakers match your search." : "No speakers added yet."}</p>
-          <p className="text-white/20 text-xs mt-1">Add keynote speakers, panelists, and moderators.</p>
+        <div className="py-16 text-center rounded-xl border border-[#e0e0e0]">
+          <Users size={28} className="mx-auto mb-3 text-[#ccc]" />
+          <p className="text-[#999] text-sm">{searchQuery ? "No speakers match your search." : "No speakers added yet."}</p>
+          <p className="text-[#bbb] text-xs mt-1">Add keynote speakers, panelists, and moderators.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((s) => (
             <div
               key={s.id}
-              className="group rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.03] transition-all hover:border-white/[0.1] overflow-hidden"
+              className="group rounded-xl border border-[#e0e0e0] bg-white hover:bg-[#fafafa] transition-all hover:border-[#ccc] overflow-hidden"
             >
               {/* Card Content */}
               <div className="p-5 flex gap-4">
@@ -178,22 +178,22 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-white/90 text-[15px]">{s.name}</div>
+                  <div className="font-semibold text-[#333] text-[15px]">{s.name}</div>
                   {(s.designation || s.company) && (
-                    <div className="text-[12px] text-white/40 mt-0.5">
+                    <div className="text-[12px] text-[#888] mt-0.5">
                       {s.designation}{s.designation && s.company ? " · " : ""}{s.company}
                     </div>
                   )}
-                  {s.bio && <p className="text-[11px] text-white/25 mt-2 line-clamp-2 leading-relaxed">{s.bio}</p>}
+                  {s.bio && <p className="text-[11px] text-[#bbb] mt-2 line-clamp-2 leading-relaxed">{s.bio}</p>}
                 </div>
               </div>
 
               {/* Actions Footer */}
-              <div className="px-5 py-2.5 border-t border-white/[0.04] flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity bg-white/[0.01]">
-                <span className="text-[10px] text-white/20 uppercase tracking-wider">Order: {s.sort_order}</span>
+              <div className="px-5 py-2.5 border-t border-[#e0e0e0] flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity bg-[#fafafa]">
+                <span className="text-[10px] text-[#bbb] uppercase tracking-wider">Order: {s.sort_order}</span>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openDrawer(s)} className="p-1.5 rounded-md text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-colors"><Pencil size={13} /></button>
-                  <button onClick={() => handleDelete(s.id)} disabled={deletingId === s.id} className="p-1.5 rounded-md text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
+                  <button onClick={() => openDrawer(s)} className="p-1.5 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors"><Pencil size={13} /></button>
+                  <button onClick={() => handleDelete(s.id)} disabled={deletingId === s.id} className="p-1.5 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
                     {deletingId === s.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                   </button>
                 </div>
@@ -207,27 +207,27 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} />
-          <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-[#0a0a0a] border-l border-white/[0.08] z-50 shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-[#0a0a0a] border-b border-white/[0.06] px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-lg font-semibold text-white">{editing ? "Edit Speaker" : "Add Speaker"}</h3>
-              <button onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="p-1.5 rounded-md text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-colors"><X size={18} /></button>
+          <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-lg font-semibold text-[#333]">{editing ? "Edit Speaker" : "Add Speaker"}</h3>
+              <button onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {/* Headshot Upload */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-2">Headshot Photo</label>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-2">Headshot Photo</label>
                 <div className="flex items-center gap-4">
                   {/* Preview */}
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-24 h-24 rounded-xl border-2 border-dashed border-white/[0.1] hover:border-[#c9a84c]/40 flex items-center justify-center cursor-pointer transition-colors overflow-hidden bg-white/[0.02] shrink-0"
+                    className="w-24 h-24 rounded-xl border-2 border-dashed border-[#e0e0e0] hover:border-[#c9a84c]/40 flex items-center justify-center cursor-pointer transition-colors overflow-hidden bg-white shrink-0"
                   >
                     {previewUrl ? (
                       <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center">
-                        <Upload size={20} className="mx-auto text-white/20 mb-1" />
-                        <span className="text-[10px] text-white/25">Upload</span>
+                        <Upload size={20} className="mx-auto text-[#bbb] mb-1" />
+                        <span className="text-[10px] text-[#bbb]">Upload</span>
                       </div>
                     )}
                   </div>
@@ -240,8 +240,8 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
                       onChange={handleFileChange}
                       className="hidden"
                     />
-                    <p className="text-[11px] text-white/30 mb-2">Click to upload or drag and drop. Max 5MB.</p>
-                    <p className="text-[11px] text-white/20">JPG, PNG, WebP supported.</p>
+                    <p className="text-[11px] text-[#aaa] mb-2">Click to upload or drag and drop. Max 5MB.</p>
+                    <p className="text-[11px] text-[#bbb]">JPG, PNG, WebP supported.</p>
                     {previewUrl && (
                       <button type="button" onClick={() => { setPreviewUrl(null); if (fileInputRef.current) fileInputRef.current.value = "" }} className="text-[11px] text-red-400/60 hover:text-red-400 mt-1 transition-colors">
                         Remove image
@@ -253,41 +253,41 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
 
               {/* Or paste URL */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Or paste image URL</label>
-                <input type="url" name="imageUrl" defaultValue={editing?.image_url ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://example.com/photo.jpg" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Or paste image URL</label>
+                <input type="url" name="imageUrl" defaultValue={editing?.image_url ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://example.com/photo.jpg" />
               </div>
 
-              <hr className="border-white/[0.06]" />
+              <hr className="border-[#e0e0e0]" />
 
               {/* Name */}
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Full Name *</label>
-                <input type="text" name="name" required defaultValue={editing?.name ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="Dr. Priya Kapoor" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Full Name *</label>
+                <input type="text" name="name" required defaultValue={editing?.name ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="Dr. Priya Kapoor" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Designation</label>
-                  <input type="text" name="designation" defaultValue={editing?.designation ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="CEO" />
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Designation</label>
+                  <input type="text" name="designation" defaultValue={editing?.designation ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="CEO" />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Company</label>
-                  <input type="text" name="company" defaultValue={editing?.company ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="Acme Corp" />
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Company</label>
+                  <input type="text" name="company" defaultValue={editing?.company ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="Acme Corp" />
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Bio</label>
-                <textarea name="bio" rows={3} defaultValue={editing?.bio ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Brief speaker biography…" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Bio</label>
+                <textarea name="bio" rows={3} defaultValue={editing?.bio ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Brief speaker biography…" />
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Sort Order</label>
-                <input type="number" name="sortOrder" min="0" defaultValue={editing?.sort_order ?? speakers.length} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Sort Order</label>
+                <input type="number" name="sortOrder" min="0" defaultValue={editing?.sort_order ?? speakers.length} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
               </div>
 
               {actionError && <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">{actionError}</div>}
 
               <div className="flex gap-3 pt-3">
-                <button type="button" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="flex-1 py-2.5 rounded-lg border border-white/[0.08] text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.03] transition-colors">Cancel</button>
-                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                <button type="button" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors">Cancel</button>
+                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                   {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : editing ? "Update Speaker" : "Add Speaker"}
                 </button>
               </div>

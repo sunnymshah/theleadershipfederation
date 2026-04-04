@@ -133,8 +133,8 @@ export default function CheckInPage() {
             <ScanLine size={20} className="text-[#c9a84c]" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Event Check-In</h2>
-            <p className="text-sm text-white/40">
+            <h2 className="text-2xl font-bold text-[#333]">Event Check-In</h2>
+            <p className="text-sm text-[#888]">
               Scan QR codes to check in attendees at the venue
             </p>
           </div>
@@ -143,29 +143,29 @@ export default function CheckInPage() {
 
       {/* ── Event selector ───────────────────────────────────────── */}
       <div className="mb-6">
-        <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+        <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
           Select Event
         </label>
         {loadingEvents ? (
-          <div className="flex items-center gap-2 text-white/30 text-sm py-3">
+          <div className="flex items-center gap-2 text-[#aaa] text-sm py-3">
             <Loader2 size={14} className="animate-spin" /> Loading events...
           </div>
         ) : events.length === 0 ? (
-          <p className="text-sm text-white/30">No active events found.</p>
+          <p className="text-sm text-[#aaa]">No active events found.</p>
         ) : (
           <div className="relative">
             <select
               value={selectedEventId ?? ""}
               onChange={(e) => setSelectedEventId(e.target.value)}
-              className="w-full appearance-none px-4 py-3 pr-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors cursor-pointer"
+              className="w-full appearance-none px-4 py-3 pr-10 bg-white border border-[#e0e0e0] rounded-xl text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors cursor-pointer"
             >
               {events.map((event) => (
-                <option key={event.id} value={event.id} className="bg-[#0a0a0a] text-white">
+                <option key={event.id} value={event.id} className="bg-white text-[#333]">
                   {event.title} — {new Date(event.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                 </option>
               ))}
             </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#aaa] pointer-events-none" />
           </div>
         )}
       </div>
@@ -173,10 +173,10 @@ export default function CheckInPage() {
       {/* ── Stats cards ──────────────────────────────────────────── */}
       {selectedEventId && (
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="p-4 rounded-xl border border-[#e0e0e0] bg-white">
             <div className="flex items-center gap-2 mb-2">
               <Users size={14} className="text-blue-400" />
-              <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Registered</span>
+              <span className="text-[10px] text-[#888] uppercase tracking-wider font-semibold">Registered</span>
             </div>
             <p className="text-2xl font-bold text-blue-400">
               {loadingStats ? "—" : stats.total}
@@ -185,7 +185,7 @@ export default function CheckInPage() {
           <div className="p-4 rounded-xl border border-emerald-500/10 bg-emerald-500/[0.02]">
             <div className="flex items-center gap-2 mb-2">
               <UserCheck size={14} className="text-emerald-400" />
-              <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Checked In</span>
+              <span className="text-[10px] text-[#888] uppercase tracking-wider font-semibold">Checked In</span>
             </div>
             <p className="text-2xl font-bold text-emerald-400">
               {loadingStats ? "—" : stats.checkedIn}
@@ -194,7 +194,7 @@ export default function CheckInPage() {
           <div className="p-4 rounded-xl border border-[#c9a84c]/10 bg-[#c9a84c]/[0.02]">
             <div className="flex items-center gap-2 mb-2">
               <Clock size={14} className="text-[#c9a84c]" />
-              <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Pending</span>
+              <span className="text-[10px] text-[#888] uppercase tracking-wider font-semibold">Pending</span>
             </div>
             <p className="text-2xl font-bold text-[#c9a84c]">
               {loadingStats ? "—" : stats.pending}
@@ -207,16 +207,16 @@ export default function CheckInPage() {
       {selectedEventId && stats.total > 0 && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-white/40">Check-in progress</span>
+            <span className="text-xs text-[#888]">Check-in progress</span>
             <span className="text-xs font-bold text-[#c9a84c]">{percentage}%</span>
           </div>
-          <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+          <div className="h-2 rounded-full bg-[#e0e0e0] overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[#c9a84c] to-emerald-400 transition-all duration-700 ease-out"
               style={{ width: `${percentage}%` }}
             />
           </div>
-          <p className="text-[10px] text-white/25 mt-1.5">
+          <p className="text-[10px] text-[#bbb] mt-1.5">
             {stats.checkedIn} of {stats.total} attendees checked in
           </p>
         </div>
@@ -230,23 +230,23 @@ export default function CheckInPage() {
       {/* ── Recent check-ins ─────────────────────────────────────── */}
       {selectedEventId && recentCheckIns.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-semibold text-[#666] uppercase tracking-wider mb-3">
             Recent Check-Ins
           </h3>
-          <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+          <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+                <tr className="border-b border-[#e0e0e0] bg-white">
+                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-[#888] uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider hidden sm:table-cell">
+                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-[#888] uppercase tracking-wider hidden sm:table-cell">
                     Company
                   </th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider hidden md:table-cell">
+                  <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-[#888] uppercase tracking-wider hidden md:table-cell">
                     Ticket
                   </th>
-                  <th className="text-right px-4 py-2.5 text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+                  <th className="text-right px-4 py-2.5 text-[10px] font-semibold text-[#888] uppercase tracking-wider">
                     Time
                   </th>
                 </tr>
@@ -255,16 +255,16 @@ export default function CheckInPage() {
                 {recentCheckIns.map((ci) => (
                   <tr
                     key={ci.id}
-                    className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.015] transition-colors"
+                    className="border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors"
                   >
                     <td className="px-4 py-3">
-                      <div className="font-medium text-white/90 text-xs">{ci.name}</div>
-                      <div className="text-[10px] text-white/30">{ci.email}</div>
+                      <div className="font-medium text-[#333] text-xs">{ci.name}</div>
+                      <div className="text-[10px] text-[#aaa]">{ci.email}</div>
                     </td>
-                    <td className="px-4 py-3 text-white/50 text-xs hidden sm:table-cell">
+                    <td className="px-4 py-3 text-[#777] text-xs hidden sm:table-cell">
                       {ci.company ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-white/50 text-xs hidden md:table-cell">
+                    <td className="px-4 py-3 text-[#777] text-xs hidden md:table-cell">
                       {ci.tickets?.name ?? "—"}
                     </td>
                     <td className="px-4 py-3 text-right">

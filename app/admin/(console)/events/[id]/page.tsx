@@ -153,7 +153,7 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-32 text-white/30 gap-2">
+      <div className="flex items-center justify-center py-32 text-[#aaa] gap-2">
         <Loader2 size={20} className="animate-spin" /> Loading event…
       </div>
     )
@@ -162,7 +162,7 @@ export default function EventDetailPage() {
   if (!event) {
     return (
       <div className="p-8 text-center py-32">
-        <p className="text-white/40">Event not found.</p>
+        <p className="text-[#888]">Event not found.</p>
         <Link href="/admin/events" className="text-[#c9a84c] text-sm mt-2 inline-block hover:underline">Back to Events</Link>
       </div>
     )
@@ -174,12 +174,12 @@ export default function EventDetailPage() {
   return (
     <div className="flex flex-col h-full">
       {/* ── Sticky Header ─────────────────────────────────────────── */}
-      <div className="shrink-0 bg-[#0a0a0a] border-b border-white/[0.06] z-10">
+      <div className="shrink-0 bg-white border-b border-[#e0e0e0] z-10">
         <div className="px-8 pt-5 pb-0">
           {/* Breadcrumb */}
           <Link
             href="/admin/events"
-            className="inline-flex items-center gap-1.5 text-[11px] text-white/30 hover:text-white/60 transition-colors mb-4 uppercase tracking-wider font-medium"
+            className="inline-flex items-center gap-1.5 text-[11px] text-[#aaa] hover:text-[#666] transition-colors mb-4 uppercase tracking-wider font-medium"
           >
             <ArrowLeft size={12} /> All Events
           </Link>
@@ -189,7 +189,7 @@ export default function EventDetailPage() {
             <div className="flex-1 min-w-0">
               {/* Title Row */}
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-white truncate">{event.title}</h1>
+                <h1 className="text-2xl font-bold text-[#333] truncate">{event.title}</h1>
                 <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider shrink-0", statusStyle.bg, statusStyle.text)}>
                   <span className={cn("w-1.5 h-1.5 rounded-full", statusStyle.dot)} />
                   {event.status}
@@ -197,14 +197,14 @@ export default function EventDetailPage() {
               </div>
 
               {/* Meta Row */}
-              <div className="flex items-center gap-5 text-[13px] text-white/40">
+              <div className="flex items-center gap-5 text-[13px] text-[#888]">
                 <span className="flex items-center gap-1.5">
-                  <Calendar size={13} className="text-white/25" />
+                  <Calendar size={13} className="text-[#bbb]" />
                   {fmtDate(event.start_date)}
                   {fmtDate(event.start_date) !== fmtDate(event.end_date) && <> — {fmtDate(event.end_date)}</>}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <MapPin size={13} className="text-white/25" />
+                  <MapPin size={13} className="text-[#bbb]" />
                   {event.venue}
                 </span>
                 {event.status === "published" && (
@@ -228,9 +228,9 @@ export default function EventDetailPage() {
                 { label: "Revenue", value: `₹${fmtPrice(counts.revenue)}`, color: "text-emerald-400", bg: "bg-emerald-500/10" },
                 { label: "Checked In", value: `${counts.checkedIn}/${counts.attendees}`, color: "text-[#c9a84c]", bg: "bg-[#c9a84c]/10" },
               ].map((s) => (
-                <div key={s.label} className={cn("px-4 py-2.5 rounded-xl border border-white/[0.06]", s.bg)}>
+                <div key={s.label} className={cn("px-4 py-2.5 rounded-xl border border-[#e0e0e0]", s.bg)}>
                   <div className={cn("text-lg font-bold tabular-nums", s.color)}>{s.value}</div>
-                  <div className="text-[10px] text-white/35 uppercase tracking-wider font-medium">{s.label}</div>
+                  <div className="text-[10px] text-[#999] uppercase tracking-wider font-medium">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -255,8 +255,8 @@ export default function EventDetailPage() {
                   className={cn(
                     "flex items-center gap-2 px-4 py-3 text-[13px] font-medium border-b-2 transition-all",
                     activeTab === key
-                      ? "border-[#c9a84c] text-white"
-                      : "border-transparent text-white/35 hover:text-white/60 hover:border-white/10"
+                      ? "border-[#c9a84c] text-[#333]"
+                      : "border-transparent text-[#999] hover:text-[#666] hover:border-[#e0e0e0]"
                   )}
                 >
                   <Icon size={14} className={activeTab === key ? "text-[#c9a84c]" : ""} />
@@ -264,7 +264,7 @@ export default function EventDetailPage() {
                   {badgeCount !== null && badgeCount > 0 && (
                     <span className={cn(
                       "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums",
-                      activeTab === key ? "bg-[#c9a84c]/20 text-[#c9a84c]" : "bg-white/[0.06] text-white/30"
+                      activeTab === key ? "bg-[#c9a84c]/20 text-[#c9a84c]" : "bg-[#f0f0f0] text-[#aaa]"
                     )}>
                       {badgeCount}
                     </span>
@@ -309,11 +309,11 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
         <div className="rounded-xl bg-gradient-to-r from-[#c9a84c]/10 via-[#c9a84c]/5 to-transparent border border-[#c9a84c]/20 p-5 flex items-center justify-between">
           <div>
             <p className="text-[#c9a84c] font-semibold text-sm">Event Countdown</p>
-            <p className="text-white/50 text-xs mt-0.5">Your event is coming up. Make sure everything is ready.</p>
+            <p className="text-[#777] text-xs mt-0.5">Your event is coming up. Make sure everything is ready.</p>
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-[#c9a84c] tabular-nums">{daysUntil}</div>
-            <div className="text-[10px] text-white/35 uppercase tracking-wider">days to go</div>
+            <div className="text-[10px] text-[#999] uppercase tracking-wider">days to go</div>
           </div>
         </div>
       )}
@@ -323,7 +323,7 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           <AlertCircle size={18} className="text-blue-400 shrink-0" />
           <div>
             <p className="text-blue-400 font-semibold text-sm">Event has ended</p>
-            <p className="text-white/40 text-xs mt-0.5">Consider updating the status to "Completed" in Settings.</p>
+            <p className="text-[#888] text-xs mt-0.5">Consider updating the status to "Completed" in Settings.</p>
           </div>
         </div>
       )}
@@ -343,10 +343,10 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           <button
             key={label}
             onClick={() => onTabSwitch(tab)}
-            className="text-left p-5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] transition-all group"
+            className="text-left p-5 rounded-xl border border-[#e0e0e0] bg-white hover:bg-[#fafafa] hover:border-[#ccc] transition-all group"
           >
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[11px] text-white/40 font-medium uppercase tracking-wider">{label}</p>
+              <p className="text-[11px] text-[#888] font-medium uppercase tracking-wider">{label}</p>
               <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", bg)}>
                 <Icon size={15} className={color} />
               </div>
@@ -359,11 +359,11 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
       {/* Event Details Card */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Details */}
-        <div className="rounded-xl border border-white/[0.06] overflow-hidden">
-          <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.06]">
-            <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Event Details</h3>
+        <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
+          <div className="px-5 py-3 bg-white border-b border-[#e0e0e0]">
+            <h3 className="text-xs font-semibold text-[#777] uppercase tracking-wider">Event Details</h3>
           </div>
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-[#eee]">
             {[
               { label: "Title", value: event.title },
               { label: "URL Slug", value: `/${event.slug}` },
@@ -374,8 +374,8 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
               { label: "Last Updated", value: fmtDateTime(event.updated_at) },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center px-5 py-3">
-                <span className="text-[13px] text-white/35 w-32 shrink-0">{label}</span>
-                <span className="text-[13px] text-white/80">{value}</span>
+                <span className="text-[13px] text-[#999] w-32 shrink-0">{label}</span>
+                <span className="text-[13px] text-[#444]">{value}</span>
               </div>
             ))}
           </div>
@@ -384,20 +384,20 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
         {/* Description + Cover */}
         <div className="space-y-6">
           {event.description && (
-            <div className="rounded-xl border border-white/[0.06] overflow-hidden">
-              <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.06]">
-                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Description</h3>
+            <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
+              <div className="px-5 py-3 bg-white border-b border-[#e0e0e0]">
+                <h3 className="text-xs font-semibold text-[#777] uppercase tracking-wider">Description</h3>
               </div>
               <div className="px-5 py-4">
-                <p className="text-[13px] text-white/60 leading-relaxed whitespace-pre-line">{event.description}</p>
+                <p className="text-[13px] text-[#666] leading-relaxed whitespace-pre-line">{event.description}</p>
               </div>
             </div>
           )}
 
           {event.cover_image_url && (
-            <div className="rounded-xl border border-white/[0.06] overflow-hidden">
-              <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.06]">
-                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Cover Image</h3>
+            <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
+              <div className="px-5 py-3 bg-white border-b border-[#e0e0e0]">
+                <h3 className="text-xs font-semibold text-[#777] uppercase tracking-wider">Cover Image</h3>
               </div>
               <div className="p-4">
                 <img src={event.cover_image_url} alt={event.title} className="rounded-lg w-full max-h-48 object-cover" />
@@ -406,24 +406,24 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           )}
 
           {/* Quick Actions */}
-          <div className="rounded-xl border border-white/[0.06] overflow-hidden">
-            <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.06]">
-              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Quick Actions</h3>
+          <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
+            <div className="px-5 py-3 bg-white border-b border-[#e0e0e0]">
+              <h3 className="text-xs font-semibold text-[#777] uppercase tracking-wider">Quick Actions</h3>
             </div>
             <div className="p-4 grid grid-cols-2 gap-3">
-              <button onClick={() => onTabSwitch("speakers")} className="px-4 py-3 rounded-lg border border-white/[0.08] text-sm text-white/60 hover:text-white hover:bg-white/[0.03] transition-all text-left">
+              <button onClick={() => onTabSwitch("speakers")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
                 <Users size={16} className="text-purple-400 mb-2" />
                 Add Speakers
               </button>
-              <button onClick={() => onTabSwitch("tickets")} className="px-4 py-3 rounded-lg border border-white/[0.08] text-sm text-white/60 hover:text-white hover:bg-white/[0.03] transition-all text-left">
+              <button onClick={() => onTabSwitch("tickets")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
                 <Ticket size={16} className="text-blue-400 mb-2" />
                 Manage Tickets
               </button>
-              <button onClick={() => onTabSwitch("agenda")} className="px-4 py-3 rounded-lg border border-white/[0.08] text-sm text-white/60 hover:text-white hover:bg-white/[0.03] transition-all text-left">
+              <button onClick={() => onTabSwitch("agenda")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
                 <ClipboardList size={16} className="text-cyan-400 mb-2" />
                 Build Agenda
               </button>
-              <button onClick={() => onTabSwitch("sponsors")} className="px-4 py-3 rounded-lg border border-white/[0.08] text-sm text-white/60 hover:text-white hover:bg-white/[0.03] transition-all text-left">
+              <button onClick={() => onTabSwitch("sponsors")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
                 <Building2 size={16} className="text-[#c9a84c] mb-2" />
                 Add Sponsors
               </button>
@@ -470,18 +470,18 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
   return (
     <div className="max-w-2xl space-y-8">
       {/* Public URL */}
-      <div className="rounded-xl border border-white/[0.06] overflow-hidden">
-        <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.06]">
-          <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Public URL</h3>
+      <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
+        <div className="px-5 py-3 bg-white border-b border-[#e0e0e0]">
+          <h3 className="text-xs font-semibold text-[#777] uppercase tracking-wider">Public URL</h3>
         </div>
         <div className="p-5">
           <div className="flex items-center gap-2">
-            <div className="flex-1 px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[13px] text-white/60 font-mono truncate">
+            <div className="flex-1 px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-[13px] text-[#666] font-mono truncate">
               /events/{event.slug}
             </div>
             <button
               onClick={handleCopySlug}
-              className="px-3 py-2.5 rounded-lg border border-white/[0.08] text-white/40 hover:text-white/70 hover:bg-white/[0.03] transition-colors"
+              className="px-3 py-2.5 rounded-lg border border-[#e0e0e0] text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"
             >
               {copied ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}
             </button>
@@ -489,7 +489,7 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
               <Link
                 href={`/events/${event.slug}`}
                 target="_blank"
-                className="px-3 py-2.5 rounded-lg border border-white/[0.08] text-white/40 hover:text-[#c9a84c] hover:bg-[#c9a84c]/5 transition-colors"
+                className="px-3 py-2.5 rounded-lg border border-[#e0e0e0] text-[#888] hover:text-[#c9a84c] hover:bg-[#c9a84c]/5 transition-colors"
               >
                 <Eye size={16} />
               </Link>
@@ -499,46 +499,46 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
       </div>
 
       {/* Edit Form */}
-      <form onSubmit={handleSubmit} className="rounded-xl border border-white/[0.06] overflow-hidden">
-        <div className="px-5 py-3 bg-white/[0.02] border-b border-white/[0.06]">
-          <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Event Configuration</h3>
+      <form onSubmit={handleSubmit} className="rounded-xl border border-[#e0e0e0] overflow-hidden">
+        <div className="px-5 py-3 bg-white border-b border-[#e0e0e0]">
+          <h3 className="text-xs font-semibold text-[#777] uppercase tracking-wider">Event Configuration</h3>
         </div>
         <div className="p-5 space-y-5">
           <div>
-            <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Event Title *</label>
-            <input type="text" name="title" required defaultValue={event.title} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Event Title *</label>
+            <input type="text" name="title" required defaultValue={event.title} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
           </div>
           <div>
-            <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">URL Slug *</label>
-            <input type="text" name="slug" required defaultValue={event.slug} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono" />
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">URL Slug *</label>
+            <input type="text" name="slug" required defaultValue={event.slug} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Start Date *</label>
-              <input type="datetime-local" name="startDate" required defaultValue={new Date(event.start_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+              <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Start Date *</label>
+              <input type="datetime-local" name="startDate" required defaultValue={new Date(event.start_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
             </div>
             <div>
-              <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">End Date *</label>
-              <input type="datetime-local" name="endDate" required defaultValue={new Date(event.end_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+              <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">End Date *</label>
+              <input type="datetime-local" name="endDate" required defaultValue={new Date(event.end_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
             </div>
           </div>
           <div>
-            <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Venue *</label>
-            <input type="text" name="venue" required defaultValue={event.venue} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Venue *</label>
+            <input type="text" name="venue" required defaultValue={event.venue} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
           </div>
           <div>
-            <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Description</label>
-            <textarea name="description" rows={4} defaultValue={event.description ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" />
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Description</label>
+            <textarea name="description" rows={4} defaultValue={event.description ?? ""} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" />
           </div>
           <div>
-            <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Cover Image URL</label>
-            <input type="url" name="coverImageUrl" defaultValue={event.cover_image_url ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://..." />
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Cover Image URL</label>
+            <input type="url" name="coverImageUrl" defaultValue={event.cover_image_url ?? ""} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://..." />
           </div>
 
           {/* Status */}
           <div>
-            <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Status</label>
-            <select name="status" defaultValue={event.status} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Status</label>
+            <select name="status" defaultValue={event.status} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
               <option value="draft">Draft</option>
               <option value="published">Published (visible on public site)</option>
               <option value="completed">Completed</option>
@@ -556,7 +556,7 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
           </button>

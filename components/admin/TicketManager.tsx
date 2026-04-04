@@ -19,9 +19,9 @@ interface TicketRow {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
-  draft:     { bg: "bg-yellow-500/10", text: "text-yellow-400" },
-  published: { bg: "bg-emerald-500/10", text: "text-emerald-400" },
-  archived:  { bg: "bg-white/5",       text: "text-white/40" },
+  draft:     { bg: "bg-yellow-500/10", text: "text-yellow-600" },
+  published: { bg: "bg-emerald-500/10", text: "text-emerald-600" },
+  archived:  { bg: "bg-[#f0f0f0]",     text: "text-[#888]" },
 }
 
 function fmtPrice(n: number) {
@@ -91,14 +91,14 @@ export function TicketManager({ eventId }: { eventId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-[#888]">
             {tickets.length} tier{tickets.length !== 1 ? "s" : ""}
             {totalSold > 0 && <> &middot; <span className="text-[#c9a84c]">{totalSold}/{totalInventory} sold</span></>}
           </p>
         </div>
         <button
           onClick={() => { setEditing(null); setDrawerOpen(true); setActionError(null) }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] transition-colors"
         >
           <Plus size={15} /> Add Ticket Tier
         </button>
@@ -113,47 +113,47 @@ export function TicketManager({ eventId }: { eventId: string }) {
       )}
 
       {/* Table */}
-      <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+      <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-white/30 gap-2">
+          <div className="flex items-center justify-center py-16 text-[#aaa] gap-2">
             <Loader2 size={18} className="animate-spin" /> Loading tickets…
           </div>
         ) : tickets.length === 0 ? (
           <div className="py-16 text-center">
-            <Ticket size={28} className="mx-auto mb-3 text-white/15" />
-            <p className="text-white/35 text-sm">No ticket tiers configured yet.</p>
-            <p className="text-white/20 text-xs mt-1">Add your first ticket tier to start selling.</p>
+            <Ticket size={28} className="mx-auto mb-3 text-[#ccc]" />
+            <p className="text-[#999] text-sm">No ticket tiers configured yet.</p>
+            <p className="text-[#bbb] text-xs mt-1">Add your first ticket tier to start selling.</p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Name</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Price (INR)</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Inventory</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Status</th>
-                <th className="text-right px-5 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider">Actions</th>
+              <tr className="border-b border-[#e0e0e0] bg-[#fafafa]">
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Name</th>
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Price (INR)</th>
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Inventory</th>
+                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Status</th>
+                <th className="text-right px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {tickets.map((t) => {
                 const pct = t.inventory_limit > 0 ? Math.round((t.sold / t.inventory_limit) * 100) : 0
                 return (
-                  <tr key={t.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.015] transition-colors">
+                  <tr key={t.id} className="border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors">
                     <td className="px-5 py-4">
-                      <div className="font-medium text-white/90">{t.name}</div>
-                      {t.description && <div className="text-[11px] text-white/30 mt-0.5 line-clamp-1">{t.description}</div>}
+                      <div className="font-medium text-[#333]">{t.name}</div>
+                      {t.description && <div className="text-[11px] text-[#aaa] mt-0.5 line-clamp-1">{t.description}</div>}
                     </td>
-                    <td className="px-5 py-4 text-white/70 tabular-nums">
+                    <td className="px-5 py-4 text-[#555] tabular-nums">
                       {t.price_inr === 0 ? (
-                        <span className="text-emerald-400 font-medium">Free</span>
+                        <span className="text-emerald-600 font-medium">Free</span>
                       ) : (
                         <>&#8377;{fmtPrice(t.price_inr)}</>
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <div className="text-white/60 text-xs tabular-nums">{t.sold} / {t.inventory_limit}</div>
-                      <div className="w-24 h-1.5 bg-white/[0.06] rounded-full mt-1.5 overflow-hidden">
+                      <div className="text-[#666] text-xs tabular-nums">{t.sold} / {t.inventory_limit}</div>
+                      <div className="w-24 h-1.5 bg-[#e8e8e8] rounded-full mt-1.5 overflow-hidden">
                         <div
                           className={cn("h-full rounded-full transition-all", pct >= 90 ? "bg-red-400" : pct >= 60 ? "bg-yellow-400" : "bg-[#c9a84c]")}
                           style={{ width: `${Math.min(pct, 100)}%` }}
@@ -161,14 +161,14 @@ export function TicketManager({ eventId }: { eventId: string }) {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={cn("inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider", STATUS_STYLES[t.status]?.bg ?? "bg-white/5", STATUS_STYLES[t.status]?.text ?? "text-white/40")}>
+                      <span className={cn("inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider", STATUS_STYLES[t.status]?.bg ?? "bg-[#f0f0f0]", STATUS_STYLES[t.status]?.text ?? "text-[#888]")}>
                         {t.status}
                       </span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => { setEditing(t); setDrawerOpen(true); setActionError(null) }} className="p-2 rounded-md text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-colors"><Pencil size={15} /></button>
-                        <button onClick={() => handleDelete(t.id)} disabled={deletingId === t.id} className="p-2 rounded-md text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
+                        <button onClick={() => { setEditing(t); setDrawerOpen(true); setActionError(null) }} className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><Pencil size={15} /></button>
+                        <button onClick={() => handleDelete(t.id)} disabled={deletingId === t.id} className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
                           {deletingId === t.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
                         </button>
                       </div>
@@ -185,33 +185,33 @@ export function TicketManager({ eventId }: { eventId: string }) {
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null) }} />
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a] border-l border-white/[0.08] z-50 shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-[#0a0a0a] border-b border-white/[0.06] px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-lg font-semibold text-white">{editing ? "Edit Ticket Tier" : "Add Ticket Tier"}</h3>
-              <button onClick={() => { setDrawerOpen(false); setEditing(null) }} className="p-1.5 rounded-md text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-colors"><X size={18} /></button>
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-lg font-semibold text-[#333]">{editing ? "Edit Ticket Tier" : "Add Ticket Tier"}</h3>
+              <button onClick={() => { setDrawerOpen(false); setEditing(null) }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Ticket Name *</label>
-                <input type="text" name="name" required defaultValue={editing?.name ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="VIP Pass" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Ticket Name *</label>
+                <input type="text" name="name" required defaultValue={editing?.name ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="VIP Pass" />
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Description</label>
-                <textarea name="description" rows={2} defaultValue={editing?.description ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Includes front-row seating and networking dinner…" />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Description</label>
+                <textarea name="description" rows={2} defaultValue={editing?.description ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Includes front-row seating and networking dinner…" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Price (INR) *</label>
-                  <input type="number" name="priceInr" required min="0" defaultValue={editing?.price_inr ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors tabular-nums" placeholder="5000" />
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Price (INR) *</label>
+                  <input type="number" name="priceInr" required min="0" defaultValue={editing?.price_inr ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors tabular-nums" placeholder="5000" />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Total Inventory *</label>
-                  <input type="number" name="inventoryLimit" required min="1" defaultValue={editing?.inventory_limit ?? ""} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors tabular-nums" placeholder="100" />
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Total Inventory *</label>
+                  <input type="number" name="inventoryLimit" required min="1" defaultValue={editing?.inventory_limit ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors tabular-nums" placeholder="100" />
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">Status</label>
-                <select name="status" defaultValue={editing?.status ?? "draft"} className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Status</label>
+                <select name="status" defaultValue={editing?.status ?? "draft"} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
                   <option value="archived">Archived</option>
@@ -221,8 +221,8 @@ export function TicketManager({ eventId }: { eventId: string }) {
               {actionError && <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">{actionError}</div>}
 
               <div className="flex gap-3 pt-3">
-                <button type="button" onClick={() => { setDrawerOpen(false); setEditing(null) }} className="flex-1 py-2.5 rounded-lg border border-white/[0.08] text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.03] transition-colors">Cancel</button>
-                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                <button type="button" onClick={() => { setDrawerOpen(false); setEditing(null) }} className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors">Cancel</button>
+                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                   {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : editing ? "Update Tier" : "Create Tier"}
                 </button>
               </div>
