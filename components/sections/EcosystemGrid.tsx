@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { CalendarDays, Crown, Mic2, ArrowRight } from "lucide-react"
@@ -40,18 +39,6 @@ const pillars = [
   },
 ]
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.12 },
-  },
-}
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } },
-}
-
 export function EcosystemGrid() {
   return (
     <section className="relative py-20 lg:py-28 bg-[#F4F8FF] overflow-hidden">
@@ -59,21 +46,10 @@ export function EcosystemGrid() {
       <GoldStarburst />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-14"
-        >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-5"
-          >
+        <div className="text-center mb-14 animate-fade-in-up">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-5">
             <span className="text-[11px] font-semibold text-[#e7ab1c] tracking-[0.1em] uppercase">Three Pillars</span>
-          </motion.span>
+          </span>
           <h2
             className="text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-black font-bold tracking-[-0.02em]"
             style={sfDisplay}
@@ -81,19 +57,13 @@ export function EcosystemGrid() {
             The Ecosystem
           </h2>
           <p className="mt-3 text-black/35 text-[15px]">One mission. Global impact.</p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-5"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-        >
-          {pillars.map((p) => {
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {pillars.map((p, i) => {
             const Icon = p.icon
             return (
-              <motion.div key={p.title} variants={cardVariants}>
+              <div key={p.title} className="animate-fade-in-up" style={{ animationDelay: `${i * 120}ms` }}>
                 <Link
                   href={p.href}
                   className="group block bg-white/70 border border-black/[0.04] rounded-2xl overflow-hidden h-full hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] hover:border-[#e7ab1c]/20 transition-all duration-300 relative"
@@ -126,10 +96,10 @@ export function EcosystemGrid() {
                     </span>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             )
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   )
