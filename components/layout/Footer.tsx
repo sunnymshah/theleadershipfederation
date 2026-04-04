@@ -5,9 +5,6 @@ import { ArrowRight } from "lucide-react"
 const sfText = {
   fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
 }
-const sfDisplay = {
-  fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
-}
 
 const footerLinks = {
   "Platform": [
@@ -22,7 +19,7 @@ const footerLinks = {
     { label: "Contact", href: "/contact" },
   ],
   "Flagship Events": [
-    { label: "GCC Leadership Conclave", href: "/events" },
+    { label: "7th GCC Leadership Conclave", href: "/events" },
     { label: "Asia Leadership Awards", href: "/events" },
     { label: "Bharat Leadership Summit", href: "/events" },
   ],
@@ -31,13 +28,13 @@ const footerLinks = {
 export function Footer() {
   return (
     <footer className="bg-black relative overflow-hidden">
-      {/* Top accent line */}
+      {/* Gold accent line */}
       <div className="h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c]/40 to-transparent" />
 
-      {/* Background chevron accent */}
+      {/* TOTY chevron arrows in footer */}
       <svg className="absolute top-0 right-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 500" fill="none" aria-hidden>
-        <path d="M150 30L380 250L150 470" stroke="rgba(231,171,28,0.04)" strokeWidth="2" strokeLinecap="round" />
-        <path d="M100 70L330 250L100 430" stroke="rgba(231,171,28,0.03)" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M120 20L380 250L120 480" stroke="rgba(231,171,28,0.06)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M80 60L340 250L80 440" stroke="rgba(231,171,28,0.04)" strokeWidth="2" strokeLinecap="round" />
       </svg>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 pt-16 pb-10">

@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin, Users } from "lucide-react"
 import { GoldDiamonds } from "@/components/ui/GoldPattern"
@@ -21,33 +22,40 @@ interface FeaturedEventCalloutProps {
 
 export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
   const e = event ?? {
-    title: "6th GCC Leadership Conclave",
-    start_date: "2026-04-07",
-    end_date: "2026-04-08",
-    venue: "JW Marriott Hotel Bengaluru, India",
-    description: "650+ CXOs, innovators, and policymakers. AI integration, talent-first operations, cross-border leadership.",
+    title: "7th GCC Leadership Conclave",
+    start_date: "2026-05-21",
+    end_date: "2026-05-22",
+    venue: "Mumbai, India",
+    description: "700+ CXOs, innovators, and policymakers. AI integration, talent-first operations, cross-border leadership.",
   }
 
   return (
     <section className="relative py-20 lg:py-28 bg-black overflow-hidden">
-      {/* Background elements */}
       <GoldDiamonds />
 
-      {/* Gold gradient glow */}
+      {/* Background event image */}
+      <div className="absolute inset-0 opacity-[0.08]">
+        <Image
+          src="https://img.einpresswire.com/large/713803/4th-asia-leadership-awards.png"
+          alt=""
+          fill
+          className="object-cover"
+        />
+      </div>
+
+      {/* Gold glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 60%)",
-        }}
+        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.10) 0%, transparent 60%)" }}
         aria-hidden
       />
 
-      {/* Diagonal cross lines */}
+      {/* TOTY diagonal lines */}
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" aria-hidden>
         <motion.line
           x1="0" y1="0" x2="100%" y2="100%"
-          stroke="rgba(231,171,28,0.07)"
-          strokeWidth="1.5"
+          stroke="rgba(231,171,28,0.08)"
+          strokeWidth="2"
           initial={{ pathLength: 0 }}
           whileInView={{ pathLength: 1 }}
           viewport={{ once: true }}
@@ -55,13 +63,20 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
         />
         <motion.line
           x1="100%" y1="0" x2="0" y2="100%"
-          stroke="rgba(231,171,28,0.05)"
-          strokeWidth="1.5"
+          stroke="rgba(231,171,28,0.06)"
+          strokeWidth="2"
           initial={{ pathLength: 0 }}
           whileInView={{ pathLength: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 2, delay: 0.3 }}
         />
+      </svg>
+
+      {/* TOTY chevron arrows on right */}
+      <svg className="absolute right-0 top-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 600" fill="none" aria-hidden>
+        <path d="M100 20L380 300L100 580" stroke="rgba(231,171,28,0.12)" strokeWidth="3" strokeLinecap="round" />
+        <path d="M60 60L340 300L60 540" stroke="rgba(231,171,28,0.08)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M30 100L300 300L30 500" stroke="rgba(231,171,28,0.05)" strokeWidth="2" strokeLinecap="round" />
       </svg>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
@@ -98,9 +113,9 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="mt-6 flex flex-wrap items-center justify-center gap-6 text-white/40 text-[14px]"
           >
-            <span className="inline-flex items-center gap-2"><Calendar size={14} strokeWidth={1.5} /> Apr 7-8, 2026</span>
-            <span className="inline-flex items-center gap-2"><MapPin size={14} strokeWidth={1.5} /> Bengaluru, India</span>
-            <span className="inline-flex items-center gap-2"><Users size={14} strokeWidth={1.5} /> 650+ CXOs</span>
+            <span className="inline-flex items-center gap-2"><Calendar size={14} strokeWidth={1.5} /> May 21-22, 2026</span>
+            <span className="inline-flex items-center gap-2"><MapPin size={14} strokeWidth={1.5} /> Mumbai, India</span>
+            <span className="inline-flex items-center gap-2"><Users size={14} strokeWidth={1.5} /> 700+ CXOs</span>
           </motion.div>
 
           <motion.p
@@ -112,6 +127,21 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
           >
             {e.description}
           </motion.p>
+
+          {/* Event highlights */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.45, duration: 0.5 }}
+            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+          >
+            {["AI & Digital Transformation", "Cross-Border Leadership", "Innovation Awards"].map((tag) => (
+              <span key={tag} className="px-3 py-1 rounded-full text-[11px] font-medium text-[#e7ab1c]/70 border border-[#e7ab1c]/15 bg-[#e7ab1c]/[0.05]">
+                {tag}
+              </span>
+            ))}
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

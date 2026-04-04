@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "img.einpresswire.com" },
+      { protocol: "https", hostname: "thb.tildacdn.one" },
+      { protocol: "https", hostname: "static.tildacdn.one" },
+      { protocol: "https", hostname: "staticprintenglish.theprint.in" },
+      { protocol: "https", hostname: "pnn.digital" },
+      { protocol: "https", hostname: "st1.latestly.com" },
+    ],
+  },
 };
 
 export default nextConfig;

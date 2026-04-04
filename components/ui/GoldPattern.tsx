@@ -3,142 +3,121 @@
 import { motion } from "framer-motion"
 
 /**
- * Bold gold geometric background — TOTY/FIFA-inspired chevrons with strong
- * visibility. Absolute-positioned SVG. Parent needs `relative overflow-hidden`.
+ * TOTY-style bold radiating gold arrows — starburst chevron pattern
+ * like FIFA Team of the Year card art. Highly visible.
  */
 export function GoldChevrons({ className = "" }: { className?: string }) {
   return (
     <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
-      {/* Large stacked chevrons — right side */}
+      {/* RIGHT — Primary starburst chevrons radiating outward */}
       <motion.svg
-        initial={{ opacity: 0, x: 60 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1.2, delay: 0.2 }}
-        className="absolute -top-10 -right-8 w-[600px] h-[600px]"
-        viewBox="0 0 600 600"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1 }}
+        className="absolute -right-20 top-1/2 -translate-y-1/2 w-[700px] h-[700px]"
+        viewBox="0 0 700 700"
         fill="none"
       >
-        {/* Filled chevron shape */}
-        <path
-          d="M300 40L540 300L300 560L340 300Z"
-          fill="url(#chevFill1)"
-          opacity="0.04"
-        />
-        {/* Primary bold chevron */}
-        <path
-          d="M280 60L520 300L280 540"
-          stroke="url(#chevGrad1)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          opacity="0.22"
-        />
-        {/* Secondary chevron */}
-        <path
-          d="M220 110L430 300L220 490"
-          stroke="url(#chevGrad1)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          opacity="0.15"
-        />
-        {/* Third chevron */}
-        <path
-          d="M170 155L350 300L170 445"
-          stroke="url(#chevGrad1)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          opacity="0.10"
-        />
-        {/* Inner accent chevron */}
-        <path
-          d="M130 195L280 300L130 405"
-          stroke="#e7ab1c"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          opacity="0.07"
-        />
+        {/* Filled wedge glow */}
+        <path d="M350 100L650 350L350 600L400 350Z" fill="url(#totyFill)" opacity="0.06" />
+        {/* Bold outer arrow */}
+        <path d="M300 50L660 350L300 650" stroke="url(#totyGrad)" strokeWidth="4" strokeLinecap="round" opacity="0.30" />
+        {/* Second arrow */}
+        <path d="M250 100L600 350L250 600" stroke="url(#totyGrad)" strokeWidth="3.5" strokeLinecap="round" opacity="0.22" />
+        {/* Third arrow */}
+        <path d="M200 145L540 350L200 555" stroke="url(#totyGrad)" strokeWidth="3" strokeLinecap="round" opacity="0.16" />
+        {/* Fourth arrow */}
+        <path d="M160 185L480 350L160 515" stroke="url(#totyGrad)" strokeWidth="2.5" strokeLinecap="round" opacity="0.11" />
+        {/* Fifth inner arrow */}
+        <path d="M130 220L420 350L130 480" stroke="#e7ab1c" strokeWidth="2" strokeLinecap="round" opacity="0.08" />
+        {/* Sixth innermost */}
+        <path d="M110 255L370 350L110 445" stroke="#e7ab1c" strokeWidth="1.5" strokeLinecap="round" opacity="0.05" />
         <defs>
-          <linearGradient id="chevGrad1" x1="150" y1="60" x2="540" y2="540">
+          <linearGradient id="totyGrad" x1="100" y1="50" x2="660" y2="650">
             <stop offset="0%" stopColor="#e7ab1c" />
-            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0.2" />
+            <stop offset="60%" stopColor="#e7ab1c" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0.1" />
           </linearGradient>
-          <linearGradient id="chevFill1" x1="300" y1="40" x2="540" y2="560">
-            <stop offset="0%" stopColor="#e7ab1c" />
+          <linearGradient id="totyFill" x1="350" y1="100" x2="650" y2="600">
+            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="1" />
             <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
           </linearGradient>
         </defs>
       </motion.svg>
 
-      {/* Upward arrow cluster — bottom left */}
+      {/* LEFT — Mirrored chevron cluster (pointing left) */}
       <motion.svg
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.2, delay: 0.5 }}
-        className="absolute -bottom-6 -left-6 w-[350px] h-[350px]"
-        viewBox="0 0 350 350"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, delay: 0.3 }}
+        className="absolute -left-16 bottom-[10%] w-[400px] h-[400px]"
+        viewBox="0 0 400 400"
         fill="none"
       >
-        <path d="M60 240L175 125L290 240" stroke="#e7ab1c" strokeWidth="2.5" opacity="0.18" strokeLinecap="round" />
-        <path d="M85 275L175 185L265 275" stroke="#e7ab1c" strokeWidth="2" opacity="0.12" strokeLinecap="round" />
-        <path d="M110 305L175 240L240 305" stroke="#e7ab1c" strokeWidth="1.5" opacity="0.08" strokeLinecap="round" />
+        <path d="M300 40L60 200L300 360" stroke="url(#totyGradL)" strokeWidth="3.5" strokeLinecap="round" opacity="0.20" />
+        <path d="M280 80L100 200L280 320" stroke="url(#totyGradL)" strokeWidth="3" strokeLinecap="round" opacity="0.14" />
+        <path d="M260 115L140 200L260 285" stroke="#e7ab1c" strokeWidth="2" strokeLinecap="round" opacity="0.09" />
+        <defs>
+          <linearGradient id="totyGradL" x1="300" y1="40" x2="60" y2="360">
+            <stop offset="0%" stopColor="#e7ab1c" />
+            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0.15" />
+          </linearGradient>
+        </defs>
       </motion.svg>
 
-      {/* Horizontal angular line — mid */}
+      {/* Horizontal accent lines */}
       <motion.div
-        initial={{ opacity: 0, scaleX: 0 }}
-        animate={{ opacity: 1, scaleX: 1 }}
-        transition={{ duration: 1.6, delay: 0.4 }}
-        className="absolute top-[38%] left-0 right-0 h-[2px] origin-left"
-        style={{
-          background: "linear-gradient(90deg, transparent 5%, rgba(231,171,28,0.10) 25%, rgba(231,171,28,0.10) 75%, transparent 95%)",
-        }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 1.4, delay: 0.3 }}
+        className="absolute top-[36%] left-0 right-0 h-[2px] origin-left"
+        style={{ background: "linear-gradient(90deg, transparent 5%, rgba(231,171,28,0.12) 30%, rgba(231,171,28,0.12) 70%, transparent 95%)" }}
       />
-
-      {/* Secondary thin line */}
       <motion.div
-        initial={{ opacity: 0, scaleX: 0 }}
-        animate={{ opacity: 1, scaleX: 1 }}
-        transition={{ duration: 1.6, delay: 0.6 }}
-        className="absolute top-[42%] left-0 right-0 h-px origin-right"
-        style={{
-          background: "linear-gradient(90deg, transparent 10%, rgba(231,171,28,0.06) 30%, rgba(231,171,28,0.06) 70%, transparent 90%)",
-        }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 1.4, delay: 0.5 }}
+        className="absolute top-[40%] left-0 right-0 h-px origin-right"
+        style={{ background: "linear-gradient(90deg, transparent 10%, rgba(231,171,28,0.07) 30%, rgba(231,171,28,0.07) 70%, transparent 90%)" }}
       />
     </div>
   )
 }
 
-/** Floating gold diamonds — for dark sections */
+/** Bold gold diamonds + angular lines — dark section backgrounds */
 export function GoldDiamonds({ className = "" }: { className?: string }) {
   return (
     <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
+      {/* Rotating diamonds */}
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-        className="absolute -top-28 -right-28 w-56 h-56 border-2 border-[#e7ab1c]/[0.12] rounded-sm"
+        className="absolute -top-24 -right-24 w-52 h-52 border-2 border-[#e7ab1c]/[0.15] rounded-sm"
         style={{ transform: "rotate(45deg)" }}
       />
       <motion.div
         animate={{ rotate: -360 }}
         transition={{ duration: 100, repeat: Infinity, ease: "linear" }}
-        className="absolute -bottom-16 -left-16 w-36 h-36 border-2 border-[#e7ab1c]/[0.15] rounded-sm"
+        className="absolute -bottom-16 -left-16 w-36 h-36 border-2 border-[#e7ab1c]/[0.18] rounded-sm"
         style={{ transform: "rotate(45deg)" }}
       />
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        className="absolute top-1/3 right-1/5 w-20 h-20 border border-[#e7ab1c]/[0.10] rounded-sm"
+        className="absolute top-1/3 right-[20%] w-20 h-20 border border-[#e7ab1c]/[0.12] rounded-sm"
         style={{ transform: "rotate(45deg)" }}
       />
-      {/* Angular lines */}
+      {/* TOTY angular V-lines */}
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 600" fill="none" preserveAspectRatio="none">
-        <path d="M0 300L500 100L1000 300" stroke="rgba(231,171,28,0.06)" strokeWidth="1" />
-        <path d="M0 350L500 150L1000 350" stroke="rgba(231,171,28,0.04)" strokeWidth="1" />
+        <path d="M0 300L500 80L1000 300" stroke="rgba(231,171,28,0.08)" strokeWidth="2" />
+        <path d="M0 340L500 130L1000 340" stroke="rgba(231,171,28,0.05)" strokeWidth="1.5" />
+        <path d="M0 300L500 520L1000 300" stroke="rgba(231,171,28,0.06)" strokeWidth="1.5" />
       </svg>
     </div>
   )
 }
 
-/** Subtle grid dot pattern — for light sections */
+/** Dot grid pattern */
 export function DotGrid({ className = "" }: { className?: string }) {
   return (
     <div
@@ -152,7 +131,7 @@ export function DotGrid({ className = "" }: { className?: string }) {
   )
 }
 
-/** Gradient orbs — ambient gold glow */
+/** Ambient gold gradient orbs */
 export function GoldOrbs({ className = "" }: { className?: string }) {
   return (
     <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
@@ -160,18 +139,31 @@ export function GoldOrbs({ className = "" }: { className?: string }) {
         animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[10%] right-[15%] w-[500px] h-[500px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, rgba(231,171,28,0.07) 0%, transparent 70%)",
-        }}
+        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 70%)" }}
       />
       <motion.div
         animate={{ y: [0, 15, 0], x: [0, -8, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-[5%] left-[10%] w-[400px] h-[400px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, rgba(231,171,28,0.05) 0%, transparent 70%)",
-        }}
+        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.06) 0%, transparent 70%)" }}
       />
+    </div>
+  )
+}
+
+/** TOTY-style starburst for any section — standalone radiating lines */
+export function GoldStarburst({ className = "" }: { className?: string }) {
+  return (
+    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
+      <svg className="absolute right-0 top-0 w-2/5 h-full" viewBox="0 0 500 700" fill="none">
+        <path d="M100 20L480 350L100 680" stroke="rgba(231,171,28,0.18)" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M60 70L420 350L60 630" stroke="rgba(231,171,28,0.12)" strokeWidth="3" strokeLinecap="round" />
+        <path d="M30 120L360 350L30 580" stroke="rgba(231,171,28,0.07)" strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+      <svg className="absolute left-0 top-0 w-1/4 h-full" viewBox="0 0 300 700" fill="none">
+        <path d="M250 50L40 350L250 650" stroke="rgba(231,171,28,0.10)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M230 110L80 350L230 590" stroke="rgba(231,171,28,0.06)" strokeWidth="2" strokeLinecap="round" />
+      </svg>
     </div>
   )
 }
