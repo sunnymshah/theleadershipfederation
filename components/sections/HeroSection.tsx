@@ -128,14 +128,14 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.5, ease }}
-              className="mt-14 flex items-center gap-10"
+              className="mt-10 sm:mt-14 flex items-center gap-6 sm:gap-10"
             >
               {stats.map(({ value, suffix, label }, i) => (
                 <div key={label}>
-                  <div className="text-[26px] font-bold text-black tracking-tight leading-none">
+                  <div className="text-[20px] sm:text-[26px] font-bold text-black tracking-tight leading-none">
                     <AnimatedCounter value={value} suffix={suffix} duration={2000 + i * 300} />
                   </div>
-                  <div className="text-[11px] text-black/30 tracking-[0.1em] uppercase font-medium mt-1">{label}</div>
+                  <div className="text-[9px] sm:text-[11px] text-black/30 tracking-[0.1em] uppercase font-medium mt-1">{label}</div>
                 </div>
               ))}
             </motion.div>
@@ -174,7 +174,7 @@ export function HeroSection() {
                 initial={{ opacity: 0, y: 16, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.9, duration: 0.7, ease }}
-                className="absolute -bottom-4 -left-4 lg:-left-8 bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-black/[0.04]"
+                className="absolute -bottom-4 left-0 sm:-left-4 lg:-left-8 bg-white/90 backdrop-blur-xl rounded-2xl px-4 sm:px-5 py-3 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-black/[0.04]"
               >
                 <div className="text-[10px] text-[#e7ab1c] uppercase tracking-[0.12em] font-bold mb-1">Next Event</div>
                 <div className="text-[14px] font-bold text-black">7th GCC Leadership Conclave</div>

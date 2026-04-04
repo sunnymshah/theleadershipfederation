@@ -106,11 +106,11 @@ export default function Mumbai2026Page() {
   return (
     <main className="min-h-screen bg-[#F4F8FF]">
       {/* ── HERO ── */}
-      <section className="relative pt-28 pb-24 overflow-hidden">
+      <section className="relative pt-24 sm:pt-28 pb-16 sm:pb-24 overflow-hidden">
         <GoldChevrons />
         <GoldOrbs />
-        <div className="relative z-10 max-w-6xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-12">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-8 sm:gap-12">
             {/* Left */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
@@ -124,7 +124,7 @@ export default function Mumbai2026Page() {
               </div>
 
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05] mb-6"
+                className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05] mb-4 sm:mb-6"
                 style={sfFont}
               >
                 GCC Leadership
@@ -144,7 +144,7 @@ export default function Mumbai2026Page() {
               </div>
 
               <p
-                className="text-lg text-black/45 max-w-lg leading-relaxed mb-10"
+                className="text-base sm:text-lg text-black/45 max-w-lg leading-relaxed mb-8 sm:mb-10"
                 style={sfText}
               >
                 The flagship gathering of 700+ GCC leaders, CXOs, and
@@ -192,11 +192,11 @@ export default function Mumbai2026Page() {
           </div>
 
           {/* Stats bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 pt-10 border-t border-black/[0.06]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mt-10 sm:mt-16 pt-8 sm:pt-10 border-t border-black/[0.06]">
             {stats.map((s) => (
               <div key={s.label} className="text-center">
                 <div
-                  className="text-3xl md:text-4xl font-bold text-black mb-1"
+                  className="text-2xl sm:text-3xl md:text-4xl font-bold text-black mb-1"
                   style={sfFont}
                 >
                   {s.value}
@@ -221,7 +221,7 @@ export default function Mumbai2026Page() {
               What to Expect
             </span>
             <h2
-              className="text-4xl md:text-5xl font-bold text-black tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-black tracking-tight"
               style={sfFont}
             >
               Key Themes
@@ -264,7 +264,7 @@ export default function Mumbai2026Page() {
               The Programme
             </span>
             <h2
-              className="text-4xl md:text-5xl font-bold text-black tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-black tracking-tight"
               style={sfFont}
             >
               Event Agenda
@@ -285,16 +285,16 @@ export default function Mumbai2026Page() {
                     key={i}
                     className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-white border border-black/[0.04] hover:shadow-sm transition-all"
                   >
-                    <span className="shrink-0 text-sm font-mono text-black/30 w-36 tabular-nums">
+                    <span className="shrink-0 text-xs sm:text-sm font-mono text-black/30 w-auto sm:w-36 tabular-nums">
                       {s.time}
                     </span>
-                    <div className="flex-1 flex items-center gap-3">
+                    <div className="flex-1 flex flex-wrap items-center gap-2 sm:gap-3">
                       <span
-                        className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${typeColors[s.type] ?? ""}`}
+                        className={`inline-flex px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${typeColors[s.type] ?? ""}`}
                       >
                         {s.type}
                       </span>
-                      <span className="text-sm font-medium text-black/70">
+                      <span className="text-xs sm:text-sm font-medium text-black/70">
                         {s.title}
                       </span>
                     </div>
@@ -314,7 +314,7 @@ export default function Mumbai2026Page() {
               Your Invitation
             </span>
             <h2
-              className="text-4xl md:text-5xl font-bold text-black tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-black tracking-tight"
               style={sfFont}
             >
               Why Attend
