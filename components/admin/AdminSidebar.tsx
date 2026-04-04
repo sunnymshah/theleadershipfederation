@@ -16,6 +16,9 @@ import {
   Users,
   Radio,
   Building2,
+  ClipboardList,
+  Tag,
+  ScanLine,
   Settings,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -28,6 +31,9 @@ const navItems = [
   { label: "Speakers",   href: "/admin/speakers",  icon: Radio },
   { label: "Attendees",  href: "/admin/attendees",  icon: Users },
   { label: "Sponsors",   href: "/admin/sponsors",   icon: Building2 },
+  { label: "Sessions",   href: "/admin/sessions",   icon: ClipboardList },
+  { label: "Promo Codes", href: "/admin/promo-codes", icon: Tag },
+  { label: "Check-In",   href: "/admin/check-in",   icon: ScanLine },
   { label: "Settings",   href: "/admin/settings",  icon: Settings },
 ]
 
