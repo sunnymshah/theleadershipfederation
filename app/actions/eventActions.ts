@@ -1,40 +1,51 @@
 "use server"
 
-/**
- * ─── EVENT SERVER ACTIONS ─────────────────────────────────────────────────
- *
- * All database mutations for events go through these Server Actions.
- * Every action calls revalidatePath() after writing to Supabase so
- * the public website reflects changes instantly — no stale cache.
- */
-
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 
-// ── Helper: get authenticated Supabase client ───────────────────────────
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) throw new Error("Unauthorized")
-
   return { supabase, user }
 }
 
-// ── Helper: invalidate all event-related caches ─────────────────────────
 function invalidateEventCaches(slug?: string) {
-  revalidatePath("/", "page")                // Homepage (featured events)
-  revalidatePath("/events", "page")          // Public events listing
-  revalidatePath("/admin/events", "page")    // Admin events table
-
-  if (slug) {
-    revalidatePath(`/events/${slug}`, "page") // Individual event page
-  }
+  revalidatePath("/", "layout")
+  revalidatePath("/events", "page")
+  revalidatePath("/admin/events", "page")
+  revalidatePath("/admin", "page")
+  if (slug) revalidatePath(`/events/${slug}`, "page")
 }
 
-// ─── CREATE EVENT ────────────────────────────────────────────────────────
+async function uploadCoverImage(
+  supabase: ReturnType<typeof createClient>,
+  file: File
+): Promise<string | null> {
+  if (!file || file.size === 0) return null
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+  const safeName = file.name
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[^a-zA-Z0-9-_]/g, "-")
+    .toLowerCase()
+    .slice(0, 50)
+  const path = `events/${safeName}-${Date.now()}.${ext}`
+
+  const { error } = await supabase.storage
+    .from("public_images")
+    .upload(path, file, { cacheControl: "3600", upsert: false })
+
+  if (error) return null
+
+  const { data: { publicUrl } } = supabase.storage
+    .from("public_images")
+    .getPublicUrl(path)
+
+  return publicUrl
+}
 
 export async function createEvent(formData: FormData) {
   try {
@@ -51,6 +62,16 @@ export async function createEvent(formData: FormData) {
       return { success: false, error: "All required fields must be filled." }
     }
 
+    // Handle cover image upload
+    const coverFile = formData.get("coverImage") as File | null
+    const coverUrl  = formData.get("coverImageUrl") as string
+    let finalCoverUrl = coverUrl || null
+
+    if (coverFile && coverFile.size > 0) {
+      const uploadedUrl = await uploadCoverImage(supabase, coverFile)
+      if (uploadedUrl) finalCoverUrl = uploadedUrl
+    }
+
     const { data, error } = await supabase
       .from("events")
       .insert({
@@ -60,6 +81,7 @@ export async function createEvent(formData: FormData) {
         end_date: new Date(endDate).toISOString(),
         venue,
         description: description || null,
+        cover_image_url: finalCoverUrl,
         status: "draft",
         created_by: user.id,
       })
@@ -67,7 +89,6 @@ export async function createEvent(formData: FormData) {
       .single()
 
     if (error) return { success: false, error: error.message }
-
     invalidateEventCaches(slug)
     return { success: true, event: data }
   } catch (err) {
@@ -75,16 +96,13 @@ export async function createEvent(formData: FormData) {
   }
 }
 
-// ─── UPDATE EVENT ────────────────────────────────────────────────────────
-
 export async function updateEvent(eventId: string, formData: FormData) {
   try {
     const { supabase } = await getAuthenticatedClient()
 
-    // Get old slug for cache invalidation if slug changed
     const { data: current } = await supabase
       .from("events")
-      .select("slug")
+      .select("slug, cover_image_url")
       .eq("id", eventId)
       .single()
 
@@ -100,6 +118,16 @@ export async function updateEvent(eventId: string, formData: FormData) {
       return { success: false, error: "All required fields must be filled." }
     }
 
+    // Handle cover image upload
+    const coverFile = formData.get("coverImage") as File | null
+    const coverUrl  = formData.get("coverImageUrl") as string
+    let finalCoverUrl = coverUrl || current?.cover_image_url || null
+
+    if (coverFile && coverFile.size > 0) {
+      const uploadedUrl = await uploadCoverImage(supabase, coverFile)
+      if (uploadedUrl) finalCoverUrl = uploadedUrl
+    }
+
     const { data, error } = await supabase
       .from("events")
       .update({
@@ -109,6 +137,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
         end_date: new Date(endDate).toISOString(),
         venue,
         description: description || null,
+        cover_image_url: finalCoverUrl,
         status: status || "draft",
         updated_at: new Date().toISOString(),
       })
@@ -118,11 +147,11 @@ export async function updateEvent(eventId: string, formData: FormData) {
 
     if (error) return { success: false, error: error.message }
 
-    // Invalidate both old and new slugs if changed
     invalidateEventCaches(slug)
     if (current?.slug && current.slug !== slug) {
       revalidatePath(`/events/${current.slug}`, "page")
     }
+    revalidatePath(`/admin/events/${eventId}`, "page")
 
     return { success: true, event: data }
   } catch (err) {
@@ -130,13 +159,10 @@ export async function updateEvent(eventId: string, formData: FormData) {
   }
 }
 
-// ─── DELETE EVENT ────────────────────────────────────────────────────────
-
 export async function deleteEvent(eventId: string) {
   try {
     const { supabase } = await getAuthenticatedClient()
 
-    // Get slug before deleting for cache invalidation
     const { data: event } = await supabase
       .from("events")
       .select("slug")
@@ -149,7 +175,6 @@ export async function deleteEvent(eventId: string) {
       .eq("id", eventId)
 
     if (error) return { success: false, error: error.message }
-
     invalidateEventCaches(event?.slug)
     return { success: true }
   } catch (err) {

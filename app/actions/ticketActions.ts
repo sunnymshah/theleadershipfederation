@@ -12,10 +12,24 @@ async function getAuthenticatedClient() {
   return { supabase, user }
 }
 
-function invalidateCaches() {
+async function invalidateCaches(supabase: ReturnType<typeof createClient>, eventId: string) {
+  // Core admin paths
   revalidatePath("/admin/tickets", "page")
   revalidatePath("/admin/events", "page")
   revalidatePath("/admin", "page")
+  revalidatePath(`/admin/events/${eventId}`, "page")
+
+  // Resolve slug for public site invalidation
+  const { data: event } = await supabase
+    .from("events")
+    .select("slug")
+    .eq("id", eventId)
+    .single()
+
+  if (event?.slug) {
+    revalidatePath(`/events/${event.slug}`, "page")
+  }
+  revalidatePath("/events", "page")
 }
 
 export async function createTicket(formData: FormData) {
@@ -40,7 +54,7 @@ export async function createTicket(formData: FormData) {
       .single()
 
     if (error) return { success: false, error: error.message }
-    invalidateCaches()
+    await invalidateCaches(supabase, eventId)
     return { success: true, ticket: data }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -50,6 +64,13 @@ export async function createTicket(formData: FormData) {
 export async function updateTicket(ticketId: string, formData: FormData) {
   try {
     const { supabase } = await getAuthenticatedClient()
+
+    // Look up the event_id from the ticket for cache invalidation
+    const { data: existing } = await supabase
+      .from("tickets")
+      .select("event_id")
+      .eq("id", ticketId)
+      .single()
 
     const name           = formData.get("name") as string
     const description    = formData.get("description") as string
@@ -67,7 +88,7 @@ export async function updateTicket(ticketId: string, formData: FormData) {
       .single()
 
     if (error) return { success: false, error: error.message }
-    invalidateCaches()
+    if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true, ticket: data }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -77,9 +98,17 @@ export async function updateTicket(ticketId: string, formData: FormData) {
 export async function deleteTicket(ticketId: string) {
   try {
     const { supabase } = await getAuthenticatedClient()
+
+    // Look up the event_id before deleting
+    const { data: existing } = await supabase
+      .from("tickets")
+      .select("event_id")
+      .eq("id", ticketId)
+      .single()
+
     const { error } = await supabase.from("tickets").delete().eq("id", ticketId)
     if (error) return { success: false, error: error.message }
-    invalidateCaches()
+    if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
