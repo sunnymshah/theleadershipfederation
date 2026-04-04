@@ -15,7 +15,7 @@ export function ExclusivityCTA() {
       <GoldStarburst />
 
       <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
-        <div className="animate-fade-in-up">
+        <div>
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-5">
             <span className="text-[11px] font-semibold text-[#e7ab1c] tracking-[0.1em] uppercase">Get Involved</span>
           </span>
@@ -29,7 +29,7 @@ export function ExclusivityCTA() {
           <p className="mt-4 text-black/35 text-[16px] leading-relaxed max-w-md mx-auto">
             Whether you are a leader, enterprise, or institution — there is a place for you.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/events"
               className="group inline-flex items-center gap-2 px-8 py-[14px] rounded-full font-semibold text-[14px] text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 shadow-[0_4px_20px_rgba(231,171,28,0.3)] hover:scale-[1.02] active:scale-[0.98]"

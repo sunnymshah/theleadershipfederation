@@ -57,7 +57,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
       </svg>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
-        <div className="animate-fade-in-up">
+        <div>
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e7ab1c] animate-pulse" />
             <span className="text-[11px] tracking-[0.2em] uppercase text-[#e7ab1c] font-semibold">
@@ -72,18 +72,18 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             {e.title}
           </h2>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-white/40 text-[14px] animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-white/40 text-[14px]">
             <span className="inline-flex items-center gap-2"><Calendar size={14} strokeWidth={1.5} /> May 21-22, 2026</span>
             <span className="inline-flex items-center gap-2"><MapPin size={14} strokeWidth={1.5} /> Mumbai, India</span>
             <span className="inline-flex items-center gap-2"><Users size={14} strokeWidth={1.5} /> 700+ CXOs</span>
           </div>
 
-          <p className="mt-6 max-w-xl mx-auto text-white/30 text-[15px] leading-[1.7] animate-fade-in-up" style={{ animationDelay: "250ms" }}>
+          <p className="mt-6 max-w-xl mx-auto text-white/30 text-[15px] leading-[1.7]">
             {e.description}
           </p>
 
           {/* Event highlights */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in-up" style={{ animationDelay: "350ms" }}>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             {["AI & Digital Transformation", "Cross-Border Leadership", "Innovation Awards"].map((tag) => (
               <span key={tag} className="px-3 py-1 rounded-full text-[11px] font-medium text-[#e7ab1c]/70 border border-[#e7ab1c]/15 bg-[#e7ab1c]/[0.05]">
                 {tag}
@@ -91,7 +91,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             ))}
           </div>
 
-          <div className="animate-fade-in-up" style={{ animationDelay: "400ms" }}>
+          <div>
             <Link
               href="/events"
               className="mt-8 inline-flex items-center gap-2 px-8 py-[14px] rounded-full font-semibold text-[14px] text-black bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
