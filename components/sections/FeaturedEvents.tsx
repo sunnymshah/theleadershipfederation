@@ -28,7 +28,7 @@ export function FeaturedEvents({ events }: { events: FeaturedEvent[] }) {
   if (events.length === 0) return null
 
   return (
-    <section className="relative bg-[#FEFBEA] py-28 overflow-hidden">
+    <section className="relative bg-[#FAECD2] py-28 overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10">
         {/* Section header */}
         <motion.div
