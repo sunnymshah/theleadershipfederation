@@ -17,7 +17,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
-import { createEvent, deleteEvent } from "@/app/actions/eventActions"
+import { createEvent, updateEvent, deleteEvent } from "@/app/actions/eventActions"
 import {
   Plus,
   Pencil,
@@ -55,6 +55,7 @@ export default function AdminEventsPage() {
   const [loading, setLoading]             = useState(true)
   const [searchQuery, setSearchQuery]     = useState("")
   const [drawerOpen, setDrawerOpen]       = useState(false)
+  const [editingEvent, setEditingEvent]   = useState<Event | null>(null)
   const [submitting, setSubmitting]       = useState(false)
   const [actionError, setActionError]     = useState<string | null>(null)
   const [deletingId, setDeletingId]       = useState<string | null>(null)
@@ -81,23 +82,38 @@ export default function AdminEventsPage() {
     e.venue.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // ── Handle create ──────────────────────────────────────────────────
-  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+  // ── Handle create / edit ────────────────────────────────────────────
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSubmitting(true)
     setActionError(null)
 
-    const fd     = new FormData(e.currentTarget)
-    const result = await createEvent(fd)
+    const fd = new FormData(e.currentTarget)
+    const result = editingEvent
+      ? await updateEvent(editingEvent.id, fd)
+      : await createEvent(fd)
 
     if (result.success) {
       setDrawerOpen(false)
+      setEditingEvent(null)
       await fetchEvents()
     } else {
-      setActionError(result.error ?? "Failed to create event")
+      setActionError(result.error ?? "Operation failed")
     }
 
     setSubmitting(false)
+  }
+
+  function openEdit(event: Event) {
+    setEditingEvent(event)
+    setDrawerOpen(true)
+    setActionError(null)
+  }
+
+  function openCreate() {
+    setEditingEvent(null)
+    setDrawerOpen(true)
+    setActionError(null)
   }
 
   // ── Handle delete ──────────────────────────────────────────────────
@@ -136,7 +152,7 @@ export default function AdminEventsPage() {
           </p>
         </div>
         <button
-          onClick={() => { setDrawerOpen(true); setActionError(null) }}
+          onClick={openCreate}
           className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
         >
           <Plus size={16} />
@@ -238,6 +254,7 @@ export default function AdminEventsPage() {
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
                       <button
+                        onClick={() => openEdit(event)}
                         className="p-2 rounded-md text-white/30 hover:text-white/70 hover:bg-white/[0.05] transition-colors"
                         title="Edit event"
                       >
@@ -270,7 +287,7 @@ export default function AdminEventsPage() {
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/60 z-40"
-            onClick={() => setDrawerOpen(false)}
+            onClick={() => { setDrawerOpen(false); setEditingEvent(null) }}
           />
 
           {/* Drawer */}
@@ -278,10 +295,10 @@ export default function AdminEventsPage() {
             {/* Drawer header */}
             <div className="sticky top-0 bg-[#0a0a0a] border-b border-white/[0.06] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-white">
-                Create New Event
+                {editingEvent ? "Edit Event" : "Create New Event"}
               </h3>
               <button
-                onClick={() => setDrawerOpen(false)}
+                onClick={() => { setDrawerOpen(false); setEditingEvent(null) }}
                 className="p-1.5 rounded-md text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-colors"
               >
                 <X size={18} />
@@ -289,7 +306,7 @@ export default function AdminEventsPage() {
             </div>
 
             {/* Drawer form */}
-            <form onSubmit={handleCreate} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {/* Title */}
               <div>
                 <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
@@ -299,6 +316,7 @@ export default function AdminEventsPage() {
                   type="text"
                   name="title"
                   required
+                  defaultValue={editingEvent?.title ?? ""}
                   className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="Asia Leadership Summit 2025"
                 />
@@ -313,6 +331,7 @@ export default function AdminEventsPage() {
                   type="text"
                   name="slug"
                   required
+                  defaultValue={editingEvent?.slug ?? ""}
                   className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="asia-leadership-summit-2025"
                 />
@@ -328,6 +347,7 @@ export default function AdminEventsPage() {
                     type="datetime-local"
                     name="startDate"
                     required
+                    defaultValue={editingEvent ? new Date(editingEvent.start_date).toISOString().slice(0, 16) : ""}
                     className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   />
                 </div>
@@ -339,6 +359,7 @@ export default function AdminEventsPage() {
                     type="datetime-local"
                     name="endDate"
                     required
+                    defaultValue={editingEvent ? new Date(editingEvent.end_date).toISOString().slice(0, 16) : ""}
                     className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   />
                 </div>
@@ -353,6 +374,7 @@ export default function AdminEventsPage() {
                   type="text"
                   name="venue"
                   required
+                  defaultValue={editingEvent?.venue ?? ""}
                   className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="Jio World Centre, Mumbai"
                 />
@@ -366,10 +388,30 @@ export default function AdminEventsPage() {
                 <textarea
                   name="description"
                   rows={3}
+                  defaultValue=""
                   className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
                   placeholder="Brief overview of the event…"
                 />
               </div>
+
+              {/* Status (only when editing) */}
+              {editingEvent && (
+              <div>
+                <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  defaultValue={editingEvent.status}
+                  className="w-full px-3 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              )}
 
               {/* Error inside drawer */}
               {actionError && (
@@ -382,7 +424,7 @@ export default function AdminEventsPage() {
               <div className="flex gap-3 pt-3">
                 <button
                   type="button"
-                  onClick={() => setDrawerOpen(false)}
+                  onClick={() => { setDrawerOpen(false); setEditingEvent(null) }}
                   className="flex-1 py-2.5 rounded-lg border border-white/[0.08] text-sm text-white/50 hover:text-white/80 hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
@@ -395,8 +437,10 @@ export default function AdminEventsPage() {
                   {submitting ? (
                     <>
                       <Loader2 size={14} className="animate-spin" />
-                      Creating…
+                      Saving…
                     </>
+                  ) : editingEvent ? (
+                    "Update Event"
                   ) : (
                     "Create Event"
                   )}
