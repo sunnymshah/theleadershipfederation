@@ -54,6 +54,7 @@ export function LogoMarquee() {
                 alt={p.name}
                 loading="lazy"
                 className="h-[52px] w-auto max-w-[140px] object-contain"
+                style={{ filter: "brightness(0) opacity(0.7)" }}
               />
               <span className="text-[16px] font-extrabold text-black/60 whitespace-nowrap" style={sfText}>
                 {p.name}
