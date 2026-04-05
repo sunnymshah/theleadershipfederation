@@ -31,11 +31,6 @@ export function Footer() {
       {/* Gold accent line */}
       <div className="h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c]/40 to-transparent" />
 
-      {/* TOTY chevron arrows in footer */}
-      <svg className="absolute top-0 right-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 500" fill="none" aria-hidden>
-        <path d="M120 20L380 250L120 480" stroke="rgba(231,171,28,0.06)" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M80 60L340 250L80 440" stroke="rgba(231,171,28,0.04)" strokeWidth="2" strokeLinecap="round" />
-      </svg>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 pt-16 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">

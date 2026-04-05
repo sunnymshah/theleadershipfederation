@@ -41,16 +41,6 @@ export function HeroSection() {
       <GoldChevrons />
       <GoldOrbs />
 
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        aria-hidden
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(231,171,28,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(231,171,28,0.025) 1px, transparent 1px)",
-          backgroundSize: "80px 80px",
-        }}
-      />
 
       <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-28 pb-20 lg:pt-0 lg:pb-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[80vh]">
@@ -149,13 +139,6 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.15, ease }}
           >
             <div className="relative w-full max-w-[480px]">
-              {/* Gold dashed ring */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                className="absolute -inset-5 rounded-[2rem] border-2 border-dashed border-[#e7ab1c]/15"
-              />
-
               <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.10)]">
                 <motion.div style={{ y: imageY, scale: imageScale }} className="w-full h-full">
                   <Image
