@@ -1,97 +1,287 @@
 "use client"
 
 /* ═══════════════════════════════════════════════════════════════════════════
- *  ADMIN SIDEBAR — 1-to-1 Zoho Backstage Replica
+ *  ADMIN SIDEBAR — Zoho-Style Grouped Navigation
  *
- *  Exact Zoho Backstage modules:
- *    Dashboard, Microsite (Website Builder), Tickets, Attendees,
- *    Orders, Speakers, Sponsors, Settings
+ *  Sections: MAIN, REGISTRATIONS, CONTENT, FINANCE, PEOPLE, SETTINGS
+ *  Each section has a small uppercase header and divider.
  *
- *  Visual: White sidebar, #f4f5f7 workspace bg, exact Zoho grey/blue
- *  active states, thin-stroke icons matching Zoho's iconography.
- *
- *  Role-based: nav items are filtered based on the user's team role.
+ *  Role-based: nav items filtered via canAccessNavItem from lib/permissions.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  Globe,
-  Ticket,
-  Users,
-  ShoppingCart,
-  Radio,
-  Building2,
-  ClipboardList,
-  Tag,
-  ScanLine,
-  Settings,
-  UserCheck,
-  UsersRound,
-  Award,
-  Receipt,
-} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { canAccessNavItem } from "@/lib/permissions"
 import { AdminLogoutButton } from "./AdminLogoutButton"
 
-/* ─── Zoho Backstage exact sidebar modules ─────────────────────────────── */
-const navItems = [
-  /* Main */
-  { label: "Dashboard",    href: "/admin",             icon: LayoutDashboard, section: "main" },
-  { label: "Events",       href: "/admin/events",      icon: Globe,           section: "main" },
-  /* Manage — matches Zoho's core modules */
-  { label: "Tickets",      href: "/admin/tickets",     icon: Ticket,          section: "manage" },
-  { label: "Attendees",    href: "/admin/attendees",   icon: Users,           section: "manage" },
-  { label: "Speakers",     href: "/admin/speakers",    icon: Radio,           section: "manage" },
-  { label: "Sponsors",     href: "/admin/sponsors",    icon: Building2,       section: "manage" },
-  { label: "Sessions",     href: "/admin/sessions",    icon: ClipboardList,   section: "manage" },
-  { label: "Promo Codes",  href: "/admin/promo-codes", icon: Tag,             section: "manage" },
-  /* Operations */
-  { label: "Check-In",     href: "/admin/check-in",      icon: ScanLine,        section: "ops" },
-  { label: "CRM / Leads",  href: "/admin/attendees",     icon: UserCheck,       section: "ops" },
-  { label: "Certificates", href: "/admin/certificates",  icon: Award,           section: "ops" },
-  { label: "Invoices",     href: "/admin/invoices",      icon: Receipt,         section: "ops" },
-  { label: "Team",         href: "/admin/team",          icon: UsersRound,      section: "ops" },
-  { label: "Settings",     href: "/admin/settings",      icon: Settings,        section: "ops" },
+/* ─── Section definitions ─────────────────────────────────────────────── */
+
+interface NavItem {
+  label: string
+  href: string
+  icon: React.FC<{ active: boolean }>
+}
+
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
+/* ─── Inline SVG Icons (simple, thin stroke) ──────────────────────────── */
+
+function DashboardIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="9" rx="1" />
+      <rect x="14" y="3" width="7" height="5" rx="1" />
+      <rect x="14" y="12" width="7" height="9" rx="1" />
+      <rect x="3" y="16" width="7" height="5" rx="1" />
+    </svg>
+  )
+}
+
+function CalendarIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  )
+}
+
+function TicketIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+      <path d="M13 5v2" />
+      <path d="M13 17v2" />
+      <path d="M13 11v2" />
+    </svg>
+  )
+}
+
+function UsersIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
+function ClockIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  )
+}
+
+function ScanIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+      <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+      <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+      <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+      <line x1="7" y1="12" x2="17" y2="12" />
+    </svg>
+  )
+}
+
+function TagIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+      <line x1="7" y1="7" x2="7.01" y2="7" />
+    </svg>
+  )
+}
+
+function MicIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+    </svg>
+  )
+}
+
+function ClipboardIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+      <line x1="8" y1="16" x2="16" y2="16" />
+    </svg>
+  )
+}
+
+function BuildingIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+      <path d="M9 22v-4h6v4" />
+      <line x1="8" y1="6" x2="8.01" y2="6" />
+      <line x1="16" y1="6" x2="16.01" y2="6" />
+      <line x1="8" y1="10" x2="8.01" y2="10" />
+      <line x1="16" y1="10" x2="16.01" y2="10" />
+      <line x1="8" y1="14" x2="8.01" y2="14" />
+      <line x1="16" y1="14" x2="16.01" y2="14" />
+    </svg>
+  )
+}
+
+function CreditCardIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
+    </svg>
+  )
+}
+
+function ReceiptIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+      <path d="M8 10h8" />
+      <path d="M8 14h4" />
+    </svg>
+  )
+}
+
+function AwardIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="7" />
+      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+    </svg>
+  )
+}
+
+function UsersRoundIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 21a8 8 0 0 0-16 0" />
+      <circle cx="10" cy="8" r="5" />
+      <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+    </svg>
+  )
+}
+
+function UserIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function SettingsIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  )
+}
+
+/* ─── Section data ────────────────────────────────────────────────────── */
+
+const sections: NavSection[] = [
+  {
+    title: "MAIN",
+    items: [
+      { label: "Dashboard", href: "/admin", icon: DashboardIcon },
+      { label: "Events", href: "/admin/events", icon: CalendarIcon },
+    ],
+  },
+  {
+    title: "REGISTRATIONS",
+    items: [
+      { label: "Tickets", href: "/admin/tickets", icon: TicketIcon },
+      { label: "Attendees", href: "/admin/attendees", icon: UsersIcon },
+      { label: "Waitlist", href: "/admin/waitlist", icon: ClockIcon },
+      { label: "Check-In", href: "/admin/check-in", icon: ScanIcon },
+      { label: "Promo Codes", href: "/admin/promo-codes", icon: TagIcon },
+    ],
+  },
+  {
+    title: "CONTENT",
+    items: [
+      { label: "Speakers", href: "/admin/speakers", icon: MicIcon },
+      { label: "Sessions", href: "/admin/sessions", icon: ClipboardIcon },
+      { label: "Sponsors", href: "/admin/sponsors", icon: BuildingIcon },
+    ],
+  },
+  {
+    title: "FINANCE",
+    items: [
+      { label: "Payments", href: "/admin/payments", icon: CreditCardIcon },
+      { label: "Invoices", href: "/admin/invoices", icon: ReceiptIcon },
+      { label: "Certificates", href: "/admin/certificates", icon: AwardIcon },
+    ],
+  },
+  {
+    title: "PEOPLE",
+    items: [
+      { label: "Team", href: "/admin/team", icon: UsersRoundIcon },
+      { label: "Profiles", href: "/admin/settings?tab=profiles", icon: UserIcon },
+    ],
+  },
+  {
+    title: "SETTINGS",
+    items: [
+      { label: "Settings", href: "/admin/settings", icon: SettingsIcon },
+    ],
+  },
 ]
 
-export function AdminSidebar({ userEmail, userRole = "super_admin" }: { userEmail: string; userRole?: string }) {
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  AdminSidebar Component
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+export function AdminSidebar({
+  userEmail,
+  userRole = "super_admin",
+}: {
+  userEmail: string
+  userRole?: string
+}) {
   const pathname = usePathname()
 
-  // Filter nav items based on the user's role
-  const visibleItems = navItems.filter((item) => canAccessNavItem(userRole, item.href))
-
-  const renderLink = ({ label, href, icon: Icon }: typeof navItems[number]) => {
-    const isActive = href === "/admin"
-      ? pathname === "/admin"
-      : pathname.startsWith(href)
-
-    return (
-      <Link
-        key={`${href}-${label}`}
-        href={href}
-        className={cn(
-          "flex items-center gap-3 px-4 py-[10px] rounded-lg text-[13px] font-medium transition-all duration-150",
-          isActive
-            ? "bg-[#e8f0fe] text-[#1a73e8]"
-            : "text-[#5f6368] hover:bg-[#f0f0f0] hover:text-[#333]"
-        )}
-      >
-        <Icon
-          size={17}
-          strokeWidth={1.6}
-          className={cn("shrink-0", isActive ? "text-[#1a73e8]" : "text-[#9aa0a6]")}
-        />
-        {label}
-      </Link>
-    )
+  function isActive(href: string) {
+    if (href === "/admin") return pathname === "/admin"
+    // Strip query params for matching
+    const base = href.split("?")[0]
+    return pathname.startsWith(base)
   }
+
+  // Filter sections and items based on role
+  const visibleSections = sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        // Use the base path (without query) for permission check
+        const basePath = item.href.split("?")[0]
+        return canAccessNavItem(userRole, basePath)
+      }),
+    }))
+    .filter((section) => section.items.length > 0)
 
   return (
     <aside className="w-[250px] shrink-0 bg-white border-r border-[#e0e0e0] flex flex-col h-screen sticky top-0 shadow-[1px_0_4px_rgba(0,0,0,0.04)]">
-      {/* ── Logo — Zoho Backstage header style ────────────────────── */}
+      {/* ── Logo / Branding ──────────────────────────────────────────── */}
       <div className="px-5 py-4 border-b border-[#e8e8e8]">
         <Link href="/admin" className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-[#e7ab1c] flex items-center justify-center shrink-0">
@@ -100,9 +290,7 @@ export function AdminSidebar({ userEmail, userRole = "super_admin" }: { userEmai
             </span>
           </div>
           <div className="leading-tight">
-            <div className="text-[14px] font-semibold text-[#333]">
-              Backstage
-            </div>
+            <div className="text-[14px] font-semibold text-[#333]">Backstage</div>
             <div className="text-[10px] text-[#999] tracking-[0.06em]">
               Event Management
             </div>
@@ -110,39 +298,56 @@ export function AdminSidebar({ userEmail, userRole = "super_admin" }: { userEmai
         </Link>
       </div>
 
-      {/* ── Navigation ────────────────────────────────────────────── */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        {/* Main */}
-        <div className="space-y-0.5 mb-5">
-          {visibleItems.filter(n => n.section === "main").map(renderLink)}
-        </div>
+      {/* ── Navigation Sections ──────────────────────────────────────── */}
+      <nav className="flex-1 overflow-y-auto px-3 py-2">
+        {visibleSections.map((section, idx) => (
+          <div key={section.title}>
+            {/* Section divider (skip for first section) */}
+            {idx > 0 && (
+              <div className="mx-2 my-1 border-t border-[#e5e7eb]" />
+            )}
 
-        {/* Manage */}
-        {visibleItems.filter(n => n.section === "manage").length > 0 && (
-          <div className="mb-5">
-            <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
-              Manage
+            {/* Section header */}
+            <p
+              className="px-4 pt-4 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8e9298] select-none"
+            >
+              {section.title}
             </p>
+
+            {/* Nav items */}
             <div className="space-y-0.5">
-              {visibleItems.filter(n => n.section === "manage").map(renderLink)}
+              {section.items.map((item) => {
+                const active = isActive(item.href)
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={`${item.href}-${item.label}`}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2 rounded-lg text-[13px] font-medium transition-all duration-150",
+                      active
+                        ? "bg-[#e8f0fe] text-[#1a73e8] font-medium"
+                        : "text-[#5f6368] hover:bg-[#f0f0f0] hover:text-[#333]"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "shrink-0",
+                        active ? "text-[#1a73e8]" : "text-[#9aa0a6]"
+                      )}
+                    >
+                      <Icon active={active} />
+                    </span>
+                    {item.label}
+                  </Link>
+                )
+              })}
             </div>
           </div>
-        )}
-
-        {/* Operations */}
-        {visibleItems.filter(n => n.section === "ops").length > 0 && (
-          <div>
-            <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
-              Operations
-            </p>
-            <div className="space-y-0.5">
-              {visibleItems.filter(n => n.section === "ops").map(renderLink)}
-            </div>
-          </div>
-        )}
+        ))}
       </nav>
 
-      {/* ── User & Logout (Zoho bottom style) ─────────────────────── */}
+      {/* ── User & Logout ────────────────────────────────────────────── */}
       <div className="px-4 py-4 border-t border-[#e8e8e8]">
         <div className="px-1 mb-3">
           <p className="text-[10px] text-[#999] uppercase tracking-wider mb-0.5">

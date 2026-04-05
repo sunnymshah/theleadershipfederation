@@ -1,0 +1,420 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { cookies } from "next/headers"
+import { createClient } from "@/utils/supabase/server"
+
+/* ── Types ────────────────────────────────────────────────────────────── */
+
+export interface ProfilePermissions {
+  events: { view: boolean; create: boolean; edit: boolean; delete: boolean }
+  tickets: { view: boolean; create: boolean; edit: boolean; delete: boolean }
+  attendees: { view: boolean; create: boolean; edit: boolean; delete: boolean; export: boolean }
+  speakers: { view: boolean; create: boolean; edit: boolean; delete: boolean }
+  sessions: { view: boolean; create: boolean; edit: boolean; delete: boolean }
+  sponsors: { view: boolean; create: boolean; edit: boolean; delete: boolean }
+  promo_codes: { view: boolean; create: boolean; edit: boolean; delete: boolean }
+  analytics: { view: boolean }
+  certificates: { view: boolean; generate: boolean; email: boolean }
+  invoices: { view: boolean; generate: boolean; email: boolean }
+  check_in: { perform: boolean }
+  settings: { view: boolean; edit: boolean }
+  team: { view: boolean; manage: boolean }
+  payments: { view: boolean; refund: boolean }
+}
+
+export interface AccessProfile {
+  id: string
+  name: string
+  description: string | null
+  color: string
+  permissions: ProfilePermissions
+  is_system: boolean
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  member_count?: number
+}
+
+/* ── Constants ────────────────────────────────────────────────────────── */
+
+export const DEFAULT_PERMISSIONS: ProfilePermissions = {
+  events: { view: false, create: false, edit: false, delete: false },
+  tickets: { view: false, create: false, edit: false, delete: false },
+  attendees: { view: false, create: false, edit: false, delete: false, export: false },
+  speakers: { view: false, create: false, edit: false, delete: false },
+  sessions: { view: false, create: false, edit: false, delete: false },
+  sponsors: { view: false, create: false, edit: false, delete: false },
+  promo_codes: { view: false, create: false, edit: false, delete: false },
+  analytics: { view: false },
+  certificates: { view: false, generate: false, email: false },
+  invoices: { view: false, generate: false, email: false },
+  check_in: { perform: false },
+  settings: { view: false, edit: false },
+  team: { view: false, manage: false },
+  payments: { view: false, refund: false },
+}
+
+export const PROFILE_COLORS = [
+  '#DC2626', '#EA580C', '#D97706', '#CA8A04', '#65A30D',
+  '#16A34A', '#059669', '#0D9488', '#0891B2', '#0284C7',
+  '#2563EB', '#4F46E5', '#7C3AED', '#9333EA', '#C026D3',
+  '#DB2777', '#E11D48', '#6B7280', '#475569', '#1E293B'
+]
+
+/* ── Helpers ──────────────────────────────────────────────────────────── */
+
+async function getAuthenticatedClient() {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+  return { supabase, user }
+}
+
+async function requireSuperAdmin() {
+  const { supabase, user } = await getAuthenticatedClient()
+  const { data: member } = await supabase
+    .from("team_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .single()
+
+  if (!member || member.role !== "super_admin") {
+    throw new Error("Only super admins can manage profiles")
+  }
+  return { supabase, user }
+}
+
+/* ── Get all profiles ─────────────────────────────────────────────────── */
+
+export async function getProfiles(): Promise<{
+  success: boolean
+  error?: string
+  profiles: AccessProfile[]
+}> {
+  try {
+    const { supabase } = await getAuthenticatedClient()
+
+    const { data: profiles, error } = await supabase
+      .from("access_profiles")
+      .select("*")
+      .eq("is_active", true)
+      .order("is_system", { ascending: false })
+      .order("name", { ascending: true })
+
+    if (error) return { success: false, error: error.message, profiles: [] }
+
+    // Get member counts per profile
+    const { data: members } = await supabase
+      .from("team_members")
+      .select("profile_id")
+
+    const countMap: Record<string, number> = {}
+    if (members) {
+      for (const m of members) {
+        if (m.profile_id) {
+          countMap[m.profile_id] = (countMap[m.profile_id] || 0) + 1
+        }
+      }
+    }
+
+    const enriched = (profiles ?? []).map((p) => ({
+      ...p,
+      member_count: countMap[p.id] || 0,
+    }))
+
+    return { success: true, profiles: enriched }
+  } catch (err) {
+    return { success: false, error: (err as Error).message, profiles: [] }
+  }
+}
+
+/* ── Get single profile ──────────────────────────────────────────────── */
+
+export async function getProfile(id: string): Promise<{
+  success: boolean
+  error?: string
+  profile?: AccessProfile
+}> {
+  try {
+    const { supabase } = await getAuthenticatedClient()
+
+    const { data: profile, error } = await supabase
+      .from("access_profiles")
+      .select("*")
+      .eq("id", id)
+      .single()
+
+    if (error) return { success: false, error: error.message }
+
+    return { success: true, profile }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── Get profile count ───────────────────────────────────────────────── */
+
+export async function getProfileCount(): Promise<{
+  success: boolean
+  error?: string
+  count: number
+}> {
+  try {
+    const { supabase } = await getAuthenticatedClient()
+
+    const { count, error } = await supabase
+      .from("access_profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true)
+
+    if (error) return { success: false, error: error.message, count: 0 }
+
+    return { success: true, count: count ?? 0 }
+  } catch (err) {
+    return { success: false, error: (err as Error).message, count: 0 }
+  }
+}
+
+/* ── Generate SQL for a profile ──────────────────────────────────────── */
+
+export async function generateProfileSQL(profile: {
+  name: string
+  description: string | null
+  color: string
+  permissions: ProfilePermissions
+}): Promise<string> {
+  const escapedName = profile.name.replace(/'/g, "''")
+  const escapedDesc = (profile.description ?? "").replace(/'/g, "''")
+  const permissionsJson = JSON.stringify(profile.permissions, null, 2).replace(/'/g, "''")
+  const now = new Date().toISOString()
+
+  return `-- =============================================
+-- Profile: ${profile.name}
+-- Description: ${profile.description ?? "No description"}
+-- Created: ${now}
+-- =============================================
+-- Run this SQL in your Supabase SQL Editor to
+-- complete the profile creation.
+-- =============================================
+
+INSERT INTO access_profiles (name, description, color, permissions, is_system, is_active)
+VALUES (
+  '${escapedName}',
+  '${escapedDesc}',
+  '${profile.color}',
+  '${permissionsJson}'::jsonb,
+  false,
+  true
+)
+ON CONFLICT (name) DO UPDATE SET
+  description = EXCLUDED.description,
+  color = EXCLUDED.color,
+  permissions = EXCLUDED.permissions,
+  updated_at = now();
+
+-- Verify the profile was created:
+SELECT id, name, description, color, is_active
+FROM access_profiles
+WHERE name = '${escapedName}';`
+}
+
+/* ── Create profile ───────────────────────────────────────────────────── */
+
+export async function createProfile(data: {
+  name: string
+  description: string
+  color: string
+  permissions: ProfilePermissions
+}): Promise<{
+  success: boolean
+  error?: string
+  profile?: AccessProfile
+  sql?: string
+}> {
+  try {
+    const { supabase, user } = await requireSuperAdmin()
+
+    // Check profile count
+    const { count } = await supabase
+      .from("access_profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true)
+
+    if ((count ?? 0) >= 20) {
+      return { success: false, error: "Maximum 20 profiles allowed." }
+    }
+
+    const { data: profile, error } = await supabase
+      .from("access_profiles")
+      .insert({
+        name: data.name,
+        description: data.description,
+        color: data.color,
+        permissions: data.permissions,
+        is_system: false,
+        is_active: true,
+        created_by: user.id,
+      })
+      .select()
+      .single()
+
+    if (error) return { success: false, error: error.message }
+
+    // Generate the SQL code for the user
+    const sql = await generateProfileSQL({
+      name: data.name,
+      description: data.description,
+      color: data.color,
+      permissions: data.permissions,
+    })
+
+    revalidatePath("/admin/settings", "page")
+    revalidatePath("/admin/team", "page")
+    return { success: true, profile, sql }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── Update profile ───────────────────────────────────────────────────── */
+
+export async function updateProfile(
+  id: string,
+  data: {
+    name?: string
+    description?: string
+    color?: string
+    permissions?: ProfilePermissions
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase } = await requireSuperAdmin()
+
+    // Check if system profile — cannot rename system profiles
+    const { data: existing } = await supabase
+      .from("access_profiles")
+      .select("is_system, name")
+      .eq("id", id)
+      .single()
+
+    if (existing?.is_system && data.name && data.name !== existing.name) {
+      return { success: false, error: "Cannot rename system profiles." }
+    }
+
+    const updatePayload: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    }
+    if (data.name !== undefined) updatePayload.name = data.name
+    if (data.description !== undefined) updatePayload.description = data.description
+    if (data.color !== undefined) updatePayload.color = data.color
+    if (data.permissions !== undefined) updatePayload.permissions = data.permissions
+
+    const { error } = await supabase
+      .from("access_profiles")
+      .update(updatePayload)
+      .eq("id", id)
+
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath("/admin/settings", "page")
+    revalidatePath("/admin/team", "page")
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── Delete profile ──────────────────────────────────────────────────── */
+
+export async function deleteProfile(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase } = await requireSuperAdmin()
+
+    // Prevent deleting system profiles
+    const { data: profile } = await supabase
+      .from("access_profiles")
+      .select("is_system")
+      .eq("id", id)
+      .single()
+
+    if (profile?.is_system) {
+      return { success: false, error: "Cannot delete system profiles." }
+    }
+
+    // Check if any team members use this profile
+    const { count } = await supabase
+      .from("team_members")
+      .select("*", { count: "exact", head: true })
+      .eq("profile_id", id)
+
+    if ((count ?? 0) > 0) {
+      return {
+        success: false,
+        error: "Cannot delete a profile that is assigned to team members. Reassign them first.",
+      }
+    }
+
+    const { error } = await supabase
+      .from("access_profiles")
+      .delete()
+      .eq("id", id)
+
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath("/admin/settings", "page")
+    revalidatePath("/admin/team", "page")
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── Assign profile to team member ───────────────────────────────────── */
+
+export async function assignProfileToMember(
+  memberId: string,
+  profileId: string | null
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase } = await requireSuperAdmin()
+
+    // If profileId is provided, verify it exists and is active
+    if (profileId) {
+      const { data: profile, error: profileError } = await supabase
+        .from("access_profiles")
+        .select("id, is_active")
+        .eq("id", profileId)
+        .single()
+
+      if (profileError || !profile) {
+        return { success: false, error: "Profile not found." }
+      }
+
+      if (!profile.is_active) {
+        return { success: false, error: "Cannot assign an inactive profile." }
+      }
+    }
+
+    const { error } = await supabase
+      .from("team_members")
+      .update({
+        profile_id: profileId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", memberId)
+
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath("/admin/team", "page")
+    revalidatePath("/admin/settings", "page")
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
