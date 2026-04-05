@@ -24,7 +24,11 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ fields: fields ?? [] })
+    return NextResponse.json({ fields: fields ?? [] }, {
+      headers: {
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      },
+    })
   } catch (err) {
     console.error("[custom-fields] Error:", err)
     return NextResponse.json(

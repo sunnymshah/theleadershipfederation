@@ -1,6 +1,8 @@
 import { Users, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
+export const revalidate = 86400
+
 export const metadata = {
   title: "Advisory Board & Jury | The Leadership Federation",
   description:

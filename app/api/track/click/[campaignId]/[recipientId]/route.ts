@@ -51,5 +51,10 @@ export async function GET(
     console.error("[track/click] Error:", err)
   }
 
-  return NextResponse.redirect(destination, { status: 302 })
+  return NextResponse.redirect(destination, {
+    status: 302,
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    },
+  })
 }

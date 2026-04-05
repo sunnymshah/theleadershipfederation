@@ -17,6 +17,8 @@ import {
   BookOpen,
 } from "lucide-react"
 
+export const revalidate = 86400
+
 export const metadata = {
   title: "Platforms | The Leadership Federation",
   description:

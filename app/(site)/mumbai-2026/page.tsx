@@ -2,6 +2,8 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
 
+export const revalidate = 3600
+
 export default async function Mumbai2026Redirect() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)

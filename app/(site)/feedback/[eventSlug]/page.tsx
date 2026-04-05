@@ -1,7 +1,8 @@
-import { cookies } from "next/headers"
-import { createClient } from "@/utils/supabase/server"
 import { notFound } from "next/navigation"
 import { FeedbackForm } from "./FeedbackForm"
+import { getEventForFeedback } from "@/lib/get-event"
+
+export const revalidate = 300
 
 interface Props {
   params: Promise<{ eventSlug: string }>
@@ -9,13 +10,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { eventSlug } = await params
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-  const { data: event } = await supabase
-    .from("events")
-    .select("title")
-    .eq("slug", eventSlug)
-    .single()
+  // Uses React cache() — shared with the page component
+  const event = await getEventForFeedback(eventSlug)
 
   if (!event) return { title: "Feedback | The Leadership Federation" }
 
@@ -27,14 +23,8 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function FeedbackPage({ params }: Props) {
   const { eventSlug } = await params
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-
-  const { data: event } = await supabase
-    .from("events")
-    .select("id, title, slug, venue, start_date, cover_image_url")
-    .eq("slug", eventSlug)
-    .single()
+  // Uses React cache() — shared with generateMetadata
+  const event = await getEventForFeedback(eventSlug)
 
   if (!event) notFound()
 

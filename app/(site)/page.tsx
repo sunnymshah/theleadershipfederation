@@ -1,10 +1,17 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
-import { HeroSection } from "@/components/sections/HeroSection"
+import dynamic from "next/dynamic"
 import { LogoMarquee } from "@/components/sections/LogoMarquee"
 import { EcosystemGrid } from "@/components/sections/EcosystemGrid"
 import { FeaturedEventCallout } from "@/components/sections/FeaturedEventCallout"
 import { ExclusivityCTA } from "@/components/sections/ExclusivityCTA"
+
+const HeroSection = dynamic(
+  () => import("@/components/sections/HeroSection").then(mod => ({ default: mod.HeroSection })),
+  { ssr: true }
+)
+
+export const revalidate = 3600
 
 export default async function HomePage() {
   const cookieStore = await cookies()

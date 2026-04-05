@@ -37,16 +37,41 @@ import {
   Image as ImageIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import dynamic from "next/dynamic"
 
-// ── Sub-components (lazy-loaded via tabs) ─────────────────────────────
-import { TicketManager } from "@/components/admin/TicketManager"
-import { SpeakerManager } from "@/components/admin/SpeakerManager"
-import { AttendeeManager } from "@/components/admin/AttendeeManager"
-import { SponsorManager } from "@/components/admin/SponsorManager"
-import { SessionManager } from "@/components/admin/SessionManager"
-import { PromoCodeManager } from "@/components/admin/PromoCodeManager"
-import { CustomFieldManager } from "@/components/admin/CustomFieldManager"
-import { GalleryManager } from "@/components/admin/GalleryManager"
+// ── Sub-components (dynamically loaded per tab) ──────────────────────
+const TicketManager = dynamic(
+  () => import("@/components/admin/TicketManager").then(mod => ({ default: mod.TicketManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
+const SpeakerManager = dynamic(
+  () => import("@/components/admin/SpeakerManager").then(mod => ({ default: mod.SpeakerManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
+const AttendeeManager = dynamic(
+  () => import("@/components/admin/AttendeeManager").then(mod => ({ default: mod.AttendeeManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
+const SponsorManager = dynamic(
+  () => import("@/components/admin/SponsorManager").then(mod => ({ default: mod.SponsorManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
+const SessionManager = dynamic(
+  () => import("@/components/admin/SessionManager").then(mod => ({ default: mod.SessionManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
+const PromoCodeManager = dynamic(
+  () => import("@/components/admin/PromoCodeManager").then(mod => ({ default: mod.PromoCodeManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
+const CustomFieldManager = dynamic(
+  () => import("@/components/admin/CustomFieldManager").then(mod => ({ default: mod.CustomFieldManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
+const GalleryManager = dynamic(
+  () => import("@/components/admin/GalleryManager").then(mod => ({ default: mod.GalleryManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
 
 // ── Types ─────────────────────────────────────────────────────────────
 interface EventDetail {

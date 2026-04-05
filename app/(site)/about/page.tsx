@@ -8,6 +8,8 @@ import {
   ArrowRight,
 } from "lucide-react"
 
+export const revalidate = 86400
+
 export const metadata = {
   title: "About | The Leadership Federation",
   description:

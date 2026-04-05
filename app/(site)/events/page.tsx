@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import Link from "next/link"
+import Image from "next/image"
 import {
   Calendar,
   MapPin,
@@ -10,6 +11,8 @@ import {
   Ticket,
   Sparkles,
 } from "lucide-react"
+
+export const revalidate = 1800
 
 export const metadata = {
   title: "Events | The Leadership Federation",
@@ -112,11 +115,12 @@ export default async function EventsPage() {
                     {/* Cover image */}
                     {event.cover_image_url && (
                       <div className="relative md:w-80 lg:w-96 h-48 md:h-auto shrink-0 overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={event.cover_image_url}
                           alt={event.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                          sizes="(max-width: 768px) 100vw, 384px"
                         />
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10 md:bg-gradient-to-l" />
                       </div>
@@ -235,11 +239,12 @@ export default async function EventsPage() {
                 {/* Compact cover */}
                 {event.cover_image_url && (
                   <div className="relative h-32 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={event.cover_image_url}
                       alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
                   </div>
