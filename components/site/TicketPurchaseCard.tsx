@@ -54,21 +54,30 @@ export function TicketPurchaseCard({
   ticket,
   eventId,
   eventTitle,
+  currentPrice,
+  tierName,
 }: {
   ticket: Ticket
   eventId: string
   eventTitle: string
+  currentPrice?: number | null
+  tierName?: string | null
 }) {
   const [open, setOpen] = useState(false)
   const [paymentState, setPaymentState] = useState<PaymentState>("idle")
   const [success, setSuccess] = useState(false)
+  const [pendingApproval, setPendingApproval] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const soldOut = ticket.sold >= ticket.inventory_limit
   const spotsLeft = ticket.inventory_limit - ticket.sold
   const almostGone = !soldOut && spotsLeft <= 10
-  const isPaid = ticket.price_inr > 0
+
+  // Determine the effective price (discounted or base)
+  const hasDiscount = currentPrice != null && currentPrice !== ticket.price_inr
+  const effectivePrice = hasDiscount ? currentPrice! : ticket.price_inr
+  const isPaid = effectivePrice > 0
 
   const submitting = paymentState !== "idle" && paymentState !== "success" && paymentState !== "failed"
 
@@ -249,6 +258,9 @@ export function TicketPurchaseCard({
         const result = await registerForEvent(fd)
         if (result.success) {
           setPaymentState("success")
+          if (result.pendingApproval) {
+            setPendingApproval(true)
+          }
           setSuccess(true)
         } else {
           setError(result.error ?? "Registration failed.")
@@ -311,7 +323,7 @@ export function TicketPurchaseCard({
             <p className="text-xs text-white/30">
               Amount paid:{" "}
               <span className="text-white/60 font-medium">
-                &#8377;{fmtPrice(ticket.price_inr)}
+                &#8377;{fmtPrice(effectivePrice)}
               </span>
             </p>
           </div>
@@ -363,9 +375,28 @@ export function TicketPurchaseCard({
 
       {/* Price */}
       <div className="mb-6 mt-auto">
-        {ticket.price_inr === 0 ? (
+        {effectivePrice === 0 ? (
           <div className="flex items-baseline gap-1">
             <span className="text-3xl font-bold text-emerald-400">Free</span>
+          </div>
+        ) : hasDiscount ? (
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              {tierName && (
+                <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#c9a84c]/15 text-[#c9a84c] border border-[#c9a84c]/20">
+                  {tierName}
+                </span>
+              )}
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-white tabular-nums">
+                &#8377;{fmtPrice(effectivePrice)}
+              </span>
+              <span className="text-lg text-white/25 line-through tabular-nums">
+                &#8377;{fmtPrice(ticket.price_inr)}
+              </span>
+              <span className="text-xs text-white/25 ml-1">per person</span>
+            </div>
           </div>
         ) : (
           <div className="flex items-baseline gap-1">
@@ -536,7 +567,7 @@ export function TicketPurchaseCard({
                 ) : isPaid ? (
                   <>
                     <CreditCard size={14} /> Pay &#8377;
-                    {fmtPrice(ticket.price_inr)}
+                    {fmtPrice(effectivePrice)}
                   </>
                 ) : (
                   "Confirm"

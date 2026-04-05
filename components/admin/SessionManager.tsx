@@ -9,8 +9,8 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { createClient } from "@/utils/supabase/client"
-import { createSession, updateSession, deleteSession } from "@/app/actions/sessionActions"
-import { Plus, Pencil, Trash2, X, Loader2, ClipboardList, Clock, MapPin } from "lucide-react"
+import { createSession, updateSession, deleteSession, linkSpeakersToSession } from "@/app/actions/sessionActions"
+import { Plus, Pencil, Trash2, X, Loader2, ClipboardList, Clock, MapPin, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SessionRow {
@@ -25,6 +25,19 @@ interface SessionRow {
   room: string | null
   capacity: number | null
   sort_order: number
+}
+
+interface SpeakerRow {
+  id: string
+  name: string
+  image_url: string | null
+  designation: string | null
+  company: string | null
+}
+
+interface SessionSpeakerLink {
+  session_id: string
+  speaker_id: string
 }
 
 const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -51,17 +64,35 @@ export function SessionManager({ eventId }: { eventId: string }) {
   const [submitting, setSubmitting] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [speakers, setSpeakers]     = useState<SpeakerRow[]>([])
+  const [sessionSpeakerLinks, setSessionSpeakerLinks] = useState<SessionSpeakerLink[]>([])
+  const [selectedSpeakerIds, setSelectedSpeakerIds]   = useState<string[]>([])
 
   const supabase = createClient()
 
   const fetchSessions = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from("sessions")
-      .select("*")
-      .eq("event_id", eventId)
-      .order("start_time", { ascending: true })
-    if (data) setSessions(data)
+    const [sessionsRes, speakersRes, linksRes] = await Promise.all([
+      supabase
+        .from("sessions")
+        .select("*")
+        .eq("event_id", eventId)
+        .order("start_time", { ascending: true }),
+      supabase
+        .from("speakers")
+        .select("id, name, image_url, designation, company")
+        .eq("event_id", eventId)
+        .order("sort_order"),
+      supabase
+        .from("session_speakers")
+        .select("session_id, speaker_id")
+        .in("session_id",
+          (await supabase.from("sessions").select("id").eq("event_id", eventId)).data?.map(s => s.id) ?? []
+        ),
+    ])
+    if (sessionsRes.data) setSessions(sessionsRes.data)
+    if (speakersRes.data) setSpeakers(speakersRes.data)
+    if (linksRes.data) setSessionSpeakerLinks(linksRes.data)
     setLoading(false)
   }, [eventId])
 
@@ -88,8 +119,14 @@ export function SessionManager({ eventId }: { eventId: string }) {
       : await createSession(fd)
 
     if (result.success) {
+      // Save speaker links for the session
+      const sessionId = editing?.id ?? result.session?.id
+      if (sessionId) {
+        await linkSpeakersToSession(sessionId, selectedSpeakerIds)
+      }
       setDrawerOpen(false)
       setEditing(null)
+      setSelectedSpeakerIds([])
       await fetchSessions()
     } else {
       setActionError(result.error ?? "Operation failed")
@@ -110,6 +147,15 @@ export function SessionManager({ eventId }: { eventId: string }) {
     setEditing(session ?? null)
     setDrawerOpen(true)
     setActionError(null)
+    // Load existing speaker links if editing
+    if (session) {
+      const linked = sessionSpeakerLinks
+        .filter(l => l.session_id === session.id)
+        .map(l => l.speaker_id)
+      setSelectedSpeakerIds(linked)
+    } else {
+      setSelectedSpeakerIds([])
+    }
   }
 
   return (
@@ -190,6 +236,27 @@ export function SessionManager({ eventId }: { eventId: string }) {
                           )}
                         </div>
                         <h4 className="font-semibold text-[#333] text-[14px]">{s.title}</h4>
+                        {/* Session Speakers */}
+                        {(() => {
+                          const linkedIds = sessionSpeakerLinks.filter(l => l.session_id === s.id).map(l => l.speaker_id)
+                          const linkedSpeakers = speakers.filter(sp => linkedIds.includes(sp.id))
+                          if (linkedSpeakers.length === 0) return null
+                          return (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <Users size={11} className="text-[#bbb] shrink-0" />
+                              <div className="flex items-center gap-1">
+                                {linkedSpeakers.map(sp => (
+                                  <span key={sp.id} className="inline-flex items-center gap-1 text-[11px] text-[#777] bg-[#f5f5f5] rounded-full px-2 py-0.5">
+                                    {sp.image_url && (
+                                      <img src={sp.image_url} alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                                    )}
+                                    {sp.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        })()}
                         {s.description && <p className="text-[11px] text-[#999] mt-1 line-clamp-2">{s.description}</p>}
                       </div>
 
@@ -268,6 +335,57 @@ export function SessionManager({ eventId }: { eventId: string }) {
                   <input type="number" name="sortOrder" min="0" defaultValue={editing?.sort_order ?? sessions.length} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
                 </div>
               </div>
+
+              {/* Speakers Multi-Select */}
+              {speakers.length > 0 && (
+                <div>
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
+                    Speakers
+                  </label>
+                  <div className="border border-[#e0e0e0] rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto bg-[#fafafa]">
+                    {speakers.map(sp => (
+                      <label key={sp.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-white rounded-md px-2 py-1.5 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedSpeakerIds.includes(sp.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSpeakerIds(prev => [...prev, sp.id])
+                            } else {
+                              setSelectedSpeakerIds(prev => prev.filter(id => id !== sp.id))
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50"
+                        />
+                        <div className="flex items-center gap-2 min-w-0">
+                          {sp.image_url ? (
+                            <img src={sp.image_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-[#e0e0e0] flex items-center justify-center shrink-0">
+                              <span className="text-[9px] font-bold text-[#999]">
+                                {sp.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <span className="text-sm text-[#333] block truncate">{sp.name}</span>
+                            {(sp.designation || sp.company) && (
+                              <span className="text-[10px] text-[#999] block truncate">
+                                {sp.designation}{sp.designation && sp.company ? ", " : ""}{sp.company}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  {selectedSpeakerIds.length > 0 && (
+                    <p className="text-[11px] text-[#999] mt-1">
+                      {selectedSpeakerIds.length} speaker{selectedSpeakerIds.length !== 1 ? "s" : ""} selected
+                    </p>
+                  )}
+                </div>
+              )}
 
               {actionError && <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">{actionError}</div>}
 

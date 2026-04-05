@@ -141,3 +141,69 @@ export async function deleteSession(sessionId: string) {
     return { success: false, error: (err as Error).message }
   }
 }
+
+/**
+ * Link speakers to a session. Replaces all existing links for that session.
+ */
+export async function linkSpeakersToSession(sessionId: string, speakerIds: string[]) {
+  try {
+    const { supabase } = await getAuthenticatedClient()
+
+    // Get event_id for cache invalidation
+    const { data: session } = await supabase
+      .from("sessions")
+      .select("event_id")
+      .eq("id", sessionId)
+      .single()
+
+    // Delete existing links for this session
+    await supabase
+      .from("session_speakers")
+      .delete()
+      .eq("session_id", sessionId)
+
+    // Insert new links
+    if (speakerIds.length > 0) {
+      const links = speakerIds.map(speakerId => ({
+        session_id: sessionId,
+        speaker_id: speakerId,
+      }))
+
+      const { error } = await supabase
+        .from("session_speakers")
+        .insert(links)
+
+      if (error) return { success: false, error: error.message }
+    }
+
+    if (session?.event_id) await invalidateCaches(supabase, session.event_id)
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/**
+ * Fetch speakers linked to a specific session.
+ */
+export async function getSessionSpeakers(sessionId: string) {
+  try {
+    const { supabase } = await getAuthenticatedClient()
+
+    const { data, error } = await supabase
+      .from("session_speakers")
+      .select("speaker_id, speakers(id, name, image_url, designation, company)")
+      .eq("session_id", sessionId)
+
+    if (error) return { success: false, error: error.message, speakers: [] }
+
+    const speakers = (data ?? []).map(row => {
+      const s = row.speakers as unknown as { id: string; name: string; image_url: string | null; designation: string | null; company: string | null }
+      return s
+    }).filter(Boolean)
+
+    return { success: true, speakers }
+  } catch (err) {
+    return { success: false, error: (err as Error).message, speakers: [] }
+  }
+}

@@ -354,6 +354,10 @@ export function AttendeeManager({ eventId }: { eventId: string }) {
                 </div>
               )}
               <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">LinkedIn URL</label>
+                <input type="url" name="linkedin_url" defaultValue={(editing as unknown as Record<string, unknown>)?.linkedin_url as string ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://linkedin.com/in/..." />
+              </div>
+              <div>
                 <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Notes</label>
                 <textarea name="notes" rows={2} defaultValue={editing?.notes ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Internal notes…" />
               </div>

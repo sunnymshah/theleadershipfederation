@@ -2,9 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
-import { createAttendee, updateAttendee, checkInAttendee, deleteAttendee } from "@/app/actions/attendeeActions"
-import { Plus, Pencil, Trash2, Search, X, Users, Loader2, CheckCircle2, Download } from "lucide-react"
+import {
+  createAttendee, updateAttendee, checkInAttendee, deleteAttendee,
+  bulkCheckIn, bulkSendEmail, bulkDelete, bulkUpdateStatus,
+} from "@/app/actions/attendeeActions"
+import {
+  Plus, Pencil, Trash2, Search, X, Users, Loader2, CheckCircle2, Download,
+  Upload, Mail, Tag, ChevronDown,
+} from "lucide-react"
 import { AttendeeQrCode } from "@/components/admin/AttendeeQrCode"
+import { CSVImporter } from "@/components/admin/CSVImporter"
 import { cn } from "@/lib/utils"
 
 interface AttendeeRow {
@@ -21,6 +28,10 @@ interface AttendeeRow {
   status: string
   qr_token: string | null
   notes: string | null
+  tags: string[] | null
+  internal_notes: string | null
+  dietary_preference: string | null
+  vip_level: string | null
   events: { title: string } | null
   tickets: { name: string } | null
 }
@@ -36,6 +47,28 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   waitlisted:  { bg: "bg-yellow-500/10",  text: "text-yellow-400" },
 }
 
+const VIP_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  vip:     { bg: "bg-amber-500/10",   text: "text-amber-500",   label: "VIP" },
+  vvip:    { bg: "bg-red-500/10",     text: "text-red-500",     label: "VVIP" },
+  speaker: { bg: "bg-purple-500/10",  text: "text-purple-500",  label: "Speaker" },
+  sponsor: { bg: "bg-emerald-500/10", text: "text-emerald-500", label: "Sponsor" },
+  media:   { bg: "bg-blue-500/10",    text: "text-blue-500",    label: "Media" },
+}
+
+const DIETARY_OPTIONS = [
+  "", "Vegetarian", "Vegan", "Non-Vegetarian", "Jain", "Gluten-Free", "Halal", "Kosher", "Other",
+]
+
+const VIP_OPTIONS = [
+  { value: "", label: "None" },
+  { value: "standard", label: "Standard" },
+  { value: "vip", label: "VIP" },
+  { value: "vvip", label: "VVIP" },
+  { value: "speaker", label: "Speaker" },
+  { value: "sponsor", label: "Sponsor" },
+  { value: "media", label: "Media" },
+]
+
 export default function AdminAttendeesPage() {
   const [attendees, setAttendees]       = useState<AttendeeRow[]>([])
   const [events, setEvents]             = useState<EventOption[]>([])
@@ -43,12 +76,20 @@ export default function AdminAttendeesPage() {
   const [loading, setLoading]           = useState(true)
   const [searchQuery, setSearchQuery]   = useState("")
   const [filterEvent, setFilterEvent]   = useState("")
+  const [filterTag, setFilterTag]       = useState("")
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [editingAttendee, setEditingAttendee] = useState<AttendeeRow | null>(null)
   const [submitting, setSubmitting]     = useState(false)
   const [actionError, setActionError]   = useState<string | null>(null)
   const [deletingId, setDeletingId]     = useState<string | null>(null)
   const [checkingInId, setCheckingInId] = useState<string | null>(null)
+
+  // CSV Importer
+  const [importerOpen, setImporterOpen] = useState(false)
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
 
   const supabase = createClient()
 
@@ -67,14 +108,40 @@ export default function AdminAttendeesPage() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
+  // Gather all unique tags for filter dropdown
+  const allTags = Array.from(
+    new Set(attendees.flatMap(a => a.tags ?? []).filter(Boolean))
+  ).sort()
+
   const filtered = attendees.filter((a) => {
     const matchesSearch =
       a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.company ?? "").toLowerCase().includes(searchQuery.toLowerCase())
     const matchesEvent = !filterEvent || a.event_id === filterEvent
-    return matchesSearch && matchesEvent
+    const matchesTag = !filterTag || (a.tags ?? []).includes(filterTag)
+    return matchesSearch && matchesEvent && matchesTag
   })
+
+  // Selection helpers
+  const allFilteredSelected = filtered.length > 0 && filtered.every(a => selectedIds.has(a.id))
+
+  function toggleSelectAll() {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filtered.map(a => a.id)))
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -105,9 +172,13 @@ export default function AdminAttendeesPage() {
   }
 
   function exportCSV() {
-    const headers = ["Name", "Email", "Phone", "Company", "Designation", "Event", "Ticket", "Status", "Check-in"]
-    const rows = filtered.map(a => [a.name, a.email, a.phone ?? "", a.company ?? "", a.designation ?? "", a.events?.title ?? "", a.tickets?.name ?? "", a.status, a.check_in_at ?? ""])
-    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(",")).join("\n")
+    const headers = ["Name", "Email", "Phone", "Company", "Designation", "Event", "Ticket", "Status", "VIP Level", "Tags", "Check-in"]
+    const rows = filtered.map(a => [
+      a.name, a.email, a.phone ?? "", a.company ?? "", a.designation ?? "",
+      a.events?.title ?? "", a.tickets?.name ?? "", a.status,
+      a.vip_level ?? "", (a.tags ?? []).join("; "), a.check_in_at ?? "",
+    ])
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n")
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
@@ -115,6 +186,43 @@ export default function AdminAttendeesPage() {
     link.download = `attendees-${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
     URL.revokeObjectURL(url)
+  }
+
+  // Bulk action handlers
+  async function handleBulkCheckIn() {
+    if (!confirm(`Check in ${selectedIds.size} attendees?`)) return
+    setBulkLoading(true)
+    const result = await bulkCheckIn(Array.from(selectedIds))
+    if (result.success) { setSelectedIds(new Set()); await fetchData() }
+    else setActionError(result.error ?? "Bulk check-in failed")
+    setBulkLoading(false)
+  }
+
+  async function handleBulkEmail() {
+    if (!confirm(`Send confirmation emails to ${selectedIds.size} attendees?`)) return
+    setBulkLoading(true)
+    const result = await bulkSendEmail(Array.from(selectedIds))
+    if (result.success) { setSelectedIds(new Set()); await fetchData() }
+    else setActionError(`Sent ${result.sent}, failed ${result.failed}. ${result.errors?.join("; ") ?? ""}`)
+    setBulkLoading(false)
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Delete ${selectedIds.size} attendees? This action cannot be undone.`)) return
+    setBulkLoading(true)
+    const result = await bulkDelete(Array.from(selectedIds))
+    if (result.success) { setSelectedIds(new Set()); await fetchData() }
+    else setActionError(result.error ?? "Bulk delete failed")
+    setBulkLoading(false)
+  }
+
+  async function handleBulkStatus(status: string) {
+    if (!confirm(`Update ${selectedIds.size} attendees to "${status}"?`)) return
+    setBulkLoading(true)
+    const result = await bulkUpdateStatus(Array.from(selectedIds), status)
+    if (result.success) { setSelectedIds(new Set()); await fetchData() }
+    else setActionError(result.error ?? "Bulk status update failed")
+    setBulkLoading(false)
   }
 
   const checkedInCount = filtered.filter(a => a.status === "checked_in").length
@@ -132,6 +240,9 @@ export default function AdminAttendeesPage() {
           <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#444] hover:bg-[#fafafa] transition-colors">
             <Download size={15} /> Export CSV
           </button>
+          <button onClick={() => setImporterOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#444] hover:bg-[#fafafa] transition-colors">
+            <Upload size={15} /> Import CSV
+          </button>
           <button onClick={() => { setEditingAttendee(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
             <Plus size={16} /> Add Attendee
           </button>
@@ -142,12 +253,18 @@ export default function AdminAttendeesPage() {
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#bbb]" />
-          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by name, email, or company…" className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#ccc] transition-colors" />
+          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by name, email, or company..." className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#ccc] transition-colors" />
         </div>
         <select value={filterEvent} onChange={(e) => setFilterEvent(e.target.value)} className="px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#ccc] transition-colors min-w-[180px]">
           <option value="">All Events</option>
           {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
         </select>
+        {allTags.length > 0 && (
+          <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#ccc] transition-colors min-w-[140px]">
+            <option value="">All Tags</option>
+            {allTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
+          </select>
+        )}
       </div>
 
       {actionError && (
@@ -159,16 +276,24 @@ export default function AdminAttendeesPage() {
 
       <div className="rounded-xl border border-[#e0e0e0] overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-[#aaa] gap-2"><Loader2 size={18} className="animate-spin" /> Loading attendees…</div>
+          <div className="flex items-center justify-center py-20 text-[#aaa] gap-2"><Loader2 size={18} className="animate-spin" /> Loading attendees...</div>
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center">
             <Users size={32} className="mx-auto mb-3 text-[#ccc]" />
-            <p className="text-[#999] text-sm">{searchQuery || filterEvent ? "No attendees match your filters." : "No attendees yet. Add or import your first registration."}</p>
+            <p className="text-[#999] text-sm">{searchQuery || filterEvent || filterTag ? "No attendees match your filters." : "No attendees yet. Add or import your first registration."}</p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#e0e0e0] bg-[#fafafa]">
+                <th className="px-3 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allFilteredSelected}
+                    onChange={toggleSelectAll}
+                    className="rounded border-[#ddd] text-[#c9a84c] focus:ring-[#c9a84c]/30 cursor-pointer"
+                  />
+                </th>
                 <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Attendee</th>
                 <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Contact</th>
                 <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Event</th>
@@ -179,17 +304,48 @@ export default function AdminAttendeesPage() {
             </thead>
             <tbody>
               {filtered.map((a) => (
-                <tr key={a.id} className="border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors">
+                <tr key={a.id} className={cn(
+                  "border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors",
+                  selectedIds.has(a.id) && "bg-[#c9a84c]/5"
+                )}>
+                  <td className="px-3 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(a.id)}
+                      onChange={() => toggleSelect(a.id)}
+                      className="rounded border-[#ddd] text-[#c9a84c] focus:ring-[#c9a84c]/30 cursor-pointer"
+                    />
+                  </td>
                   <td className="px-5 py-4">
-                    <div className="font-medium text-[#333]">{a.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-[#333]">{a.name}</span>
+                      {a.vip_level && VIP_STYLES[a.vip_level] && (
+                        <span className={cn(
+                          "inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider",
+                          VIP_STYLES[a.vip_level].bg,
+                          VIP_STYLES[a.vip_level].text,
+                        )}>
+                          {VIP_STYLES[a.vip_level].label}
+                        </span>
+                      )}
+                    </div>
                     {a.company && <div className="text-[11px] text-[#aaa]">{a.designation ? `${a.designation}, ` : ""}{a.company}</div>}
+                    {(a.tags ?? []).length > 0 && (
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {(a.tags ?? []).map(tag => (
+                          <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#f0f0f0] text-[9px] text-[#777]">
+                            <Tag size={8} /> {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </td>
                   <td className="px-5 py-4">
                     <div className="text-[#666] text-xs">{a.email}</div>
                     {a.phone && <div className="text-[#aaa] text-[11px]">{a.phone}</div>}
                   </td>
-                  <td className="px-5 py-4 text-[#777] text-xs">{a.events?.title ?? "—"}</td>
-                  <td className="px-5 py-4 text-[#777] text-xs">{a.tickets?.name ?? "—"}</td>
+                  <td className="px-5 py-4 text-[#777] text-xs">{a.events?.title ?? "\u2014"}</td>
+                  <td className="px-5 py-4 text-[#777] text-xs">{a.tickets?.name ?? "\u2014"}</td>
                   <td className="px-5 py-4">
                     <span className={cn("inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider", STATUS_STYLES[a.status]?.bg ?? "bg-gray-100", STATUS_STYLES[a.status]?.text ?? "text-[#888]")}>
                       {a.status.replace("_", " ")}
@@ -218,6 +374,49 @@ export default function AdminAttendeesPage() {
         )}
       </div>
 
+      {/* ── Bulk Actions Bar ──────────────────────────────────────────── */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-white border border-[#e0e0e0] rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-4">
+          <span className="text-sm font-semibold text-[#333]">{selectedIds.size} selected</span>
+          <div className="w-px h-6 bg-[#e0e0e0]" />
+          <button onClick={handleBulkCheckIn} disabled={bulkLoading} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
+            {bulkLoading ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />} Check In All
+          </button>
+          <button onClick={handleBulkEmail} disabled={bulkLoading} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-500/10 transition-colors disabled:opacity-50">
+            {bulkLoading ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />} Send Email
+          </button>
+          <div className="relative group">
+            <button disabled={bulkLoading} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-[#666] hover:bg-[#fafafa] transition-colors disabled:opacity-50">
+              Status <ChevronDown size={12} />
+            </button>
+            <div className="absolute bottom-full left-0 mb-1 hidden group-hover:block bg-white border border-[#e0e0e0] rounded-lg shadow-lg py-1 min-w-[140px]">
+              {["registered", "confirmed", "checked_in", "waitlisted", "cancelled"].map(s => (
+                <button key={s} onClick={() => handleBulkStatus(s)} className="block w-full text-left px-3 py-2 text-xs text-[#555] hover:bg-[#fafafa] transition-colors capitalize">
+                  {s.replace("_", " ")}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button onClick={handleBulkDelete} disabled={bulkLoading} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50">
+            {bulkLoading ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />} Delete
+          </button>
+          <div className="w-px h-6 bg-[#e0e0e0]" />
+          <button onClick={() => setSelectedIds(new Set())} className="p-1.5 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors" title="Clear selection">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* ── CSV Importer ─────────────────────────────────────────────── */}
+      {importerOpen && (
+        <CSVImporter
+          events={events}
+          tickets={tickets}
+          onClose={() => setImporterOpen(false)}
+          onComplete={() => fetchData()}
+        />
+      )}
+
       {/* ── Drawer ─────────────────────────────────────────────────── */}
       {drawerOpen && (
         <>
@@ -233,7 +432,7 @@ export default function AdminAttendeesPage() {
                   <div>
                     <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Event *</label>
                     <select name="eventId" required className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
-                      <option value="">Select event…</option>
+                      <option value="">Select event...</option>
                       {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
                     </select>
                   </div>
@@ -268,6 +467,36 @@ export default function AdminAttendeesPage() {
                   <input type="text" name="designation" defaultValue={editingAttendee?.designation ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="CTO" />
                 </div>
               </div>
+
+              {/* VIP Level */}
+              <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">VIP Level</label>
+                <select name="vip_level" defaultValue={editingAttendee?.vip_level ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
+                  {VIP_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </div>
+
+              {/* Dietary Preference */}
+              <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Dietary Preference</label>
+                <select name="dietary_preference" defaultValue={editingAttendee?.dietary_preference ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
+                  {DIETARY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt || "None"}</option>)}
+                </select>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Tags</label>
+                <input
+                  type="text"
+                  name="tags"
+                  defaultValue={(editingAttendee?.tags ?? []).join(", ")}
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  placeholder="vip-dinner, day-1, tech-track"
+                />
+                <p className="text-[10px] text-[#aaa] mt-1">Comma-separated tags</p>
+              </div>
+
               {editingAttendee && (
                 <div>
                   <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Status</label>
@@ -282,13 +511,26 @@ export default function AdminAttendeesPage() {
               )}
               <div>
                 <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Notes</label>
-                <textarea name="notes" rows={2} defaultValue={editingAttendee?.notes ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Internal notes…" />
+                <textarea name="notes" rows={2} defaultValue={editingAttendee?.notes ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Public-facing notes..." />
               </div>
+
+              {/* Internal Notes */}
+              <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Internal Notes</label>
+                <textarea
+                  name="internal_notes"
+                  rows={3}
+                  defaultValue={editingAttendee?.internal_notes ?? ""}
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
+                  placeholder="Internal team notes (not visible to attendee)..."
+                />
+              </div>
+
               {actionError && <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">{actionError}</div>}
               <div className="flex gap-3 pt-3">
                 <button type="button" onClick={() => { setDrawerOpen(false); setEditingAttendee(null) }} className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors">Cancel</button>
                 <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
-                  {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : editingAttendee ? "Update" : "Add Attendee"}
+                  {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : editingAttendee ? "Update" : "Add Attendee"}
                 </button>
               </div>
             </form>

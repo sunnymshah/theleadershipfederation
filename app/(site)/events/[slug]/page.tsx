@@ -109,17 +109,55 @@ export default async function EventDetailPage({ params }: Props) {
 
   if (!event) notFound()
 
-  const [speakersRes, ticketsRes, sessionsRes, sponsorsRes] = await Promise.all([
+  const [speakersRes, ticketsRes, sessionsRes, sponsorsRes, sessionSpeakersRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("tickets").select("*").eq("event_id", event.id).eq("status", "published").order("price_inr"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
     supabase.from("sponsors").select("*").eq("event_id", event.id).order("sort_order"),
+    supabase.from("session_speakers").select("session_id, speaker_id").in(
+      "session_id",
+      (await supabase.from("sessions").select("id").eq("event_id", event.id)).data?.map((s: { id: string }) => s.id) ?? []
+    ),
   ])
 
   const speakers = speakersRes.data ?? []
   const tickets = ticketsRes.data ?? []
   const sessions = sessionsRes.data ?? []
   const sponsors = sponsorsRes.data ?? []
+
+  // Fetch active price tiers for all tickets (for early bird / timed pricing)
+  const now = new Date().toISOString()
+  const ticketIds = tickets.map((t: { id: string }) => t.id)
+  const { data: activePriceTiers } = ticketIds.length > 0
+    ? await supabase
+        .from("ticket_price_tiers")
+        .select("*")
+        .in("ticket_id", ticketIds)
+        .eq("is_active", true)
+        .lte("starts_at", now)
+        .gte("ends_at", now)
+    : { data: [] as { ticket_id: string; price_inr: number; name: string }[] }
+
+  // Build a map: ticketId -> active tier
+  const priceTierMap: Record<string, { price: number; name: string }> = {}
+  for (const tier of activePriceTiers ?? []) {
+    // Use the most recently created tier if multiple overlap
+    if (!priceTierMap[tier.ticket_id]) {
+      priceTierMap[tier.ticket_id] = { price: tier.price_inr, name: tier.name }
+    }
+  }
+  const sessionSpeakerLinks = sessionSpeakersRes.data ?? []
+
+  // Build a map: sessionId -> speaker objects
+  const speakerMap = new Map(speakers.map((s: { id: string }) => [s.id, s]))
+  const sessionSpeakersMap = new Map<string, typeof speakers>()
+  for (const link of sessionSpeakerLinks) {
+    const sp = speakerMap.get(link.speaker_id)
+    if (sp) {
+      if (!sessionSpeakersMap.has(link.session_id)) sessionSpeakersMap.set(link.session_id, [])
+      sessionSpeakersMap.get(link.session_id)!.push(sp)
+    }
+  }
 
   const tierOrder = ["title", "platinum", "gold", "silver", "bronze", "partner"]
   const tierLabels: Record<string, string> = {
@@ -554,6 +592,41 @@ export default async function EventDetailPage({ params }: Props) {
                                       {session.description as string}
                                     </p>
                                   )}
+
+                                  {/* Session Speakers */}
+                                  {(() => {
+                                    const sessionSpks = sessionSpeakersMap.get(session.id as string)
+                                    if (!sessionSpks || sessionSpks.length === 0) return null
+                                    return (
+                                      <div className="flex items-center gap-2 mt-3">
+                                        <div className="flex -space-x-1.5">
+                                          {sessionSpks.slice(0, 5).map((sp: { id: string; name: string; image_url: string | null }) => (
+                                            sp.image_url ? (
+                                              <img
+                                                key={sp.id}
+                                                src={sp.image_url}
+                                                alt={sp.name}
+                                                className="w-6 h-6 rounded-full object-cover ring-1 ring-[#050505]"
+                                              />
+                                            ) : (
+                                              <div
+                                                key={sp.id}
+                                                className="w-6 h-6 rounded-full flex items-center justify-center ring-1 ring-[#050505]"
+                                                style={{ background: "rgba(201,168,76,0.15)" }}
+                                              >
+                                                <span className="text-[8px] font-bold text-[#c9a84c]/70">
+                                                  {sp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                                                </span>
+                                              </div>
+                                            )
+                                          ))}
+                                        </div>
+                                        <span className="text-[11px] text-white/35">
+                                          {sessionSpks.map((sp: { name: string }) => sp.name).join(", ")}
+                                        </span>
+                                      </div>
+                                    )
+                                  })()}
                                 </div>
                               </div>
                             </div>
@@ -625,6 +698,8 @@ export default async function EventDetailPage({ params }: Props) {
                     ticket={ticket}
                     eventId={event.id}
                     eventTitle={event.title}
+                    currentPrice={priceTierMap[ticket.id]?.price ?? null}
+                    tierName={priceTierMap[ticket.id]?.name ?? null}
                   />
                 ))}
               </div>

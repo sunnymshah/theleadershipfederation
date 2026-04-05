@@ -1,9 +1,14 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { createTicket, updateTicket, deleteTicket } from "@/app/actions/ticketActions"
-import { Plus, Pencil, Trash2, X, Loader2, Ticket } from "lucide-react"
+import {
+  createPriceTier,
+  deletePriceTier,
+  getPriceTiers,
+} from "@/app/actions/priceTierActions"
+import { Plus, Pencil, Trash2, X, Loader2, Ticket, ChevronDown, Clock, Tag } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface TicketRow {
@@ -24,8 +29,175 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   archived:  { bg: "bg-[#f0f0f0]",     text: "text-[#888]" },
 }
 
+interface PriceTierRow {
+  id: string
+  ticket_id: string
+  name: string
+  price_inr: number
+  starts_at: string
+  ends_at: string
+  is_active: boolean
+  created_at: string
+}
+
 function fmtPrice(n: number) {
   return new Intl.NumberFormat("en-IN").format(n)
+}
+
+function fmtDateShort(d: string) {
+  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+}
+
+function isTierActive(tier: PriceTierRow) {
+  const now = Date.now()
+  return tier.is_active && new Date(tier.starts_at).getTime() <= now && new Date(tier.ends_at).getTime() >= now
+}
+
+/* ── Price Tier Section (inline per ticket) ──────────────────────────── */
+
+function PriceTierSection({ ticketId, basePrice }: { ticketId: string; basePrice: number }) {
+  const [tiers, setTiers] = useState<PriceTierRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchTiers = useCallback(async () => {
+    setLoading(true)
+    const res = await getPriceTiers(ticketId)
+    if (res.success) setTiers(res.tiers as PriceTierRow[])
+    setLoading(false)
+  }, [ticketId])
+
+  useEffect(() => { fetchTiers() }, [fetchTiers])
+
+  async function handleCreateTier(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    const fd = new FormData(e.currentTarget)
+    const res = await createPriceTier(ticketId, {
+      name: fd.get("tierName") as string,
+      price_inr: parseInt(fd.get("tierPrice") as string) || 0,
+      starts_at: fd.get("tierStartsAt") as string,
+      ends_at: fd.get("tierEndsAt") as string,
+    })
+    if (res.success) {
+      setShowForm(false)
+      await fetchTiers()
+    } else {
+      setError(res.error ?? "Failed to create tier")
+    }
+    setSaving(false)
+  }
+
+  async function handleDeleteTier(tierId: string) {
+    if (!confirm("Delete this price tier?")) return
+    setDeleting(tierId)
+    await deletePriceTier(tierId)
+    await fetchTiers()
+    setDeleting(null)
+  }
+
+  if (loading) {
+    return (
+      <div className="px-5 py-3 flex items-center gap-2 text-[#aaa] text-xs">
+        <Loader2 size={12} className="animate-spin" /> Loading tiers...
+      </div>
+    )
+  }
+
+  return (
+    <div className="px-5 pb-4 pt-1">
+      {/* Existing tiers */}
+      {tiers.length > 0 && (
+        <div className="space-y-2 mb-3">
+          {/* Visual timeline */}
+          <div className="flex items-center gap-2 mb-2">
+            <Clock size={12} className="text-[#bbb]" />
+            <span className="text-[10px] text-[#999] uppercase tracking-wider font-semibold">Price Timeline</span>
+          </div>
+          {tiers.map((tier) => {
+            const active = isTierActive(tier)
+            return (
+              <div
+                key={tier.id}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg border text-xs transition-colors",
+                  active
+                    ? "bg-[#c9a84c]/[0.06] border-[#c9a84c]/20"
+                    : "bg-[#fafafa] border-[#e8e8e8]"
+                )}
+              >
+                <Tag size={12} className={active ? "text-[#c9a84c]" : "text-[#ccc]"} />
+                <span className={cn("font-medium", active ? "text-[#c9a84c]" : "text-[#666]")}>{tier.name}</span>
+                <span className="text-[#888] tabular-nums">&#8377;{fmtPrice(tier.price_inr)}</span>
+                <span className="text-[#aaa]">{fmtDateShort(tier.starts_at)} — {fmtDateShort(tier.ends_at)}</span>
+                {active && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase">
+                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Active
+                  </span>
+                )}
+                {!tier.is_active && (
+                  <span className="text-[10px] text-[#bbb] font-medium uppercase">Disabled</span>
+                )}
+                <div className="ml-auto">
+                  <button
+                    onClick={() => handleDeleteTier(tier.id)}
+                    disabled={deleting === tier.id}
+                    className="p-1 rounded text-[#bbb] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
+                  >
+                    {deleting === tier.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Add tier form */}
+      {showForm ? (
+        <form onSubmit={handleCreateTier} className="space-y-3 p-3 rounded-lg bg-[#fafafa] border border-[#e8e8e8]">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[10px] text-[#888] uppercase tracking-wider mb-1">Tier Name *</label>
+              <input type="text" name="tierName" required placeholder='e.g. "Early Bird"' className="w-full px-2.5 py-2 bg-white border border-[#e0e0e0] rounded text-xs text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50" />
+            </div>
+            <div>
+              <label className="block text-[10px] text-[#888] uppercase tracking-wider mb-1">Price (INR) *</label>
+              <input type="number" name="tierPrice" required min="0" placeholder={String(basePrice)} className="w-full px-2.5 py-2 bg-white border border-[#e0e0e0] rounded text-xs text-[#333] tabular-nums focus:outline-none focus:border-[#c9a84c]/50" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[10px] text-[#888] uppercase tracking-wider mb-1">Starts At *</label>
+              <input type="datetime-local" name="tierStartsAt" required className="w-full px-2.5 py-2 bg-white border border-[#e0e0e0] rounded text-xs text-[#333] focus:outline-none focus:border-[#c9a84c]/50" />
+            </div>
+            <div>
+              <label className="block text-[10px] text-[#888] uppercase tracking-wider mb-1">Ends At *</label>
+              <input type="datetime-local" name="tierEndsAt" required className="w-full px-2.5 py-2 bg-white border border-[#e0e0e0] rounded text-xs text-[#333] focus:outline-none focus:border-[#c9a84c]/50" />
+            </div>
+          </div>
+          {error && <p className="text-xs text-red-400">{error}</p>}
+          <div className="flex gap-2">
+            <button type="button" onClick={() => { setShowForm(false); setError(null) }} className="flex-1 py-2 rounded border border-[#e0e0e0] text-xs text-[#777] hover:bg-white transition-colors">Cancel</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2 rounded bg-[#c9a84c] text-white text-xs font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-1">
+              {saving ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Add Tier
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-1.5 text-xs text-[#c9a84c] hover:text-[#b8973e] font-medium transition-colors"
+        >
+          <Plus size={12} /> Add Price Tier
+        </button>
+      )}
+    </div>
+  )
 }
 
 export function TicketManager({ eventId }: { eventId: string }) {
@@ -36,6 +208,7 @@ export function TicketManager({ eventId }: { eventId: string }) {
   const [submitting, setSubmitting] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [expandedTierId, setExpandedTierId] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -138,42 +311,60 @@ export function TicketManager({ eventId }: { eventId: string }) {
             <tbody>
               {tickets.map((t) => {
                 const pct = t.inventory_limit > 0 ? Math.round((t.sold / t.inventory_limit) * 100) : 0
+                const isExpanded = expandedTierId === t.id
                 return (
-                  <tr key={t.id} className="border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors">
-                    <td className="px-5 py-4">
-                      <div className="font-medium text-[#333]">{t.name}</div>
-                      {t.description && <div className="text-[11px] text-[#aaa] mt-0.5 line-clamp-1">{t.description}</div>}
-                    </td>
-                    <td className="px-5 py-4 text-[#555] tabular-nums">
-                      {t.price_inr === 0 ? (
-                        <span className="text-emerald-600 font-medium">Free</span>
-                      ) : (
-                        <>&#8377;{fmtPrice(t.price_inr)}</>
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="text-[#666] text-xs tabular-nums">{t.sold} / {t.inventory_limit}</div>
-                      <div className="w-24 h-1.5 bg-[#e8e8e8] rounded-full mt-1.5 overflow-hidden">
-                        <div
-                          className={cn("h-full rounded-full transition-all", pct >= 90 ? "bg-red-400" : pct >= 60 ? "bg-yellow-400" : "bg-[#c9a84c]")}
-                          style={{ width: `${Math.min(pct, 100)}%` }}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={cn("inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider", STATUS_STYLES[t.status]?.bg ?? "bg-[#f0f0f0]", STATUS_STYLES[t.status]?.text ?? "text-[#888]")}>
-                        {t.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => { setEditing(t); setDrawerOpen(true); setActionError(null) }} className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><Pencil size={15} /></button>
-                        <button onClick={() => handleDelete(t.id)} disabled={deletingId === t.id} className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
-                          {deletingId === t.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                  <React.Fragment key={t.id}>
+                    <tr className="border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="font-medium text-[#333]">{t.name}</div>
+                        {t.description && <div className="text-[11px] text-[#aaa] mt-0.5 line-clamp-1">{t.description}</div>}
+                      </td>
+                      <td className="px-5 py-4 text-[#555] tabular-nums">
+                        {t.price_inr === 0 ? (
+                          <span className="text-emerald-600 font-medium">Free</span>
+                        ) : (
+                          <>&#8377;{fmtPrice(t.price_inr)}</>
+                        )}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="text-[#666] text-xs tabular-nums">{t.sold} / {t.inventory_limit}</div>
+                        <div className="w-24 h-1.5 bg-[#e8e8e8] rounded-full mt-1.5 overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full transition-all", pct >= 90 ? "bg-red-400" : pct >= 60 ? "bg-yellow-400" : "bg-[#c9a84c]")}
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={cn("inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider", STATUS_STYLES[t.status]?.bg ?? "bg-[#f0f0f0]", STATUS_STYLES[t.status]?.text ?? "text-[#888]")}>
+                          {t.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setExpandedTierId(isExpanded ? null : t.id)}
+                            className={cn("p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/5 transition-colors", isExpanded && "text-[#c9a84c] bg-[#c9a84c]/5")}
+                            title="Price Tiers"
+                          >
+                            <ChevronDown size={15} className={cn("transition-transform", isExpanded && "rotate-180")} />
+                          </button>
+                          <button onClick={() => { setEditing(t); setDrawerOpen(true); setActionError(null) }} className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><Pencil size={15} /></button>
+                          <button onClick={() => handleDelete(t.id)} disabled={deletingId === t.id} className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30">
+                            {deletingId === t.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {/* Expandable Price Tiers row */}
+                    {isExpanded && (
+                      <tr className="bg-[#f8f9fa]">
+                        <td colSpan={5} className="p-0">
+                          <PriceTierSection ticketId={t.id} basePrice={t.price_inr} />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 )
               })}
             </tbody>
