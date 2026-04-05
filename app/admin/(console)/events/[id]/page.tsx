@@ -57,6 +57,14 @@ interface EventDetail {
   status: string
   created_at: string
   updated_at: string
+  tagline: string | null
+  venue_address: string | null
+  registration_deadline: string | null
+  highlights: string[]
+  is_featured: boolean
+  max_attendees: number | null
+  contact_email: string | null
+  social_links: Record<string, string>
 }
 
 interface Counts {
@@ -366,10 +374,17 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           <div className="divide-y divide-[#eee]">
             {[
               { label: "Title", value: event.title },
+              { label: "Tagline", value: event.tagline || "—" },
               { label: "URL Slug", value: `/${event.slug}` },
               { label: "Start", value: fmtDateTime(event.start_date) },
               { label: "End", value: fmtDateTime(event.end_date) },
               { label: "Venue", value: event.venue },
+              { label: "Venue Address", value: event.venue_address || "—" },
+              { label: "Reg. Deadline", value: event.registration_deadline ? fmtDateTime(event.registration_deadline) : "Open until event" },
+              { label: "Max Attendees", value: event.max_attendees ? String(event.max_attendees) : "Unlimited" },
+              { label: "Contact Email", value: event.contact_email || "—" },
+              { label: "Featured", value: event.is_featured ? "Yes" : "No" },
+              { label: "Highlights", value: event.highlights?.length ? event.highlights.join(", ") : "—" },
               { label: "Created", value: fmtDateTime(event.created_at) },
               { label: "Last Updated", value: fmtDateTime(event.updated_at) },
             ].map(({ label, value }) => (
@@ -544,6 +559,47 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
+          </div>
+
+          {/* ── Enhanced Event Fields ─────────────────────────────── */}
+          <div className="pt-3 border-t border-[#eee]">
+            <p className="text-[11px] text-[#999] uppercase tracking-wider font-semibold mb-4">Additional Details</p>
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Tagline</label>
+            <input type="text" name="tagline" defaultValue={event.tagline ?? ""} placeholder="A short subtitle for your event" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Venue Address</label>
+            <textarea name="venue_address" rows={2} defaultValue={event.venue_address ?? ""} placeholder="Full address including city, state, country" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" />
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Registration Deadline</label>
+            <input type="datetime-local" name="registration_deadline" defaultValue={event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : ""} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Key Highlights</label>
+            <textarea name="highlights" rows={3} defaultValue={event.highlights?.join("\n") ?? ""} placeholder="One per line" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" />
+            <p className="text-[11px] text-[#bbb] mt-1">Enter key themes or highlights, one per line</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" name="is_featured" id="is_featured" defaultChecked={event.is_featured} className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50" />
+            <label htmlFor="is_featured" className="text-sm text-[#555]">Show as featured event on homepage</label>
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Max Attendees</label>
+            <input type="number" name="max_attendees" min={0} defaultValue={event.max_attendees ?? ""} placeholder="Overall event capacity" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Contact Email</label>
+            <input type="email" name="contact_email" defaultValue={event.contact_email ?? ""} placeholder="events@yourdomain.com" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
           </div>
 
           {message && (
