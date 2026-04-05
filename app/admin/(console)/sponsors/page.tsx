@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { createSponsor, updateSponsor, deleteSponsor } from "@/app/actions/sponsorActions"
 import { setSponsorPortalAccess } from "@/app/actions/sponsorPortalActions"
-import { Plus, Pencil, Trash2, Search, X, Loader2, Building2, KeyRound } from "lucide-react"
+import { getLeadCountsBySponsor, getLeads, exportLeadsCSV, getLeadStats, updateLead } from "@/app/actions/leadCaptureActions"
+import { Plus, Pencil, Trash2, Search, X, Loader2, Building2, KeyRound, Flame, Download, ScanLine, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SponsorRow {
@@ -43,6 +44,18 @@ export default function AdminSponsorsPage() {
   const [actionError, setActionError]   = useState<string | null>(null)
   const [deletingId, setDeletingId]     = useState<string | null>(null)
 
+  // Lead counts per sponsor
+  const [leadCounts, setLeadCounts] = useState<Record<string, number>>({})
+
+  // Leads drawer state
+  const [leadsDrawerOpen, setLeadsDrawerOpen] = useState(false)
+  const [leadsSponsor, setLeadsSponsor] = useState<SponsorRow | null>(null)
+  const [leadsData, setLeadsData] = useState<Array<Record<string, unknown>>>([])
+  const [leadsStats, setLeadsStats] = useState<{ total: number; byInterest: Record<string, number>; byStatus: Record<string, number> } | null>(null)
+  const [loadingLeads, setLoadingLeads] = useState(false)
+  const [leadsInterestFilter, setLeadsInterestFilter] = useState("")
+  const [exportingLeadsCsv, setExportingLeadsCsv] = useState(false)
+
   // Portal access drawer state
   const [portalDrawerOpen, setPortalDrawerOpen] = useState(false)
   const [portalSponsor, setPortalSponsor]       = useState<SponsorRow | null>(null)
@@ -56,12 +69,14 @@ export default function AdminSponsorsPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    const [sponsorRes, eventRes] = await Promise.all([
+    const [sponsorRes, eventRes, leadCountsRes] = await Promise.all([
       supabase.from("sponsors").select("*, events(title)").order("sort_order"),
       supabase.from("events").select("id, title").order("title"),
+      getLeadCountsBySponsor(),
     ])
     if (sponsorRes.data) setSponsors(sponsorRes.data)
     if (eventRes.data) setEvents(eventRes.data)
+    if (leadCountsRes.success) setLeadCounts(leadCountsRes.counts)
     setLoading(false)
   }, [])
 
@@ -133,6 +148,7 @@ export default function AdminSponsorsPage() {
                 <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Tier</th>
                 <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Event</th>
                 <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Website</th>
+                <th className="text-center px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Leads</th>
                 <th className="text-right px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -148,6 +164,31 @@ export default function AdminSponsorsPage() {
                   </td>
                   <td className="px-5 py-4 text-[#777] text-xs">{s.events?.title ?? "—"}</td>
                   <td className="px-5 py-4 text-[#777] text-xs truncate max-w-[150px]">{s.website ?? "—"}</td>
+                  <td className="px-5 py-4 text-center">
+                    {(leadCounts[s.id] ?? 0) > 0 ? (
+                      <button
+                        onClick={async () => {
+                          setLeadsSponsor(s)
+                          setLeadsDrawerOpen(true)
+                          setLoadingLeads(true)
+                          setLeadsInterestFilter("")
+                          const [leadsRes, statsRes] = await Promise.all([
+                            getLeads(s.id, s.event_id),
+                            getLeadStats(s.id, s.event_id),
+                          ])
+                          if (leadsRes.success) setLeadsData(leadsRes.leads as Array<Record<string, unknown>>)
+                          if (statsRes.success && statsRes.stats) setLeadsStats(statsRes.stats)
+                          setLoadingLeads(false)
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#c9a84c]/10 text-[#c9a84c] text-[12px] font-bold hover:bg-[#c9a84c]/20 transition-colors"
+                      >
+                        <Flame size={12} />
+                        {leadCounts[s.id]}
+                      </button>
+                    ) : (
+                      <span className="text-[#ccc] text-xs">0</span>
+                    )}
+                  </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => { setPortalSponsor(s); setPortalEmail(s.contact_email ?? ""); setPortalPassword(s.portal_password ?? ""); setPortalDrawerOpen(true); setPortalError(null); setPortalSuccess(null) }} className={cn("p-2 rounded-md transition-colors", s.contact_email ? "text-[#c9a84c] hover:text-[#b8972f] hover:bg-[#c9a84c]/10" : "text-[#aaa] hover:text-[#555] hover:bg-[#fafafa]")} title="Set Portal Access"><KeyRound size={15} /></button>
@@ -221,6 +262,116 @@ export default function AdminSponsorsPage() {
                   {savingPortal ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : "Save Portal Access"}
                 </button>
               </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Leads Drawer ──────────────────────────────────────────── */}
+      {leadsDrawerOpen && leadsSponsor && (
+        <>
+          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setLeadsDrawerOpen(false); setLeadsSponsor(null); setLeadsData([]); setLeadsStats(null) }} />
+          <div className="fixed top-0 right-0 h-full w-full max-w-xl bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
+              <div>
+                <h3 className="text-lg font-semibold text-[#333]">Leads: {leadsSponsor.name}</h3>
+                <p className="text-[11px] text-[#888]">{leadsSponsor.events?.title ?? "All Events"}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    setExportingLeadsCsv(true)
+                    const result = await exportLeadsCSV(leadsSponsor.id, leadsSponsor.event_id)
+                    if (result.success && result.csv) {
+                      const blob = new Blob([result.csv], { type: "text/csv" })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement("a")
+                      a.href = url
+                      a.download = `leads-${leadsSponsor.name.replace(/\s+/g, "-").toLowerCase()}.csv`
+                      a.click()
+                      URL.revokeObjectURL(url)
+                    }
+                    setExportingLeadsCsv(false)
+                  }}
+                  disabled={exportingLeadsCsv || leadsData.length === 0}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#c9a84c] text-[#0a0a0a] text-[11px] font-bold hover:bg-[#d4b85c] disabled:opacity-40 transition-colors"
+                >
+                  {exportingLeadsCsv ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                  Export CSV
+                </button>
+                <button onClick={() => { setLeadsDrawerOpen(false); setLeadsSponsor(null); setLeadsData([]); setLeadsStats(null) }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><X size={18} /></button>
+              </div>
+            </div>
+            <div className="p-6">
+              {loadingLeads ? (
+                <div className="flex items-center justify-center py-16 text-[#aaa] gap-2">
+                  <Loader2 size={18} className="animate-spin" /> Loading leads...
+                </div>
+              ) : (
+                <>
+                  {/* Stats */}
+                  {leadsStats && (
+                    <div className="grid grid-cols-4 gap-3 mb-5">
+                      {[
+                        { label: "Hot", count: leadsStats.byInterest.hot ?? 0, bg: "bg-red-50", text: "text-red-600" },
+                        { label: "Warm", count: leadsStats.byInterest.warm ?? 0, bg: "bg-orange-50", text: "text-orange-600" },
+                        { label: "Medium", count: leadsStats.byInterest.medium ?? 0, bg: "bg-blue-50", text: "text-blue-600" },
+                        { label: "Cold", count: leadsStats.byInterest.cold ?? 0, bg: "bg-gray-50", text: "text-gray-500" },
+                      ].map((s) => (
+                        <button
+                          key={s.label}
+                          onClick={() => setLeadsInterestFilter(leadsInterestFilter === s.label.toLowerCase() ? "" : s.label.toLowerCase())}
+                          className={cn("rounded-lg p-3 text-center border transition-colors", leadsInterestFilter === s.label.toLowerCase() ? "border-[#c9a84c] ring-2 ring-[#c9a84c]/20" : "border-[#e0e0e0]", s.bg)}
+                        >
+                          <p className={cn("text-xl font-bold", s.text)}>{s.count}</p>
+                          <p className="text-[10px] text-[#888] uppercase tracking-wider font-semibold">{s.label}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Leads list */}
+                  {leadsData.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Flame size={28} className="mx-auto mb-2 text-[#ccc]" />
+                      <p className="text-[#999] text-sm">No leads captured yet.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {leadsData
+                        .filter((l) => !leadsInterestFilter || (l.interest_level as string) === leadsInterestFilter)
+                        .map((lead) => {
+                        const interestBadge: Record<string, { bg: string; text: string }> = {
+                          hot: { bg: "bg-red-100", text: "text-red-700" },
+                          warm: { bg: "bg-orange-100", text: "text-orange-700" },
+                          medium: { bg: "bg-blue-100", text: "text-blue-700" },
+                          cold: { bg: "bg-gray-100", text: "text-gray-600" },
+                        }
+                        const badge = interestBadge[(lead.interest_level as string)] ?? interestBadge.medium
+                        return (
+                          <div key={lead.id as string} className="flex items-center gap-3 px-4 py-3 bg-[#fafafa] rounded-lg border border-[#eee]">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-[13px] text-[#333] truncate">{lead.lead_name as string}</span>
+                                <span className={cn("inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0", badge.bg, badge.text)}>{lead.interest_level as string}</span>
+                              </div>
+                              <div className="text-[11px] text-[#888] mt-0.5">
+                                {lead.lead_company ? `${lead.lead_company}` : ""}
+                                {lead.lead_company && lead.lead_email ? " · " : ""}
+                                {lead.lead_email ? `${lead.lead_email}` : ""}
+                              </div>
+                            </div>
+                            <div className="text-[10px] text-[#aaa] shrink-0">
+                              {lead.captured_via === "qr_scan" && <ScanLine size={12} className="text-[#c9a84c] inline mr-1" />}
+                              {new Date(lead.captured_at as string).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </>

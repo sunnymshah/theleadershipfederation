@@ -2,8 +2,9 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink } from "lucide-react"
+import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink, Camera } from "lucide-react"
 import { TicketPurchaseCard } from "@/components/site/TicketPurchaseCard"
+import { getGalleryImages } from "@/app/actions/galleryActions"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -109,7 +110,7 @@ export default async function EventDetailPage({ params }: Props) {
 
   if (!event) notFound()
 
-  const [speakersRes, ticketsRes, sessionsRes, sponsorsRes, sessionSpeakersRes] = await Promise.all([
+  const [speakersRes, ticketsRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes, customFieldsRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("tickets").select("*").eq("event_id", event.id).eq("status", "published").order("price_inr"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
@@ -118,12 +119,16 @@ export default async function EventDetailPage({ params }: Props) {
       "session_id",
       (await supabase.from("sessions").select("id").eq("event_id", event.id)).data?.map((s: { id: string }) => s.id) ?? []
     ),
+    getGalleryImages(event.id),
+    supabase.from("custom_fields").select("id, field_label, field_name, field_type, options, is_required, sort_order").eq("event_id", event.id).order("sort_order"),
   ])
 
   const speakers = speakersRes.data ?? []
   const tickets = ticketsRes.data ?? []
   const sessions = sessionsRes.data ?? []
   const sponsors = sponsorsRes.data ?? []
+  const galleryImages = galleryRes.images ?? []
+  const customFields = customFieldsRes.data ?? []
 
   // Fetch active price tiers for all tickets (for early bird / timed pricing)
   const now = new Date().toISOString()
@@ -700,6 +705,7 @@ export default async function EventDetailPage({ params }: Props) {
                     eventTitle={event.title}
                     currentPrice={priceTierMap[ticket.id]?.price ?? null}
                     tierName={priceTierMap[ticket.id]?.name ?? null}
+                    customFields={customFields}
                   />
                 ))}
               </div>
@@ -793,6 +799,100 @@ export default async function EventDetailPage({ params }: Props) {
                 </div>
               )
             })}
+          </div>
+        </section>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────
+       *  6.5. EVENT GALLERY SECTION
+       * ──────────────────────────────────────────────────────────── */}
+      {galleryImages.length > 0 && (
+        <section id="gallery" className="py-28 border-t border-white/[0.04]">
+          <div className="max-w-6xl mx-auto px-6">
+            {/* Section header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-3 mb-4">
+                <div className="h-px w-8 bg-[#c9a84c]/40" />
+                <span className="text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em]">
+                  Captured Moments
+                </span>
+                <div className="h-px w-8 bg-[#c9a84c]/40" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white">
+                Event Gallery
+              </h2>
+            </div>
+
+            {/* Gallery grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {galleryImages.map((image) => (
+                <div
+                  key={image.id}
+                  className="relative rounded-xl overflow-hidden aspect-square group cursor-pointer transition-all duration-300 hover:scale-105"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.04)",
+                    boxShadow: "0 0 0 0 rgba(201,168,76,0)",
+                  }}
+                  onMouseEnter={undefined}
+                >
+                  {/* Image */}
+                  <img
+                    src={image.image_url}
+                    alt={image.caption || "Event gallery photo"}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+
+                  {/* Gold border glow on hover */}
+                  <div
+                    className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    style={{
+                      boxShadow: "inset 0 0 0 2px rgba(201,168,76,0.5), 0 0 20px rgba(201,168,76,0.15)",
+                    }}
+                  />
+
+                  {/* Featured badge */}
+                  {image.is_featured && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                        style={{
+                          background: "rgba(201,168,76,0.2)",
+                          color: "#c9a84c",
+                          border: "1px solid rgba(201,168,76,0.3)",
+                          backdropFilter: "blur(8px)",
+                        }}
+                      >
+                        <Camera size={10} />
+                        Featured
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Caption + photographer overlay on hover */}
+                  {(image.caption || image.photographer) && (
+                    <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
+                      <div
+                        className="px-4 pt-10 pb-4"
+                        style={{
+                          background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)",
+                        }}
+                      >
+                        {image.caption && (
+                          <p className="text-sm text-white/90 font-medium leading-snug mb-1">
+                            {image.caption}
+                          </p>
+                        )}
+                        {image.photographer && (
+                          <p className="text-[11px] text-white/40">
+                            Photo by {image.photographer}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}

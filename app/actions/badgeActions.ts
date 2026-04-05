@@ -4,6 +4,7 @@
  * Badge Server Actions
  *
  * Fetch attendee data for badge generation and return badge data arrays.
+ * Supports filtering by all / checked_in / vip.
  */
 
 import { cookies } from "next/headers"
@@ -32,6 +33,7 @@ export async function getBadgeData(
 ): Promise<{
   success: boolean
   badges?: BadgeData[]
+  eventTitle?: string
   error?: string
 }> {
   try {
@@ -81,20 +83,19 @@ export async function getBadgeData(
     }
 
     if (!attendees || attendees.length === 0) {
-      return { success: true, badges: [] }
+      return { success: true, badges: [], eventTitle: event.title }
     }
 
     const badges: BadgeData[] = attendees.map((a, idx) => ({
       attendeeName: a.name,
       company: a.company,
       designation: a.designation,
-      eventTitle: event.title,
       qrToken: a.qr_token || a.id,
       badgeNumber: idx + 1,
       vipLevel: a.vip_level,
     }))
 
-    return { success: true, badges }
+    return { success: true, badges, eventTitle: event.title }
   } catch (err) {
     console.error("[badgeActions] getBadgeData error:", err)
     return { success: false, error: (err as Error).message }
@@ -110,6 +111,7 @@ export async function generateEventBadges(
   success: boolean
   badges?: BadgeData[]
   count?: number
+  eventTitle?: string
   error?: string
 }> {
   try {
@@ -122,6 +124,7 @@ export async function generateEventBadges(
       success: true,
       badges: result.badges,
       count: result.badges.length,
+      eventTitle: result.eventTitle,
     }
   } catch (err) {
     console.error("[badgeActions] generateEventBadges error:", err)

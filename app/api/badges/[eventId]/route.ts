@@ -1,14 +1,15 @@
 /**
  * Badge PDF Download API Route
  *
- * GET /api/badges/[eventId]?filter=all|vip|checked_in
+ * GET /api/badges/[eventId]?filter=all|vip|checked_in&design={JSON}
  * Returns a downloadable PDF with all badge name tags for an event.
+ * Accepts an optional BadgeDesign JSON config via the `design` query param.
  */
 
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
-import { generateBadgePDF, type BadgeData } from "@/lib/generateBadge"
+import { generateBadgePDF, DEFAULT_DESIGN, type BadgeData, type BadgeDesign } from "@/lib/generateBadge"
 
 export async function GET(
   request: Request,
@@ -18,6 +19,18 @@ export async function GET(
     const { eventId } = await params
     const { searchParams } = new URL(request.url)
     const filter = (searchParams.get("filter") ?? "all") as "all" | "vip" | "checked_in"
+    const designParam = searchParams.get("design")
+
+    // Parse design config (fall back to defaults)
+    let design: BadgeDesign = { ...DEFAULT_DESIGN }
+    if (designParam) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(designParam))
+        design = { ...DEFAULT_DESIGN, ...parsed }
+      } catch {
+        // ignore invalid JSON, use defaults
+      }
+    }
 
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
@@ -41,6 +54,9 @@ export async function GET(
         { status: 404 }
       )
     }
+
+    // Set event title on design
+    design.eventTitle = event.title
 
     // Build attendee query
     let query = supabase
@@ -86,14 +102,13 @@ export async function GET(
       attendeeName: a.name,
       company: a.company,
       designation: a.designation,
-      eventTitle: event.title,
       qrToken: a.qr_token || a.id,
       badgeNumber: idx + 1,
       vipLevel: a.vip_level,
     }))
 
-    // Generate PDF
-    const doc = generateBadgePDF(badges)
+    // Generate PDF with design config
+    const doc = generateBadgePDF(badges, design)
     const pdfBytes = doc.output("arraybuffer") as unknown as Uint8Array
 
     const safeTitle = event.title
