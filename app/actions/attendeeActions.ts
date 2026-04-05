@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { sendConfirmationEmail } from "@/app/actions/emailActions"
+import { autoPromoteNext } from "@/app/actions/waitlistActions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -87,7 +88,7 @@ export async function updateAttendee(attendeeId: string, formData: FormData) {
 
     const { data: existing } = await supabase
       .from("attendees")
-      .select("event_id")
+      .select("event_id, ticket_id, status")
       .eq("id", attendeeId)
       .single()
 
@@ -101,6 +102,8 @@ export async function updateAttendee(attendeeId: string, formData: FormData) {
 
     if (!name || !email) return { success: false, error: "Name and email are required." }
 
+    const newStatus = status || "registered"
+
     const { data, error } = await supabase
       .from("attendees")
       .update({
@@ -109,7 +112,7 @@ export async function updateAttendee(attendeeId: string, formData: FormData) {
         phone: phone || null,
         company: company || null,
         designation: designation || null,
-        status: status || "registered",
+        status: newStatus,
         notes: notes || null,
         updated_at: new Date().toISOString(),
       })
@@ -118,6 +121,34 @@ export async function updateAttendee(attendeeId: string, formData: FormData) {
       .single()
 
     if (error) return { success: false, error: error.message }
+
+    // If status changed to 'cancelled' and attendee had a ticket,
+    // decrement sold count and auto-promote next from waitlist
+    if (
+      newStatus === "cancelled" &&
+      existing?.status !== "cancelled" &&
+      existing?.ticket_id
+    ) {
+      const { data: ticket } = await supabase
+        .from("tickets")
+        .select("sold")
+        .eq("id", existing.ticket_id)
+        .single()
+
+      if (ticket && ticket.sold > 0) {
+        await supabase
+          .from("tickets")
+          .update({ sold: ticket.sold - 1 })
+          .eq("id", existing.ticket_id)
+      }
+
+      try {
+        await autoPromoteNext(existing.ticket_id)
+      } catch {
+        console.error("[Waitlist] Auto-promote failed after status change to cancelled")
+      }
+    }
+
     if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true, attendee: data }
   } catch (err) {
@@ -156,12 +187,42 @@ export async function deleteAttendee(attendeeId: string) {
 
     const { data: existing } = await supabase
       .from("attendees")
-      .select("event_id")
+      .select("event_id, ticket_id, status")
       .eq("id", attendeeId)
       .single()
 
     const { error } = await supabase.from("attendees").delete().eq("id", attendeeId)
     if (error) return { success: false, error: error.message }
+
+    // If the deleted attendee was registered/confirmed/checked_in and had a ticket,
+    // decrement ticket sold and auto-promote next waitlisted person
+    if (
+      existing?.ticket_id &&
+      existing.status !== "cancelled" &&
+      existing.status !== "waitlisted"
+    ) {
+      const { data: ticket } = await supabase
+        .from("tickets")
+        .select("sold")
+        .eq("id", existing.ticket_id)
+        .single()
+
+      if (ticket && ticket.sold > 0) {
+        await supabase
+          .from("tickets")
+          .update({ sold: ticket.sold - 1 })
+          .eq("id", existing.ticket_id)
+      }
+
+      // Auto-promote next waitlisted person
+      try {
+        await autoPromoteNext(existing.ticket_id)
+      } catch {
+        // Non-critical: log but don't fail the delete
+        console.error("[Waitlist] Auto-promote failed after delete")
+      }
+    }
+
     if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true }
   } catch (err) {
