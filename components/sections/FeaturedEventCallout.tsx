@@ -42,19 +42,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
         />
       </div>
 
-      {/* Gold glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[700px] h-[90vw] max-h-[700px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.10) 0%, transparent 60%)" }}
-        aria-hidden
-      />
 
-      {/* TOTY chevron arrows on right */}
-      <svg className="absolute right-0 top-0 h-full w-1/3 pointer-events-none" viewBox="0 0 400 600" fill="none" aria-hidden>
-        <path d="M100 20L380 300L100 580" stroke="rgba(231,171,28,0.12)" strokeWidth="3" strokeLinecap="round" />
-        <path d="M60 60L340 300L60 540" stroke="rgba(231,171,28,0.08)" strokeWidth="2.5" strokeLinecap="round" />
-        <path d="M30 100L300 300L30 500" stroke="rgba(231,171,28,0.05)" strokeWidth="2" strokeLinecap="round" />
-      </svg>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
         <div>
