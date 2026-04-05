@@ -1,97 +1,33 @@
 "use client"
 
 /**
- * FIFA TOTY card-style radiating background lines in LF gold (#e7ab1c).
- * Clean, thick, evenly-spaced rays from a focal point — bold & premium.
+ * Intricate SVG tile pattern background in LF gold (#e7ab1c).
+ * Based on a detailed topographic/organic repeating pattern.
  */
 
-/** ── Main TOTY starburst — used on Hero, Ecosystem, CTA ── */
+const PATTERN_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Cpath fill='%23e7ab1c' fill-opacity='0.12' d='M600 325.1v-1.17c-6.5 3.83-13.06 7.64-14.68 8.64-10.6 6.56-18.57 12.56-24.68 19.09-5.58 5.95-12.44 10.06-22.42 14.15-1.45.6-2.96 1.2-4.83 1.9l-4.75 1.82c-9.78 3.75-14.8 6.27-18.98 10.1-4.23 3.88-9.65 6.6-16.77 8.84-1.95.6-3.99 1.17-6.47 1.8l-6.14 1.53c-5.29 1.35-8.3 2.37-10.54 3.78-3.08 1.92-6.63 3.26-12.74 5.03a384.1 384.1 0 0 1-4.82 1.36c-2.04.58-3.6 1.04-5.17 1.52a110.03 110.03 0 0 0-11.2 4.05c-2.7 1.15-5.5 3.93-8.78 8.4a157.68 157.68 0 0 0-6.15 9.2c-5.75 9.07-7.58 11.74-10.24 14.51a50.97 50.97 0 0 1-4.6 4.22c-2.33 1.9-10.39 7.54-11.81 8.74a14.68 14.68 0 0 0-3.67 4.15c-1.24 2.3-1.9 4.57-2.78 8.87-2.17 10.61-3.52 14.81-8.2 22.1-4.07 6.33-6.8 9.88-9.83 12.99-.47.48-.95.96-1.5 1.48l-3.75 3.56c-1.67 1.6-3.18 3.12-4.86 4.9a42.44 42.44 0 0 0-9.89 16.94c-2.5 8.13-2.72 15.47-1.76 27.22.47 5.82.51 6.36.51 8.18 0 10.51.12 17.53.63 25.78.24 4.05.56 7.8.97 11.22h.9c-1.13-9.58-1.5-21.83-1.5-37 0-1.86-.04-2.4-.52-8.26-.94-11.63-.72-18.87 1.73-26.85a41.44 41.44 0 0 1 9.65-16.55c1.67-1.76 3.18-3.27 4.83-4.85.63-.6 3.13-2.96 3.75-3.57a71.6 71.6 0 0 0 1.52-1.5c3.09-3.16 5.86-6.76 9.96-13.15 4.77-7.42 6.15-11.71 8.34-22.44.86-4.21 1.5-6.4 2.68-8.6.68-1.25 1.79-2.48 3.43-3.86 1.38-1.15 9.43-6.8 11.8-8.72 1.71-1.4 3.26-2.81 4.7-4.3 2.72-2.85 4.56-5.54 10.36-14.67a156.9 156.9 0 0 1 6.1-9.15c3.2-4.33 5.9-7.01 8.37-8.07 3.5-1.5 7.06-2.77 11.1-4.02a233.84 233.84 0 0 1 7.6-2.2l2.38-.67c6.19-1.79 9.81-3.16 12.98-5.15 2.14-1.33 5.08-2.33 10.27-3.65l6.14-1.53c2.5-.63 4.55-1.2 6.52-1.82 7.24-2.27 12.79-5.06 17.15-9.05 4.05-3.72 9-6.2 18.66-9.9l4.75-1.82c1.87-.72 3.39-1.31 4.85-1.91 10.1-4.15 17.07-8.32 22.76-14.4 6.05-6.45 13.95-12.4 24.49-18.92 1.56-.96 7.82-4.6 14.15-8.33v-64.58c-4 8.15-8.52 14.85-12.7 17.9-2.51 1.82-5.38 4.02-9.04 6.92a1063.87 1063.87 0 0 0-6.23 4.98l-1.27 1.02a2309.25 2309.25 0 0 1-4.87 3.9c-7.55 6-12.9 10.05-17.61 13.19-3.1 2.06-3.86 2.78-8.06 7.13-5.84 6.07-11.72 8.62-29.15 10.95-11.3 1.5-20.04 4.91-30.75 11.07-1.65.94-7.27 4.27-6.97 4.1-2.7 1.58-4.69 2.69-6.64 3.66-5.63 2.8-10.47 4.17-15.71 4.17-17.13 0-41.44 11.51-51.63 22.83-12.05 13.4-31.42 27.7-45.25 31.16-7.4 1.85-11.85 7.05-14.04 14.69-1.26 4.4-1.58 8.28-1.58 13.82 0 .82.01.98.24 3.63.45 5.18.35 8.72-.77 13.26-1.53 6.2-4.89 12.6-10.59 19.43-13.87 16.65-22.88 46.58-22.88 71.68 0 2.39.02 4.26.06 8.75.12 10.8.1 15.8-.22 21.95-.56 11.18-2.09 20.73-5 29.3h-1.05c2.94-8.56 4.49-18.12 5.05-29.35.31-6.13.34-11.1.22-21.9-.04-4.48-.06-6.36-.06-8.75 0-25.32 9.07-55.47 23.12-72.32 5.6-6.72 8.88-12.99 10.38-19.03 1.09-4.4 1.18-7.85.74-12.93-.23-2.7-.24-2.86-.24-3.72 0-5.62.32-9.57 1.62-14.1 2.28-7.95 6.97-13.44 14.76-15.39 13.6-3.4 32.82-17.59 44.75-30.84C409 360.14 433.58 348.5 451 348.5c5.07 0 9.77-1.33 15.26-4.07 1.93-.96 3.9-2.05 6.58-3.62-.3.18 5.33-3.16 6.98-4.11 10.82-6.21 19.66-9.67 31.11-11.2 17.23-2.3 22.9-4.75 28.57-10.64 4.25-4.41 5.04-5.16 8.22-7.28 4.68-3.11 10.01-7.14 17.55-13.14a1113.33 1113.33 0 0 0 4.86-3.89l1.28-1.02a4668.54 4668.54 0 0 1 6.23-4.98c3.67-2.9 6.55-5.12 9.07-6.95 4.37-3.19 9.16-10.56 13.29-19.4v66.9zm0-116.23c-.62.01-1.27.06-1.95.13-6.13.63-13.83 3.45-21.83 7.45-3.64 1.82-8.46 2.67-14.17 2.71-4.7.04-9.72-.47-14.73-1.33-1.7-.3-3.26-.61-4.67-.93a31.55 31.55 0 0 0-3.55-.57 273.4 273.4 0 0 0-16.66-.88c-10.42-.16-17.2.74-17.97 2.73-.38.97.6 2.55 3.03 4.87 1.01.97 2.22 2.03 4.04 3.55a1746.07 1746.07 0 0 0 4.79 4.02c1.39 1.2 3.1 1.92 5.5 2.5.7.16.86.2 2.64.54 3.53.7 5.03 1.25 6.15 2.63 1.41 1.76 1.4 4.54-.15 8.88-2.44 6.83-5.72 10.05-10.19 10.33-3.63.23-7.6-1.29-14.52-5.06-4.53-2.47-6.82-7.3-8.32-15.26-.17-.87-.32-1.78-.5-2.86l-.43-2.76c-1.05-6.58-1.9-9.2-3.73-10.11-.81-.4-1.59-.74-2.36-1-2.27-.77-4.6-1.02-8.1-.92-2.29.07-14.7 1-13.77.93-20.55 1.37-28.8 5.05-37.09 14.99a133.07 133.07 0 0 0-4.25 5.44l-2.3 3.09-2.51 3.32c-4.1 5.36-7.06 8.48-10.39 11.12-.65.52-1.33 1.04-2.13 1.62l-4.11 2.94a106.8 106.8 0 0 0-5.16 3.99c-4.55 3.74-9.74 8.6-16.25 15.38-8.25 8.58-11.78 13.54-11.7 15.95.07 1.65 1.64 2.11 6.79 2.38 1.61.09 2.15.12 2.98.2 2.95.24 5.09.73 6.81 1.68 7.48 4.15 11.63 7.26 13.95 11.58 3.3 6.15.8 12.88-8.89 20.26-8.28 6.3-11.1 10.37-11.31 14.96-.06 1.17 0 1.93.26 4.43.69 6.47.25 10.65-2.8 17.42a44.23 44.23 0 0 1-4.16 7.53c-2.82 3.97-5.47 5.74-10.6 7.69-.43.16-3.34 1.23-4.27 1.59-1.8.68-3.38 1.36-5.01 2.14-4.18 2-8.4 4.6-13.1 8.24-8.44 6.51-13.23 14.56-15.98 25.06-1.1 4.2-1.55 6.81-2.8 15.21-1.26 8.6-2.17 12.64-4.08 16.55-2.1 4.28-11.93 26.59-12.97 28.88a382.7 382.7 0 0 1-6.37 13.41c-4.07 8.11-7.61 14.07-10.73 17.81-5.38 6.46-8.98 14.37-13.77 28.42a810.14 810.14 0 0 0-1.89 5.6c-1.8 5.35-2.96 8.6-4.26 11.85-6.13 15.32-25.43 26.31-46.46 26.31-11.2 0-20.58-2.74-31.02-8.55-5.6-3.13-4.55-2.42-22.26-14.54-14.33-9.8-17.7-10.73-20.47-6.9-.37.5-1.81 2.74-1.83 2.77a52.24 52.24 0 0 1-4.94 5.9c-.73.79-5.52 5.87-6.97 7.45-2.38 2.6-4.3 4.81-5.98 6.93a45.6 45.6 0 0 0-5.08 7.66c-1.29 2.57-1.9 5.25-2.66 10.6a997.6 997.6 0 0 1-.46 3.18h-1l.47-3.32c.77-5.45 1.4-8.2 2.75-10.9a46.54 46.54 0 0 1 5.2-7.84c1.7-2.14 3.63-4.38 6.03-6.98 1.45-1.59 6.24-6.68 6.96-7.46a51.58 51.58 0 0 0 4.84-5.78s1.47-2.26 1.86-2.8c3.25-4.5 7.08-3.44 21.84 6.67 17.67 12.08 16.62 11.38 22.19 14.48 10.3 5.73 19.5 8.43 30.53 8.43 20.65 0 39.57-10.77 45.54-25.69a219.7 219.7 0 0 0 4.24-11.8 6752.32 6752.32 0 0 0 1.88-5.6c4.83-14.16 8.47-22.14 13.96-28.73 3.05-3.66 6.56-9.57 10.6-17.61 1.97-3.93 4.04-8.31 6.35-13.38 1.03-2.28 10.88-24.61 12.98-28.91 1.85-3.79 2.75-7.76 4-16.25 1.24-8.44 1.7-11.07 2.81-15.32 2.8-10.7 7.71-18.94 16.33-25.6a73.18 73.18 0 0 1 13.29-8.35c1.66-.8 3.27-1.48 5.08-2.18.94-.36 3.86-1.43 4.28-1.59 4.95-1.88 7.44-3.55 10.14-7.33 1.35-1.9 2.68-4.3 4.06-7.37 2.97-6.58 3.39-10.59 2.72-16.9a27.13 27.13 0 0 1-.27-4.58c.22-4.94 3.21-9.24 11.7-15.7 9.33-7.11 11.66-13.34 8.62-19-2.2-4.09-6.25-7.12-13.55-11.17-1.57-.88-3.6-1.33-6.42-1.57-.8-.07-1.34-.1-2.95-.19-5.77-.3-7.63-.85-7.72-3.34-.1-2.81 3.5-7.87 11.97-16.69 6.53-6.8 11.75-11.69 16.33-15.45 1.79-1.47 3.42-2.72 5.2-4.03l4.12-2.94c.79-.58 1.46-1.08 2.1-1.59 3.26-2.6 6.16-5.65 10.21-10.94a383.2 383.2 0 0 0 2.5-3.32l2.31-3.09c1.8-2.39 3.04-4 4.29-5.48 8.47-10.17 16.98-13.96 37.27-15.3-.44.02 12-.9 14.32-.98 3.62-.1 6.05.16 8.46.98.8.27 1.62.62 2.47 1.04 2.27 1.14 3.17 3.87 4.27 10.85l.44 2.76c.17 1.07.33 1.97.5 2.83 1.44 7.69 3.62 12.29 7.8 14.57 6.76 3.68 10.6 5.15 13.99 4.94 4-.25 6.99-3.17 9.3-9.67 1.45-4.04 1.46-6.49.32-7.92-.9-1.12-2.28-1.62-5.57-2.27a55.8 55.8 0 0 1-2.67-.55c-2.54-.6-4.39-1.4-5.93-2.71a252.63 252.63 0 0 0-4.78-4.01 84.35 84.35 0 0 1-4.08-3.6c-2.73-2.6-3.86-4.43-3.28-5.95 1.02-2.64 7.82-3.54 18.93-3.37a230.56 230.56 0 0 1 16.73.88c2.76.39 3.2.49 3.68.6 1.4.3 2.95.62 4.62.91a82.9 82.9 0 0 0 14.56 1.32c5.56-.04 10.24-.86 13.73-2.6 8.1-4.05 15.89-6.9 22.17-7.56.7-.07 1.4-.11 2.05-.13v1z'%3E%3C/path%3E%3C/svg%3E")`
+
+const PATTERN_DARK_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Cpath fill='%23e7ab1c' fill-opacity='0.06' d='M600 325.1v-1.17c-6.5 3.83-13.06 7.64-14.68 8.64-10.6 6.56-18.57 12.56-24.68 19.09-5.58 5.95-12.44 10.06-22.42 14.15-1.45.6-2.96 1.2-4.83 1.9l-4.75 1.82c-9.78 3.75-14.8 6.27-18.98 10.1-4.23 3.88-9.65 6.6-16.77 8.84-1.95.6-3.99 1.17-6.47 1.8l-6.14 1.53c-5.29 1.35-8.3 2.37-10.54 3.78-3.08 1.92-6.63 3.26-12.74 5.03a384.1 384.1 0 0 1-4.82 1.36c-2.04.58-3.6 1.04-5.17 1.52a110.03 110.03 0 0 0-11.2 4.05c-2.7 1.15-5.5 3.93-8.78 8.4a157.68 157.68 0 0 0-6.15 9.2c-5.75 9.07-7.58 11.74-10.24 14.51a50.97 50.97 0 0 1-4.6 4.22c-2.33 1.9-10.39 7.54-11.81 8.74a14.68 14.68 0 0 0-3.67 4.15c-1.24 2.3-1.9 4.57-2.78 8.87-2.17 10.61-3.52 14.81-8.2 22.1-4.07 6.33-6.8 9.88-9.83 12.99-.47.48-.95.96-1.5 1.48l-3.75 3.56c-1.67 1.6-3.18 3.12-4.86 4.9a42.44 42.44 0 0 0-9.89 16.94c-2.5 8.13-2.72 15.47-1.76 27.22.47 5.82.51 6.36.51 8.18 0 10.51.12 17.53.63 25.78.24 4.05.56 7.8.97 11.22h.9c-1.13-9.58-1.5-21.83-1.5-37 0-1.86-.04-2.4-.52-8.26-.94-11.63-.72-18.87 1.73-26.85a41.44 41.44 0 0 1 9.65-16.55c1.67-1.76 3.18-3.27 4.83-4.85.63-.6 3.13-2.96 3.75-3.57a71.6 71.6 0 0 0 1.52-1.5c3.09-3.16 5.86-6.76 9.96-13.15 4.77-7.42 6.15-11.71 8.34-22.44.86-4.21 1.5-6.4 2.68-8.6.68-1.25 1.79-2.48 3.43-3.86 1.38-1.15 9.43-6.8 11.8-8.72 1.71-1.4 3.26-2.81 4.7-4.3 2.72-2.85 4.56-5.54 10.36-14.67a156.9 156.9 0 0 1 6.1-9.15c3.2-4.33 5.9-7.01 8.37-8.07 3.5-1.5 7.06-2.77 11.1-4.02a233.84 233.84 0 0 1 7.6-2.2l2.38-.67c6.19-1.79 9.81-3.16 12.98-5.15 2.14-1.33 5.08-2.33 10.27-3.65l6.14-1.53c2.5-.63 4.55-1.2 6.52-1.82 7.24-2.27 12.79-5.06 17.15-9.05 4.05-3.72 9-6.2 18.66-9.9l4.75-1.82c1.87-.72 3.39-1.31 4.85-1.91 10.1-4.15 17.07-8.32 22.76-14.4 6.05-6.45 13.95-12.4 24.49-18.92 1.56-.96 7.82-4.6 14.15-8.33v-64.58c-4 8.15-8.52 14.85-12.7 17.9-2.51 1.82-5.38 4.02-9.04 6.92a1063.87 1063.87 0 0 0-6.23 4.98l-1.27 1.02a2309.25 2309.25 0 0 1-4.87 3.9c-7.55 6-12.9 10.05-17.61 13.19-3.1 2.06-3.86 2.78-8.06 7.13-5.84 6.07-11.72 8.62-29.15 10.95-11.3 1.5-20.04 4.91-30.75 11.07-1.65.94-7.27 4.27-6.97 4.1-2.7 1.58-4.69 2.69-6.64 3.66-5.63 2.8-10.47 4.17-15.71 4.17-17.13 0-41.44 11.51-51.63 22.83-12.05 13.4-31.42 27.7-45.25 31.16-7.4 1.85-11.85 7.05-14.04 14.69-1.26 4.4-1.58 8.28-1.58 13.82 0 .82.01.98.24 3.63.45 5.18.35 8.72-.77 13.26-1.53 6.2-4.89 12.6-10.59 19.43-13.87 16.65-22.88 46.58-22.88 71.68 0 2.39.02 4.26.06 8.75.12 10.8.1 15.8-.22 21.95-.56 11.18-2.09 20.73-5 29.3h-1.05c2.94-8.56 4.49-18.12 5.05-29.35.31-6.13.34-11.1.22-21.9-.04-4.48-.06-6.36-.06-8.75 0-25.32 9.07-55.47 23.12-72.32 5.6-6.72 8.88-12.99 10.38-19.03 1.09-4.4 1.18-7.85.74-12.93-.23-2.7-.24-2.86-.24-3.72 0-5.62.32-9.57 1.62-14.1 2.28-7.95 6.97-13.44 14.76-15.39 13.6-3.4 32.82-17.59 44.75-30.84C409 360.14 433.58 348.5 451 348.5c5.07 0 9.77-1.33 15.26-4.07 1.93-.96 3.9-2.05 6.58-3.62-.3.18 5.33-3.16 6.98-4.11 10.82-6.21 19.66-9.67 31.11-11.2 17.23-2.3 22.9-4.75 28.57-10.64 4.25-4.41 5.04-5.16 8.22-7.28 4.68-3.11 10.01-7.14 17.55-13.14a1113.33 1113.33 0 0 0 4.86-3.89l1.28-1.02a4668.54 4668.54 0 0 1 6.23-4.98c3.67-2.9 6.55-5.12 9.07-6.95 4.37-3.19 9.16-10.56 13.29-19.4v66.9z'%3E%3C/path%3E%3C/svg%3E")`
+
+/** Main pattern — light sections (Hero, Ecosystem, CTA, Archive) */
 export function GoldChevrons({ className = "" }: { className?: string }) {
   return (
-    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
-      {/* RIGHT burst — 18 bold rays fanning out */}
-      <svg className="absolute -right-[10%] top-1/2 -translate-y-1/2 w-[80%] h-[140%]" viewBox="0 0 800 1000" fill="none">
-        <defs>
-          <linearGradient id="toty1" x1="800" y1="500" x2="0" y2="500" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.55" />
-            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {/* 18 evenly-spaced rays, center at (800, 500) */}
-        <line x1="800" y1="500" x2="0" y2="-50" stroke="url(#toty1)" strokeWidth="6" />
-        <line x1="800" y1="500" x2="0" y2="50" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="140" stroke="url(#toty1)" strokeWidth="6" />
-        <line x1="800" y1="500" x2="0" y2="220" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="300" stroke="url(#toty1)" strokeWidth="7" />
-        <line x1="800" y1="500" x2="0" y2="370" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="430" stroke="url(#toty1)" strokeWidth="5" />
-        <line x1="800" y1="500" x2="0" y2="490" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="540" stroke="url(#toty1)" strokeWidth="6" />
-        <line x1="800" y1="500" x2="0" y2="600" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="670" stroke="url(#toty1)" strokeWidth="7" />
-        <line x1="800" y1="500" x2="0" y2="740" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="810" stroke="url(#toty1)" strokeWidth="5" />
-        <line x1="800" y1="500" x2="0" y2="880" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="950" stroke="url(#toty1)" strokeWidth="6" />
-        <line x1="800" y1="500" x2="0" y2="1020" stroke="url(#toty1)" strokeWidth="4" />
-        <line x1="800" y1="500" x2="0" y2="1080" stroke="url(#toty1)" strokeWidth="5" />
-        <line x1="800" y1="500" x2="100" y2="1100" stroke="url(#toty1)" strokeWidth="4" />
-      </svg>
-
-      {/* LEFT burst — 12 rays, subtler */}
-      <svg className="absolute -left-[5%] top-1/2 -translate-y-1/2 w-[60%] h-[120%]" viewBox="0 0 600 800" fill="none">
-        <defs>
-          <linearGradient id="toty2" x1="0" y1="400" x2="600" y2="400" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.35" />
-            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.10" />
-            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <line x1="0" y1="400" x2="600" y2="50" stroke="url(#toty2)" strokeWidth="5" />
-        <line x1="0" y1="400" x2="600" y2="130" stroke="url(#toty2)" strokeWidth="3" />
-        <line x1="0" y1="400" x2="600" y2="210" stroke="url(#toty2)" strokeWidth="5" />
-        <line x1="0" y1="400" x2="600" y2="280" stroke="url(#toty2)" strokeWidth="3" />
-        <line x1="0" y1="400" x2="600" y2="350" stroke="url(#toty2)" strokeWidth="4" />
-        <line x1="0" y1="400" x2="600" y2="420" stroke="url(#toty2)" strokeWidth="3" />
-        <line x1="0" y1="400" x2="600" y2="490" stroke="url(#toty2)" strokeWidth="5" />
-        <line x1="0" y1="400" x2="600" y2="560" stroke="url(#toty2)" strokeWidth="3" />
-        <line x1="0" y1="400" x2="600" y2="630" stroke="url(#toty2)" strokeWidth="4" />
-        <line x1="0" y1="400" x2="600" y2="700" stroke="url(#toty2)" strokeWidth="3" />
-        <line x1="0" y1="400" x2="600" y2="760" stroke="url(#toty2)" strokeWidth="5" />
-        <line x1="0" y1="400" x2="500" y2="800" stroke="url(#toty2)" strokeWidth="3" />
-      </svg>
-    </div>
+    <div
+      className={`absolute inset-0 pointer-events-none ${className}`}
+      aria-hidden
+      style={{ backgroundImage: PATTERN_SVG }}
+    />
   )
 }
 
-/** ── Dark section burst — for FeaturedEventCallout ── */
+/** Dark section pattern — FeaturedEventCallout, Footer */
 export function GoldDiamonds({ className = "" }: { className?: string }) {
   return (
-    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
-      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 600" fill="none" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <radialGradient id="totyDarkRad" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        {/* Rays from center */}
-        <line x1="600" y1="300" x2="0" y2="0" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
-        <line x1="600" y1="300" x2="0" y2="120" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
-        <line x1="600" y1="300" x2="0" y2="250" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
-        <line x1="600" y1="300" x2="0" y2="380" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
-        <line x1="600" y1="300" x2="0" y2="500" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
-        <line x1="600" y1="300" x2="0" y2="600" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
-        <line x1="600" y1="300" x2="1200" y2="0" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
-        <line x1="600" y1="300" x2="1200" y2="120" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
-        <line x1="600" y1="300" x2="1200" y2="250" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
-        <line x1="600" y1="300" x2="1200" y2="380" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
-        <line x1="600" y1="300" x2="1200" y2="500" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
-        <line x1="600" y1="300" x2="1200" y2="600" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
-        <circle cx="600" cy="300" r="250" fill="url(#totyDarkRad)" />
-      </svg>
-    </div>
+    <div
+      className={`absolute inset-0 pointer-events-none ${className}`}
+      aria-hidden
+      style={{ backgroundImage: PATTERN_DARK_SVG }}
+    />
   )
 }
 
@@ -102,7 +38,8 @@ export function DotGrid({ className = "" }: { className?: string }) {
       className={`absolute inset-0 pointer-events-none ${className}`}
       aria-hidden
       style={{
-        backgroundImage: "radial-gradient(circle, rgba(231,171,28,0.08) 1px, transparent 1px)",
+        backgroundImage:
+          "radial-gradient(circle, rgba(231,171,28,0.08) 1px, transparent 1px)",
         backgroundSize: "32px 32px",
       }}
     />
@@ -112,58 +49,35 @@ export function DotGrid({ className = "" }: { className?: string }) {
 /** Ambient gold gradient orbs */
 export function GoldOrbs({ className = "" }: { className?: string }) {
   return (
-    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
+    <div
+      className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
+      aria-hidden
+    >
       <div
         className="absolute top-[10%] right-[10%] w-[500px] h-[500px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.12) 0%, transparent 70%)" }}
+        style={{
+          background:
+            "radial-gradient(circle, rgba(231,171,28,0.10) 0%, transparent 70%)",
+        }}
       />
       <div
         className="absolute bottom-[5%] left-[10%] w-[400px] h-[400px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 70%)" }}
+        style={{
+          background:
+            "radial-gradient(circle, rgba(231,171,28,0.07) 0%, transparent 70%)",
+        }}
       />
     </div>
   )
 }
 
-/** ── Section starburst — for Archive, EcosystemGrid ── */
+/** Section pattern — Archive, EcosystemGrid */
 export function GoldStarburst({ className = "" }: { className?: string }) {
   return (
-    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
-      <svg className="absolute -right-[5%] top-1/2 -translate-y-1/2 w-[70%] h-[130%]" viewBox="0 0 700 900" fill="none">
-        <defs>
-          <linearGradient id="sbGrad" x1="700" y1="450" x2="0" y2="450" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.40" />
-            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <line x1="700" y1="450" x2="0" y2="50" stroke="url(#sbGrad)" strokeWidth="5" />
-        <line x1="700" y1="450" x2="0" y2="150" stroke="url(#sbGrad)" strokeWidth="3" />
-        <line x1="700" y1="450" x2="0" y2="250" stroke="url(#sbGrad)" strokeWidth="5" />
-        <line x1="700" y1="450" x2="0" y2="340" stroke="url(#sbGrad)" strokeWidth="3" />
-        <line x1="700" y1="450" x2="0" y2="420" stroke="url(#sbGrad)" strokeWidth="6" />
-        <line x1="700" y1="450" x2="0" y2="500" stroke="url(#sbGrad)" strokeWidth="3" />
-        <line x1="700" y1="450" x2="0" y2="580" stroke="url(#sbGrad)" strokeWidth="5" />
-        <line x1="700" y1="450" x2="0" y2="660" stroke="url(#sbGrad)" strokeWidth="3" />
-        <line x1="700" y1="450" x2="0" y2="740" stroke="url(#sbGrad)" strokeWidth="5" />
-        <line x1="700" y1="450" x2="0" y2="830" stroke="url(#sbGrad)" strokeWidth="3" />
-      </svg>
-      <svg className="absolute -left-[5%] top-1/2 -translate-y-1/2 w-[50%] h-[110%]" viewBox="0 0 500 700" fill="none">
-        <defs>
-          <linearGradient id="sbGradL" x1="0" y1="350" x2="500" y2="350" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.25" />
-            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.06" />
-            <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <line x1="0" y1="350" x2="500" y2="50" stroke="url(#sbGradL)" strokeWidth="4" />
-        <line x1="0" y1="350" x2="500" y2="150" stroke="url(#sbGradL)" strokeWidth="3" />
-        <line x1="0" y1="350" x2="500" y2="250" stroke="url(#sbGradL)" strokeWidth="4" />
-        <line x1="0" y1="350" x2="500" y2="350" stroke="url(#sbGradL)" strokeWidth="3" />
-        <line x1="0" y1="350" x2="500" y2="450" stroke="url(#sbGradL)" strokeWidth="4" />
-        <line x1="0" y1="350" x2="500" y2="550" stroke="url(#sbGradL)" strokeWidth="3" />
-        <line x1="0" y1="350" x2="500" y2="650" stroke="url(#sbGradL)" strokeWidth="4" />
-      </svg>
-    </div>
+    <div
+      className={`absolute inset-0 pointer-events-none ${className}`}
+      aria-hidden
+      style={{ backgroundImage: PATTERN_SVG }}
+    />
   )
 }
