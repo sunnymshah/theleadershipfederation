@@ -10,6 +10,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+export const revalidate = 86400
+
 export const metadata = {
   title: "Media & Thought Leadership | The Leadership Federation",
   description:

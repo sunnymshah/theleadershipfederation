@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import Link from "next/link"
+import Image from "next/image"
 import {
   Calendar,
   MapPin,
@@ -10,6 +11,8 @@ import {
   Handshake,
 } from "lucide-react"
 import { GoldStarburst } from "@/components/ui/GoldPattern"
+
+export const revalidate = 3600
 
 export const metadata = {
   title: "Archive — Past Events | The Leadership Federation",
@@ -480,11 +483,12 @@ export default async function ArchivePage() {
                 {/* Cover area — gradient with city name */}
                 <div className="relative h-44 sm:h-48 overflow-hidden">
                   {event.coverImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={event.coverImage}
                       alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                   ) : (
                     <div

@@ -6,7 +6,7 @@ import {
   getRecentCheckIns,
   getActiveEvents,
 } from "@/app/actions/checkInActions"
-import QrScanner from "@/components/admin/QrScanner"
+import dynamic from "next/dynamic"
 import {
   ScanLine,
   Users,
@@ -16,6 +16,11 @@ import {
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+const QrScanner = dynamic(() => import("@/components/admin/QrScanner"), {
+  loading: () => <div className="p-8 text-center text-white/30">Loading scanner...</div>,
+  ssr: false,
+})
 
 /* ──────────────────────────────────────────────────────────────────────── */
 /*  Types                                                                  */

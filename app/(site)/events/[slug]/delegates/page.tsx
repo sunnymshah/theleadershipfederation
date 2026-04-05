@@ -4,6 +4,9 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Users } from "lucide-react"
 import { DelegateDirectory } from "@/components/site/DelegateDirectory"
+import { getEventForDelegates } from "@/lib/get-event"
+
+export const revalidate = 1800
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -11,13 +14,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-  const { data: event } = await supabase
-    .from("events")
-    .select("title, show_delegate_directory")
-    .eq("slug", slug)
-    .single()
+  // Uses React cache() — shared with the page component
+  const event = await getEventForDelegates(slug)
 
   if (!event || !event.show_delegate_directory) return { title: "Not Found" }
 
@@ -29,18 +27,13 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function DelegateDirectoryPage({ params }: Props) {
   const { slug } = await params
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-
-  // Fetch event
-  const { data: event } = await supabase
-    .from("events")
-    .select("id, title, slug, show_delegate_directory, start_date")
-    .eq("slug", slug)
-    .in("status", ["published", "completed"])
-    .single()
+  // Uses React cache() — shared with generateMetadata
+  const event = await getEventForDelegates(slug)
 
   if (!event || !event.show_delegate_directory) notFound()
+
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
 
   // Fetch delegates — only public info (no email, no phone)
   const { data: delegates } = await supabase

@@ -8,6 +8,8 @@ import {
   Building2,
 } from "lucide-react"
 
+export const revalidate = 86400
+
 export const metadata = {
   title: "Partners & Ecosystem | The Leadership Federation",
   description:

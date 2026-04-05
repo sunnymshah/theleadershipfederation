@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "st1.latestly.com" },
       { protocol: "https", hostname: "media.telanganatoday.com" },
     ],
+    minimumCacheTTL: 3600,
+    formats: ['image/webp', 'image/avif'],
   },
 };
 

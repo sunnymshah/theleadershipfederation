@@ -2,9 +2,13 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink, Camera } from "lucide-react"
 import { TicketPurchaseCard } from "@/components/site/TicketPurchaseCard"
 import { getGalleryImages } from "@/app/actions/galleryActions"
+import { getEvent } from "@/lib/get-event"
+
+export const revalidate = 300
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -12,9 +16,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-  const { data: event } = await supabase.from("events").select("title, description, venue").eq("slug", slug).single()
+  // Uses React cache() — shared with the page component so only one DB call
+  const event = await getEvent(slug)
   if (!event) return { title: "Event Not Found" }
   return {
     title: `${event.title} | The Leadership Federation`,
@@ -98,17 +101,13 @@ function groupSessionsByDate(sessions: Array<{ start_time: string; [key: string]
 
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
+
+  // Uses React cache() — shared with generateMetadata so only one DB call
+  const event = await getEvent(slug)
+  if (!event) notFound()
+
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
-
-  const { data: event } = await supabase
-    .from("events")
-    .select("*")
-    .eq("slug", slug)
-    .in("status", ["published", "completed"])
-    .single()
-
-  if (!event) notFound()
 
   const [speakersRes, ticketsRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes, customFieldsRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
@@ -206,10 +205,13 @@ export default async function EventDetailPage({ params }: Props) {
         {hasCoverImage ? (
           <>
             <div className="absolute inset-0">
-              <img
+              <Image
                 src={event.cover_image_url}
                 alt=""
-                className="w-full h-full object-cover"
+                fill
+                priority
+                className="object-cover"
+                sizes="100vw"
               />
             </div>
             {/* Dark overlay for readability */}
@@ -430,9 +432,11 @@ export default async function EventDetailPage({ params }: Props) {
                   {/* Circular photo with gold ring on hover */}
                   <div className="mx-auto mb-5 relative w-40 h-40">
                     {speaker.image_url ? (
-                      <img
+                      <Image
                         src={speaker.image_url}
                         alt={speaker.name}
+                        width={160}
+                        height={160}
                         className="w-40 h-40 rounded-full object-cover mx-auto ring-[3px] ring-white/[0.06] group-hover:ring-[#c9a84c]/50 transition-all duration-500 group-hover:scale-105"
                         style={{ boxShadow: "0 0 0 0 rgba(201,168,76,0)" }}
                       />
@@ -607,10 +611,12 @@ export default async function EventDetailPage({ params }: Props) {
                                         <div className="flex -space-x-1.5">
                                           {sessionSpks.slice(0, 5).map((sp: { id: string; name: string; image_url: string | null }) => (
                                             sp.image_url ? (
-                                              <img
+                                              <Image
                                                 key={sp.id}
                                                 src={sp.image_url}
                                                 alt={sp.name}
+                                                width={24}
+                                                height={24}
                                                 className="w-6 h-6 rounded-full object-cover ring-1 ring-[#050505]"
                                               />
                                             ) : (
@@ -758,10 +764,12 @@ export default async function EventDetailPage({ params }: Props) {
                           style={{ border: "1px solid" }}
                         >
                           {sponsor.logo_url ? (
-                            <img
+                            <Image
                               src={sponsor.logo_url}
                               alt={sponsor.name}
-                              className={`mx-auto mb-3 object-contain ${isTitle ? "h-16" : "h-10"}`}
+                              width={isTitle ? 160 : 120}
+                              height={isTitle ? 64 : 48}
+                              className={`mx-auto mb-3 object-contain ${isTitle ? "h-16" : "h-10"} w-auto`}
                             />
                           ) : (
                             <Building2 size={isTitle ? 32 : 24} className="mx-auto mb-3 opacity-40" />
@@ -836,10 +844,12 @@ export default async function EventDetailPage({ params }: Props) {
                   onMouseEnter={undefined}
                 >
                   {/* Image */}
-                  <img
+                  <Image
                     src={image.image_url}
                     alt={image.caption || "Event gallery photo"}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 768px) 50vw, 25vw"
                   />
 
                   {/* Gold border glow on hover */}

@@ -9,6 +9,8 @@ import {
 } from "lucide-react"
 import { ContactForm } from "@/components/site/ContactForm"
 
+export const revalidate = 86400
+
 export const metadata = {
   title: "Contact Us | The Leadership Federation",
   description:
