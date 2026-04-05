@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       key_secret: process.env.RAZORPAY_KEY_SECRET!,
     })
     const body = await request.json()
-    const { ticketId, attendeeDetails } = body as {
+    const { ticketId, attendeeDetails, customFieldValues, promoCode } = body as {
       ticketId: string
       attendeeDetails: {
         name: string
@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
         company?: string
         designation?: string
       }
+      customFieldValues?: Record<string, string>
+      promoCode?: string
     }
 
     // ── Validate required fields ──────────────────────────────────────
@@ -83,25 +85,100 @@ export async function POST(request: NextRequest) {
       slug: string
     }
 
-    // ── Free ticket: register directly ────────────────────────────────
-    if (ticket.price_inr === 0) {
+    // ── Validate promo code server-side (if provided) ─────────────────
+    let discountedPrice = ticket.price_inr
+    let validatedPromoId: string | null = null
+    let promoUsedCount = 0
+
+    if (promoCode && ticket.price_inr > 0) {
+      const { data: promo, error: promoError } = await supabase
+        .from("promo_codes")
+        .select("id, code, discount_type, discount_value, max_uses, used_count, valid_from, valid_until, active")
+        .eq("event_id", ticket.event_id)
+        .eq("code", promoCode.toUpperCase().trim())
+        .single()
+
+      if (promoError || !promo) {
+        return NextResponse.json(
+          { error: "Invalid promo code." },
+          { status: 400 }
+        )
+      }
+
+      if (!promo.active) {
+        return NextResponse.json(
+          { error: "This promo code is no longer active." },
+          { status: 400 }
+        )
+      }
+
+      if (promo.max_uses !== null && promo.used_count >= promo.max_uses) {
+        return NextResponse.json(
+          { error: "This promo code has reached its usage limit." },
+          { status: 400 }
+        )
+      }
+
+      const now = new Date()
+      if (promo.valid_from && new Date(promo.valid_from) > now) {
+        return NextResponse.json(
+          { error: "This promo code is not yet active." },
+          { status: 400 }
+        )
+      }
+      if (promo.valid_until && new Date(promo.valid_until) < now) {
+        return NextResponse.json(
+          { error: "This promo code has expired." },
+          { status: 400 }
+        )
+      }
+
+      // Calculate discounted price
+      if (promo.discount_type === "percentage") {
+        discountedPrice = Math.max(0, Math.round(ticket.price_inr * (1 - promo.discount_value / 100)))
+      } else {
+        discountedPrice = Math.max(0, ticket.price_inr - promo.discount_value)
+      }
+
+      validatedPromoId = promo.id
+      promoUsedCount = promo.used_count || 0
+    }
+
+    /** Helper: increment the promo code used_count after a successful registration */
+    async function incrementPromoUsedCount() {
+      if (!validatedPromoId) return
+      await supabase
+        .from("promo_codes")
+        .update({ used_count: promoUsedCount + 1 })
+        .eq("id", validatedPromoId)
+    }
+
+    // ── Free ticket (base price is 0 OR promo made it free): register directly ──
+    if (discountedPrice === 0) {
       const qrToken = randomBytes(24).toString("hex")
+
+      const insertData: Record<string, unknown> = {
+        event_id: ticket.event_id,
+        ticket_id: ticketId,
+        name: attendeeDetails.name,
+        email: attendeeDetails.email,
+        phone: attendeeDetails.phone || null,
+        company: attendeeDetails.company || null,
+        designation: attendeeDetails.designation || null,
+        qr_token: qrToken,
+        status: "registered",
+        payment_status: "free",
+        payment_amount: 0,
+      }
+
+      // Store promo code reference in notes if a promo was used
+      if (validatedPromoId && promoCode) {
+        insertData.notes = `Promo code: ${promoCode.toUpperCase().trim()}`
+      }
 
       const { data: attendee, error: insertError } = await supabase
         .from("attendees")
-        .insert({
-          event_id: ticket.event_id,
-          ticket_id: ticketId,
-          name: attendeeDetails.name,
-          email: attendeeDetails.email,
-          phone: attendeeDetails.phone || null,
-          company: attendeeDetails.company || null,
-          designation: attendeeDetails.designation || null,
-          qr_token: qrToken,
-          status: "registered",
-          payment_status: "free",
-          payment_amount: 0,
-        })
+        .insert(insertData)
         .select()
         .single()
 
@@ -112,11 +189,24 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Save custom field values if provided
+      if (customFieldValues && attendee && Object.keys(customFieldValues).length > 0) {
+        const cfRows = Object.entries(customFieldValues).map(([fieldId, value]) => ({
+          custom_field_id: fieldId,
+          attendee_id: attendee.id,
+          value: String(value),
+        }))
+        await supabase.from("custom_field_values").insert(cfRows)
+      }
+
       // Increment sold count
       await supabase
         .from("tickets")
         .update({ sold: ticket.sold + 1 })
         .eq("id", ticketId)
+
+      // Increment promo code used_count
+      await incrementPromoUsedCount()
 
       return NextResponse.json({
         free: true,
@@ -126,20 +216,32 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Paid ticket: create Razorpay order ────────────────────────────
-    const amountInPaise = ticket.price_inr * 100
+    const amountInPaise = discountedPrice * 100
     const receiptId = `tkt_${ticketId.slice(0, 8)}_${Date.now()}`
+
+    const orderNotes: Record<string, string> = {
+      ticket_id: ticketId,
+      event_id: ticket.event_id,
+      attendee_name: attendeeDetails.name,
+      attendee_email: attendeeDetails.email,
+    }
+
+    if (promoCode) {
+      orderNotes.promo_code = promoCode.toUpperCase().trim()
+    }
+    if (validatedPromoId) {
+      orderNotes.promo_code_id = validatedPromoId
+    }
 
     const order = await razorpay.orders.create({
       amount: amountInPaise,
       currency: "INR",
       receipt: receiptId,
-      notes: {
-        ticket_id: ticketId,
-        event_id: ticket.event_id,
-        attendee_name: attendeeDetails.name,
-        attendee_email: attendeeDetails.email,
-      },
+      notes: orderNotes,
     })
+
+    // Increment promo code used_count for paid orders too
+    await incrementPromoUsedCount()
 
     return NextResponse.json({
       free: false,

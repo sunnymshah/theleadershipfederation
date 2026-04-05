@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
       razorpay_signature,
       ticketId,
       attendeeDetails,
+      customFieldValues,
     } = body as {
       razorpay_order_id: string
       razorpay_payment_id: string
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
         company?: string
         designation?: string
       }
+      customFieldValues?: Record<string, string>
     }
 
     // ── Validate required fields ──────────────────────────────────────
@@ -165,6 +167,16 @@ export async function POST(request: NextRequest) {
         { error: `Registration failed: ${insertError.message}` },
         { status: 500 }
       )
+    }
+
+    // Save custom field values if provided
+    if (customFieldValues && attendee && Object.keys(customFieldValues).length > 0) {
+      const cfRows = Object.entries(customFieldValues).map(([fieldId, value]) => ({
+        custom_field_id: fieldId,
+        attendee_id: attendee.id,
+        value: String(value),
+      }))
+      await supabase.from("custom_field_values").insert(cfRows)
     }
 
     // Increment ticket sold count

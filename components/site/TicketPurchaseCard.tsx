@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import { Loader2, CheckCircle2, Minus, AlertCircle, CreditCard } from "lucide-react"
+import { Loader2, CheckCircle2, Minus, AlertCircle, CreditCard, Tag, X } from "lucide-react"
 import { registerForEvent } from "@/app/actions/registrationActions"
 
 interface Ticket {
@@ -13,12 +13,27 @@ interface Ticket {
   sold: number
 }
 
+interface CustomField {
+  id: string
+  field_label: string
+  field_name: string
+  field_type: string
+  options: string[] | null
+  is_required: boolean
+}
+
 interface AttendeeDetails {
   name: string
   email: string
   phone?: string
   company?: string
   designation?: string
+}
+
+interface AppliedPromo {
+  code: string
+  discountType: "percentage" | "flat"
+  discountValue: number
 }
 
 type PaymentState =
@@ -32,6 +47,14 @@ type PaymentState =
 
 function fmtPrice(n: number) {
   return new Intl.NumberFormat("en-IN").format(n)
+}
+
+/** Calculate the discounted price given a base price and promo */
+function calcDiscountedPrice(basePrice: number, promo: AppliedPromo): number {
+  if (promo.discountType === "percentage") {
+    return Math.max(0, Math.round(basePrice * (1 - promo.discountValue / 100)))
+  }
+  return Math.max(0, basePrice - promo.discountValue)
 }
 
 /** Dynamically load the Razorpay checkout script */
@@ -56,12 +79,14 @@ export function TicketPurchaseCard({
   eventTitle,
   currentPrice,
   tierName,
+  customFields,
 }: {
   ticket: Ticket
   eventId: string
   eventTitle: string
   currentPrice?: number | null
   tierName?: string | null
+  customFields?: CustomField[]
 }) {
   const [open, setOpen] = useState(false)
   const [paymentState, setPaymentState] = useState<PaymentState>("idle")
@@ -70,37 +95,114 @@ export function TicketPurchaseCard({
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
+  // Promo code state
+  const [promoOpen, setPromoOpen] = useState(false)
+  const [promoInput, setPromoInput] = useState("")
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null)
+
   const soldOut = ticket.sold >= ticket.inventory_limit
   const spotsLeft = ticket.inventory_limit - ticket.sold
   const almostGone = !soldOut && spotsLeft <= 10
 
-  // Determine the effective price (discounted or base)
-  const hasDiscount = currentPrice != null && currentPrice !== ticket.price_inr
-  const effectivePrice = hasDiscount ? currentPrice! : ticket.price_inr
+  // Determine the tier price (tier-discounted or base)
+  const hasTierDiscount = currentPrice != null && currentPrice !== ticket.price_inr
+  const tierPrice = hasTierDiscount ? currentPrice! : ticket.price_inr
+
+  // Apply promo code discount on top of tier price
+  const effectivePrice = appliedPromo
+    ? calcDiscountedPrice(tierPrice, appliedPromo)
+    : tierPrice
+
+  const hasDiscount = effectivePrice !== ticket.price_inr
   const isPaid = effectivePrice > 0
 
   const submitting = paymentState !== "idle" && paymentState !== "success" && paymentState !== "failed"
 
+  /** Apply a promo code */
+  const handleApplyPromo = useCallback(async () => {
+    const code = promoInput.trim()
+    if (!code) return
+
+    setPromoLoading(true)
+    setPromoError(null)
+
+    try {
+      const res = await fetch("/api/promo-codes/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          eventId,
+          ticketId: ticket.id,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.valid) {
+        setAppliedPromo({
+          code: data.code,
+          discountType: data.discountType,
+          discountValue: data.discountValue,
+        })
+        setPromoError(null)
+        setPromoOpen(false)
+      } else {
+        setPromoError(data.error || "Invalid promo code.")
+      }
+    } catch {
+      setPromoError("Failed to validate promo code. Please try again.")
+    } finally {
+      setPromoLoading(false)
+    }
+  }, [promoInput, eventId, ticket.id])
+
+  /** Remove applied promo code */
+  const handleRemovePromo = useCallback(() => {
+    setAppliedPromo(null)
+    setPromoInput("")
+    setPromoError(null)
+  }, [])
+
   /** Collect form data into a typed object */
-  const getAttendeeDetails = useCallback((): AttendeeDetails | null => {
+  const getAttendeeDetails = useCallback((): { details: AttendeeDetails; customFieldValues: Record<string, string> } | null => {
     const form = formRef.current
     if (!form) return null
     const fd = new FormData(form)
     const name = (fd.get("name") as string)?.trim()
     const email = (fd.get("email") as string)?.trim()
     if (!name || !email) return null
-    return {
-      name,
-      email,
-      phone: (fd.get("phone") as string)?.trim() || undefined,
-      company: (fd.get("company") as string)?.trim() || undefined,
-      designation: (fd.get("designation") as string)?.trim() || undefined,
+
+    // Collect custom field values
+    const customFieldValues: Record<string, string> = {}
+    if (customFields && customFields.length > 0) {
+      for (const field of customFields) {
+        if (field.field_type === "checkbox") {
+          customFieldValues[field.id] = fd.has(`custom_${field.id}`) ? "true" : "false"
+        } else {
+          const val = (fd.get(`custom_${field.id}`) as string)?.trim() || ""
+          customFieldValues[field.id] = val
+        }
+      }
     }
-  }, [])
+
+    return {
+      details: {
+        name,
+        email,
+        phone: (fd.get("phone") as string)?.trim() || undefined,
+        company: (fd.get("company") as string)?.trim() || undefined,
+        designation: (fd.get("designation") as string)?.trim() || undefined,
+      },
+      customFieldValues,
+    }
+  }, [customFields])
 
   /** Handle paid ticket flow via Razorpay */
   const handlePaidTicket = useCallback(
-    async (details: AttendeeDetails) => {
+    async (details: AttendeeDetails, customFieldValues?: Record<string, string>) => {
       setPaymentState("creating_order")
       setError(null)
 
@@ -112,6 +214,8 @@ export function TicketPurchaseCard({
           body: JSON.stringify({
             ticketId: ticket.id,
             attendeeDetails: details,
+            customFieldValues,
+            promoCode: appliedPromo?.code || undefined,
           }),
         })
 
@@ -123,7 +227,7 @@ export function TicketPurchaseCard({
           return
         }
 
-        // Free ticket was handled server-side
+        // Free ticket was handled server-side (promo may have made it free)
         if (orderData.free) {
           setPaymentState("success")
           setSuccess(true)
@@ -219,12 +323,12 @@ export function TicketPurchaseCard({
         setPaymentState("failed")
       }
     },
-    [ticket.id, ticket.name, eventTitle]
+    [ticket.id, ticket.name, eventTitle, appliedPromo]
   )
 
   /** Handle free ticket flow via existing server action */
   const handleFreeTicket = useCallback(
-    async (details: AttendeeDetails) => {
+    async (details: AttendeeDetails, customFieldValues?: Record<string, string>) => {
       setPaymentState("creating_order")
       setError(null)
 
@@ -236,6 +340,8 @@ export function TicketPurchaseCard({
           body: JSON.stringify({
             ticketId: ticket.id,
             attendeeDetails: details,
+            customFieldValues,
+            promoCode: appliedPromo?.code || undefined,
           }),
         })
 
@@ -268,7 +374,7 @@ export function TicketPurchaseCard({
         }
       }
     },
-    [ticket.id, eventId]
+    [ticket.id, eventId, appliedPromo]
   )
 
   /** Form submission handler */
@@ -277,17 +383,20 @@ export function TicketPurchaseCard({
     setPaymentState("validating")
     setError(null)
 
-    const details = getAttendeeDetails()
-    if (!details) {
+    const result = getAttendeeDetails()
+    if (!result) {
       setError("Please fill in all required fields.")
       setPaymentState("idle")
       return
     }
 
+    const { details, customFieldValues } = result
+    const hasCustomValues = Object.keys(customFieldValues).length > 0
+
     if (isPaid) {
-      await handlePaidTicket(details)
+      await handlePaidTicket(details, hasCustomValues ? customFieldValues : undefined)
     } else {
-      await handleFreeTicket(details)
+      await handleFreeTicket(details, hasCustomValues ? customFieldValues : undefined)
     }
   }
 
@@ -378,6 +487,11 @@ export function TicketPurchaseCard({
         {effectivePrice === 0 ? (
           <div className="flex items-baseline gap-1">
             <span className="text-3xl font-bold text-emerald-400">Free</span>
+            {ticket.price_inr > 0 && (
+              <span className="text-lg text-white/25 line-through tabular-nums ml-2">
+                &#8377;{fmtPrice(ticket.price_inr)}
+              </span>
+            )}
           </div>
         ) : hasDiscount ? (
           <div>
@@ -407,6 +521,26 @@ export function TicketPurchaseCard({
           </div>
         )}
 
+        {/* Applied promo badge */}
+        {appliedPromo && (
+          <div className="flex items-center gap-2 mt-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <Tag size={11} />
+              {appliedPromo.code}
+              {appliedPromo.discountType === "percentage"
+                ? ` (-${appliedPromo.discountValue}%)`
+                : ` (-\u20B9${fmtPrice(appliedPromo.discountValue)})`}
+              <button
+                onClick={handleRemovePromo}
+                className="ml-1 hover:text-emerald-300 transition-colors"
+                aria-label="Remove promo code"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          </div>
+        )}
+
         {/* Availability */}
         <div className="flex items-center gap-2 mt-2">
           {soldOut ? (
@@ -427,6 +561,73 @@ export function TicketPurchaseCard({
           )}
         </div>
       </div>
+
+      {/* Promo code section (before divider, only for paid base tickets without an applied promo) */}
+      {ticket.price_inr > 0 && !appliedPromo && (
+        <div className="mb-4">
+          {!promoOpen ? (
+            <button
+              type="button"
+              onClick={() => setPromoOpen(true)}
+              className="text-xs text-white/30 hover:text-[#c9a84c]/70 transition-colors flex items-center gap-1"
+            >
+              <Tag size={11} />
+              Have a promo code?
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoInput}
+                  onChange={(e) => {
+                    setPromoInput(e.target.value.toUpperCase())
+                    setPromoError(null)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      handleApplyPromo()
+                    }
+                  }}
+                  placeholder="Enter code"
+                  className="flex-1 px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/40 transition-colors uppercase"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyPromo}
+                  disabled={promoLoading || !promoInput.trim()}
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-[#0a0a0a] disabled:opacity-40 transition-all duration-200 flex items-center gap-1.5"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #c9a84c 0%, #d9b85c 100%)",
+                  }}
+                >
+                  {promoLoading ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    "Apply"
+                  )}
+                </button>
+              </div>
+              {promoError && (
+                <p className="text-xs text-red-400/80">{promoError}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setPromoOpen(false)
+                  setPromoInput("")
+                  setPromoError(null)
+                }}
+                className="text-xs text-white/20 hover:text-white/40 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Divider */}
       <div className="h-px bg-white/[0.06] mb-6" />
@@ -500,6 +701,76 @@ export function TicketPurchaseCard({
               className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/40 transition-colors"
             />
           </div>
+
+          {/* Custom fields */}
+          {customFields && customFields.length > 0 && (
+            <div className="space-y-3">
+              {customFields.map((field) => (
+                <div key={field.id}>
+                  {field.field_type === "checkbox" ? (
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        name={`custom_${field.id}`}
+                        required={field.is_required}
+                        className="w-4 h-4 shrink-0 rounded border-white/[0.08] bg-white/[0.04] text-[#c9a84c] focus:ring-[#c9a84c]/40 focus:ring-offset-0 focus:ring-1 transition-colors accent-[#c9a84c]"
+                      />
+                      <span className="text-sm text-white/60 group-hover:text-white/80 transition-colors">
+                        {field.field_label}
+                        {field.is_required && <span className="text-[#c9a84c]/60 ml-0.5">*</span>}
+                      </span>
+                    </label>
+                  ) : (
+                    <>
+                      <label className="block text-xs text-white/40 mb-1">
+                        {field.field_label}
+                        {field.is_required && <span className="text-[#c9a84c]/60 ml-0.5">*</span>}
+                      </label>
+                      {field.field_type === "textarea" ? (
+                        <textarea
+                          name={`custom_${field.id}`}
+                          required={field.is_required}
+                          placeholder={field.field_label}
+                          className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/40 transition-colors min-h-[80px] resize-none"
+                        />
+                      ) : field.field_type === "select" ? (
+                        <div className="relative">
+                          <select
+                            name={`custom_${field.id}`}
+                            required={field.is_required}
+                            defaultValue=""
+                            className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/40 transition-colors appearance-none"
+                          >
+                            <option value="" disabled className="bg-[#0a0a0a] text-white/40">
+                              Select {field.field_label}
+                            </option>
+                            {field.options?.map((opt) => (
+                              <option key={opt} value={opt} className="bg-[#0a0a0a] text-white">
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-white/30">
+                              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        </div>
+                      ) : (
+                        <input
+                          type={field.field_type === "email" ? "email" : field.field_type === "url" ? "url" : field.field_type === "number" ? "number" : "text"}
+                          name={`custom_${field.id}`}
+                          required={field.is_required}
+                          placeholder={field.field_label}
+                          className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/40 transition-colors"
+                        />
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Error message */}
           {error && (
