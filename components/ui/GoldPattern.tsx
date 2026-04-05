@@ -1,162 +1,95 @@
 "use client"
 
 /**
- * FIFA TOTY-style radiating starburst lines in LF gold (#e7ab1c).
- * Bold, opaque, many rays fanning out from a focal point — like the
- * Team of the Year card art background.
+ * FIFA TOTY card-style radiating background lines in LF gold (#e7ab1c).
+ * Clean, thick, evenly-spaced rays from a focal point — bold & premium.
  */
 
-/* ── Helper: generate ray paths from a center point ── */
-function rays(
-  cx: number,
-  cy: number,
-  count: number,
-  innerR: number,
-  outerR: number,
-  startAngle: number,
-  sweep: number
-) {
-  const paths: { x1: number; y1: number; x2: number; y2: number }[] = []
-  for (let i = 0; i < count; i++) {
-    const angle =
-      ((startAngle + (sweep * i) / (count - 1)) * Math.PI) / 180
-    paths.push({
-      x1: cx + Math.cos(angle) * innerR,
-      y1: cy + Math.sin(angle) * innerR,
-      x2: cx + Math.cos(angle) * outerR,
-      y2: cy + Math.sin(angle) * outerR,
-    })
-  }
-  return paths
-}
-
-/** ──────────────────────────────────────────────────────
- *  TOTY Starburst — radiating lines from right side
- *  Used on Hero, Ecosystem, ExclusivityCTA
- * ────────────────────────────────────────────────────── */
+/** ── Main TOTY starburst — used on Hero, Ecosystem, CTA ── */
 export function GoldChevrons({ className = "" }: { className?: string }) {
-  // Right-side burst: center at right edge, rays fan left
-  const rightRays = rays(750, 350, 36, 30, 700, 140, 80)
-  // Left-side burst: center at left edge, rays fan right
-  const leftRays = rays(-50, 400, 20, 20, 500, -40, 80)
-
   return (
-    <div
-      className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
-      aria-hidden
-    >
-      {/* RIGHT starburst */}
-      <svg
-        className="absolute right-0 top-0 w-full h-full"
-        viewBox="0 0 800 700"
-        fill="none"
-        preserveAspectRatio="xMaxYMid slice"
-      >
+    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
+      {/* RIGHT burst — 18 bold rays fanning out */}
+      <svg className="absolute -right-[10%] top-1/2 -translate-y-1/2 w-[80%] h-[140%]" viewBox="0 0 800 1000" fill="none">
         <defs>
-          <linearGradient id="totyRayR" x1="100%" y1="50%" x2="0%" y2="50%">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.6" />
-            <stop offset="40%" stopColor="#e7ab1c" stopOpacity="0.25" />
+          <linearGradient id="toty1" x1="800" y1="500" x2="0" y2="500" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.55" />
+            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.18" />
             <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {rightRays.map((r, i) => (
-          <line
-            key={`rr-${i}`}
-            x1={r.x1}
-            y1={r.y1}
-            x2={r.x2}
-            y2={r.y2}
-            stroke="url(#totyRayR)"
-            strokeWidth={i % 3 === 0 ? 2.5 : 1.5}
-            opacity={i % 4 === 0 ? 0.7 : i % 2 === 0 ? 0.5 : 0.35}
-          />
-        ))}
-        {/* Thick accent rays */}
-        <line x1={750} y1={350} x2={50} y2={120} stroke="#e7ab1c" strokeWidth={3} opacity={0.18} />
-        <line x1={750} y1={350} x2={80} y2={350} stroke="#e7ab1c" strokeWidth={3} opacity={0.15} />
-        <line x1={750} y1={350} x2={50} y2={580} stroke="#e7ab1c" strokeWidth={3} opacity={0.18} />
+        {/* 18 evenly-spaced rays, center at (800, 500) */}
+        <line x1="800" y1="500" x2="0" y2="-50" stroke="url(#toty1)" strokeWidth="6" />
+        <line x1="800" y1="500" x2="0" y2="50" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="140" stroke="url(#toty1)" strokeWidth="6" />
+        <line x1="800" y1="500" x2="0" y2="220" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="300" stroke="url(#toty1)" strokeWidth="7" />
+        <line x1="800" y1="500" x2="0" y2="370" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="430" stroke="url(#toty1)" strokeWidth="5" />
+        <line x1="800" y1="500" x2="0" y2="490" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="540" stroke="url(#toty1)" strokeWidth="6" />
+        <line x1="800" y1="500" x2="0" y2="600" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="670" stroke="url(#toty1)" strokeWidth="7" />
+        <line x1="800" y1="500" x2="0" y2="740" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="810" stroke="url(#toty1)" strokeWidth="5" />
+        <line x1="800" y1="500" x2="0" y2="880" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="950" stroke="url(#toty1)" strokeWidth="6" />
+        <line x1="800" y1="500" x2="0" y2="1020" stroke="url(#toty1)" strokeWidth="4" />
+        <line x1="800" y1="500" x2="0" y2="1080" stroke="url(#toty1)" strokeWidth="5" />
+        <line x1="800" y1="500" x2="100" y2="1100" stroke="url(#toty1)" strokeWidth="4" />
       </svg>
 
-      {/* LEFT starburst (smaller, subtler) */}
-      <svg
-        className="absolute left-0 top-0 w-3/5 h-full"
-        viewBox="0 0 500 700"
-        fill="none"
-        preserveAspectRatio="xMinYMid slice"
-      >
+      {/* LEFT burst — 12 rays, subtler */}
+      <svg className="absolute -left-[5%] top-1/2 -translate-y-1/2 w-[60%] h-[120%]" viewBox="0 0 600 800" fill="none">
         <defs>
-          <linearGradient id="totyRayL" x1="0%" y1="50%" x2="100%" y2="50%">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.4" />
-            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.12" />
+          <linearGradient id="toty2" x1="0" y1="400" x2="600" y2="400" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.35" />
+            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.10" />
             <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {leftRays.map((r, i) => (
-          <line
-            key={`lr-${i}`}
-            x1={r.x1}
-            y1={r.y1}
-            x2={r.x2}
-            y2={r.y2}
-            stroke="url(#totyRayL)"
-            strokeWidth={i % 3 === 0 ? 2 : 1.2}
-            opacity={i % 3 === 0 ? 0.5 : 0.3}
-          />
-        ))}
+        <line x1="0" y1="400" x2="600" y2="50" stroke="url(#toty2)" strokeWidth="5" />
+        <line x1="0" y1="400" x2="600" y2="130" stroke="url(#toty2)" strokeWidth="3" />
+        <line x1="0" y1="400" x2="600" y2="210" stroke="url(#toty2)" strokeWidth="5" />
+        <line x1="0" y1="400" x2="600" y2="280" stroke="url(#toty2)" strokeWidth="3" />
+        <line x1="0" y1="400" x2="600" y2="350" stroke="url(#toty2)" strokeWidth="4" />
+        <line x1="0" y1="400" x2="600" y2="420" stroke="url(#toty2)" strokeWidth="3" />
+        <line x1="0" y1="400" x2="600" y2="490" stroke="url(#toty2)" strokeWidth="5" />
+        <line x1="0" y1="400" x2="600" y2="560" stroke="url(#toty2)" strokeWidth="3" />
+        <line x1="0" y1="400" x2="600" y2="630" stroke="url(#toty2)" strokeWidth="4" />
+        <line x1="0" y1="400" x2="600" y2="700" stroke="url(#toty2)" strokeWidth="3" />
+        <line x1="0" y1="400" x2="600" y2="760" stroke="url(#toty2)" strokeWidth="5" />
+        <line x1="0" y1="400" x2="500" y2="800" stroke="url(#toty2)" strokeWidth="3" />
       </svg>
-
-      {/* Center glow */}
-      <div
-        className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/4 w-[500px] h-[500px] rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(231,171,28,0.15) 0%, rgba(231,171,28,0.05) 40%, transparent 70%)",
-        }}
-      />
     </div>
   )
 }
 
-/** ──────────────────────────────────────────────────────
- *  Dark section starburst — for FeaturedEventCallout
- *  Similar TOTY rays but lighter for dark backgrounds
- * ────────────────────────────────────────────────────── */
+/** ── Dark section burst — for FeaturedEventCallout ── */
 export function GoldDiamonds({ className = "" }: { className?: string }) {
-  const centerRays = rays(500, 300, 40, 20, 600, 0, 360)
-
   return (
-    <div
-      className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
-      aria-hidden
-    >
-      <svg
-        className="absolute inset-0 w-full h-full"
-        viewBox="0 0 1000 600"
-        fill="none"
-        preserveAspectRatio="xMidYMid slice"
-      >
+    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 600" fill="none" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <radialGradient id="totyRadial" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.3" />
-            <stop offset="60%" stopColor="#e7ab1c" stopOpacity="0.08" />
+          <radialGradient id="totyDarkRad" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.20" />
             <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
           </radialGradient>
         </defs>
-        {/* Full 360° burst from center */}
-        {centerRays.map((r, i) => (
-          <line
-            key={`cr-${i}`}
-            x1={r.x1}
-            y1={r.y1}
-            x2={r.x2}
-            y2={r.y2}
-            stroke="#e7ab1c"
-            strokeWidth={i % 4 === 0 ? 1.8 : 0.8}
-            opacity={i % 4 === 0 ? 0.12 : 0.06}
-          />
-        ))}
-        {/* Center glow circle */}
-        <circle cx={500} cy={300} r={200} fill="url(#totyRadial)" />
+        {/* Rays from center */}
+        <line x1="600" y1="300" x2="0" y2="0" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
+        <line x1="600" y1="300" x2="0" y2="120" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
+        <line x1="600" y1="300" x2="0" y2="250" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
+        <line x1="600" y1="300" x2="0" y2="380" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
+        <line x1="600" y1="300" x2="0" y2="500" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
+        <line x1="600" y1="300" x2="0" y2="600" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
+        <line x1="600" y1="300" x2="1200" y2="0" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
+        <line x1="600" y1="300" x2="1200" y2="120" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
+        <line x1="600" y1="300" x2="1200" y2="250" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
+        <line x1="600" y1="300" x2="1200" y2="380" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
+        <line x1="600" y1="300" x2="1200" y2="500" stroke="#e7ab1c" strokeWidth="2" opacity="0.10" />
+        <line x1="600" y1="300" x2="1200" y2="600" stroke="#e7ab1c" strokeWidth="3" opacity="0.08" />
+        <circle cx="600" cy="300" r="250" fill="url(#totyDarkRad)" />
       </svg>
     </div>
   )
@@ -169,8 +102,7 @@ export function DotGrid({ className = "" }: { className?: string }) {
       className={`absolute inset-0 pointer-events-none ${className}`}
       aria-hidden
       style={{
-        backgroundImage:
-          "radial-gradient(circle, rgba(231,171,28,0.08) 1px, transparent 1px)",
+        backgroundImage: "radial-gradient(circle, rgba(231,171,28,0.08) 1px, transparent 1px)",
         backgroundSize: "32px 32px",
       }}
     />
@@ -180,92 +112,57 @@ export function DotGrid({ className = "" }: { className?: string }) {
 /** Ambient gold gradient orbs */
 export function GoldOrbs({ className = "" }: { className?: string }) {
   return (
-    <div
-      className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
-      aria-hidden
-    >
+    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
       <div
         className="absolute top-[10%] right-[10%] w-[500px] h-[500px] rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(231,171,28,0.12) 0%, transparent 70%)",
-        }}
+        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.12) 0%, transparent 70%)" }}
       />
       <div
         className="absolute bottom-[5%] left-[10%] w-[400px] h-[400px] rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 70%)",
-        }}
+        style={{ background: "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 70%)" }}
       />
     </div>
   )
 }
 
-/** ──────────────────────────────────────────────────────
- *  TOTY starburst for any section — radiating rays
- *  Used on EcosystemGrid, Archive, etc.
- * ────────────────────────────────────────────────────── */
+/** ── Section starburst — for Archive, EcosystemGrid ── */
 export function GoldStarburst({ className = "" }: { className?: string }) {
-  const rightBurst = rays(550, 350, 24, 10, 500, 150, 60)
-  const leftBurst = rays(-50, 350, 16, 10, 400, -30, 60)
-
   return (
-    <div
-      className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
-      aria-hidden
-    >
-      <svg
-        className="absolute right-0 top-0 w-full h-full"
-        viewBox="0 0 600 700"
-        fill="none"
-        preserveAspectRatio="xMaxYMid slice"
-      >
+    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} aria-hidden>
+      <svg className="absolute -right-[5%] top-1/2 -translate-y-1/2 w-[70%] h-[130%]" viewBox="0 0 700 900" fill="none">
         <defs>
-          <linearGradient id="sbRayR" x1="100%" y1="50%" x2="0%" y2="50%">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.45" />
-            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.15" />
+          <linearGradient id="sbGrad" x1="700" y1="450" x2="0" y2="450" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.40" />
+            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.12" />
             <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {rightBurst.map((r, i) => (
-          <line
-            key={`sb-r-${i}`}
-            x1={r.x1}
-            y1={r.y1}
-            x2={r.x2}
-            y2={r.y2}
-            stroke="url(#sbRayR)"
-            strokeWidth={i % 3 === 0 ? 2 : 1}
-            opacity={i % 3 === 0 ? 0.6 : 0.35}
-          />
-        ))}
+        <line x1="700" y1="450" x2="0" y2="50" stroke="url(#sbGrad)" strokeWidth="5" />
+        <line x1="700" y1="450" x2="0" y2="150" stroke="url(#sbGrad)" strokeWidth="3" />
+        <line x1="700" y1="450" x2="0" y2="250" stroke="url(#sbGrad)" strokeWidth="5" />
+        <line x1="700" y1="450" x2="0" y2="340" stroke="url(#sbGrad)" strokeWidth="3" />
+        <line x1="700" y1="450" x2="0" y2="420" stroke="url(#sbGrad)" strokeWidth="6" />
+        <line x1="700" y1="450" x2="0" y2="500" stroke="url(#sbGrad)" strokeWidth="3" />
+        <line x1="700" y1="450" x2="0" y2="580" stroke="url(#sbGrad)" strokeWidth="5" />
+        <line x1="700" y1="450" x2="0" y2="660" stroke="url(#sbGrad)" strokeWidth="3" />
+        <line x1="700" y1="450" x2="0" y2="740" stroke="url(#sbGrad)" strokeWidth="5" />
+        <line x1="700" y1="450" x2="0" y2="830" stroke="url(#sbGrad)" strokeWidth="3" />
       </svg>
-      <svg
-        className="absolute left-0 top-0 w-3/5 h-full"
-        viewBox="0 0 400 700"
-        fill="none"
-        preserveAspectRatio="xMinYMid slice"
-      >
+      <svg className="absolute -left-[5%] top-1/2 -translate-y-1/2 w-[50%] h-[110%]" viewBox="0 0 500 700" fill="none">
         <defs>
-          <linearGradient id="sbRayL" x1="0%" y1="50%" x2="100%" y2="50%">
-            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.3" />
-            <stop offset="60%" stopColor="#e7ab1c" stopOpacity="0.08" />
+          <linearGradient id="sbGradL" x1="0" y1="350" x2="500" y2="350" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#e7ab1c" stopOpacity="0.25" />
+            <stop offset="50%" stopColor="#e7ab1c" stopOpacity="0.06" />
             <stop offset="100%" stopColor="#e7ab1c" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {leftBurst.map((r, i) => (
-          <line
-            key={`sb-l-${i}`}
-            x1={r.x1}
-            y1={r.y1}
-            x2={r.x2}
-            y2={r.y2}
-            stroke="url(#sbRayL)"
-            strokeWidth={i % 3 === 0 ? 1.5 : 0.8}
-            opacity={i % 3 === 0 ? 0.4 : 0.25}
-          />
-        ))}
+        <line x1="0" y1="350" x2="500" y2="50" stroke="url(#sbGradL)" strokeWidth="4" />
+        <line x1="0" y1="350" x2="500" y2="150" stroke="url(#sbGradL)" strokeWidth="3" />
+        <line x1="0" y1="350" x2="500" y2="250" stroke="url(#sbGradL)" strokeWidth="4" />
+        <line x1="0" y1="350" x2="500" y2="350" stroke="url(#sbGradL)" strokeWidth="3" />
+        <line x1="0" y1="350" x2="500" y2="450" stroke="url(#sbGradL)" strokeWidth="4" />
+        <line x1="0" y1="350" x2="500" y2="550" stroke="url(#sbGradL)" strokeWidth="3" />
+        <line x1="0" y1="350" x2="500" y2="650" stroke="url(#sbGradL)" strokeWidth="4" />
       </svg>
     </div>
   )
