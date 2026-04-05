@@ -1,66 +1,92 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import Link from "next/link"
-import { Calendar, MapPin, ArrowRight } from "lucide-react"
+import {
+  Calendar,
+  MapPin,
+  ArrowRight,
+  Users,
+  Mic2,
+  Ticket,
+  Sparkles,
+} from "lucide-react"
 
 export const metadata = {
   title: "Events | The Leadership Federation",
-  description: "World-class leadership summits, conclaves, and forums bringing together CXOs, policymakers, and thought leaders.",
+  description:
+    "World-class leadership summits, conclaves, and forums bringing together CXOs, policymakers, and thought leaders.",
 }
 
 function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+  return new Date(d).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
 }
 
 function fmtMonth(d: string) {
-  return new Date(d).toLocaleDateString("en-IN", { month: "short" }).toUpperCase()
+  return new Date(d)
+    .toLocaleDateString("en-IN", { month: "short" })
+    .toUpperCase()
 }
 
 function fmtDay(d: string) {
   return new Date(d).getDate().toString().padStart(2, "0")
 }
 
-const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
+const sfFont = {
+  fontFamily:
+    "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
+}
 
 export default async function EventsPage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
+  /* Fetch published events with speaker and ticket tier counts */
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, slug, start_date, end_date, venue, description, cover_image_url, status")
+    .select(
+      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, speakers(id), ticket_tiers(id)"
+    )
     .eq("status", "published")
     .order("start_date", { ascending: true })
 
   const now = new Date()
-  const upcoming = (events ?? []).filter(e => new Date(e.start_date) >= now)
-  const past = (events ?? []).filter(e => new Date(e.start_date) < now)
+  const allEvents = events ?? []
+  const upcoming = allEvents.filter((e) => new Date(e.start_date) >= now)
+  const past = allEvents.filter((e) => new Date(e.start_date) < now)
 
   return (
     <main className="min-h-screen bg-[#F4F8FF]">
-      {/* Hero */}
-      <section className="pt-36 pb-20 px-6">
+      {/* ── Hero ── */}
+      <section className="pt-28 sm:pt-36 pb-16 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
+          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5 px-4 py-1.5 rounded-full bg-[#e7ab1c]/8 border border-[#e7ab1c]/15">
             Curated Experiences
           </span>
           <h1
-            className="text-5xl md:text-7xl font-bold text-black mb-6 tracking-tight"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-black mb-6 tracking-tight"
             style={sfFont}
           >
-            Our <span className="text-[#e7ab1c]">Events</span>
+            Our{" "}
+            <span className="bg-gradient-to-r from-[#e7ab1c] to-[#d49c10] bg-clip-text text-transparent">
+              Events
+            </span>
           </h1>
-          <p className="text-lg text-black/40 max-w-2xl mx-auto leading-relaxed">
-            World-class leadership summits, conclaves, and strategic forums bringing together
-            CXOs, policymakers, and visionary thought leaders from 30+ countries.
+          <p className="text-base sm:text-lg text-black/40 max-w-2xl mx-auto leading-relaxed">
+            World-class leadership summits, conclaves, and strategic forums
+            bringing together CXOs, policymakers, and visionary thought leaders
+            from 30+ countries.
           </p>
         </div>
       </section>
 
-      {/* Upcoming Events */}
+      {/* ── Upcoming Events ── */}
       {upcoming.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 mb-24">
-          <div className="flex items-center gap-3 mb-10">
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-16 sm:mb-24">
+          <div className="flex items-center gap-3 mb-8 sm:mb-10">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <h2 className="text-xs font-bold text-black/40 uppercase tracking-[0.2em]">
               Upcoming Events
@@ -68,101 +94,231 @@ export default async function EventsPage() {
           </div>
 
           <div className="grid gap-6">
-            {upcoming.map((event) => (
-              <Link
-                key={event.id}
-                href={`/events/${event.slug}`}
-                className="group relative block rounded-2xl overflow-hidden transition-all duration-300 bg-white/70 border border-black/[0.04] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
-              >
-                <div className="relative z-10 p-8 md:p-10 flex flex-col md:flex-row md:items-center gap-8">
-                  {/* Date block */}
-                  <div className="shrink-0 w-24 h-24 rounded-2xl flex flex-col items-center justify-center bg-[#e7ab1c]/10 border border-[#e7ab1c]/20">
-                    <span className="text-3xl font-bold text-[#e7ab1c] leading-none tabular-nums">
-                      {fmtDay(event.start_date)}
-                    </span>
-                    <span className="text-[10px] font-bold text-[#e7ab1c]/60 uppercase tracking-[0.15em] mt-1">
-                      {fmtMonth(event.start_date)}
-                    </span>
-                  </div>
+            {upcoming.map((event) => {
+              const speakerCount = Array.isArray(event.speakers)
+                ? event.speakers.length
+                : 0
+              const tierCount = Array.isArray(event.ticket_tiers)
+                ? event.ticket_tiers.length
+                : 0
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h3
-                      className="text-2xl md:text-3xl font-bold text-black group-hover:text-[#e7ab1c] transition-colors duration-300 mb-3"
-                      style={sfFont}
-                    >
-                      {event.title}
-                    </h3>
-                    <div className="flex flex-wrap gap-5 text-sm text-black/30 mb-4">
-                      <span className="flex items-center gap-2">
-                        <Calendar size={14} className="text-black/20" />
-                        {fmtDate(event.start_date)} — {fmtDate(event.end_date)}
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <MapPin size={14} className="text-black/20" />
-                        {event.venue}
-                      </span>
-                    </div>
-                    {event.description && (
-                      <p className="text-sm text-black/25 line-clamp-2 max-w-2xl">{event.description}</p>
+              return (
+                <Link
+                  key={event.id}
+                  href={`/events/${event.slug}`}
+                  className="group relative block rounded-2xl overflow-hidden transition-all duration-300 bg-white border border-black/[0.06] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:border-[#e7ab1c]/20"
+                >
+                  <div className="flex flex-col md:flex-row">
+                    {/* Cover image */}
+                    {event.cover_image_url && (
+                      <div className="relative md:w-80 lg:w-96 h-48 md:h-auto shrink-0 overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={event.cover_image_url}
+                          alt={event.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10 md:bg-gradient-to-l" />
+                      </div>
                     )}
+
+                    {/* Content */}
+                    <div className="relative z-10 flex-1 p-6 sm:p-8 md:p-10 flex flex-col md:flex-row md:items-center gap-6 sm:gap-8">
+                      {/* Date block */}
+                      <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex flex-col items-center justify-center bg-[#e7ab1c]/10 border border-[#e7ab1c]/20">
+                        <span className="text-2xl sm:text-3xl font-bold text-[#e7ab1c] leading-none tabular-nums">
+                          {fmtDay(event.start_date)}
+                        </span>
+                        <span className="text-[10px] font-bold text-[#e7ab1c]/60 uppercase tracking-[0.15em] mt-1">
+                          {fmtMonth(event.start_date)}
+                        </span>
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className="text-xl sm:text-2xl md:text-3xl font-bold text-black group-hover:text-[#e7ab1c] transition-colors duration-300 mb-3"
+                          style={sfFont}
+                        >
+                          {event.title}
+                        </h3>
+                        <div className="flex flex-wrap gap-4 sm:gap-5 text-sm text-black/35 mb-3">
+                          <span className="flex items-center gap-2">
+                            <Calendar
+                              size={14}
+                              className="text-black/20"
+                            />
+                            {fmtDate(event.start_date)}
+                            {event.end_date &&
+                              ` — ${fmtDate(event.end_date)}`}
+                          </span>
+                          {event.venue && (
+                            <span className="flex items-center gap-2">
+                              <MapPin
+                                size={14}
+                                className="text-black/20"
+                              />
+                              {event.venue}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Speaker and ticket tier info */}
+                        <div className="flex flex-wrap gap-4 text-xs text-black/25 mb-3">
+                          {speakerCount > 0 && (
+                            <span className="flex items-center gap-1.5">
+                              <Mic2 size={12} className="text-[#e7ab1c]/50" />
+                              {speakerCount} Speaker
+                              {speakerCount !== 1 ? "s" : ""}
+                            </span>
+                          )}
+                          {tierCount > 0 && (
+                            <span className="flex items-center gap-1.5">
+                              <Ticket
+                                size={12}
+                                className="text-[#e7ab1c]/50"
+                              />
+                              {tierCount} Ticket Tier
+                              {tierCount !== 1 ? "s" : ""}
+                            </span>
+                          )}
+                        </div>
+
+                        {event.description && (
+                          <p className="text-sm text-black/30 line-clamp-2 max-w-2xl">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* CTA */}
+                      <div className="shrink-0">
+                        <span className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-semibold bg-[#e7ab1c] text-white group-hover:bg-[#d49c10] transition-all shadow-[0_2px_12px_rgba(231,171,28,0.25)]">
+                          Register <ArrowRight size={14} />
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* CTA */}
-                  <div className="shrink-0 flex items-center">
-                    <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-[#e7ab1c] opacity-0 group-hover:opacity-100 transition-all duration-300 border border-[#e7ab1c]/30 bg-[#e7ab1c]/5">
-                      View Details <ArrowRight size={14} />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                  {/* Gold bottom accent */}
+                  <div className="h-[3px] bg-gradient-to-r from-transparent via-[#e7ab1c] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}
 
-      {/* Past Events */}
+      {/* ── Past Events ── */}
       {past.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 pb-24">
-          <h2 className="text-xs font-bold text-black/25 uppercase tracking-[0.2em] mb-10">
-            Past Events
-          </h2>
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+          <div className="flex items-center justify-between mb-8 sm:mb-10">
+            <h2 className="text-xs font-bold text-black/25 uppercase tracking-[0.2em]">
+              Past Events
+            </h2>
+            <Link
+              href="/archive"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#e7ab1c] hover:text-[#d49c10] transition-colors"
+            >
+              View All Past Events{" "}
+              <ArrowRight size={13} className="translate-y-px" />
+            </Link>
+          </div>
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {past.map((event) => (
               <Link
                 key={event.id}
                 href={`/events/${event.slug}`}
-                className="group block rounded-xl p-6 transition-all duration-300 bg-white/50 border border-black/[0.04] hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+                className="group block rounded-2xl overflow-hidden bg-white border border-black/[0.06] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:border-[#e7ab1c]/15 transition-all duration-300"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 bg-[#e7ab1c]/10">
-                    <span className="text-sm font-bold text-[#e7ab1c] leading-none tabular-nums">{fmtDay(event.start_date)}</span>
-                    <span className="text-[8px] font-bold text-[#e7ab1c]/50 uppercase tracking-wider">{fmtMonth(event.start_date)}</span>
+                {/* Compact cover */}
+                {event.cover_image_url && (
+                  <div className="relative h-32 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={event.cover_image_url}
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-semibold text-black/60 group-hover:text-black transition-colors truncate">
-                      {event.title}
-                    </h3>
+                )}
+
+                <div className="p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 bg-[#e7ab1c]/10 border border-[#e7ab1c]/15">
+                      <span className="text-sm font-bold text-[#e7ab1c] leading-none tabular-nums">
+                        {fmtDay(event.start_date)}
+                      </span>
+                      <span className="text-[8px] font-bold text-[#e7ab1c]/50 uppercase tracking-wider">
+                        {fmtMonth(event.start_date)}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <h3
+                        className="text-base font-semibold text-black/70 group-hover:text-[#e7ab1c] transition-colors truncate"
+                        style={sfFont}
+                      >
+                        {event.title}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs text-black/25">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={11} /> {fmtDate(event.start_date)}
+                    </span>
+                    {event.venue && (
+                      <span className="flex items-center gap-1">
+                        <MapPin size={11} /> {event.venue}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-3 text-xs text-black/25">
-                  <span className="flex items-center gap-1"><Calendar size={11} /> {fmtDate(event.start_date)}</span>
-                  <span className="flex items-center gap-1"><MapPin size={11} /> {event.venue}</span>
-                </div>
+
+                {/* Gold bottom accent */}
+                <div className="h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* Empty state */}
-      {(events ?? []).length === 0 && (
-        <div className="max-w-6xl mx-auto px-6 text-center pb-32">
-          <div className="w-20 h-20 rounded-2xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center mx-auto mb-6">
-            <Calendar size={32} className="text-[#e7ab1c]" />
+      {/* ── Empty State ── */}
+      {allEvents.length === 0 && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center pb-32">
+          <div className="max-w-md mx-auto">
+            {/* Decorative icon cluster */}
+            <div className="relative w-28 h-28 mx-auto mb-8">
+              <div className="absolute inset-0 rounded-3xl bg-[#e7ab1c]/8 border border-[#e7ab1c]/15 rotate-6" />
+              <div className="absolute inset-0 rounded-3xl bg-[#e7ab1c]/5 border border-[#e7ab1c]/10 -rotate-3" />
+              <div className="relative w-full h-full rounded-3xl bg-white border border-[#e7ab1c]/20 flex items-center justify-center shadow-sm">
+                <Sparkles size={36} className="text-[#e7ab1c]" />
+              </div>
+            </div>
+
+            <h3
+              className="text-2xl sm:text-3xl font-bold text-black mb-3"
+              style={sfFont}
+            >
+              Events Coming Soon
+            </h3>
+            <p className="text-black/35 text-base mb-2 leading-relaxed">
+              The Leadership Federation is preparing world-class experiences for
+              CXOs, policymakers, and visionary leaders.
+            </p>
+            <p className="text-black/20 text-sm mb-8">
+              Check back soon for upcoming conclaves, summits, and awards
+              ceremonies.
+            </p>
+
+            <Link
+              href="/archive"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold text-[#e7ab1c] border border-[#e7ab1c]/25 hover:bg-[#e7ab1c]/5 transition-all"
+            >
+              Browse Past Events <ArrowRight size={14} />
+            </Link>
           </div>
-          <p className="text-black/40 text-lg mb-2">No events published yet.</p>
-          <p className="text-black/25 text-sm">Check back soon for upcoming leadership gatherings.</p>
         </div>
       )}
     </main>

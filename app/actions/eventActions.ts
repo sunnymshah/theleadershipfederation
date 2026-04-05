@@ -62,6 +62,22 @@ export async function createEvent(formData: FormData) {
       return { success: false, error: "All required fields must be filled." }
     }
 
+    // New enhanced fields
+    const tagline              = formData.get("tagline") as string
+    const venue_address        = formData.get("venue_address") as string
+    const registration_deadline = formData.get("registration_deadline") as string
+    const highlightsRaw        = formData.get("highlights") as string
+    const is_featured          = formData.get("is_featured") === "on" || formData.get("is_featured") === "true"
+    const max_attendees_raw    = formData.get("max_attendees") as string
+    const contact_email        = formData.get("contact_email") as string
+
+    // Parse highlights: comma-separated or newline-separated string -> JSON array
+    const highlights = highlightsRaw
+      ? highlightsRaw.split(/[,\n]/).map((s: string) => s.trim()).filter(Boolean)
+      : []
+
+    const max_attendees = max_attendees_raw ? parseInt(max_attendees_raw, 10) || null : null
+
     // Handle cover image upload
     const coverFile = formData.get("coverImage") as File | null
     const coverUrl  = formData.get("coverImageUrl") as string
@@ -84,6 +100,13 @@ export async function createEvent(formData: FormData) {
         cover_image_url: finalCoverUrl,
         status: "draft",
         created_by: user.id,
+        tagline: tagline || null,
+        venue_address: venue_address || null,
+        registration_deadline: registration_deadline ? new Date(registration_deadline).toISOString() : null,
+        highlights,
+        is_featured,
+        max_attendees,
+        contact_email: contact_email || null,
       })
       .select()
       .single()
@@ -118,6 +141,22 @@ export async function updateEvent(eventId: string, formData: FormData) {
       return { success: false, error: "All required fields must be filled." }
     }
 
+    // New enhanced fields
+    const tagline              = formData.get("tagline") as string
+    const venue_address        = formData.get("venue_address") as string
+    const registration_deadline = formData.get("registration_deadline") as string
+    const highlightsRaw        = formData.get("highlights") as string
+    const is_featured          = formData.get("is_featured") === "on" || formData.get("is_featured") === "true"
+    const max_attendees_raw    = formData.get("max_attendees") as string
+    const contact_email        = formData.get("contact_email") as string
+
+    // Parse highlights: comma-separated or newline-separated string -> JSON array
+    const highlights = highlightsRaw
+      ? highlightsRaw.split(/[,\n]/).map((s: string) => s.trim()).filter(Boolean)
+      : []
+
+    const max_attendees = max_attendees_raw ? parseInt(max_attendees_raw, 10) || null : null
+
     // Handle cover image upload
     const coverFile = formData.get("coverImage") as File | null
     const coverUrl  = formData.get("coverImageUrl") as string
@@ -140,6 +179,13 @@ export async function updateEvent(eventId: string, formData: FormData) {
         cover_image_url: finalCoverUrl,
         status: status || "draft",
         updated_at: new Date().toISOString(),
+        tagline: tagline || null,
+        venue_address: venue_address || null,
+        registration_deadline: registration_deadline ? new Date(registration_deadline).toISOString() : null,
+        highlights,
+        is_featured,
+        max_attendees,
+        contact_email: contact_email || null,
       })
       .eq("id", eventId)
       .select()
