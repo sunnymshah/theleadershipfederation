@@ -38,10 +38,20 @@ export default async function ConsoleLayout({
     redirect("/admin/login")
   }
 
+  /* ── Fetch user role from team_members ──────────────────────────── */
+  const { data: teamMember } = await supabase
+    .from("team_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .single()
+
+  // Default to super_admin if no team_members entry (first user / legacy setup)
+  const userRole = teamMember?.role ?? "super_admin"
+
   return (
     <div className="flex min-h-screen bg-[#f4f5f7] admin-scrollbar">
       {/* ── Fixed Zoho-style sidebar (white, elevated) ──────────── */}
-      <AdminSidebar userEmail={user.email ?? "admin"} />
+      <AdminSidebar userEmail={user.email ?? "admin"} userRole={userRole} />
 
       {/* ── Right side: top bar + workspace ─────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">

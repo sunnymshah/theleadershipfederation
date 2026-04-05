@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { createSponsor, updateSponsor, deleteSponsor } from "@/app/actions/sponsorActions"
-import { Plus, Pencil, Trash2, Search, X, Loader2, Building2 } from "lucide-react"
+import { setSponsorPortalAccess } from "@/app/actions/sponsorPortalActions"
+import { Plus, Pencil, Trash2, Search, X, Loader2, Building2, KeyRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SponsorRow {
@@ -15,6 +16,8 @@ interface SponsorRow {
   website: string | null
   description: string | null
   sort_order: number
+  contact_email: string | null
+  portal_password: string | null
   events: { title: string } | null
 }
 
@@ -39,6 +42,15 @@ export default function AdminSponsorsPage() {
   const [submitting, setSubmitting]     = useState(false)
   const [actionError, setActionError]   = useState<string | null>(null)
   const [deletingId, setDeletingId]     = useState<string | null>(null)
+
+  // Portal access drawer state
+  const [portalDrawerOpen, setPortalDrawerOpen] = useState(false)
+  const [portalSponsor, setPortalSponsor]       = useState<SponsorRow | null>(null)
+  const [portalEmail, setPortalEmail]           = useState("")
+  const [portalPassword, setPortalPassword]     = useState("")
+  const [savingPortal, setSavingPortal]         = useState(false)
+  const [portalError, setPortalError]           = useState<string | null>(null)
+  const [portalSuccess, setPortalSuccess]       = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -138,6 +150,7 @@ export default function AdminSponsorsPage() {
                   <td className="px-5 py-4 text-[#777] text-xs truncate max-w-[150px]">{s.website ?? "—"}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => { setPortalSponsor(s); setPortalEmail(s.contact_email ?? ""); setPortalPassword(s.portal_password ?? ""); setPortalDrawerOpen(true); setPortalError(null); setPortalSuccess(null) }} className={cn("p-2 rounded-md transition-colors", s.contact_email ? "text-[#c9a84c] hover:text-[#b8972f] hover:bg-[#c9a84c]/10" : "text-[#aaa] hover:text-[#555] hover:bg-[#fafafa]")} title="Set Portal Access"><KeyRound size={15} /></button>
                       <button onClick={() => { setEditingSponsor(s); setDrawerOpen(true); setActionError(null) }} className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors" title="Edit"><Pencil size={15} /></button>
                       <button onClick={() => handleDelete(s.id)} disabled={deletingId === s.id} className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30" title="Delete">
                         {deletingId === s.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
@@ -151,7 +164,69 @@ export default function AdminSponsorsPage() {
         )}
       </div>
 
-      {/* ── Drawer ─────────────────────────────────────────────────── */}
+      {/* ── Portal Access Drawer ─────────────────────────────────── */}
+      {portalDrawerOpen && portalSponsor && (
+        <>
+          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setPortalDrawerOpen(false); setPortalSponsor(null) }} />
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-lg font-semibold text-[#333]">Set Portal Access</h3>
+              <button onClick={() => { setPortalDrawerOpen(false); setPortalSponsor(null) }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div className="p-4 rounded-lg bg-[#f8f8f8] border border-[#e8e8e8]">
+                <p className="text-[13px] font-semibold text-[#333]">{portalSponsor.name}</p>
+                <p className="text-[11px] text-[#888] mt-0.5">{portalSponsor.tier.charAt(0).toUpperCase() + portalSponsor.tier.slice(1)} sponsor</p>
+              </div>
+
+              <p className="text-[12px] text-[#777] leading-relaxed">
+                Set the contact email and portal password so this sponsor can log in at{" "}
+                <span className="text-[#c9a84c] font-medium">/sponsor-portal</span>{" "}
+                to manage their profile, upload logos, and update booth details.
+              </p>
+
+              <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Contact Email *</label>
+                <input type="email" value={portalEmail} onChange={(e) => setPortalEmail(e.target.value)} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#aaa] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="sponsor@company.com" />
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Portal Password *</label>
+                <input type="text" value={portalPassword} onChange={(e) => setPortalPassword(e.target.value)} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#aaa] focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono" placeholder="Enter a portal password" />
+                <p className="text-[10px] text-[#aaa] mt-1">Shared with the sponsor for portal login. Not encrypted.</p>
+              </div>
+
+              {portalError && <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">{portalError}</div>}
+              {portalSuccess && <div className="px-3 py-2.5 rounded-lg bg-green-500/8 border border-green-500/15 text-green-600 text-sm">{portalSuccess}</div>}
+
+              <div className="flex gap-3 pt-3">
+                <button type="button" onClick={() => { setPortalDrawerOpen(false); setPortalSponsor(null) }} className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors">Cancel</button>
+                <button
+                  type="button"
+                  disabled={savingPortal}
+                  onClick={async () => {
+                    setSavingPortal(true)
+                    setPortalError(null)
+                    setPortalSuccess(null)
+                    const result = await setSponsorPortalAccess(portalSponsor.id, portalEmail, portalPassword)
+                    if (result.success) {
+                      setPortalSuccess("Portal access saved successfully")
+                      await fetchData()
+                    } else {
+                      setPortalError(result.error ?? "Failed to set portal access")
+                    }
+                    setSavingPortal(false)
+                  }}
+                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  {savingPortal ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : "Save Portal Access"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Sponsor Edit Drawer */}
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setDrawerOpen(false); setEditingSponsor(null) }} />

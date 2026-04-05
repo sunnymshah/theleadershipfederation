@@ -9,6 +9,8 @@
  *
  *  Visual: White sidebar, #f4f5f7 workspace bg, exact Zoho grey/blue
  *  active states, thin-stroke icons matching Zoho's iconography.
+ *
+ *  Role-based: nav items are filtered based on the user's team role.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 import Link from "next/link"
@@ -26,8 +28,12 @@ import {
   ScanLine,
   Settings,
   UserCheck,
+  UsersRound,
+  Award,
+  Receipt,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { canAccessNavItem } from "@/lib/permissions"
 import { AdminLogoutButton } from "./AdminLogoutButton"
 
 /* ─── Zoho Backstage exact sidebar modules ─────────────────────────────── */
@@ -43,13 +49,19 @@ const navItems = [
   { label: "Sessions",     href: "/admin/sessions",    icon: ClipboardList,   section: "manage" },
   { label: "Promo Codes",  href: "/admin/promo-codes", icon: Tag,             section: "manage" },
   /* Operations */
-  { label: "Check-In",     href: "/admin/check-in",    icon: ScanLine,        section: "ops" },
-  { label: "CRM / Leads",  href: "/admin/attendees",   icon: UserCheck,       section: "ops" },
-  { label: "Settings",     href: "/admin/settings",    icon: Settings,        section: "ops" },
+  { label: "Check-In",     href: "/admin/check-in",      icon: ScanLine,        section: "ops" },
+  { label: "CRM / Leads",  href: "/admin/attendees",     icon: UserCheck,       section: "ops" },
+  { label: "Certificates", href: "/admin/certificates",  icon: Award,           section: "ops" },
+  { label: "Invoices",     href: "/admin/invoices",      icon: Receipt,         section: "ops" },
+  { label: "Team",         href: "/admin/team",          icon: UsersRound,      section: "ops" },
+  { label: "Settings",     href: "/admin/settings",      icon: Settings,        section: "ops" },
 ]
 
-export function AdminSidebar({ userEmail }: { userEmail: string }) {
+export function AdminSidebar({ userEmail, userRole = "super_admin" }: { userEmail: string; userRole?: string }) {
   const pathname = usePathname()
+
+  // Filter nav items based on the user's role
+  const visibleItems = navItems.filter((item) => canAccessNavItem(userRole, item.href))
 
   const renderLink = ({ label, href, icon: Icon }: typeof navItems[number]) => {
     const isActive = href === "/admin"
@@ -102,28 +114,32 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         {/* Main */}
         <div className="space-y-0.5 mb-5">
-          {navItems.filter(n => n.section === "main").map(renderLink)}
+          {visibleItems.filter(n => n.section === "main").map(renderLink)}
         </div>
 
         {/* Manage */}
-        <div className="mb-5">
-          <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
-            Manage
-          </p>
-          <div className="space-y-0.5">
-            {navItems.filter(n => n.section === "manage").map(renderLink)}
+        {visibleItems.filter(n => n.section === "manage").length > 0 && (
+          <div className="mb-5">
+            <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
+              Manage
+            </p>
+            <div className="space-y-0.5">
+              {visibleItems.filter(n => n.section === "manage").map(renderLink)}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Operations */}
-        <div>
-          <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
-            Operations
-          </p>
-          <div className="space-y-0.5">
-            {navItems.filter(n => n.section === "ops").map(renderLink)}
+        {visibleItems.filter(n => n.section === "ops").length > 0 && (
+          <div>
+            <p className="px-4 text-[10px] text-[#999] uppercase tracking-[0.15em] font-semibold mb-2">
+              Operations
+            </p>
+            <div className="space-y-0.5">
+              {visibleItems.filter(n => n.section === "ops").map(renderLink)}
+            </div>
           </div>
-        </div>
+        )}
       </nav>
 
       {/* ── User & Logout (Zoho bottom style) ─────────────────────── */}

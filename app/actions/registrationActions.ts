@@ -23,6 +23,7 @@ export async function registerForEvent(formData: FormData) {
     }
 
     // Check ticket availability
+    let isSoldOut = false
     if (ticketId) {
       const { data: ticket } = await supabase
         .from("tickets")
@@ -31,7 +32,7 @@ export async function registerForEvent(formData: FormData) {
         .single()
 
       if (ticket && ticket.sold >= ticket.inventory_limit) {
-        return { success: false, error: "Sorry, this ticket is sold out." }
+        isSoldOut = true
       }
     }
 
@@ -50,7 +51,49 @@ export async function registerForEvent(formData: FormData) {
     // Generate unique QR token
     const qrToken = randomBytes(24).toString("hex")
 
-    // Create attendee
+    // If sold out, add to waitlist instead of rejecting
+    if (isSoldOut && ticketId) {
+      // Count current waitlisted attendees for this ticket
+      const { count: waitlistCount } = await supabase
+        .from("attendees")
+        .select("*", { count: "exact", head: true })
+        .eq("ticket_id", ticketId)
+        .eq("status", "waitlisted")
+
+      const position = (waitlistCount ?? 0) + 1
+
+      const { data: waitlistedAttendee, error: waitlistError } = await supabase
+        .from("attendees")
+        .insert({
+          event_id: eventId,
+          ticket_id: ticketId,
+          name,
+          email,
+          phone: phone || null,
+          company: company || null,
+          designation: designation || null,
+          qr_token: qrToken,
+          status: "waitlisted",
+          waitlist_position: position,
+        })
+        .select()
+        .single()
+
+      if (waitlistError) return { success: false, error: waitlistError.message }
+
+      revalidatePath("/events", "page")
+      revalidatePath("/admin/attendees", "page")
+      revalidatePath("/admin", "page")
+
+      return {
+        success: true,
+        attendee: waitlistedAttendee,
+        waitlisted: true,
+        message: `You've been added to the waitlist at position ${position}`,
+      }
+    }
+
+    // Create attendee (normal registration)
     const { data: attendee, error: insertError } = await supabase
       .from("attendees")
       .insert({
