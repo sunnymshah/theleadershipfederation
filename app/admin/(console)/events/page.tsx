@@ -18,7 +18,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
-import { createEvent, updateEvent, deleteEvent } from "@/app/actions/eventActions"
+import { createEvent, updateEvent, deleteEvent, cloneEvent } from "@/app/actions/eventActions"
 import {
   Plus,
   Pencil,
@@ -28,6 +28,7 @@ import {
   Calendar,
   Loader2,
   ExternalLink,
+  Copy,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -61,6 +62,11 @@ export default function AdminEventsPage() {
   const [submitting, setSubmitting]       = useState(false)
   const [actionError, setActionError]     = useState<string | null>(null)
   const [deletingId, setDeletingId]       = useState<string | null>(null)
+  const [cloneModalOpen, setCloneModalOpen] = useState(false)
+  const [cloningEvent, setCloningEvent]     = useState<Event | null>(null)
+  const [cloneTitle, setCloneTitle]         = useState("")
+  const [cloneSlug, setCloneSlug]           = useState("")
+  const [cloning, setCloning]               = useState(false)
 
   const supabase = createClient()
 
@@ -132,6 +138,33 @@ export default function AdminEventsPage() {
     }
 
     setDeletingId(null)
+  }
+
+  // ── Handle clone ──────────────────────────���────────────────────────
+  function openCloneModal(event: Event) {
+    setCloningEvent(event)
+    setCloneTitle(`${event.title} (Copy)`)
+    setCloneSlug(`${event.slug}-copy`)
+    setCloneModalOpen(true)
+    setActionError(null)
+  }
+
+  async function handleClone() {
+    if (!cloningEvent || !cloneTitle || !cloneSlug) return
+    setCloning(true)
+    setActionError(null)
+
+    const result = await cloneEvent(cloningEvent.id, cloneTitle, cloneSlug)
+
+    if (result.success && result.event) {
+      setCloneModalOpen(false)
+      setCloningEvent(null)
+      await fetchEvents()
+      window.location.href = `/admin/events/${result.event.id}`
+    } else {
+      setActionError(result.error ?? "Failed to clone event")
+    }
+    setCloning(false)
   }
 
   // ── Format date ────────────────────────────────────────────────────
@@ -264,6 +297,13 @@ export default function AdminEventsPage() {
                       >
                         <ExternalLink size={15} />
                       </Link>
+                      <button
+                        onClick={() => openCloneModal(event)}
+                        className="p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+                        title="Clone event"
+                      >
+                        <Copy size={15} />
+                      </button>
                       <button
                         onClick={() => openEdit(event)}
                         className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-gray-100 transition-colors"
@@ -458,6 +498,94 @@ export default function AdminEventsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </>
+      )}
+
+      {/* ── Clone Event Modal ───────────────────────────────────── */}
+      {cloneModalOpen && cloningEvent && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 z-40"
+            onClick={() => { setCloneModalOpen(false); setCloningEvent(null) }}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl border border-[#e0e0e0] shadow-2xl w-full max-w-md">
+              <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-[#333]">Clone Event</h3>
+                <button
+                  onClick={() => { setCloneModalOpen(false); setCloningEvent(null) }}
+                  className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-gray-100 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-[#888]">
+                  Clone <span className="font-medium text-[#555]">{cloningEvent.title}</span> with all speakers, sessions, tickets, sponsors, and promo codes.
+                </p>
+
+                <div>
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
+                    New Event Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={cloneTitle}
+                    onChange={(e) => setCloneTitle(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                    placeholder="New event title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
+                    URL Slug *
+                  </label>
+                  <input
+                    type="text"
+                    value={cloneSlug}
+                    onChange={(e) => setCloneSlug(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono"
+                    placeholder="new-event-slug"
+                  />
+                </div>
+
+                {actionError && (
+                  <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">
+                    {actionError}
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setCloneModalOpen(false); setCloningEvent(null) }}
+                    className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleClone}
+                    disabled={cloning || !cloneTitle || !cloneSlug}
+                    className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  >
+                    {cloning ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Cloning…
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        Clone Event
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )}

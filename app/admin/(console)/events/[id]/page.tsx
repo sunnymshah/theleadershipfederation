@@ -7,7 +7,7 @@
  * here — a fully-featured workspace with tabbed navigation mirroring
  * Zoho Backstage's event management experience.
  *
- * Tabs: Overview | Tickets | Speakers | CRM/Leads | Sponsors | Agenda | Promo Codes | Settings
+ * Tabs: Overview | Tickets | Speakers | CRM/Leads | Sponsors | Agenda | Promo Codes | Form Fields | Gallery | Settings
  */
 
 import { useState, useEffect, useCallback } from "react"
@@ -33,6 +33,8 @@ import {
   AlertCircle,
   Eye,
   ExternalLink,
+  Type,
+  Image as ImageIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -43,6 +45,8 @@ import { AttendeeManager } from "@/components/admin/AttendeeManager"
 import { SponsorManager } from "@/components/admin/SponsorManager"
 import { SessionManager } from "@/components/admin/SessionManager"
 import { PromoCodeManager } from "@/components/admin/PromoCodeManager"
+import { CustomFieldManager } from "@/components/admin/CustomFieldManager"
+import { GalleryManager } from "@/components/admin/GalleryManager"
 
 // ── Types ─────────────────────────────────────────────────────────────
 interface EventDetail {
@@ -65,6 +69,8 @@ interface EventDetail {
   max_attendees: number | null
   contact_email: string | null
   social_links: Record<string, string>
+  show_delegate_directory: boolean
+  requires_approval: boolean
 }
 
 interface Counts {
@@ -74,6 +80,8 @@ interface Counts {
   sponsors: number
   sessions: number
   promoCodes: number
+  customFields: number
+  galleryImages: number
   revenue: number
   checkedIn: number
 }
@@ -88,14 +96,16 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> =
 
 // ── Tab config ────────────────────────────────────────────────────────
 const TABS = [
-  { key: "overview",    label: "Overview",     icon: LayoutDashboard },
-  { key: "tickets",     label: "Tickets",      icon: Ticket },
-  { key: "speakers",    label: "Speakers",     icon: Users },
-  { key: "crm",         label: "CRM / Leads",  icon: Users },
-  { key: "sponsors",    label: "Sponsors",     icon: Building2 },
-  { key: "agenda",      label: "Agenda",       icon: ClipboardList },
-  { key: "promo-codes", label: "Promo Codes",  icon: Tag },
-  { key: "settings",    label: "Settings",     icon: Settings },
+  { key: "overview",      label: "Overview",      icon: LayoutDashboard },
+  { key: "tickets",       label: "Tickets",       icon: Ticket },
+  { key: "speakers",      label: "Speakers",      icon: Users },
+  { key: "crm",           label: "CRM / Leads",   icon: Users },
+  { key: "sponsors",      label: "Sponsors",      icon: Building2 },
+  { key: "agenda",        label: "Agenda",        icon: ClipboardList },
+  { key: "promo-codes",   label: "Promo Codes",   icon: Tag },
+  { key: "form-fields",   label: "Form Fields",   icon: Type },
+  { key: "gallery",       label: "Gallery",       icon: ImageIcon },
+  { key: "settings",      label: "Settings",      icon: Settings },
 ] as const
 
 type TabKey = (typeof TABS)[number]["key"]
@@ -119,7 +129,7 @@ export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [event, setEvent]         = useState<EventDetail | null>(null)
-  const [counts, setCounts]       = useState<Counts>({ tickets: 0, speakers: 0, attendees: 0, sponsors: 0, sessions: 0, promoCodes: 0, revenue: 0, checkedIn: 0 })
+  const [counts, setCounts]       = useState<Counts>({ tickets: 0, speakers: 0, attendees: 0, sponsors: 0, sessions: 0, promoCodes: 0, customFields: 0, galleryImages: 0, revenue: 0, checkedIn: 0 })
   const [loading, setLoading]     = useState(true)
   const [activeTab, setActiveTab] = useState<TabKey>("overview")
 
@@ -127,7 +137,7 @@ export default function EventDetailPage() {
 
   const fetchEvent = useCallback(async () => {
     setLoading(true)
-    const [eventRes, ticketCount, speakerCount, attendeeCount, sponsorCount, sessionCount, promoCount, revenueRes, checkedInCount] = await Promise.all([
+    const [eventRes, ticketCount, speakerCount, attendeeCount, sponsorCount, sessionCount, promoCount, customFieldCount, galleryCount, revenueRes, checkedInCount] = await Promise.all([
       supabase.from("events").select("*").eq("id", id).single(),
       supabase.from("tickets").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("speakers").select("id", { count: "exact", head: true }).eq("event_id", id),
@@ -135,6 +145,8 @@ export default function EventDetailPage() {
       supabase.from("sponsors").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("sessions").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("promo_codes").select("id", { count: "exact", head: true }).eq("event_id", id),
+      supabase.from("custom_fields").select("id", { count: "exact", head: true }).eq("event_id", id),
+      supabase.from("event_gallery").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("tickets").select("price_inr, sold").eq("event_id", id),
       supabase.from("attendees").select("id", { count: "exact", head: true }).eq("event_id", id).eq("status", "checked_in"),
     ])
@@ -151,6 +163,8 @@ export default function EventDetailPage() {
       sponsors: sponsorCount.count ?? 0,
       sessions: sessionCount.count ?? 0,
       promoCodes: promoCount.count ?? 0,
+      customFields: customFieldCount.count ?? 0,
+      galleryImages: galleryCount.count ?? 0,
       revenue,
       checkedIn: checkedInCount.count ?? 0,
     })
@@ -254,6 +268,8 @@ export default function EventDetailPage() {
                 : key === "sponsors" ? counts.sponsors
                 : key === "agenda" ? counts.sessions
                 : key === "promo-codes" ? counts.promoCodes
+                : key === "form-fields" ? counts.customFields
+                : key === "gallery" ? counts.galleryImages
                 : null
 
               return (
@@ -294,6 +310,8 @@ export default function EventDetailPage() {
           {activeTab === "sponsors"     && <SponsorManager eventId={event.id} />}
           {activeTab === "agenda"       && <SessionManager eventId={event.id} />}
           {activeTab === "promo-codes"  && <PromoCodeManager eventId={event.id} />}
+          {activeTab === "form-fields"  && <CustomFieldManager eventId={event.id} />}
+          {activeTab === "gallery"      && <GalleryManager eventId={event.id} />}
           {activeTab === "settings"     && <SettingsTab event={event} onUpdate={fetchEvent} />}
         </div>
       </div>
@@ -590,6 +608,16 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
           <div className="flex items-center gap-3">
             <input type="checkbox" name="is_featured" id="is_featured" defaultChecked={event.is_featured} className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50" />
             <label htmlFor="is_featured" className="text-sm text-[#555]">Show as featured event on homepage</label>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" name="show_delegate_directory" id="show_delegate_directory" defaultChecked={event.show_delegate_directory} className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50" />
+            <label htmlFor="show_delegate_directory" className="text-sm text-[#555]">Enable public delegate directory for networking</label>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" name="requires_approval" id="requires_approval" defaultChecked={event.requires_approval} className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50" />
+            <label htmlFor="requires_approval" className="text-sm text-[#555]">Require approval for registrations (VIP events)</label>
           </div>
 
           <div>

@@ -147,6 +147,8 @@ export async function updateEvent(eventId: string, formData: FormData) {
     const registration_deadline = formData.get("registration_deadline") as string
     const highlightsRaw        = formData.get("highlights") as string
     const is_featured          = formData.get("is_featured") === "on" || formData.get("is_featured") === "true"
+    const show_delegate_directory = formData.get("show_delegate_directory") === "on" || formData.get("show_delegate_directory") === "true"
+    const requires_approval = formData.get("requires_approval") === "on" || formData.get("requires_approval") === "true"
     const max_attendees_raw    = formData.get("max_attendees") as string
     const contact_email        = formData.get("contact_email") as string
 
@@ -184,6 +186,8 @@ export async function updateEvent(eventId: string, formData: FormData) {
         registration_deadline: registration_deadline ? new Date(registration_deadline).toISOString() : null,
         highlights,
         is_featured,
+        show_delegate_directory,
+        requires_approval,
         max_attendees,
         contact_email: contact_email || null,
       })
@@ -223,6 +227,209 @@ export async function deleteEvent(eventId: string) {
     if (error) return { success: false, error: error.message }
     invalidateEventCaches(event?.slug)
     return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/**
+ * Clone an event with all its related data (speakers, sessions, tickets, sponsors, promo codes).
+ * The cloned event is created as a draft with new title and slug.
+ * Speaker-session links are preserved by mapping old IDs to new ones.
+ */
+export async function cloneEvent(eventId: string, newTitle: string, newSlug: string) {
+  try {
+    const { supabase, user } = await getAuthenticatedClient()
+
+    if (!newTitle || !newSlug) {
+      return { success: false, error: "New title and slug are required." }
+    }
+
+    // 1. Fetch the source event
+    const { data: source, error: sourceError } = await supabase
+      .from("events")
+      .select("*")
+      .eq("id", eventId)
+      .single()
+
+    if (sourceError || !source) {
+      return { success: false, error: sourceError?.message ?? "Source event not found." }
+    }
+
+    // 2. Create new event with same fields but new title/slug, status=draft
+    const { data: newEvent, error: eventError } = await supabase
+      .from("events")
+      .insert({
+        title: newTitle,
+        slug: newSlug,
+        start_date: source.start_date,
+        end_date: source.end_date,
+        venue: source.venue,
+        description: source.description,
+        cover_image_url: source.cover_image_url,
+        status: "draft",
+        created_by: user.id,
+        tagline: source.tagline,
+        venue_address: source.venue_address,
+        registration_deadline: source.registration_deadline,
+        highlights: source.highlights,
+        is_featured: false,
+        max_attendees: source.max_attendees,
+        contact_email: source.contact_email,
+        social_links: source.social_links,
+        requires_approval: source.requires_approval ?? false,
+      })
+      .select()
+      .single()
+
+    if (eventError || !newEvent) {
+      return { success: false, error: eventError?.message ?? "Failed to create cloned event." }
+    }
+
+    const newEventId = newEvent.id
+
+    // 3. Clone speakers (build old->new ID map for session_speakers links)
+    const speakerIdMap: Record<string, string> = {}
+    const { data: speakers } = await supabase
+      .from("speakers")
+      .select("*")
+      .eq("event_id", eventId)
+
+    if (speakers && speakers.length > 0) {
+      for (const speaker of speakers) {
+        const { data: newSpeaker } = await supabase
+          .from("speakers")
+          .insert({
+            event_id: newEventId,
+            name: speaker.name,
+            designation: speaker.designation,
+            company: speaker.company,
+            bio: speaker.bio,
+            image_url: speaker.image_url,
+            sort_order: speaker.sort_order,
+          })
+          .select("id")
+          .single()
+
+        if (newSpeaker) {
+          speakerIdMap[speaker.id] = newSpeaker.id
+        }
+      }
+    }
+
+    // 4. Clone sessions (build old->new ID map for session_speakers)
+    const sessionIdMap: Record<string, string> = {}
+    const { data: sessions } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("sort_order")
+
+    if (sessions && sessions.length > 0) {
+      for (const session of sessions) {
+        const { data: newSession } = await supabase
+          .from("sessions")
+          .insert({
+            event_id: newEventId,
+            title: session.title,
+            description: session.description,
+            start_time: session.start_time,
+            end_time: session.end_time,
+            track: session.track,
+            session_type: session.session_type,
+            room: session.room,
+            capacity: session.capacity,
+            sort_order: session.sort_order,
+          })
+          .select("id")
+          .single()
+
+        if (newSession) {
+          sessionIdMap[session.id] = newSession.id
+        }
+      }
+    }
+
+    // 5. Clone session_speakers links using the ID maps
+    const { data: sessionSpeakers } = await supabase
+      .from("session_speakers")
+      .select("*")
+      .in("session_id", Object.keys(sessionIdMap))
+
+    if (sessionSpeakers && sessionSpeakers.length > 0) {
+      const newLinks = sessionSpeakers
+        .filter(link => sessionIdMap[link.session_id] && speakerIdMap[link.speaker_id])
+        .map(link => ({
+          session_id: sessionIdMap[link.session_id],
+          speaker_id: speakerIdMap[link.speaker_id],
+        }))
+
+      if (newLinks.length > 0) {
+        await supabase.from("session_speakers").insert(newLinks)
+      }
+    }
+
+    // 6. Clone tickets (sold=0)
+    const { data: tickets } = await supabase
+      .from("tickets")
+      .select("*")
+      .eq("event_id", eventId)
+
+    if (tickets && tickets.length > 0) {
+      const newTickets = tickets.map(t => ({
+        event_id: newEventId,
+        name: t.name,
+        description: t.description,
+        price_inr: t.price_inr,
+        inventory_limit: t.inventory_limit,
+        sold: 0,
+        status: t.status,
+      }))
+      await supabase.from("tickets").insert(newTickets)
+    }
+
+    // 7. Clone sponsors
+    const { data: sponsors } = await supabase
+      .from("sponsors")
+      .select("*")
+      .eq("event_id", eventId)
+
+    if (sponsors && sponsors.length > 0) {
+      const newSponsors = sponsors.map(s => ({
+        event_id: newEventId,
+        name: s.name,
+        tier: s.tier,
+        logo_url: s.logo_url,
+        website: s.website,
+        description: s.description,
+        sort_order: s.sort_order,
+      }))
+      await supabase.from("sponsors").insert(newSponsors)
+    }
+
+    // 8. Clone promo codes (used_count=0)
+    const { data: promoCodes } = await supabase
+      .from("promo_codes")
+      .select("*")
+      .eq("event_id", eventId)
+
+    if (promoCodes && promoCodes.length > 0) {
+      const newPromos = promoCodes.map(p => ({
+        event_id: newEventId,
+        code: p.code,
+        discount_type: p.discount_type,
+        discount_value: p.discount_value,
+        max_uses: p.max_uses,
+        used_count: 0,
+        valid_from: p.valid_from,
+        valid_until: p.valid_until,
+        active: p.active,
+      }))
+      await supabase.from("promo_codes").insert(newPromos)
+    }
+
+    invalidateEventCaches(newSlug)
+    return { success: true, event: newEvent }
   } catch (err) {
     return { success: false, error: (err as Error).message }
   }

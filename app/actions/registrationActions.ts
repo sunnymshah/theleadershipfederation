@@ -36,6 +36,15 @@ export async function registerForEvent(formData: FormData) {
       }
     }
 
+    // Check if event requires approval
+    const { data: eventData } = await supabase
+      .from("events")
+      .select("requires_approval")
+      .eq("id", eventId)
+      .single()
+
+    const requiresApproval = eventData?.requires_approval === true
+
     // Check for duplicate registration
     const { data: existing } = await supabase
       .from("attendees")
@@ -93,7 +102,7 @@ export async function registerForEvent(formData: FormData) {
       }
     }
 
-    // Create attendee (normal registration)
+    // Create attendee (normal registration or pending approval)
     const { data: attendee, error: insertError } = await supabase
       .from("attendees")
       .insert({
@@ -105,15 +114,16 @@ export async function registerForEvent(formData: FormData) {
         company: company || null,
         designation: designation || null,
         qr_token: qrToken,
-        status: "registered",
+        status: requiresApproval ? "pending_approval" : "registered",
+        approval_status: requiresApproval ? "pending" : "approved",
       })
       .select()
       .single()
 
     if (insertError) return { success: false, error: insertError.message }
 
-    // Increment ticket sold count
-    if (ticketId) {
+    // Increment ticket sold count (only if not pending approval)
+    if (ticketId && !requiresApproval) {
       const { data: ticket } = await supabase
         .from("tickets")
         .select("sold")
@@ -131,7 +141,17 @@ export async function registerForEvent(formData: FormData) {
     // Revalidate pages
     revalidatePath("/events", "page")
     revalidatePath("/admin/attendees", "page")
+    revalidatePath("/admin/approvals", "page")
     revalidatePath("/admin", "page")
+
+    if (requiresApproval) {
+      return {
+        success: true,
+        attendee,
+        pendingApproval: true,
+        message: "Your registration is pending approval. You will be notified once approved.",
+      }
+    }
 
     return { success: true, attendee }
   } catch (err) {
