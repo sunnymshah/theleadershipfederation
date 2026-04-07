@@ -6,6 +6,7 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { GoldChevrons, GoldOrbs } from "@/components/ui/GoldPattern"
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
+import { MagneticButton } from "@/components/ui/MagneticButton"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -19,6 +20,14 @@ const stats = [
   { value: 50, suffix: "+", label: "Events" },
   { value: 2000, suffix: "+", label: "Leaders" },
 ]
+
+/* The typewriter text (excluding "Global Leaders" which fades in after) */
+const TYPEWRITER_TEXT = "Direct Access to "
+const TYPEWRITER_CHARS = TYPEWRITER_TEXT.length
+/* Timing: each char takes ~70ms, total typing ~1.26s, then 0.3s pause before gold words */
+const CHAR_DURATION_MS = 70
+const TYPING_TOTAL_MS = TYPEWRITER_CHARS * CHAR_DURATION_MS
+const GOLD_DELAY_MS = TYPING_TOTAL_MS + 300
 
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -57,41 +66,27 @@ export function HeroSection() {
       <GoldOrbs />
 
       <style jsx>{`
+        /* ── Existing entrance animations ─────────────────────────── */
         @keyframes heroFadeIn {
           from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes heroFadeInTitle {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes heroGoldSlide {
-          from { opacity: 0; transform: translateX(-20px); }
-          to { opacity: 1; transform: translateX(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes heroScaleIn {
           from { opacity: 0; transform: scale(0.92); }
-          to { opacity: 1; transform: scale(1); }
+          to   { opacity: 1; transform: scale(1); }
         }
         @keyframes heroBadgeIn {
           from { opacity: 0; transform: translateY(16px) scale(0.95); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes heroEditionIn {
           from { opacity: 0; transform: scale(0.8); }
-          to { opacity: 1; transform: scale(1); }
+          to   { opacity: 1; transform: scale(1); }
         }
+
         .hero-anim {
           opacity: 0;
           animation: heroFadeIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
-        }
-        .hero-anim-title {
-          opacity: 0;
-          animation: heroFadeInTitle 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
-        }
-        .hero-anim-gold {
-          opacity: 0;
-          animation: heroGoldSlide 0.7s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
         }
         .hero-anim-scale {
           opacity: 0;
@@ -105,15 +100,52 @@ export function HeroSection() {
           opacity: 0;
           animation: heroEditionIn 0.6s ease 1.2s forwards;
         }
+
+        /* ── Typewriter ──────────────────────────────────────────── */
+        @keyframes typing {
+          from { max-width: 0; }
+          to   { max-width: ${TYPEWRITER_CHARS + 1}ch; }
+        }
+        @keyframes blink-caret {
+          from, to { border-color: currentColor; }
+          50%      { border-color: transparent; }
+        }
+        @keyframes hide-caret {
+          to { border-color: transparent; }
+        }
+
+        .hero-typewriter {
+          display: inline-block;
+          max-width: 0;
+          overflow: hidden;
+          white-space: nowrap;
+          border-right: 2px solid currentColor;
+          animation:
+            typing ${TYPING_TOTAL_MS}ms steps(${TYPEWRITER_CHARS}, end) 0.4s forwards,
+            blink-caret 0.6s step-end 6,
+            hide-caret 0s ${GOLD_DELAY_MS + 200}ms forwards;
+        }
+
+        /* ── Gold words fade+slide after typewriter ──────────────── */
+        @keyframes goldReveal {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-gold-words {
+          opacity: 0;
+          display: inline-block;
+          animation: goldReveal 0.7s cubic-bezier(0.16,1,0.3,1) ${GOLD_DELAY_MS}ms forwards;
+        }
       `}</style>
 
-      <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-28 pb-20 lg:pt-0 lg:pb-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[80vh]">
+      <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 py-20 lg:py-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[92vh]">
 
-          {/* LEFT — Copy */}
-          <div className="order-2 lg:order-1">
+          {/* LEFT -- Copy */}
+          <div className="order-2 lg:order-1 flex flex-col justify-center">
+            {/* Pulse badge */}
             <div
-              className="hero-anim inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-6"
+              className="hero-anim inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-6 self-start"
               style={{ animationDelay: "0.1s" }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#e7ab1c] animate-pulse" />
@@ -122,20 +154,22 @@ export function HeroSection() {
               </span>
             </div>
 
+            {/* Headline with typewriter */}
             <h1
-              className="hero-anim-title leading-[0.95] tracking-[-0.03em] text-black"
+              className="leading-[0.95] tracking-[-0.03em] text-black"
               style={{
                 fontSize: "clamp(2.8rem, 5.5vw, 5rem)",
                 fontWeight: 700,
                 ...sfDisplay,
               }}
             >
-              Direct Access to{" "}
-              <span className="hero-anim-gold text-[#e7ab1c] inline-block">
+              <span className="hero-typewriter">Direct Access to&nbsp;</span>
+              <span className="hero-gold-words text-[#e7ab1c]">
                 Global Leaders
               </span>
             </h1>
 
+            {/* Subtext */}
             <p
               className="hero-anim mt-6 max-w-[440px] text-black/40 leading-[1.7] text-[16px]"
               style={{ animationDelay: "0.2s", ...sfText }}
@@ -144,23 +178,28 @@ export function HeroSection() {
               high-value conversations, strategic partnerships, and curated access.
             </p>
 
+            {/* CTAs with MagneticButton */}
             <div
               className="hero-anim mt-8 flex flex-wrap items-center gap-4"
               style={{ animationDelay: "0.35s" }}
             >
-              <Link
-                href="/events"
-                className="group inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[15px] text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
-              >
-                Explore Events
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-              <Link
-                href="/platforms"
-                className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[15px] font-medium text-black/50 border border-black/10 hover:border-black/20 hover:text-black/75 transition-all duration-200"
-              >
-                Join Inner Circle
-              </Link>
+              <MagneticButton>
+                <Link
+                  href="/events"
+                  className="group inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[15px] text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
+                >
+                  Explore Events
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+              </MagneticButton>
+              <MagneticButton>
+                <Link
+                  href="/platforms"
+                  className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[15px] font-medium text-black/50 border border-black/10 hover:border-black/20 hover:text-black/75 transition-all duration-200"
+                >
+                  Join Inner Circle
+                </Link>
+              </MagneticButton>
             </div>
 
             {/* Animated stats */}
@@ -179,7 +218,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* RIGHT — Real TLF event image */}
+          {/* RIGHT -- Real TLF event image */}
           <div className="hero-anim-scale order-1 lg:order-2 flex items-center justify-center">
             <div className="relative w-full max-w-[480px]">
               <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.10)]">

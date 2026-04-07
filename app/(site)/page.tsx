@@ -2,8 +2,13 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import dynamic from "next/dynamic"
 import { LogoMarquee } from "@/components/sections/LogoMarquee"
+import { TestimonialTicker } from "@/components/sections/TestimonialTicker"
 import { EcosystemGrid } from "@/components/sections/EcosystemGrid"
+import { NumbersReveal } from "@/components/sections/NumbersReveal"
+import { SpeakerMarquee } from "@/components/sections/SpeakerMarquee"
+import { GlobalPresence } from "@/components/sections/GlobalPresence"
 import { FeaturedEventCallout } from "@/components/sections/FeaturedEventCallout"
+import { PressBar } from "@/components/sections/PressBar"
 import { ExclusivityCTA } from "@/components/sections/ExclusivityCTA"
 
 const HeroSection = dynamic(
@@ -31,8 +36,13 @@ export default async function HomePage() {
     <main>
       <HeroSection />
       <LogoMarquee />
+      <TestimonialTicker />
       <EcosystemGrid />
+      <NumbersReveal />
+      <SpeakerMarquee />
       <FeaturedEventCallout event={featuredEvent} />
+      <GlobalPresence />
+      <PressBar />
       <ExclusivityCTA />
     </main>
   )
