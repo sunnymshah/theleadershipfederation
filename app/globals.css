@@ -98,4 +98,58 @@ body {
   animation: float 4s ease-in-out infinite;
 }
 
+/* ─── Testimonial ticker ────────────────────────────────────────────────── */
+@keyframes testimonial-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-testimonial-scroll {
+  animation: testimonial-scroll 45s linear infinite;
+}
+.animate-testimonial-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* ─── Speaker marquee ───────────────────────────────────────────────────── */
+@keyframes speaker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-speaker-scroll {
+  animation: speaker-scroll 30s linear infinite;
+}
+.animate-speaker-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* ─── Typewriter caret blink ────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+.animate-blink {
+  animation: blink 0.8s step-end infinite;
+}
+
+/* ─── Page transitions (View Transitions API) ───────────────────────────── */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: page-fade-out 0.2s ease-in forwards;
+}
+::view-transition-new(root) {
+  animation: page-fade-in 0.3s ease-out 0.1s both;
+}
+
+@keyframes page-fade-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.99); }
+}
+@keyframes page-fade-in {
+  from { opacity: 0; transform: scale(1.005); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* Content is always visible — no opacity gating */
