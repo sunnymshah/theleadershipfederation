@@ -244,26 +244,50 @@ export default async function AdminDashboard() {
   const totalCapacity = ticketBreakdown.reduce((s, t) => s + t.limit, 0)
   const soldPct = totalCapacity > 0 ? Math.round((totalSold / totalCapacity) * 100) : 0
 
-  // Fetch pending actions (waitlisted + pending payments) across all events
-  const { count: waitlistedCount } = await supabase
-    .from("attendees")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "waitlisted")
-
-  const { count: pendingPaymentCount } = await supabase
-    .from("attendees")
-    .select("id", { count: "exact", head: true })
-    .eq("payment_status", "pending")
-    .neq("status", "cancelled")
+  // Fetch all remaining data in parallel (waitlisted count is reused for both
+  // the pending-actions card and the registration donut chart)
+  const [
+    { count: waitlistedCount },
+    { count: pendingPaymentCount },
+    { data: recentRegistrations },
+    { count: registeredCount },
+    { count: checkedInCount },
+    { count: cancelledCount },
+    { data: allTickets },
+  ] = await Promise.all([
+    supabase
+      .from("attendees")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "waitlisted"),
+    supabase
+      .from("attendees")
+      .select("id", { count: "exact", head: true })
+      .eq("payment_status", "pending")
+      .neq("status", "cancelled"),
+    supabase
+      .from("attendees")
+      .select("id, name, email, status, registration_date, events(title), tickets(name)")
+      .order("registration_date", { ascending: false })
+      .limit(10),
+    supabase
+      .from("attendees")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "registered"),
+    supabase
+      .from("attendees")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "checked_in"),
+    supabase
+      .from("attendees")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "cancelled"),
+    supabase
+      .from("tickets")
+      .select("id, name, price_inr, sold, inventory_limit, event_id")
+      .order("price_inr", { ascending: false }),
+  ])
 
   const pendingActions = (waitlistedCount ?? 0) + (pendingPaymentCount ?? 0)
-
-  // Fetch recent 10 registrations
-  const { data: recentRegistrations } = await supabase
-    .from("attendees")
-    .select("id, name, email, status, registration_date, events(title), tickets(name)")
-    .order("registration_date", { ascending: false })
-    .limit(10)
 
   const recentList = (recentRegistrations ?? []).map((r: Record<string, unknown>) => ({
     id: r.id as string,
@@ -275,31 +299,10 @@ export default async function AdminDashboard() {
     tickets: Array.isArray(r.tickets) ? (r.tickets[0] ?? null) : r.tickets as { name: string } | null,
   }))
 
-  // Registration overview counts (across all events)
-  const { count: registeredCount } = await supabase
-    .from("attendees")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "registered")
-
-  const { count: checkedInCount } = await supabase
-    .from("attendees")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "checked_in")
-
-  const { count: allWaitlistedCount } = await supabase
-    .from("attendees")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "waitlisted")
-
-  const { count: cancelledCount } = await supabase
-    .from("attendees")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "cancelled")
-
   const donutData = [
     { label: "Registered", count: registeredCount ?? 0, color: "#3b82f6" },
     { label: "Checked In", count: checkedInCount ?? 0, color: "#10b981" },
-    { label: "Waitlisted", count: allWaitlistedCount ?? 0, color: "#f59e0b" },
+    { label: "Waitlisted", count: waitlistedCount ?? 0, color: "#f59e0b" },
     { label: "Cancelled", count: cancelledCount ?? 0, color: "#ef4444" },
   ]
   const donutTotal = donutData.reduce((s, d) => s + d.count, 0)
@@ -307,12 +310,6 @@ export default async function AdminDashboard() {
   // Revenue by day data
   const revenueByDay = eventStats?.revenueByDay ?? []
   const maxDayRevenue = Math.max(...revenueByDay.map((d) => d.revenue), 1)
-
-  // All ticket tiers (across all events for sales summary)
-  const { data: allTickets } = await supabase
-    .from("tickets")
-    .select("id, name, price_inr, sold, inventory_limit, event_id")
-    .order("price_inr", { ascending: false })
 
   const allTicketTiers = (allTickets ?? []) as Array<{
     id: string
