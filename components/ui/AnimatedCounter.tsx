@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useInView } from "framer-motion"
 
 export function AnimatedCounter({
   value,
@@ -15,31 +14,35 @@ export function AnimatedCounter({
   className?: string
 }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const isInView = useInView(ref, { once: true, margin: "-50px" })
   const [display, setDisplay] = useState(0)
+  const started = useRef(false)
 
   useEffect(() => {
-    if (!isInView) return
+    const el = ref.current
+    if (!el) return
 
-    let start = 0
-    const startTime = performance.now()
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true
+          observer.disconnect()
 
-    function step(now: number) {
-      const elapsed = now - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3)
-      const current = Math.round(eased * value)
-
-      setDisplay(current)
-
-      if (progress < 1) {
-        requestAnimationFrame(step)
-      }
-    }
-
-    requestAnimationFrame(step)
-  }, [isInView, value, duration])
+          const startTime = performance.now()
+          function step(now: number) {
+            const elapsed = now - startTime
+            const progress = Math.min(elapsed / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3)
+            setDisplay(Math.round(eased * value))
+            if (progress < 1) requestAnimationFrame(step)
+          }
+          requestAnimationFrame(step)
+        }
+      },
+      { rootMargin: "-50px" }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [value, duration])
 
   return (
     <span ref={ref} className={className}>

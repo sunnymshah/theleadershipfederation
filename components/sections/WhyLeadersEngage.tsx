@@ -1,7 +1,5 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { Shield, Network, Lightbulb, Target, Globe, Zap } from "lucide-react"
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
 
 const reasons = [
   {
@@ -36,23 +34,11 @@ const reasons = [
   },
 ]
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
-}
-
 export function WhyLeadersEngage() {
   return (
     <section className="py-24 lg:py-32 bg-[#F4F8FF]">
       <div className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          variants={fadeInUp}
-          className="text-center mb-16"
-        >
+        <AnimateOnScroll className="text-center mb-16">
           <span className="text-[11px] tracking-[0.2em] uppercase text-[#1a1a2e]/30 font-semibold">
             Why Leaders Engage
           </span>
@@ -60,19 +46,15 @@ export function WhyLeadersEngage() {
             Not Another Conference.{" "}
             <span className="text-[#1a1a2e]/40">A Leadership Ecosystem.</span>
           </h2>
-        </motion.div>
+        </AnimateOnScroll>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reasons.map((reason, i) => {
             const Icon = reason.icon
             return (
-              <motion.div
+              <AnimateOnScroll
                 key={reason.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                variants={fadeInUp}
+                delay={i * 80}
                 className="bg-white/60 border border-[#1a1a2e]/[0.04] rounded-2xl p-7 hover:bg-white/80 transition-all duration-300"
               >
                 <div className="w-11 h-11 rounded-xl bg-[#1a1a2e]/[0.04] flex items-center justify-center mb-5">
@@ -80,7 +62,7 @@ export function WhyLeadersEngage() {
                 </div>
                 <h3 className="text-[17px] font-bold text-[#1a1a2e] mb-2">{reason.title}</h3>
                 <p className="text-[14px] text-[#1a1a2e]/40 leading-[1.7]">{reason.description}</p>
-              </motion.div>
+              </AnimateOnScroll>
             )
           })}
         </div>

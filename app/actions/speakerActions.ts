@@ -161,6 +161,39 @@ export async function updateSpeaker(speakerId: string, formData: FormData) {
   }
 }
 
+export async function bulkCreateSpeakers(
+  eventId: string,
+  rows: { name: string; designation?: string; company?: string; bio?: string; image_url?: string }[]
+) {
+  try {
+    const { supabase } = await getAuthenticatedClient()
+    if (!eventId || !rows.length) return { success: false, error: "No data provided." }
+
+    const inserts = rows.map((r, i) => ({
+      event_id: eventId,
+      name: r.name.trim(),
+      designation: r.designation?.trim() || null,
+      company: r.company?.trim() || null,
+      bio: r.bio?.trim() || null,
+      image_url: r.image_url?.trim() || null,
+      sort_order: i,
+    })).filter(r => r.name)
+
+    if (!inserts.length) return { success: false, error: "No valid rows found." }
+
+    const { data, error } = await supabase
+      .from("speakers")
+      .insert(inserts)
+      .select()
+
+    if (error) return { success: false, error: error.message }
+    await invalidateCaches(supabase, eventId)
+    return { success: true, count: data.length }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
 export async function deleteSpeaker(speakerId: string) {
   try {
     const { supabase } = await getAuthenticatedClient()

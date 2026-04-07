@@ -10,8 +10,8 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { createClient } from "@/utils/supabase/client"
-import { createSpeaker, updateSpeaker, deleteSpeaker } from "@/app/actions/speakerActions"
-import { Plus, Pencil, Trash2, X, Loader2, Users, Search, Upload, ImageIcon } from "lucide-react"
+import { createSpeaker, updateSpeaker, deleteSpeaker, bulkCreateSpeakers } from "@/app/actions/speakerActions"
+import { Plus, Pencil, Trash2, X, Loader2, Users, Search, Upload, ImageIcon, FileSpreadsheet } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SpeakerRow {
@@ -40,7 +40,11 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [previewUrl, setPreviewUrl]   = useState<string | null>(null)
+  const [bulkOpen, setBulkOpen]       = useState(false)
+  const [bulkText, setBulkText]       = useState("")
+  const [bulkLoading, setBulkLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const csvInputRef  = useRef<HTMLInputElement>(null)
 
   const supabase = createClient()
 
@@ -103,6 +107,57 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
     }
   }
 
+  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setBulkText(ev.target?.result as string || "")
+      setBulkOpen(true)
+    }
+    reader.readAsText(file)
+    e.target.value = ""
+  }
+
+  async function handleBulkImport() {
+    setBulkLoading(true)
+    setActionError(null)
+    const lines = bulkText.split("\n").filter(l => l.trim())
+    if (lines.length === 0) { setBulkLoading(false); return }
+
+    // Auto-detect header row
+    const first = lines[0].toLowerCase()
+    const hasHeader = first.includes("name") || first.includes("designation") || first.includes("company")
+    const dataLines = hasHeader ? lines.slice(1) : lines
+
+    const rows = dataLines.map(line => {
+      const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ""))
+      return {
+        name: cols[0] || "",
+        designation: cols[1] || undefined,
+        company: cols[2] || undefined,
+        bio: cols[3] || undefined,
+        image_url: cols[4] || undefined,
+      }
+    }).filter(r => r.name)
+
+    if (!rows.length) {
+      setActionError("No valid rows found. Format: Name, Designation, Company, Bio, Image URL")
+      setBulkLoading(false)
+      return
+    }
+
+    const result = await bulkCreateSpeakers(eventId, rows)
+    if (result.success) {
+      setBulkOpen(false)
+      setBulkText("")
+      await fetchSpeakers()
+    } else {
+      setActionError(result.error ?? "Bulk import failed")
+    }
+    setBulkLoading(false)
+  }
+
   function openDrawer(speaker?: SpeakerRow) {
     setEditing(speaker ?? null)
     setDrawerOpen(true)
@@ -131,12 +186,21 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
             </div>
           )}
         </div>
-        <button
-          onClick={() => openDrawer()}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] transition-colors"
-        >
-          <Plus size={15} /> Add Speaker
-        </button>
+        <div className="flex items-center gap-2">
+          <input ref={csvInputRef} type="file" accept=".csv,.txt" onChange={handleCsvUpload} className="hidden" />
+          <button
+            onClick={() => setBulkOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#e0e0e0] text-[#666] text-sm font-medium hover:bg-[#fafafa] transition-colors"
+          >
+            <FileSpreadsheet size={15} /> Bulk Import
+          </button>
+          <button
+            onClick={() => openDrawer()}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+          >
+            <Plus size={15} /> Add Speaker
+          </button>
+        </div>
       </div>
 
       {/* Error */}
@@ -201,6 +265,57 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── Bulk Import Modal ─────────────────────────────────────────── */}
+      {bulkOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setBulkOpen(false); setBulkText("") }} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl border border-[#e0e0e0] z-50 shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-[#333]">Bulk Import Speakers</h3>
+              <button onClick={() => { setBulkOpen(false); setBulkText("") }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-[#666]">
+                Paste CSV data or upload a file. Format: <strong>Name, Designation, Company, Bio, Image URL</strong> (one speaker per line). Only Name is required.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => csvInputRef.current?.click()} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-xs text-[#666] hover:bg-[#fafafa] transition-colors">
+                  <Upload size={13} /> Upload CSV
+                </button>
+                <button
+                  onClick={() => setBulkText("Name, Designation, Company, Bio, Image URL\nJohn Doe, CEO, Acme Corp, Technology leader, https://example.com/photo.jpg")}
+                  className="px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-xs text-[#666] hover:bg-[#fafafa] transition-colors"
+                >
+                  Load Example
+                </button>
+              </div>
+              <textarea
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                rows={10}
+                className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] font-mono placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
+                placeholder="Name, Designation, Company, Bio, Image URL&#10;Dr. Priya Kapoor, CEO, TechVista, AI thought leader, https://...&#10;Raj Mehta, CTO, InnovateCo, Engineering visionary"
+              />
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-[#aaa]">
+                  {bulkText.split("\n").filter(l => l.trim()).length} line{bulkText.split("\n").filter(l => l.trim()).length !== 1 ? "s" : ""} detected
+                </p>
+                <div className="flex gap-2">
+                  <button onClick={() => { setBulkOpen(false); setBulkText("") }} className="px-4 py-2 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:bg-[#fafafa] transition-colors">Cancel</button>
+                  <button
+                    onClick={handleBulkImport}
+                    disabled={bulkLoading || !bulkText.trim()}
+                    className="px-5 py-2 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center gap-2"
+                  >
+                    {bulkLoading ? <><Loader2 size={14} className="animate-spin" /> Importing…</> : <>Import Speakers</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ── Slide-Out Drawer ─────────────────────────────────────────── */}
