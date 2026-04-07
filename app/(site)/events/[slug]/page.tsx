@@ -7,6 +7,7 @@ import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, Ex
 import { TicketPurchaseCard } from "@/components/site/TicketPurchaseCard"
 import { getGalleryImages } from "@/app/actions/galleryActions"
 import { getEvent } from "@/lib/get-event"
+import { SpeakerGrid } from "@/components/site/SpeakerGrid"
 
 export const revalidate = 300
 
@@ -425,57 +426,8 @@ export default async function EventDetailPage({ params }: Props) {
               </h2>
             </div>
 
-            {/* Speaker grid: 2 cols mobile, 3 tablet, 4 desktop */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-              {speakers.map((speaker) => (
-                <div key={speaker.id} className="text-center group">
-                  {/* Circular photo with gold ring on hover */}
-                  <div className="mx-auto mb-5 relative w-40 h-40">
-                    {speaker.image_url ? (
-                      <Image
-                        src={speaker.image_url}
-                        alt={speaker.name}
-                        width={160}
-                        height={160}
-                        className="w-40 h-40 rounded-full object-cover mx-auto ring-[3px] ring-white/[0.06] group-hover:ring-[#c9a84c]/50 transition-all duration-500 group-hover:scale-105"
-                        style={{ boxShadow: "0 0 0 0 rgba(201,168,76,0)" }}
-                      />
-                    ) : (
-                      <div
-                        className="w-40 h-40 rounded-full mx-auto flex items-center justify-center ring-[3px] ring-white/[0.06] group-hover:ring-[#c9a84c]/50 transition-all duration-500 group-hover:scale-105"
-                        style={{
-                          background: "linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 100%)",
-                        }}
-                      >
-                        <span className="text-3xl font-bold text-[#c9a84c]/70">
-                          {speaker.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                        </span>
-                      </div>
-                    )}
-                    {/* Gold glow on hover */}
-                    <div
-                      className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                      style={{ boxShadow: "0 0 30px rgba(201,168,76,0.15)" }}
-                    />
-                  </div>
-
-                  {/* Name */}
-                  <h3 className="text-base font-semibold text-white mb-1">{speaker.name}</h3>
-                  {/* Designation + Company */}
-                  {(speaker.designation || speaker.company) && (
-                    <p className="text-sm text-white/35">
-                      {speaker.designation}{speaker.designation && speaker.company ? ", " : ""}{speaker.company}
-                    </p>
-                  )}
-                  {/* Bio */}
-                  {speaker.bio && (
-                    <p className="text-xs text-white/20 mt-3 max-w-[200px] mx-auto leading-relaxed line-clamp-3">
-                      {speaker.bio}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            {/* Speaker grid — smart layout for any count */}
+            <SpeakerGrid speakers={speakers} />
           </div>
         </section>
       )}

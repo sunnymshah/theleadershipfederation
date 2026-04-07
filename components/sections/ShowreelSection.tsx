@@ -1,39 +1,21 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { Play } from "lucide-react"
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
-}
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
 
 export function ShowreelSection() {
   return (
     <section className="py-24 lg:py-32 bg-[#F4F8FF]">
       <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          variants={fadeInUp}
-          className="text-center mb-12"
-        >
+        <AnimateOnScroll className="text-center mb-12">
           <span className="text-[11px] tracking-[0.2em] uppercase text-[#1a1a2e]/30 font-semibold">
             Showreel
           </span>
           <h2 className="mt-4 font-serif text-[clamp(2rem,4.5vw,3rem)] leading-[1.1] text-[#1a1a2e]">
             See the Impact
           </h2>
-        </motion.div>
+        </AnimateOnScroll>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          variants={fadeInUp}
+        <AnimateOnScroll
+          delay={100}
           className="relative aspect-video rounded-3xl overflow-hidden bg-[#1a1a2e] shadow-[0_24px_60px_rgba(26,26,46,0.12)]"
         >
           <img
@@ -51,7 +33,7 @@ export function ShowreelSection() {
               Watch our 2025 highlights
             </p>
           </div>
-        </motion.div>
+        </AnimateOnScroll>
       </div>
     </section>
   )

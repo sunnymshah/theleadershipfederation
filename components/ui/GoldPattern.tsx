@@ -1,4 +1,3 @@
-"use client"
 
 /**
  * Topography pattern from heropatterns.com in LF gold (#e7ab1c).

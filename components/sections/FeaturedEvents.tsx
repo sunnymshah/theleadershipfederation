@@ -1,8 +1,6 @@
-"use client"
-
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { Calendar, MapPin, ArrowRight } from "lucide-react"
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
 
 interface EventCard {
   id: string
@@ -19,45 +17,26 @@ interface FeaturedEventsProps {
   events: EventCard[]
 }
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
-}
-
 export function FeaturedEvents({ events }: FeaturedEventsProps) {
   if (!events?.length) return null
 
   return (
     <section className="py-24 lg:py-32 bg-[#F4F8FF]">
       <div className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          variants={fadeInUp}
-          className="text-center mb-16"
-        >
+        <AnimateOnScroll className="text-center mb-16">
           <span className="text-[11px] tracking-[0.2em] uppercase text-[#1a1a2e]/30 font-semibold">
             Upcoming Events
           </span>
           <h2 className="mt-4 font-serif text-[clamp(2rem,4.5vw,3rem)] leading-[1.1] text-[#1a1a2e]">
             What&apos;s Next
           </h2>
-        </motion.div>
+        </AnimateOnScroll>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.slice(0, 3).map((event, i) => {
             const date = new Date(event.start_date)
             return (
-              <motion.div
-                key={event.id}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                variants={fadeInUp}
-              >
+              <AnimateOnScroll key={event.id} delay={i * 100}>
                 <Link
                   href={`/events/${event.slug}`}
                   className="group block bg-white/70 border border-[#1a1a2e]/[0.04] rounded-2xl p-7 hover:bg-white hover:shadow-[0_12px_40px_rgba(26,26,46,0.06)] transition-all duration-300 h-full"
@@ -105,7 +84,7 @@ export function FeaturedEvents({ events }: FeaturedEventsProps) {
                     <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform duration-200" />
                   </span>
                 </Link>
-              </motion.div>
+              </AnimateOnScroll>
             )
           })}
         </div>
