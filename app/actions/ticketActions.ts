@@ -41,7 +41,7 @@ export async function createTicket(formData: FormData) {
     const description    = formData.get("description") as string
     const priceInr       = parseInt(formData.get("priceInr") as string) || 0
     const inventoryLimit = parseInt(formData.get("inventoryLimit") as string) || 0
-    const status         = (formData.get("status") as string) || "draft"
+    const status         = (formData.get("status") as string) || "published"
 
     if (!eventId || !name) {
       return { success: false, error: "Event and ticket name are required." }
@@ -76,7 +76,7 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     const description    = formData.get("description") as string
     const priceInr       = parseInt(formData.get("priceInr") as string) || 0
     const inventoryLimit = parseInt(formData.get("inventoryLimit") as string) || 0
-    const status         = (formData.get("status") as string) || "draft"
+    const status         = (formData.get("status") as string) || "published"
 
     if (!name) return { success: false, error: "Ticket name is required." }
 

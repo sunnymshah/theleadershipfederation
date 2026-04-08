@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from "lucide-react"
 
-export const revalidate = 1800
+export const revalidate = 60
 
 export const metadata = {
   title: "Events | The Leadership Federation",
@@ -51,7 +51,7 @@ export default async function EventsPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, speakers(id), ticket_tiers(id)"
+      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, speakers(id), tickets(id)"
     )
     .eq("status", "published")
     .order("start_date", { ascending: true })
@@ -101,8 +101,8 @@ export default async function EventsPage() {
               const speakerCount = Array.isArray(event.speakers)
                 ? event.speakers.length
                 : 0
-              const tierCount = Array.isArray(event.ticket_tiers)
-                ? event.ticket_tiers.length
+              const ticketCount = Array.isArray(event.tickets)
+                ? event.tickets.length
                 : 0
 
               return (
@@ -176,14 +176,14 @@ export default async function EventsPage() {
                               {speakerCount !== 1 ? "s" : ""}
                             </span>
                           )}
-                          {tierCount > 0 && (
+                          {ticketCount > 0 && (
                             <span className="flex items-center gap-1.5">
                               <Ticket
                                 size={12}
                                 className="text-[#e7ab1c]/50"
                               />
-                              {tierCount} Ticket Tier
-                              {tierCount !== 1 ? "s" : ""}
+                              {ticketCount} Ticket Type
+                              {ticketCount !== 1 ? "s" : ""}
                             </span>
                           )}
                         </div>

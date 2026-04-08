@@ -14,21 +14,36 @@ const HeroSection = dynamic(
   { ssr: true }
 )
 
-export const revalidate = 3600
+export const revalidate = 60
 
 export default async function HomePage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
+  // Fetch nearest upcoming published event for the featured callout
   const { data: dbEvents } = await supabase
     .from("events")
     .select("id, title, slug, start_date, end_date, venue, description")
     .eq("status", "published")
-    .eq("featured_on_homepage", true)
+    .gte("start_date", new Date().toISOString())
     .order("start_date", { ascending: true })
     .limit(1)
 
   const featuredEvent = dbEvents?.[0] ?? undefined
+
+  // Fetch all speakers for the marquee
+  const { data: dbSpeakers } = await supabase
+    .from("speakers")
+    .select("id, name, designation, company, image_url")
+    .order("sort_order")
+    .limit(40)
+
+  const speakers = (dbSpeakers ?? []).map((s: { id: string; name: string; designation: string | null; company: string | null; image_url: string | null }) => ({
+    name: s.name,
+    role: [s.designation, s.company].filter(Boolean).join(", ") || "Speaker",
+    initials: s.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
+    imageUrl: s.image_url,
+  }))
 
   return (
     <main>
@@ -51,7 +66,7 @@ export default async function HomePage() {
       <FeaturedEventCallout event={featuredEvent} />
 
       {/* Speaker network — dark, two-row marquee */}
-      <SpeakerMarquee />
+      <SpeakerMarquee speakers={speakers} />
 
       {/* CTA + press logos — light, closing section */}
       <ExclusivityCTA />
