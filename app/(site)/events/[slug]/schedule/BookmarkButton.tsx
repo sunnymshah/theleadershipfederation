@@ -129,7 +129,7 @@ export function BookmarkButton({ sessionId, sessionTitle }: Props) {
 
   if (bookmarked) {
     return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
         <BookmarkCheck size={14} />
         Added to Agenda
       </div>
@@ -151,7 +151,7 @@ export function BookmarkButton({ sessionId, sessionTitle }: Props) {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleBookmark()
             }}
-            className="px-3 py-1.5 text-xs bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-[#1a1a2e] placeholder:text-[#1a1a2e]/25 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-1 focus:ring-[#c9a84c]/20 transition-all w-48"
+            className="px-3 py-1.5 text-xs bg-white/[0.04] border border-white/10 rounded-lg text-white placeholder:text-white/25 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-1 focus:ring-[#c9a84c]/20 transition-all w-48"
           />
         )}
         <button

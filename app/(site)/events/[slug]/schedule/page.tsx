@@ -71,11 +71,11 @@ interface Speaker {
 
 const sessionTypeColors: Record<string, string> = {
   keynote: "bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/20",
-  session: "bg-blue-100 text-blue-700 border-blue-200",
-  panel: "bg-purple-100 text-purple-700 border-purple-200",
-  workshop: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  break: "bg-zinc-100 text-zinc-500 border-zinc-200",
-  networking: "bg-orange-100 text-orange-700 border-orange-200",
+  session: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  panel: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  workshop: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  break: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  networking: "bg-orange-500/10 text-orange-400 border-orange-500/20",
 }
 
 /* ── Page Component ───────────────────────────────────────────────── */
@@ -166,13 +166,13 @@ export default async function SchedulePage({ params }: Props) {
   })
 
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen bg-[#050505]">
       {/* Hero */}
       <section className="pt-36 pb-12 px-6">
         <div className="max-w-5xl mx-auto">
           <Link
             href={`/events/${slug}`}
-            className="inline-flex items-center gap-2 text-sm text-[#1a1a2e]/40 hover:text-[#1a1a2e]/70 transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-sm text-white/25 hover:text-[#c9a84c] transition-colors mb-6"
           >
             <ArrowLeft size={16} />
             Back to Event
@@ -182,10 +182,10 @@ export default async function SchedulePage({ params }: Props) {
             <span className="inline-block text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em] mb-4">
               Event Schedule
             </span>
-            <h1 className="text-[#1a1a2e] leading-[1.08] font-bold mb-3 text-3xl md:text-5xl">
+            <h1 className="text-white leading-[1.08] font-bold mb-3 text-3xl md:text-5xl">
               {event.title}
             </h1>
-            <div className="flex items-center justify-center gap-4 text-sm text-[#1a1a2e]/50">
+            <div className="flex items-center justify-center gap-4 text-sm text-white/40">
               {event.venue && (
                 <span className="flex items-center gap-1.5">
                   <MapPin size={14} className="text-[#c9a84c]" />
@@ -207,14 +207,14 @@ export default async function SchedulePage({ params }: Props) {
       <section className="pb-32 px-6">
         <div className="max-w-5xl mx-auto">
           {sessions.length === 0 ? (
-            <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-10 text-center">
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-10 text-center">
               <div className="w-14 h-14 rounded-full bg-[#c9a84c]/10 flex items-center justify-center mx-auto mb-4">
                 <Calendar size={24} className="text-[#c9a84c]" />
               </div>
-              <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">
+              <h3 className="text-lg font-bold text-white mb-2">
                 Schedule Coming Soon
               </h3>
-              <p className="text-sm text-[#1a1a2e]/40 max-w-sm mx-auto">
+              <p className="text-sm text-white/40 max-w-sm mx-auto">
                 The session schedule for this event has not been published yet.
                 Check back soon!
               </p>
@@ -243,10 +243,10 @@ export default async function SchedulePage({ params }: Props) {
                           </span>
                         </div>
                         <div>
-                          <h2 className="text-lg font-semibold text-[#1a1a2e]">
+                          <h2 className="text-lg font-semibold text-white">
                             Day {dayIndex + 1}
                           </h2>
-                          <p className="text-sm text-[#1a1a2e]/40">
+                          <p className="text-sm text-white/30">
                             {fmtDate(date)}
                           </p>
                         </div>
@@ -263,7 +263,7 @@ export default async function SchedulePage({ params }: Props) {
                               {/* Time label */}
                               <div className="flex items-start gap-4">
                                 <div className="shrink-0 w-20 pt-5 text-right">
-                                  <span className="text-xs font-mono font-medium text-[#1a1a2e]/40">
+                                  <span className="text-xs font-mono font-medium text-white/30">
                                     {fmtTime(slotTime)}
                                   </span>
                                 </div>
@@ -283,13 +283,13 @@ export default async function SchedulePage({ params }: Props) {
                                       sessionTypeColors[
                                         session.session_type ?? ""
                                       ] ??
-                                      "bg-[#1a1a2e]/5 text-[#1a1a2e]/40 border-[#1a1a2e]/10"
+                                      "bg-white/5 text-white/40 border-white/10"
 
                                     return (
                                       <div
                                         key={session.id}
                                         data-track={session.track ?? ""}
-                                        className="schedule-session rounded-xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-5 hover:border-[#c9a84c]/20 hover:shadow-md transition-all"
+                                        className="schedule-session rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 hover:border-[#c9a84c]/20 hover:bg-white/[0.04] transition-all"
                                       >
                                         {/* Badges */}
                                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -306,33 +306,33 @@ export default async function SchedulePage({ params }: Props) {
                                             </span>
                                           )}
                                           {session.room && (
-                                            <span className="text-[10px] text-[#1a1a2e]/30 px-2 py-0.5 rounded bg-[#1a1a2e]/[0.03]">
+                                            <span className="text-[10px] text-white/25 px-2 py-0.5 rounded bg-white/[0.04]">
                                               {session.room}
                                             </span>
                                           )}
                                         </div>
 
                                         {/* Title */}
-                                        <h3 className="font-medium text-[#1a1a2e] text-sm leading-snug mb-1">
+                                        <h3 className="font-medium text-white text-sm leading-snug mb-1">
                                           {session.title}
                                         </h3>
 
                                         {/* Time range */}
-                                        <p className="text-xs font-mono text-[#1a1a2e]/35 mb-2">
+                                        <p className="text-xs font-mono text-white/30 mb-2">
                                           {fmtTime(session.start_time)} &mdash;{" "}
                                           {fmtTime(session.end_time)}
                                         </p>
 
                                         {/* Description preview */}
                                         {session.description && (
-                                          <p className="text-xs text-[#1a1a2e]/40 line-clamp-2 leading-relaxed mb-3">
+                                          <p className="text-xs text-white/35 line-clamp-2 leading-relaxed mb-3">
                                             {session.description}
                                           </p>
                                         )}
 
                                         {/* Speaker names */}
                                         {speakerNames.length > 0 && (
-                                          <p className="text-xs text-[#1a1a2e]/50 mb-3">
+                                          <p className="text-xs text-white/50 mb-3">
                                             <span className="font-medium">
                                               {speakerNames.join(", ")}
                                             </span>

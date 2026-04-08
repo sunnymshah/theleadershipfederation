@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Calendar, MapPin, Users } from "lucide-react"
+import { ArrowRight, Calendar, MapPin } from "lucide-react"
 import { MagneticButton } from "@/components/ui/MagneticButton"
 
 const sfDisplay = {
@@ -16,29 +16,34 @@ const sfText = {
 interface FeaturedEventCalloutProps {
   event?: {
     title: string
+    slug: string
     start_date: string
     end_date: string
-    venue: string
-    description: string
+    venue: string | null
+    description: string | null
   }
 }
 
-const highlights = [
-  "AI & Digital Transformation",
-  "Cross-Border Leadership",
-  "Innovation Awards",
-  "Talent-First Operations",
-]
+function fmtDateRange(start: string, end: string): string {
+  const s = new Date(start)
+  const e = new Date(end)
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }
+  if (s.toDateString() === e.toDateString()) return s.toLocaleDateString("en-US", { ...opts, year: "numeric" })
+  const sMonth = s.toLocaleDateString("en-US", { month: "short" })
+  const eMonth = e.toLocaleDateString("en-US", { month: "short" })
+  if (sMonth === eMonth) return `${sMonth} ${s.getDate()}-${e.getDate()}, ${s.getFullYear()}`
+  return `${s.toLocaleDateString("en-US", opts)} - ${e.toLocaleDateString("en-US", opts)}, ${s.getFullYear()}`
+}
+
+function getDaysUntil(targetDate: string): number | null {
+  const diff = new Date(targetDate).getTime() - Date.now()
+  if (diff <= 0) return null
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
 
 export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
-  const e = event ?? {
-    title: "7th GCC Leadership Conclave",
-    start_date: "2026-05-21",
-    end_date: "2026-05-22",
-    venue: "Mumbai, India",
-    description:
-      "700+ CXOs, innovators, and policymakers converge for two days of strategic dialogue, partnership building, and cross-border leadership.",
-  }
+  if (!event) return null
+  const e = event
 
   const ref = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
@@ -108,16 +113,14 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-white/40 text-[14px]" style={sfText}>
               <span className="inline-flex items-center gap-2">
                 <Calendar size={14} strokeWidth={1.5} className="text-[#e7ab1c]/60" />
-                May 21-22, 2026
+                {fmtDateRange(e.start_date, e.end_date)}
               </span>
-              <span className="inline-flex items-center gap-2">
-                <MapPin size={14} strokeWidth={1.5} className="text-[#e7ab1c]/60" />
-                Mumbai, India
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <Users size={14} strokeWidth={1.5} className="text-[#e7ab1c]/60" />
-                700+ CXOs
-              </span>
+              {e.venue && (
+                <span className="inline-flex items-center gap-2">
+                  <MapPin size={14} strokeWidth={1.5} className="text-[#e7ab1c]/60" />
+                  {e.venue}
+                </span>
+              )}
             </div>
 
             <p className="mt-6 text-white/30 text-[15px] leading-[1.7] max-w-md" style={sfText}>
@@ -127,10 +130,10 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             <div className="mt-8">
               <MagneticButton>
                 <Link
-                  href="/events"
+                  href={`/events/${e.slug}`}
                   className="group inline-flex items-center gap-2 px-8 py-[14px] rounded-full font-semibold text-[14px] text-black bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] shadow-[0_4px_24px_rgba(231,171,28,0.3)]"
                 >
-                  Register Now
+                  View Event
                   <ArrowRight
                     size={15}
                     className="group-hover:translate-x-1 transition-transform duration-200"
@@ -149,50 +152,32 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               transition: "all 0.9s cubic-bezier(0.16,1,0.3,1) 0.2s",
             }}
           >
-            {/* Edition badge */}
-            <div className="bg-white/[0.06] backdrop-blur-xl rounded-2xl px-8 py-6 border border-white/[0.08]">
-              <div className="text-center">
-                <div className="text-[48px] font-bold text-[#e7ab1c] leading-none" style={sfDisplay}>
-                  7th
+            {/* Countdown badge */}
+            {(() => {
+              const days = getDaysUntil(e.start_date)
+              if (days === null) return null
+              return (
+                <div className="bg-white/[0.06] backdrop-blur-xl rounded-2xl px-8 py-6 border border-white/[0.08]">
+                  <div className="text-center">
+                    <div className="text-[48px] font-bold text-[#e7ab1c] leading-none tabular-nums" style={sfDisplay}>
+                      {days}
+                    </div>
+                    <div className="text-[11px] text-white/30 uppercase tracking-[0.15em] font-semibold mt-1" style={sfText}>
+                      Days to Go
+                    </div>
+                  </div>
                 </div>
-                <div className="text-[11px] text-white/30 uppercase tracking-[0.15em] font-semibold mt-1" style={sfText}>
-                  Edition
-                </div>
+              )
+            })()}
+
+            {/* Event description snippet */}
+            {e.description && (
+              <div className="bg-white/[0.04] backdrop-blur-xl rounded-xl px-5 py-4 border border-white/[0.06] max-w-xs">
+                <p className="text-[13px] text-white/40 leading-relaxed line-clamp-3" style={sfText}>
+                  {e.description}
+                </p>
               </div>
-            </div>
-
-            {/* Highlight tags */}
-            <div className="flex flex-wrap gap-2.5 lg:justify-end">
-              {highlights.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-4 py-2 rounded-full text-[12px] font-medium text-white/50 border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm"
-                  style={sfText}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            {/* Stat cards */}
-            <div className="flex gap-3">
-              {[
-                { num: "30+", label: "Countries" },
-                { num: "2000+", label: "Leaders" },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="bg-white/[0.04] backdrop-blur-xl rounded-xl px-5 py-3.5 border border-white/[0.06]"
-                >
-                  <div className="text-[20px] font-bold text-white/80 leading-none" style={sfDisplay}>
-                    {s.num}
-                  </div>
-                  <div className="text-[9px] text-white/25 uppercase tracking-wider font-semibold mt-1" style={sfText}>
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </div>
+            )}
           </div>
         </div>
       </div>
