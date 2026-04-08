@@ -9,46 +9,28 @@ const sfText = {
   fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
 }
 
-const testimonials = [
-  {
-    quote: "The most impactful 48 hours of my professional year. Every conversation leads to something real.",
-    author: "Vikram Rao",
-    role: "CTO",
-    company: "Reliance Jio",
-  },
-  {
-    quote: "Connections here turned into three major partnerships within a month. The curation is extraordinary.",
-    author: "Priya Nair",
-    role: "VP Strategy",
-    company: "HCLTech",
-  },
-  {
-    quote: "Not a conference. A boardroom with 700 of the world's sharpest minds under one roof.",
-    author: "Ahmad Al-Rashid",
-    role: "CEO",
-    company: "Gulf Ventures",
-  },
-  {
-    quote: "Every edition raises the bar. I've attended all seven — each one outdoes the last.",
-    author: "Sunita Kapoor",
-    role: "CHRO",
-    company: "Axis Bank",
-  },
-  {
-    quote: "This is where real decisions happen, not just discussions. The access is unmatched anywhere.",
-    author: "David Chen",
-    role: "Managing Director",
-    company: "Barclays Asia",
-  },
-  {
-    quote: "From Bengaluru to Dubai — TLF's network is genuinely global. The scale is remarkable.",
-    author: "Mei Lin Tan",
-    role: "COO",
-    company: "TechBridge SG",
-  },
+interface Testimonial {
+  quote: string
+  author: string
+  role: string
+  company: string
+}
+
+interface TestimonialTickerProps {
+  testimonials?: Testimonial[]
+}
+
+const defaultTestimonials: Testimonial[] = [
+  { quote: "The most impactful 48 hours of my professional year. Every conversation leads to something real.", author: "Vikram Rao", role: "CTO", company: "Reliance Jio" },
+  { quote: "Connections here turned into three major partnerships within a month. The curation is extraordinary.", author: "Priya Nair", role: "VP Strategy", company: "HCLTech" },
+  { quote: "Not a conference. A boardroom with 700 of the world's sharpest minds under one roof.", author: "Ahmad Al-Rashid", role: "CEO", company: "Gulf Ventures" },
+  { quote: "Every edition raises the bar. I've attended all seven — each one outdoes the last.", author: "Sunita Kapoor", role: "CHRO", company: "Axis Bank" },
+  { quote: "This is where real decisions happen, not just discussions. The access is unmatched anywhere.", author: "David Chen", role: "Managing Director", company: "Barclays Asia" },
+  { quote: "From Bengaluru to Dubai — TLF's network is genuinely global. The scale is remarkable.", author: "Mei Lin Tan", role: "COO", company: "TechBridge SG" },
 ]
 
-export function TestimonialTicker() {
+export function TestimonialTicker({ testimonials: propTestimonials }: TestimonialTickerProps) {
+  const testimonials = propTestimonials && propTestimonials.length > 0 ? propTestimonials : defaultTestimonials
   const sectionRef = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
