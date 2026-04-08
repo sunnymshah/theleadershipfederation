@@ -1,19 +1,23 @@
 "use client"
 
+import { useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { CalendarDays, Crown, Mic2, ArrowRight } from "lucide-react"
-import { DotGrid, GoldStarburst } from "@/components/ui/GoldPattern"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
+}
+const sfText = {
+  fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
 }
 
 const pillars = [
   {
     icon: CalendarDays,
     title: "Global Conclaves & Summits",
-    description: "GCC Leadership Conclave, Asia Leadership Awards, and Bharat Leadership Summit — flagship events across 30+ countries.",
+    description:
+      "GCC Leadership Conclave, Asia Leadership Awards, and Bharat Leadership Summit — flagship events connecting decision-makers across 30+ countries.",
     href: "/events",
     stat: "50+",
     statLabel: "Events",
@@ -22,7 +26,8 @@ const pillars = [
   {
     icon: Crown,
     title: "The Inner Circle",
-    description: "Invite-only membership for senior leaders. Private roundtables, curated access, and strategic dialogue.",
+    description:
+      "Invite-only membership for senior leaders. Private roundtables, curated access, and strategic dialogue.",
     href: "/platforms",
     stat: "500+",
     statLabel: "Members",
@@ -31,7 +36,8 @@ const pillars = [
   {
     icon: Mic2,
     title: "The Sunny Shah Show",
-    description: "Podcasts and media spotlights amplifying voices shaping global business. C-suite conversations that move industries.",
+    description:
+      "Podcasts and media spotlights amplifying voices shaping global business. C-suite conversations that move industries.",
     href: "/media",
     stat: "60+",
     statLabel: "Episodes",
@@ -40,65 +46,154 @@ const pillars = [
 ]
 
 export function EcosystemGrid() {
-  return (
-    <section className="relative py-20 lg:py-28 bg-[#F4F8FF] overflow-hidden">
-      <DotGrid className="opacity-40" />
-      <GoldStarburst />
+  const ref = useRef<HTMLElement>(null)
+  const [visible, setVisible] = useState(false)
 
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section ref={ref} className="relative py-24 lg:py-32 bg-[#F4F8FF] overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-        <div className="text-center mb-14">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-5">
-            <span className="text-[11px] font-semibold text-[#e7ab1c] tracking-[0.1em] uppercase">Three Pillars</span>
+        {/* Section header */}
+        <div
+          className="text-center mb-16"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transition: "all 0.8s cubic-bezier(0.16,1,0.3,1)",
+          }}
+        >
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c]/60 font-semibold">
+            Three Pillars
           </span>
           <h2
-            className="text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-black font-bold tracking-[-0.02em]"
+            className="mt-3 text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-black font-bold tracking-[-0.02em]"
             style={sfDisplay}
           >
             The Ecosystem
           </h2>
-          <p className="mt-3 text-black/35 text-[15px]">One mission. Global impact.</p>
+          <p className="mt-3 text-black/30 text-[15px]" style={sfText}>
+            One mission. Global impact.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {pillars.map((p, i) => {
-            const Icon = p.icon
-            return (
-              <div key={p.title}>
+        {/* Bento grid — first card large, two stacked beside it */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Featured card — tall */}
+          <Link
+            href={pillars[0].href}
+            className="group relative block rounded-3xl overflow-hidden bg-black min-h-[420px] lg:min-h-[480px]"
+            style={{
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0) scale(1)" : "translateY(30px) scale(0.98)",
+              transition: "all 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s",
+            }}
+          >
+            <Image
+              src={pillars[0].image}
+              alt={pillars[0].title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+            {/* Stat badge */}
+            <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-xl rounded-xl px-4 py-2.5 border border-white/[0.08]">
+              <div className="text-[22px] font-bold text-white leading-none" style={sfDisplay}>
+                {pillars[0].stat}
+              </div>
+              <div className="text-[9px] text-white/50 uppercase tracking-wider font-semibold mt-0.5" style={sfText}>
+                {pillars[0].statLabel}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="absolute bottom-0 left-0 right-0 p-7 lg:p-9">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/20 backdrop-blur-sm flex items-center justify-center">
+                  <CalendarDays size={20} strokeWidth={1.5} className="text-[#e7ab1c]" />
+                </div>
+                <h3 className="text-[20px] lg:text-[22px] font-bold text-white" style={sfDisplay}>
+                  {pillars[0].title}
+                </h3>
+              </div>
+              <p className="text-[14px] text-white/45 leading-[1.7] max-w-sm mb-5" style={sfText}>
+                {pillars[0].description}
+              </p>
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">
+                Explore Events <ArrowRight size={13} />
+              </span>
+            </div>
+          </Link>
+
+          {/* Right column — two stacked cards */}
+          <div className="flex flex-col gap-5">
+            {pillars.slice(1).map((p, i) => {
+              const Icon = p.icon
+              return (
                 <Link
+                  key={p.title}
                   href={p.href}
-                  className="group block bg-white/70 border border-black/[0.04] rounded-2xl overflow-hidden h-full hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] hover:border-[#e7ab1c]/20 transition-all duration-300 relative"
+                  className="group relative block rounded-3xl overflow-hidden bg-black flex-1 min-h-[220px]"
+                  style={{
+                    opacity: visible ? 1 : 0,
+                    transform: visible ? "translateY(0) scale(1)" : "translateY(30px) scale(0.98)",
+                    transition: `all 0.8s cubic-bezier(0.16,1,0.3,1) ${(i + 1) * 0.15 + 0.1}s`,
+                  }}
                 >
-                  {/* Card image */}
-                  <div className="relative h-36 overflow-hidden">
-                    <Image
-                      src={p.image}
-                      alt={p.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/20 to-transparent" />
-                    <div className="absolute top-3 right-3 text-right">
-                      <div className="text-[18px] font-bold text-white leading-none drop-shadow-md">{p.stat}</div>
-                      <div className="text-[9px] text-white/80 uppercase tracking-wider font-medium drop-shadow-md">{p.statLabel}</div>
+                  <Image
+                    src={p.image}
+                    alt={p.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+
+                  {/* Stat badge */}
+                  <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-xl rounded-lg px-3 py-2 border border-white/[0.08]">
+                    <div className="text-[18px] font-bold text-white leading-none" style={sfDisplay}>
+                      {p.stat}
+                    </div>
+                    <div className="text-[8px] text-white/50 uppercase tracking-wider font-semibold mt-0.5" style={sfText}>
+                      {p.statLabel}
                     </div>
                   </div>
 
-                  <div className="p-6 pt-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center group-hover:bg-[#e7ab1c]/15 transition-colors duration-300">
-                        <Icon size={18} strokeWidth={1.5} className="text-[#e7ab1c]" />
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#e7ab1c]/20 backdrop-blur-sm flex items-center justify-center">
+                        <Icon size={16} strokeWidth={1.5} className="text-[#e7ab1c]" />
                       </div>
-                      <h3 className="text-[16px] font-bold text-black">{p.title}</h3>
+                      <h3 className="text-[17px] font-bold text-white" style={sfDisplay}>
+                        {p.title}
+                      </h3>
                     </div>
-                    <p className="text-[13px] text-black/35 leading-[1.7] mb-4">{p.description}</p>
-                    <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">
-                      Learn more <ArrowRight size={13} />
+                    <p className="text-[13px] text-white/40 leading-[1.6] max-w-xs mb-3" style={sfText}>
+                      {p.description}
+                    </p>
+                    <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">
+                      Learn more <ArrowRight size={12} />
                     </span>
                   </div>
                 </Link>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       </div>
     </section>

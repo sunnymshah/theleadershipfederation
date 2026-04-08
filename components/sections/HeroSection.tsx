@@ -21,10 +21,8 @@ const stats = [
   { value: 2000, suffix: "+", label: "Leaders" },
 ]
 
-/* The typewriter text (excluding "Global Leaders" which fades in after) */
 const TYPEWRITER_TEXT = "Direct Access to "
 const TYPEWRITER_CHARS = TYPEWRITER_TEXT.length
-/* Timing: each char takes ~70ms, total typing ~1.26s, then 0.3s pause before gold words */
 const CHAR_DURATION_MS = 70
 const TYPING_TOTAL_MS = TYPEWRITER_CHARS * CHAR_DURATION_MS
 const GOLD_DELAY_MS = TYPING_TOTAL_MS + 300
@@ -54,25 +52,27 @@ export function HeroSection() {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  const imageY = imageOffset * 80
-  const imageScale = 1 + imageOffset * 0.06
+  const imageY = imageOffset * 60
+  const imageScale = 1 + imageOffset * 0.04
 
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[92vh] flex items-center overflow-hidden bg-[#F4F8FF]"
+      className="relative overflow-hidden bg-[#F4F8FF]"
     >
-      <GoldChevrons />
-      <GoldOrbs />
+      {/* Background patterns — behind everything */}
+      <div className="absolute inset-0 z-0">
+        <GoldChevrons />
+        <GoldOrbs />
+      </div>
 
       <style jsx>{`
-        /* ── Existing entrance animations ─────────────────────────── */
         @keyframes heroFadeIn {
-          from { opacity: 0; transform: translateY(20px); }
+          from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes heroScaleIn {
-          from { opacity: 0; transform: scale(0.92); }
+          from { opacity: 0; transform: scale(0.94); }
           to   { opacity: 1; transform: scale(1); }
         }
         @keyframes heroBadgeIn {
@@ -80,17 +80,16 @@ export function HeroSection() {
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes heroEditionIn {
-          from { opacity: 0; transform: scale(0.8); }
-          to   { opacity: 1; transform: scale(1); }
+          from { opacity: 0; transform: scale(0.8) rotate(6deg); }
+          to   { opacity: 1; transform: scale(1) rotate(6deg); }
         }
-
         .hero-anim {
           opacity: 0;
-          animation: heroFadeIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
+          animation: heroFadeIn 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
         }
         .hero-anim-scale {
           opacity: 0;
-          animation: heroScaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.15s forwards;
+          animation: heroScaleIn 1.1s cubic-bezier(0.16,1,0.3,1) 0.15s forwards;
         }
         .hero-anim-badge {
           opacity: 0;
@@ -101,7 +100,6 @@ export function HeroSection() {
           animation: heroEditionIn 0.6s ease 1.2s forwards;
         }
 
-        /* ── Typewriter ──────────────────────────────────────────── */
         @keyframes typing {
           from { max-width: 0; }
           to   { max-width: ${TYPEWRITER_CHARS + 1}ch; }
@@ -113,7 +111,6 @@ export function HeroSection() {
         @keyframes hide-caret {
           to { border-color: transparent; }
         }
-
         .hero-typewriter {
           display: inline-block;
           max-width: 0;
@@ -125,8 +122,6 @@ export function HeroSection() {
             blink-caret 0.6s step-end 6,
             hide-caret 0s ${GOLD_DELAY_MS + 200}ms forwards;
         }
-
-        /* ── Gold words fade+slide after typewriter ──────────────── */
         @keyframes goldReveal {
           from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -136,34 +131,46 @@ export function HeroSection() {
           display: inline-block;
           animation: goldReveal 0.7s cubic-bezier(0.16,1,0.3,1) ${GOLD_DELAY_MS}ms forwards;
         }
+
+        /* Subtle glow behind stats on appear */
+        @keyframes statLine {
+          from { width: 0; }
+          to   { width: 100%; }
+        }
+        .stat-line {
+          animation: statLine 0.6s ease 2s forwards;
+          width: 0;
+        }
       `}</style>
 
-      <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 py-20 lg:py-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[92vh]">
+      {/* Content — z-10 to sit above patterns but below navbar (z-50) */}
+      <div className="relative z-10 max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-24 lg:pt-28 pb-16 lg:pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center min-h-[calc(100vh-7rem)]">
 
-          {/* LEFT -- Copy */}
-          <div className="order-2 lg:order-1 flex flex-col justify-center">
-            {/* Pulse badge */}
+          {/* LEFT — Copy (7 cols) */}
+          <div className="lg:col-span-7 order-2 lg:order-1 flex flex-col justify-center">
+            {/* Live event badge */}
             <div
-              className="hero-anim inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.15] mb-6 self-start"
+              className="hero-anim inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.12] mb-8 self-start"
               style={{ animationDelay: "0.1s" }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#e7ab1c] animate-pulse" />
-              <span className="text-[11px] font-semibold text-[#e7ab1c] tracking-[0.05em] uppercase" style={sfText}>
+              <span className="text-[10px] font-bold text-[#e7ab1c] tracking-[0.08em] uppercase" style={sfText}>
                 7th GCC Leadership Conclave — May 21-22, Mumbai
               </span>
             </div>
 
-            {/* Headline with typewriter */}
+            {/* Headline */}
             <h1
-              className="leading-[0.95] tracking-[-0.03em] text-black"
+              className="leading-[0.92] tracking-[-0.035em] text-black mb-7"
               style={{
-                fontSize: "clamp(2.8rem, 5.5vw, 5rem)",
+                fontSize: "clamp(2.6rem, 5vw, 4.5rem)",
                 fontWeight: 700,
                 ...sfDisplay,
               }}
             >
               <span className="hero-typewriter">Direct Access to&nbsp;</span>
+              <br className="hidden sm:block" />
               <span className="hero-gold-words text-[#e7ab1c]">
                 Global Leaders
               </span>
@@ -171,57 +178,61 @@ export function HeroSection() {
 
             {/* Subtext */}
             <p
-              className="hero-anim mt-6 max-w-[440px] text-black/40 leading-[1.7] text-[16px]"
+              className="hero-anim max-w-[420px] text-black/35 leading-[1.75] text-[15px]"
               style={{ animationDelay: "0.2s", ...sfText }}
             >
               Connecting GCC leaders, CXOs, and decision-makers through
               high-value conversations, strategic partnerships, and curated access.
             </p>
 
-            {/* CTAs with MagneticButton */}
+            {/* CTAs */}
             <div
-              className="hero-anim mt-8 flex flex-wrap items-center gap-4"
+              className="hero-anim mt-9 flex flex-wrap items-center gap-4"
               style={{ animationDelay: "0.35s" }}
             >
               <MagneticButton>
                 <Link
                   href="/events"
-                  className="group inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[15px] text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
+                  className="group inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[14px] text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
                 >
                   Explore Events
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
+                  <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
                 </Link>
               </MagneticButton>
               <MagneticButton>
                 <Link
                   href="/platforms"
-                  className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[15px] font-medium text-black/50 border border-black/10 hover:border-black/20 hover:text-black/75 transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-medium text-black/45 border border-black/[0.08] hover:border-black/15 hover:text-black/70 transition-all duration-200"
                 >
                   Join Inner Circle
                 </Link>
               </MagneticButton>
             </div>
 
-            {/* Animated stats */}
+            {/* Stats bar */}
             <div
-              className="hero-anim mt-10 sm:mt-14 flex items-center gap-6 sm:gap-10"
+              className="hero-anim mt-12 flex items-center"
               style={{ animationDelay: "0.5s" }}
             >
               {stats.map(({ value, suffix, label }, i) => (
-                <div key={label}>
-                  <div className="text-[20px] sm:text-[26px] font-bold text-black tracking-tight leading-none">
-                    <AnimatedCounter value={value} suffix={suffix} duration={2000 + i * 300} />
+                <div key={label} className="flex items-center">
+                  {i > 0 && <div className="w-px h-8 bg-black/[0.06] mx-6 sm:mx-8" />}
+                  <div>
+                    <div className="text-[22px] sm:text-[28px] font-bold text-black tracking-tight leading-none" style={sfDisplay}>
+                      <AnimatedCounter value={value} suffix={suffix} duration={2200 + i * 300} />
+                    </div>
+                    <div className="text-[9px] sm:text-[10px] text-black/25 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
                   </div>
-                  <div className="text-[9px] sm:text-[11px] text-black/30 tracking-[0.1em] uppercase font-medium mt-1">{label}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* RIGHT -- Real TLF event image */}
-          <div className="hero-anim-scale order-1 lg:order-2 flex items-center justify-center">
-            <div className="relative w-full max-w-[480px]">
-              <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.10)]">
+          {/* RIGHT — Image (5 cols) */}
+          <div className="hero-anim-scale lg:col-span-5 order-1 lg:order-2 flex items-center justify-center lg:justify-end">
+            <div className="relative w-full max-w-[420px] lg:max-w-none">
+              {/* Main photo */}
+              <div className="relative w-full aspect-[3/4] rounded-[28px] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.12)]">
                 <div
                   className="w-full h-full"
                   style={{
@@ -235,27 +246,33 @@ export function HeroSection() {
                     fill
                     className="object-cover"
                     priority
+                    sizes="(max-width: 1024px) 90vw, 40vw"
                   />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                {/* Gradient overlays */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#F4F8FF]/20 via-transparent to-transparent lg:from-[#F4F8FF]/30" />
               </div>
 
-              {/* Next event badge */}
-              <div className="hero-anim-badge absolute -bottom-4 left-0 sm:-left-4 lg:-left-8 bg-white/90 backdrop-blur-xl rounded-2xl px-4 sm:px-5 py-3 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-black/[0.04]">
-                <div className="text-[10px] text-[#e7ab1c] uppercase tracking-[0.12em] font-bold mb-1">Next Event</div>
-                <div className="text-[14px] font-bold text-black">7th GCC Leadership Conclave</div>
-                <div className="text-[12px] text-black/40">May 21-22 &middot; Mumbai</div>
+              {/* Next event floating card */}
+              <div className="hero-anim-badge absolute -bottom-5 -left-4 sm:-left-6 bg-white/95 backdrop-blur-2xl rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-black/[0.04]">
+                <div className="text-[9px] text-[#e7ab1c] uppercase tracking-[0.14em] font-bold mb-1.5" style={sfText}>Next Event</div>
+                <div className="text-[15px] font-bold text-black leading-tight" style={sfDisplay}>7th GCC Leadership Conclave</div>
+                <div className="text-[12px] text-black/35 mt-0.5" style={sfText}>May 21-22 &middot; Mumbai, India</div>
               </div>
 
-              {/* Edition badge */}
-              <div className="hero-anim-edition absolute -top-3 -right-3 w-16 h-16 bg-[#e7ab1c] rounded-2xl flex flex-col items-center justify-center shadow-[0_8px_24px_rgba(231,171,28,0.3)] rotate-6">
-                <span className="text-[18px] font-bold text-white leading-none">7th</span>
-                <span className="text-[8px] text-white/70 uppercase tracking-wider font-semibold">Edition</span>
+              {/* Edition badge — inset inside image, won't clip navbar */}
+              <div className="hero-anim-edition absolute top-4 right-4 w-14 h-14 bg-[#e7ab1c] rounded-xl flex flex-col items-center justify-center shadow-[0_8px_20px_rgba(231,171,28,0.35)]">
+                <span className="text-[17px] font-bold text-white leading-none">7th</span>
+                <span className="text-[7px] text-white/70 uppercase tracking-wider font-semibold">Edition</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Bottom fade into next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#F4F8FF] to-transparent z-10 pointer-events-none" />
     </section>
   )
 }

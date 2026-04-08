@@ -279,6 +279,64 @@ function LeadCaptureIcon({ active }: { active: boolean }) {
   )
 }
 
+function AgendaIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="3" x2="9" y2="21" />
+    </svg>
+  )
+}
+
+function PollIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="12" width="4" height="8" rx="1" /><rect x="10" y="8" width="4" height="12" rx="1" /><rect x="17" y="4" width="4" height="16" rx="1" />
+    </svg>
+  )
+}
+
+function QAIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      <path d="M12 7v2" /><path d="M12 13h.01" />
+    </svg>
+  )
+}
+
+function AutomationIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  )
+}
+
+function RefundIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+    </svg>
+  )
+}
+
+function IntegrationIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  )
+}
+
+function AnalyticsIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.8 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21.21 15.89A10 10 0 1 1 8 2.83" /><path d="M22 12A10 10 0 0 0 12 2v10z" />
+    </svg>
+  )
+}
+
 /* ─── Section data ────────────────────────────────────────────────────── */
 
 const sections: NavSection[] = [
@@ -304,10 +362,18 @@ const sections: NavSection[] = [
     ],
   },
   {
+    title: "LIVE ENGAGEMENT",
+    items: [
+      { label: "Polls", href: "/admin/polls", icon: PollIcon },
+      { label: "Q&A Wall", href: "/admin/qa", icon: QAIcon },
+    ],
+  },
+  {
     title: "CONTENT",
     items: [
       { label: "Speakers", href: "/admin/speakers", icon: MicIcon },
       { label: "Sessions", href: "/admin/sessions", icon: ClipboardIcon },
+      { label: "Agenda Builder", href: "/admin/agenda", icon: AgendaIcon },
       { label: "Sponsors", href: "/admin/sponsors", icon: BuildingIcon },
     ],
   },
@@ -315,6 +381,7 @@ const sections: NavSection[] = [
     title: "COMMUNICATE",
     items: [
       { label: "Campaigns", href: "/admin/campaigns", icon: CampaignIcon },
+      { label: "Automations", href: "/admin/automations", icon: AutomationIcon },
       { label: "Email Templates", href: "/admin/email-templates", icon: MailTemplateIcon },
     ],
   },
@@ -323,6 +390,7 @@ const sections: NavSection[] = [
     items: [
       { label: "Payments", href: "/admin/payments", icon: CreditCardIcon },
       { label: "Invoices", href: "/admin/invoices", icon: ReceiptIcon },
+      { label: "Refunds", href: "/admin/integrations?tab=refunds", icon: RefundIcon },
       { label: "Certificates", href: "/admin/certificates", icon: AwardIcon },
     ],
   },
@@ -337,6 +405,8 @@ const sections: NavSection[] = [
     title: "SETTINGS",
     items: [
       { label: "Settings", href: "/admin/settings", icon: SettingsIcon },
+      { label: "Integrations", href: "/admin/integrations", icon: IntegrationIcon },
+      { label: "Analytics", href: "/admin/analytics", icon: AnalyticsIcon },
     ],
   },
 ]

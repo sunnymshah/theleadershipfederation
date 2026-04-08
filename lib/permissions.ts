@@ -121,6 +121,11 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/certificates": "certificates",
   "/admin/invoices": "invoices",
   "/admin/analytics": "analytics",
+  "/admin/polls": "check-in",
+  "/admin/qa": "check-in",
+  "/admin/automations": "attendees",
+  "/admin/agenda": "sessions",
+  "/admin/integrations": "settings",
   "/admin/team": "team",
   "/admin/settings": "settings",
 }

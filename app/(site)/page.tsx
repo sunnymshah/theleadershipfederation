@@ -2,13 +2,11 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import dynamic from "next/dynamic"
 import { LogoMarquee } from "@/components/sections/LogoMarquee"
-import { TestimonialTicker } from "@/components/sections/TestimonialTicker"
 import { EcosystemGrid } from "@/components/sections/EcosystemGrid"
+import { TestimonialTicker } from "@/components/sections/TestimonialTicker"
 import { NumbersReveal } from "@/components/sections/NumbersReveal"
 import { SpeakerMarquee } from "@/components/sections/SpeakerMarquee"
-import { GlobalPresence } from "@/components/sections/GlobalPresence"
 import { FeaturedEventCallout } from "@/components/sections/FeaturedEventCallout"
-import { PressBar } from "@/components/sections/PressBar"
 import { ExclusivityCTA } from "@/components/sections/ExclusivityCTA"
 
 const HeroSection = dynamic(
@@ -34,15 +32,28 @@ export default async function HomePage() {
 
   return (
     <main>
+      {/* Hero — light bg, typewriter + parallax image */}
       <HeroSection />
+
+      {/* Trust bar — logos scrolling */}
       <LogoMarquee />
-      <TestimonialTicker />
+
+      {/* Ecosystem — bento grid, 3 pillars */}
       <EcosystemGrid />
+
+      {/* Testimonials — dark, large rotating quotes */}
+      <TestimonialTicker />
+
+      {/* Numbers — dark, animated counters */}
       <NumbersReveal />
-      <SpeakerMarquee />
+
+      {/* Featured event — cinematic full-bleed */}
       <FeaturedEventCallout event={featuredEvent} />
-      <GlobalPresence />
-      <PressBar />
+
+      {/* Speaker network — dark, two-row marquee */}
+      <SpeakerMarquee />
+
+      {/* CTA + press logos — light, closing section */}
       <ExclusivityCTA />
     </main>
   )
