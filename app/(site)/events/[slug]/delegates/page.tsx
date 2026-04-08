@@ -6,7 +6,7 @@ import { ArrowLeft, Users } from "lucide-react"
 import { DelegateDirectory } from "@/components/site/DelegateDirectory"
 import { getEventForDelegates } from "@/lib/get-event"
 
-export const revalidate = 1800
+export const revalidate = 0
 
 interface Props {
   params: Promise<{ slug: string }>
