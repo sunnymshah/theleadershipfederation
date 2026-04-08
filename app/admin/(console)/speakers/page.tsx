@@ -182,8 +182,14 @@ export default function AdminSpeakersPage() {
                 <textarea name="bio" rows={3} defaultValue={editingSpeaker?.bio ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" placeholder="Brief bio of the speaker…" />
               </div>
               <div>
-                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Photo URL</label>
-                <input type="url" name="imageUrl" defaultValue={editingSpeaker?.image_url ?? ""} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://..." />
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Speaker Photo</label>
+                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-[#e0e0e0] rounded-lg cursor-pointer hover:border-[#c9a84c]/50 hover:bg-[#c9a84c]/5 transition-colors">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[#bbb] mb-1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                  <span className="text-xs text-[#999]">Click to upload headshot</span>
+                  <span className="text-[10px] text-[#ccc] mt-0.5">JPG, PNG up to 2MB</span>
+                  <input type="file" name="headshot" accept="image/*" className="hidden" />
+                </label>
+                <input type="hidden" name="imageUrl" defaultValue={editingSpeaker?.image_url ?? ""} />
               </div>
               <div>
                 <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Sort Order</label>

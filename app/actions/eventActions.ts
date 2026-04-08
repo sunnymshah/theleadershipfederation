@@ -88,6 +88,8 @@ export async function createEvent(formData: FormData) {
       if (uploadedUrl) finalCoverUrl = uploadedUrl
     }
 
+    const statusValue = (formData.get("status") as string) || "published"
+
     const { data, error } = await supabase
       .from("events")
       .insert({
@@ -98,7 +100,7 @@ export async function createEvent(formData: FormData) {
         venue,
         description: description || null,
         cover_image_url: finalCoverUrl,
-        status: "draft",
+        status: statusValue,
         created_by: user.id,
         tagline: tagline || null,
         venue_address: venue_address || null,
