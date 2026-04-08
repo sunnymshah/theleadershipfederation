@@ -16,24 +16,6 @@ interface SpeakerData {
   imageUrl?: string | null
 }
 
-const fallbackSpeakers: SpeakerData[] = [
-  { name: "Dr. Priya Kapoor", role: "CEO, TechVista", initials: "PK" },
-  { name: "Ahmad Al-Rashid", role: "CEO, Gulf Ventures", initials: "AR" },
-  { name: "Vikram Rao", role: "CTO, Reliance Jio", initials: "VR" },
-  { name: "Mei Lin Tan", role: "COO, TechBridge SG", initials: "MT" },
-  { name: "David Chen", role: "MD, Barclays Asia", initials: "DC" },
-  { name: "Sunita Patel", role: "CHRO, Axis Bank", initials: "SP" },
-  { name: "Rajesh Menon", role: "Founder, InnovateCo", initials: "RM" },
-  { name: "Fatima Hassan", role: "VP Digital, Emirates", initials: "FH" },
-  { name: "James Whitfield", role: "CIO, Standard Chartered", initials: "JW" },
-  { name: "Ananya Desai", role: "CFO, Cadila Pharma", initials: "AD" },
-  { name: "Wei Zhang", role: "Partner, EY Asia", initials: "WZ" },
-  { name: "Kavitha Raman", role: "CTO, HCLTech", initials: "KR" },
-  { name: "Omar Siddiqui", role: "CEO, Mashreq Digital", initials: "OS" },
-  { name: "Nisha Gupta", role: "MD, Apollo Hospitals", initials: "NG" },
-  { name: "Tom Richards", role: "VP Innovation, Atos", initials: "TR" },
-  { name: "Lakshmi Iyer", role: "Head Strategy, SBI", initials: "LI" },
-]
 
 function SpeakerCard({ name, role, initials, imageUrl }: SpeakerData) {
   return (
@@ -58,8 +40,10 @@ interface Props {
 }
 
 export function SpeakerMarquee({ speakers }: Props) {
-  // Use DB speakers if provided and non-empty, otherwise use fallback
-  const allSpeakers = speakers && speakers.length > 0 ? speakers : fallbackSpeakers
+  const allSpeakers = speakers ?? []
+
+  // Don't render the section if no speakers exist
+  if (allSpeakers.length === 0) return null
 
   // Split into two rows
   const mid = Math.ceil(allSpeakers.length / 2)

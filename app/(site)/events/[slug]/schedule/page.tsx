@@ -7,7 +7,7 @@ import { ArrowLeft, Calendar, MapPin } from "lucide-react"
 import { BookmarkButton } from "./BookmarkButton"
 import { TrackFilter } from "./TrackFilter"
 
-export const revalidate = 300
+export const revalidate = 0
 
 interface Props {
   params: Promise<{ slug: string }>

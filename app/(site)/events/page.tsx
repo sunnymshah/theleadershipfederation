@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from "lucide-react"
 
-export const revalidate = 60
+export const revalidate = 0
 
 export const metadata = {
   title: "Events | The Leadership Federation",

@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { GoldStarburst } from "@/components/ui/GoldPattern"
 
-export const revalidate = 3600
+export const revalidate = 0
 
 export const metadata = {
   title: "Archive — Past Events | The Leadership Federation",
