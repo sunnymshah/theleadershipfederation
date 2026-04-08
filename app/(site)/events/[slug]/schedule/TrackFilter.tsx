@@ -37,7 +37,7 @@ export function TrackFilter({ tracks }: Props) {
 
   return (
     <div className="flex items-center gap-2 mb-8 flex-wrap">
-      <span className="text-xs font-medium text-[#1a1a2e]/40 uppercase tracking-wider mr-1">
+      <span className="text-xs font-medium text-white/30 uppercase tracking-wider mr-1">
         Filter by track:
       </span>
       <button
@@ -45,7 +45,7 @@ export function TrackFilter({ tracks }: Props) {
         className={`px-3.5 py-1.5 text-xs font-medium rounded-lg border transition-all ${
           activeTrack === null
             ? "bg-[#c9a84c] text-white border-[#c9a84c]"
-            : "bg-white text-[#1a1a2e]/50 border-[#1a1a2e]/10 hover:border-[#c9a84c]/30"
+            : "bg-white/[0.04] text-white/50 border-white/10 hover:border-[#c9a84c]/30"
         }`}
       >
         All Tracks
@@ -57,7 +57,7 @@ export function TrackFilter({ tracks }: Props) {
           className={`px-3.5 py-1.5 text-xs font-medium rounded-lg border transition-all ${
             activeTrack === track
               ? "bg-[#c9a84c] text-white border-[#c9a84c]"
-              : "bg-white text-[#1a1a2e]/50 border-[#1a1a2e]/10 hover:border-[#c9a84c]/30"
+              : "bg-white/[0.04] text-white/50 border-white/10 hover:border-[#c9a84c]/30"
           }`}
         >
           {track}

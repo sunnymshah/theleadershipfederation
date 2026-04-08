@@ -31,6 +31,12 @@ export default async function HomePage() {
 
   const featuredEvent = dbEvents?.[0] ?? undefined
 
+  // Fetch counts for hero stats
+  const [{ count: eventCount }, { count: speakerCount }] = await Promise.all([
+    supabase.from("events").select("*", { count: "exact", head: true }).eq("status", "published"),
+    supabase.from("speakers").select("*", { count: "exact", head: true }),
+  ])
+
   // Fetch all speakers for the marquee
   const { data: dbSpeakers } = await supabase
     .from("speakers")
@@ -48,7 +54,10 @@ export default async function HomePage() {
   return (
     <main>
       {/* Hero — light bg, typewriter + parallax image */}
-      <HeroSection />
+      <HeroSection
+        event={featuredEvent ? { title: featuredEvent.title, slug: featuredEvent.slug, start_date: featuredEvent.start_date, end_date: featuredEvent.end_date, venue: featuredEvent.venue } : undefined}
+        stats={{ events: eventCount ?? 0, speakers: speakerCount ?? 0 }}
+      />
 
       {/* Trust bar — logos scrolling */}
       <LogoMarquee />
@@ -63,7 +72,7 @@ export default async function HomePage() {
       <NumbersReveal />
 
       {/* Featured event — cinematic full-bleed */}
-      <FeaturedEventCallout event={featuredEvent} />
+      <FeaturedEventCallout event={featuredEvent ? { title: featuredEvent.title, slug: featuredEvent.slug, start_date: featuredEvent.start_date, end_date: featuredEvent.end_date, venue: featuredEvent.venue, description: featuredEvent.description } : undefined} />
 
       {/* Speaker network — dark, two-row marquee */}
       <SpeakerMarquee speakers={speakers} />
