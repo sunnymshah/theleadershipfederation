@@ -29,6 +29,7 @@ import {
   Loader2,
   ExternalLink,
   Copy,
+  ImagePlus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -445,24 +446,44 @@ export default function AdminEventsPage() {
                 />
               </div>
 
-              {/* Status (only when editing) */}
-              {editingEvent && (
+              {/* Cover Image Upload */}
+              <div>
+                <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
+                  Cover Image
+                </label>
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e0e0e0] rounded-lg cursor-pointer hover:border-[#c9a84c]/50 hover:bg-[#c9a84c]/5 transition-colors">
+                  <ImagePlus size={24} className="text-[#bbb] mb-2" />
+                  <span className="text-xs text-[#999]">Click to upload event cover photo</span>
+                  <span className="text-[10px] text-[#ccc] mt-1">JPG, PNG up to 5MB</span>
+                  <input
+                    type="file"
+                    name="coverImage"
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-[10px] text-[#bbb] mt-1.5">This image appears as the event banner on your website</p>
+              </div>
+
+              {/* Status */}
               <div>
                 <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                   Status
                 </label>
                 <select
                   name="status"
-                  defaultValue={editingEvent.status}
+                  defaultValue={editingEvent?.status ?? "published"}
                   className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                 >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
+                  <option value="published">Published (Live on website)</option>
+                  <option value="draft">Draft (Hidden from website)</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+                <p className="text-[10px] text-[#bbb] mt-1.5">
+                  {editingEvent ? "Change visibility of this event" : "Published = instantly visible on your website"}
+                </p>
               </div>
-              )}
 
               {/* Error inside drawer */}
               {actionError && (
