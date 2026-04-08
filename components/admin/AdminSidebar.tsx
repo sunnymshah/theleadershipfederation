@@ -375,6 +375,8 @@ const sections: NavSection[] = [
       { label: "Sessions", href: "/admin/sessions", icon: ClipboardIcon },
       { label: "Agenda Builder", href: "/admin/agenda", icon: AgendaIcon },
       { label: "Sponsors", href: "/admin/sponsors", icon: BuildingIcon },
+      { label: "Testimonials", href: "/admin/testimonials", icon: FeedbackIcon },
+      { label: "Advisory Board", href: "/admin/advisory-board", icon: UsersRoundIcon },
     ],
   },
   {

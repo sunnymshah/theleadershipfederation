@@ -37,6 +37,21 @@ export default async function HomePage() {
     supabase.from("speakers").select("*", { count: "exact", head: true }),
   ])
 
+  // Fetch testimonials for the ticker
+  const { data: dbTestimonials } = await supabase
+    .from("testimonials")
+    .select("name, designation, company, quote")
+    .eq("is_featured", true)
+    .order("sort_order")
+    .limit(10)
+
+  const testimonials = (dbTestimonials ?? []).map((t: { name: string; designation: string | null; company: string | null; quote: string }) => ({
+    quote: t.quote,
+    author: t.name,
+    role: t.designation ?? "",
+    company: t.company ?? "",
+  }))
+
   // Fetch all speakers for the marquee
   const { data: dbSpeakers } = await supabase
     .from("speakers")
@@ -66,7 +81,7 @@ export default async function HomePage() {
       <EcosystemGrid />
 
       {/* Testimonials — dark, large rotating quotes */}
-      <TestimonialTicker />
+      <TestimonialTicker testimonials={testimonials.length > 0 ? testimonials : undefined} />
 
       {/* Numbers — dark, animated counters */}
       <NumbersReveal />

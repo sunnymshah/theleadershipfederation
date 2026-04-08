@@ -4,12 +4,16 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight, X } from "lucide-react"
 
-const TARGET_DATE = new Date("2026-05-21T09:00:00+05:30")
-const EVENT_NAME = "7th GCC Leadership Conclave"
+interface CountdownBarProps {
+  event?: {
+    title: string
+    slug: string
+    start_date: string
+  }
+}
 
-function getTimeLeft() {
-  const now = new Date()
-  const diff = TARGET_DATE.getTime() - now.getTime()
+function getTimeLeft(targetDate: string) {
+  const diff = new Date(targetDate).getTime() - Date.now()
   if (diff <= 0) return null
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -20,19 +24,20 @@ function getTimeLeft() {
   return { days, hours, minutes, seconds }
 }
 
-export function CountdownBar() {
+export function CountdownBar({ event }: CountdownBarProps) {
   const [time, setTime] = useState<ReturnType<typeof getTimeLeft>>(null)
   const [dismissed, setDismissed] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    if (!event) return
     setMounted(true)
-    setTime(getTimeLeft())
-    const interval = setInterval(() => setTime(getTimeLeft()), 1000)
+    setTime(getTimeLeft(event.start_date))
+    const interval = setInterval(() => setTime(getTimeLeft(event.start_date)), 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [event])
 
-  if (!mounted || !time || dismissed) return null
+  if (!event || !mounted || !time || dismissed) return null
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-slideUp">
@@ -44,7 +49,7 @@ export function CountdownBar() {
 
             {/* Event name */}
             <span className="text-[12px] sm:text-[13px] font-semibold text-white/80 truncate">
-              {EVENT_NAME}
+              {event.title}
             </span>
 
             {/* Countdown units */}
@@ -72,7 +77,7 @@ export function CountdownBar() {
 
           <div className="flex items-center gap-2 shrink-0">
             <Link
-              href="/events"
+              href={`/events/${event.slug}`}
               className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-black hover:bg-[#d49c10] transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.3)]"
             >
               Register <ArrowRight size={12} />
