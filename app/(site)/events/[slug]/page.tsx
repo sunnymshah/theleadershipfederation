@@ -9,7 +9,7 @@ import { getGalleryImages } from "@/app/actions/galleryActions"
 import { getEvent } from "@/lib/get-event"
 import { SpeakerGrid } from "@/components/site/SpeakerGrid"
 
-export const revalidate = 300
+export const revalidate = 60
 
 interface Props {
   params: Promise<{ slug: string }>

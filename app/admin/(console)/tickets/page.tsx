@@ -218,9 +218,9 @@ export default function AdminTicketsPage() {
               </div>
               <div>
                 <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Status</label>
-                <select name="status" defaultValue={editingTicket?.status ?? "draft"} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
+                <select name="status" defaultValue={editingTicket?.status ?? "published"} className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
+                  <option value="published">Published (Visible on website)</option>
+                  <option value="draft">Draft (Hidden)</option>
                   <option value="archived">Archived</option>
                 </select>
               </div>

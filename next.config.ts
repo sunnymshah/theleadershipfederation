@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "pnn.digital" },
       { protocol: "https", hostname: "st1.latestly.com" },
       { protocol: "https", hostname: "media.telanganatoday.com" },
+      { protocol: "https", hostname: "lfaoenulcskvhgckylsh.supabase.co" },
     ],
     minimumCacheTTL: 3600,
     formats: ['image/webp', 'image/avif'],
