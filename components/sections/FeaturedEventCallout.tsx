@@ -163,12 +163,12 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               const days = getDaysUntil(e.start_date)
               if (days === null) return null
               return (
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl px-8 py-6 border border-white/20">
+                <div className="bg-[#1a1a2e]/85 rounded-2xl px-8 py-6 border border-[#e7ab1c]/30 shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
                   <div className="text-center">
                     <div className="text-[48px] font-bold text-[#e7ab1c] leading-none tabular-nums" style={sfDisplay}>
                       {days}
                     </div>
-                    <div className="text-[11px] text-white/80 uppercase tracking-[0.15em] font-semibold mt-1" style={sfText}>
+                    <div className="text-[11px] text-white/85 uppercase tracking-[0.15em] font-semibold mt-1" style={sfText}>
                       Days to Go
                     </div>
                   </div>
@@ -178,7 +178,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
 
             {/* Event description snippet */}
             {e.description && (
-              <div className="bg-white/10 backdrop-blur-xl rounded-xl px-5 py-4 border border-white/20 max-w-xs">
+              <div className="bg-[#1a1a2e]/85 rounded-xl px-5 py-4 border border-[#e7ab1c]/20 max-w-xs shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
                 <p className="text-[13px] text-white/85 leading-relaxed line-clamp-3" style={sfText}>
                   {e.description}
                 </p>

@@ -181,8 +181,8 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
       `}</style>
 
       {/* Content — z-10 to sit above patterns but below navbar (z-50) */}
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-20 lg:pt-24 pb-12 lg:pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center min-h-[calc(100vh-7rem)]">
+      <div className="relative z-10 max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-16 lg:pt-20 pb-10 lg:pb-14">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center min-h-[600px] lg:min-h-[640px]">
 
           {/* LEFT — Copy (7 cols) */}
           <div className="lg:col-span-7 order-2 lg:order-1 flex flex-col justify-center">

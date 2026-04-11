@@ -60,7 +60,7 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
   return (
     <section
       ref={sectionRef}
-      className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden"
+      className="relative py-12 lg:py-16 bg-[#F4F8FF] overflow-hidden"
     >
       {/* Ambient glow */}
       <div

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
-import dynamic from "next/dynamic"
+import { HeroSection } from "@/components/sections/HeroSection"
 import { LogoMarquee } from "@/components/sections/LogoMarquee"
 import { EcosystemGrid } from "@/components/sections/EcosystemGrid"
 import { TestimonialTicker } from "@/components/sections/TestimonialTicker"
@@ -8,11 +8,6 @@ import { NumbersReveal } from "@/components/sections/NumbersReveal"
 import { SpeakerMarquee } from "@/components/sections/SpeakerMarquee"
 import { FeaturedEventCallout } from "@/components/sections/FeaturedEventCallout"
 import { ExclusivityCTA } from "@/components/sections/ExclusivityCTA"
-
-const HeroSection = dynamic(
-  () => import("@/components/sections/HeroSection").then(mod => ({ default: mod.HeroSection })),
-  { ssr: true }
-)
 
 export const revalidate = 0
 

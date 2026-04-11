@@ -1,10 +1,10 @@
 const pressLogos = [
-  { name: "Gulf News", src: "/partners/gulf-news.png" },
-  { name: "EIN Presswire", src: "/press/ein-presswire.png" },
-  { name: "Frost & Sullivan", src: "/partners/frost-sullivan.png" },
-  { name: "Business Standard", src: "/press/business-standard.png" },
-  { name: "Economic Times", src: "/press/economic-times.png" },
-  { name: "YourStory", src: "/press/yourstory.png" },
+  "Gulf News",
+  "EIN Presswire",
+  "Frost & Sullivan",
+  "Business Standard",
+  "Economic Times",
+  "YourStory",
 ]
 
 export function PressBar() {
@@ -17,18 +17,13 @@ export function PressBar() {
           </span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          {pressLogos.map((p) => (
-            <div key={p.name} className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity duration-300">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={p.src}
-                alt={p.name}
-                loading="lazy"
-                className="h-[22px] w-auto object-contain"
-                style={{ filter: "brightness(0) opacity(0.85)" }}
-              />
-              <span className="text-[12px] font-semibold text-[#1a1a2e]/80 whitespace-nowrap">{p.name}</span>
-            </div>
+          {pressLogos.map((name) => (
+            <span
+              key={name}
+              className="text-[13px] font-semibold text-[#1a1a2e]/70 whitespace-nowrap hover:text-[#1a1a2e] transition-colors duration-300"
+            >
+              {name}
+            </span>
           ))}
         </div>
       </div>

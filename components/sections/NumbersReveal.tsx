@@ -52,7 +52,7 @@ export function NumbersReveal() {
   return (
     <section
       ref={ref}
-      className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden"
+      className="relative py-12 lg:py-16 bg-[#F4F8FF] overflow-hidden"
     >
       {/* Ambient gold glow */}
       <div
