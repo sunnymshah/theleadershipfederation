@@ -333,9 +333,9 @@ function buildInvoiceEmailHtml(
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#1a1a2e;font-family:Arial,sans-serif;">
   <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="background:#1a1a2e;border:1px solid rgba(231,171,28,0.3);border-radius:12px;padding:40px;">
+    <div style="background:#252540;border:1px solid rgba(231,171,28,0.3);border-radius:12px;padding:40px;">
       <h1 style="color:#e7ab1c;font-size:22px;margin:0 0 20px;text-align:center;">Tax Invoice</h1>
       <p style="color:#ffffff;font-size:16px;line-height:1.6;margin:0 0 10px;">
         Dear ${attendeeName},

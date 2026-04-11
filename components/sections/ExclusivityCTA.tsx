@@ -13,12 +13,12 @@ const sfText = {
 }
 
 const pressLogos = [
-  { name: "Gulf News", src: "/partners/gulf-news.png" },
-  { name: "EIN Presswire", src: "/press/ein-presswire.png" },
-  { name: "Frost & Sullivan", src: "/partners/frost-sullivan.png" },
-  { name: "Business Standard", src: "/press/business-standard.png" },
-  { name: "Economic Times", src: "/press/economic-times.png" },
-  { name: "YourStory", src: "/press/yourstory.png" },
+  "Gulf News",
+  "EIN Presswire",
+  "Frost & Sullivan",
+  "Business Standard",
+  "Economic Times",
+  "YourStory",
 ]
 
 export function ExclusivityCTA() {
@@ -44,7 +44,7 @@ export function ExclusivityCTA() {
   return (
     <section
       ref={ref}
-      className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden"
+      className="relative py-12 lg:py-16 bg-[#F4F8FF] overflow-hidden"
     >
       {/* Subtle radial gradient behind CTA */}
       <div
@@ -72,23 +72,14 @@ export function ExclusivityCTA() {
             </span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-            {pressLogos.map((p) => (
-              <div
-                key={p.name}
-                className="flex items-center gap-1.5 opacity-60 hover:opacity-90 transition-opacity duration-300"
+            {pressLogos.map((name) => (
+              <span
+                key={name}
+                className="text-[12px] font-semibold text-[#1a1a2e]/65 whitespace-nowrap hover:text-[#1a1a2e] transition-colors duration-300"
+                style={sfText}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={p.src}
-                  alt={p.name}
-                  loading="lazy"
-                  className="h-[18px] w-auto object-contain"
-                  style={{ filter: "brightness(0) opacity(0.8)" }}
-                />
-                <span className="text-[11px] font-semibold text-[#1a1a2e]/75 whitespace-nowrap" style={sfText}>
-                  {p.name}
-                </span>
-              </div>
+                {name}
+              </span>
             ))}
           </div>
         </div>

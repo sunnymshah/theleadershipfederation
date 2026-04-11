@@ -66,11 +66,11 @@ export function EcosystemGrid() {
   }, [])
 
   return (
-    <section ref={ref} className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden">
+    <section ref={ref} className="relative py-12 lg:py-16 bg-[#F4F8FF] overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section header */}
         <div
-          className="text-center mb-16"
+          className="text-center mb-10"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
@@ -107,16 +107,17 @@ export function EcosystemGrid() {
               src={pillars[0].image}
               alt={pillars[0].title}
               fill
+              unoptimized
               className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] via-[#1a1a2e]/40 to-transparent" />
 
             {/* Stat badge */}
-            <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-xl rounded-xl px-4 py-2.5 border border-white/[0.08]">
+            <div className="absolute top-5 right-5 bg-[#e7ab1c] rounded-xl px-4 py-2.5 shadow-[0_4px_16px_rgba(231,171,28,0.35)]">
               <div className="text-[22px] font-bold text-white leading-none" style={sfDisplay}>
                 {pillars[0].stat}
               </div>
-              <div className="text-[9px] text-white/50 uppercase tracking-wider font-semibold mt-0.5" style={sfText}>
+              <div className="text-[9px] text-white/85 uppercase tracking-wider font-semibold mt-0.5" style={sfText}>
                 {pillars[0].statLabel}
               </div>
             </div>
@@ -124,8 +125,8 @@ export function EcosystemGrid() {
             {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-7 lg:p-9">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/20 backdrop-blur-sm flex items-center justify-center">
-                  <CalendarDays size={20} strokeWidth={1.5} className="text-[#e7ab1c]" />
+                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c] flex items-center justify-center shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
+                  <CalendarDays size={20} strokeWidth={1.8} className="text-white" />
                 </div>
                 <h3 className="text-[20px] lg:text-[22px] font-bold text-white" style={sfDisplay}>
                   {pillars[0].title}
@@ -159,16 +160,17 @@ export function EcosystemGrid() {
                     src={p.image}
                     alt={p.title}
                     fill
+                    unoptimized
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/90 via-[#1a1a2e]/50 to-[#1a1a2e]/20" />
 
                   {/* Stat badge */}
-                  <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-xl rounded-lg px-3 py-2 border border-white/[0.08]">
+                  <div className="absolute top-4 right-4 bg-[#e7ab1c] rounded-lg px-3 py-2 shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
                     <div className="text-[18px] font-bold text-white leading-none" style={sfDisplay}>
                       {p.stat}
                     </div>
-                    <div className="text-[8px] text-white/50 uppercase tracking-wider font-semibold mt-0.5" style={sfText}>
+                    <div className="text-[8px] text-white/85 uppercase tracking-wider font-semibold mt-0.5" style={sfText}>
                       {p.statLabel}
                     </div>
                   </div>
@@ -176,8 +178,8 @@ export function EcosystemGrid() {
                   {/* Content */}
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-[#e7ab1c]/20 backdrop-blur-sm flex items-center justify-center">
-                        <Icon size={16} strokeWidth={1.5} className="text-[#e7ab1c]" />
+                      <div className="w-8 h-8 rounded-lg bg-[#e7ab1c] flex items-center justify-center shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
+                        <Icon size={16} strokeWidth={1.8} className="text-white" />
                       </div>
                       <h3 className="text-[17px] font-bold text-white" style={sfDisplay}>
                         {p.title}
