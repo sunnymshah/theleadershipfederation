@@ -72,6 +72,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
           src="https://img.einpresswire.com/large/713803/4th-asia-leadership-awards.png"
           alt=""
           fill
+          unoptimized
           className="object-cover"
         />
         <div className="absolute inset-0 bg-[#1a1a2e]/75" />
