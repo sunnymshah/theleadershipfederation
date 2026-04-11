@@ -69,7 +69,6 @@ async function sendRegistrationConfirmationEmail(params: {
         filename: "qrcode.png",
         content: qrBuffer,
         contentType: "image/png",
-        // @ts-expect-error - Resend supports content_id for inline CID attachments
         content_id: qrCid,
       },
     ]
