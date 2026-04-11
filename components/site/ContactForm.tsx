@@ -37,15 +37,15 @@ export function ContactForm({ sourcePage = "contact" }: { sourcePage?: string })
 
   if (success) {
     return (
-      <div className="bg-white/70 border border-black/[0.04] rounded-2xl p-10 md:p-14 text-center flex flex-col items-center justify-center min-h-[400px]">
+      <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-10 md:p-14 text-center flex flex-col items-center justify-center min-h-[400px]">
         <CheckCircle2 size={44} className="text-emerald-500 mb-5" />
         <h3
-          className="text-2xl font-bold text-black mb-3"
+          className="text-2xl font-bold text-[#1a1a2e] mb-3"
           style={{ fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }}
         >
           Thank You
         </h3>
-        <p className="text-black/40 max-w-md leading-relaxed">
+        <p className="text-[#1a1a2e]/75 max-w-md leading-relaxed">
           Your inquiry has been received. A member of our team will be in touch
           within 24 hours.
         </p>
@@ -54,15 +54,15 @@ export function ContactForm({ sourcePage = "contact" }: { sourcePage?: string })
   }
 
   const inputBase =
-    "w-full px-4 py-3 bg-white border border-black/10 rounded-xl text-sm text-black placeholder-black/30 focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-1 focus:ring-[#e7ab1c]/20 transition-colors"
+    "w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-xl text-sm text-[#1a1a2e] placeholder-[#1a1a2e]/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-colors"
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white/70 border border-black/[0.04] rounded-2xl p-8 md:p-10 space-y-5"
+      className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-8 md:p-10 space-y-5"
     >
-      <h2 className="text-xl font-bold text-black mb-1">Send Us a Message</h2>
-      <p className="text-sm text-black/35 !mt-0 mb-2">
+      <h2 className="text-xl font-bold text-[#1a1a2e] mb-1">Send Us a Message</h2>
+      <p className="text-sm text-[#1a1a2e]/65 !mt-0 mb-2">
         All fields marked with * are required.
       </p>
 

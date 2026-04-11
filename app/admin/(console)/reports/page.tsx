@@ -221,7 +221,7 @@ export default function AdminReportsPage() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white rounded-xl border border-gray-200 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                className="bg-white rounded-xl border border-gray-200 p-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]"
               >
                 <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mb-1">
                   {stat.label}
@@ -229,7 +229,7 @@ export default function AdminReportsPage() {
                 {loadingStats ? (
                   <div className="h-7 w-16 bg-gray-100 rounded animate-pulse" />
                 ) : (
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-xl font-bold text-[#1a1a2e]">
                     {stat.value ?? "--"}
                   </p>
                 )}
@@ -238,7 +238,7 @@ export default function AdminReportsPage() {
           </div>
 
           {/* Report options card */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 max-w-[700px]">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] p-6 max-w-[700px]">
             {/* Report type selector */}
             <div className="mb-6">
               <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-2">

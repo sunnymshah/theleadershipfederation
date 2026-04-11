@@ -297,7 +297,7 @@ export default function AdminEmailTemplatesPage() {
 
       {/* Template List */}
       {!showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden">
           {loading ? (
             <div className="py-16 text-center text-gray-400 text-sm">Loading templates...</div>
           ) : templates.length === 0 ? (
@@ -320,7 +320,7 @@ export default function AdminEmailTemplatesPage() {
                   <tr key={tmpl.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{tmpl.name}</span>
+                        <span className="font-medium text-[#1a1a2e]">{tmpl.name}</span>
                         {tmpl.is_default && (
                           <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-[#e7ab1c] bg-[#fef9e7] border border-[#e7ab1c]/20">
                             Default
@@ -368,7 +368,7 @@ export default function AdminEmailTemplatesPage() {
       {/* Create / Edit Form */}
       {showForm && (
         <div className="max-w-[800px]">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] p-6">
             <h3 className="text-lg font-semibold text-[#333] mb-6">
               {creating ? "New Template" : `Edit: ${editing?.name}`}
             </h3>

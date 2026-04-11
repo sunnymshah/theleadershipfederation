@@ -181,7 +181,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
       `}</style>
 
       {/* Content — z-10 to sit above patterns but below navbar (z-50) */}
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-24 lg:pt-28 pb-16 lg:pb-20">
+      <div className="relative z-10 max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-20 lg:pt-24 pb-12 lg:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center min-h-[calc(100vh-7rem)]">
 
           {/* LEFT — Copy (7 cols) */}
@@ -201,7 +201,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
 
             {/* Headline */}
             <h1
-              className="leading-[0.92] tracking-[-0.035em] text-black mb-7"
+              className="leading-[0.92] tracking-[-0.035em] text-[#1a1a2e] mb-7"
               style={{
                 fontSize: "clamp(2.6rem, 5vw, 4.5rem)",
                 fontWeight: 700,
@@ -217,7 +217,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
 
             {/* Subtext */}
             <p
-              className="hero-anim max-w-[420px] text-black/35 leading-[1.75] text-[15px]"
+              className="hero-anim max-w-[420px] text-[#1a1a2e]/70 leading-[1.75] text-[15px]"
               style={{ animationDelay: "0.2s", ...sfText }}
             >
               Connecting GCC leaders, CXOs, and decision-makers through
@@ -241,7 +241,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
               <MagneticButton>
                 <Link
                   href="/platforms"
-                  className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-medium text-black/45 border border-black/[0.08] hover:border-black/15 hover:text-black/70 transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-medium text-[#1a1a2e]/80 border border-[#1a1a2e]/[0.12] hover:border-[#e7ab1c]/40 hover:text-[#1a1a2e] transition-all duration-200"
                 >
                   Join Inner Circle
                 </Link>
@@ -255,12 +255,12 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             >
               {statItems.map(({ value, suffix, label }, i) => (
                 <div key={label} className="flex items-center">
-                  {i > 0 && <div className="w-px h-8 bg-black/[0.06] mx-6 sm:mx-8" />}
+                  {i > 0 && <div className="w-px h-8 bg-[#1a1a2e]/[0.06] mx-6 sm:mx-8" />}
                   <div>
-                    <div className="text-[22px] sm:text-[28px] font-bold text-black tracking-tight leading-none" style={sfDisplay}>
+                    <div className="text-[22px] sm:text-[28px] font-bold text-[#1a1a2e] tracking-tight leading-none" style={sfDisplay}>
                       <AnimatedCounter value={value} suffix={suffix} duration={2200 + i * 300} />
                     </div>
-                    <div className="text-[9px] sm:text-[10px] text-black/25 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
+                    <div className="text-[9px] sm:text-[10px] text-[#1a1a2e]/55 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
                   </div>
                 </div>
               ))}
@@ -271,7 +271,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
           <div className="hero-anim-scale lg:col-span-5 order-1 lg:order-2 flex items-center justify-center lg:justify-end">
             <div className="relative w-full max-w-[420px] lg:max-w-none">
               {/* Main photo */}
-              <div className="relative w-full aspect-[3/4] rounded-[28px] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.12)]">
+              <div className="relative w-full aspect-[3/4] rounded-[28px] overflow-hidden shadow-[0_32px_80px_rgba(26, 26, 46,0.12)]">
                 <div
                   className="w-full h-full"
                   style={{
@@ -289,16 +289,16 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
                   />
                 </div>
                 {/* Gradient overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/5" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/40 via-transparent to-[#1a1a2e]/5" />
                 <div className="absolute inset-0 bg-gradient-to-r from-[#F4F8FF]/20 via-transparent to-transparent lg:from-[#F4F8FF]/30" />
               </div>
 
               {/* Next event floating card */}
               {event && (
-                <Link href={`/events/${event.slug}`} className="hero-anim-badge absolute -bottom-5 -left-4 sm:-left-6 bg-white/95 backdrop-blur-2xl rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-black/[0.04] hover:shadow-[0_16px_50px_rgba(0,0,0,0.12)] transition-shadow">
+                <Link href={`/events/${event.slug}`} className="hero-anim-badge absolute -bottom-5 -left-4 sm:-left-6 bg-white/95 backdrop-blur-2xl rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(26, 26, 46,0.08)] border border-[#1a1a2e]/[0.04] hover:shadow-[0_16px_50px_rgba(26, 26, 46,0.12)] transition-shadow">
                   <div className="text-[9px] text-[#e7ab1c] uppercase tracking-[0.14em] font-bold mb-1.5" style={sfText}>Next Event</div>
-                  <div className="text-[15px] font-bold text-black leading-tight" style={sfDisplay}>{event.title}</div>
-                  <div className="text-[12px] text-black/35 mt-0.5" style={sfText}>
+                  <div className="text-[15px] font-bold text-[#1a1a2e] leading-tight" style={sfDisplay}>{event.title}</div>
+                  <div className="text-[12px] text-[#1a1a2e]/65 mt-0.5" style={sfText}>
                     {fmtDateRange(event.start_date, event.end_date)}{event.venue ? ` · ${event.venue}` : ""}
                   </div>
                   {daysLeft !== null && (

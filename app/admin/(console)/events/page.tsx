@@ -189,7 +189,7 @@ export default function AdminEventsPage() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
         >
           <Plus size={16} />
           New Event
@@ -338,7 +338,7 @@ export default function AdminEventsPage() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 z-40"
+            className="fixed inset-0 bg-[#1a1a2e]/60 z-40"
             onClick={() => { setDrawerOpen(false); setEditingEvent(null) }}
           />
 
@@ -504,7 +504,7 @@ export default function AdminEventsPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -527,7 +527,7 @@ export default function AdminEventsPage() {
       {cloneModalOpen && cloningEvent && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 z-40"
+            className="fixed inset-0 bg-[#1a1a2e]/60 z-40"
             onClick={() => { setCloneModalOpen(false); setCloningEvent(null) }}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -590,7 +590,7 @@ export default function AdminEventsPage() {
                   <button
                     onClick={handleClone}
                     disabled={cloning || !cloneTitle || !cloneSlug}
-                    className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                   >
                     {cloning ? (
                       <>

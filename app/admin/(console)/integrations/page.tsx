@@ -242,7 +242,7 @@ function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[#1a1a2e]/30 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <div
@@ -252,7 +252,7 @@ function Modal({
         )}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-base font-semibold text-[#1a1a2e]">{title}</h3>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
@@ -277,7 +277,7 @@ export default function IntegrationsPage() {
     <div className="p-6 md:p-8 max-w-[1200px] mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Integrations</h2>
+        <h2 className="text-2xl font-bold text-[#1a1a2e] mb-1">Integrations</h2>
         <p className="text-sm text-gray-500">
           Manage webhooks, API keys, and refund requests
         </p>
@@ -479,7 +479,7 @@ function WebhooksTab() {
       </div>
 
       {/* Webhook list */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 size={20} className="animate-spin text-gray-400" />
@@ -527,7 +527,7 @@ function WebhooksTab() {
                   key={wh.id}
                   className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
                 >
-                  <td className="px-5 py-3.5 font-medium text-gray-900">
+                  <td className="px-5 py-3.5 font-medium text-[#1a1a2e]">
                     {wh.name}
                   </td>
                   <td className="px-5 py-3.5 text-gray-600 font-mono text-xs">
@@ -612,7 +612,7 @@ function WebhooksTab() {
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               placeholder="e.g. Slack Notification"
-              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1a1a2e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
 
@@ -626,7 +626,7 @@ function WebhooksTab() {
               value={formUrl}
               onChange={(e) => setFormUrl(e.target.value)}
               placeholder="https://example.com/webhook"
-              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-xs"
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1a1a2e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-xs"
             />
           </div>
 
@@ -640,7 +640,7 @@ function WebhooksTab() {
                 type="text"
                 value={formSecret}
                 onChange={(e) => setFormSecret(e.target.value)}
-                className="flex-1 px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-xs"
+                className="flex-1 px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-xs"
               />
               <button
                 type="button"
@@ -696,7 +696,7 @@ function WebhooksTab() {
           {/* Active toggle */}
           <div className="flex items-center justify-between py-2">
             <div>
-              <p className="text-sm font-medium text-gray-900">Active</p>
+              <p className="text-sm font-medium text-[#1a1a2e]">Active</p>
               <p className="text-xs text-gray-500">
                 Enable or disable this webhook
               </p>
@@ -913,7 +913,7 @@ function ApiKeysTab() {
       </div>
 
       {/* Keys list */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 size={20} className="animate-spin text-gray-400" />
@@ -962,7 +962,7 @@ function ApiKeysTab() {
                   key={key.id}
                   className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
                 >
-                  <td className="px-5 py-3.5 font-medium text-gray-900">
+                  <td className="px-5 py-3.5 font-medium text-[#1a1a2e]">
                     {key.name}
                   </td>
                   <td className="px-5 py-3.5">
@@ -1050,7 +1050,7 @@ function ApiKeysTab() {
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               placeholder="e.g. Production Backend"
-              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1a1a2e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
 
@@ -1125,7 +1125,7 @@ function ApiKeysTab() {
               onChange={(e) => setFormExpiry(e.target.value)}
               placeholder="Leave empty for no expiry"
               min={1}
-              className="w-full max-w-xs px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full max-w-xs px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-[#1a1a2e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
 
@@ -1173,7 +1173,7 @@ function ApiKeysTab() {
           </div>
 
           <div className="relative">
-            <pre className="bg-gray-900 text-emerald-400 text-sm font-mono px-4 py-3 rounded-lg overflow-x-auto pr-12">
+            <pre className="bg-[#1a1a2e] text-emerald-400 text-sm font-mono px-4 py-3 rounded-lg overflow-x-auto pr-12">
               {newKeyRevealed}
             </pre>
             <button
@@ -1323,7 +1323,7 @@ function RefundsTab() {
               className={cn(
                 "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
                 statusFilter === f.key
-                  ? "bg-white text-gray-900 shadow-sm"
+                  ? "bg-white text-[#1a1a2e] shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
               )}
             >
@@ -1345,7 +1345,7 @@ function RefundsTab() {
       </div>
 
       {/* Refunds list */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 size={20} className="animate-spin text-gray-400" />
@@ -1392,13 +1392,13 @@ function RefundsTab() {
                   key={req.id}
                   className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
                 >
-                  <td className="px-5 py-3.5 font-medium text-gray-900">
+                  <td className="px-5 py-3.5 font-medium text-[#1a1a2e]">
                     {req.attendee_name}
                   </td>
                   <td className="px-5 py-3.5 text-gray-600 text-xs">
                     {req.event_title}
                   </td>
-                  <td className="px-5 py-3.5 text-right font-medium text-gray-900">
+                  <td className="px-5 py-3.5 text-right font-medium text-[#1a1a2e]">
                     {fmtCurrency(req.amount_paid)}
                   </td>
                   <td className="px-5 py-3.5 text-gray-600 text-xs max-w-[200px] truncate">

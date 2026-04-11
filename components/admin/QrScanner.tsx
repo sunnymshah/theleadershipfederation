@@ -311,7 +311,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
 
       {/* ── Scanner area ─────────────────────────────────────────── */}
       {!manualMode && state.kind !== "found" && state.kind !== "checked_in" && state.kind !== "already_checked_in" && (
-        <div className="relative rounded-2xl border border-[#e0e0e0] bg-[#050505] overflow-hidden">
+        <div className="relative rounded-2xl border border-[#e0e0e0] bg-[#1a1a2e] overflow-hidden">
           {/* Camera viewfinder */}
           <div className="relative w-full" style={{ minHeight: 360 }}>
             <div id={scannerContainerId} className="w-full" />
@@ -338,7 +338,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
 
             {/* Loading overlay */}
             {state.kind === "loading" && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <div className="absolute inset-0 bg-[#1a1a2e]/60 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 size={32} className="text-[#c9a84c] animate-spin" />
                   <span className="text-white/70 text-sm font-medium">Looking up attendee...</span>
@@ -348,7 +348,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
 
             {/* Camera error */}
             {cameraError && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#050505]">
+              <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a2e]">
                 <div className="text-center px-8">
                   <CameraOff size={48} className="text-white/20 mx-auto mb-4" />
                   <p className="text-white/50 text-sm mb-4">{cameraError}</p>
@@ -372,7 +372,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
 
             {/* Idle / no camera placeholder */}
             {!cameraActive && !cameraError && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#050505]">
+              <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a2e]">
                 <div className="text-center">
                   <Camera size={48} className="text-white/15 mx-auto mb-3" />
                   <p className="text-white/30 text-sm">Starting camera...</p>

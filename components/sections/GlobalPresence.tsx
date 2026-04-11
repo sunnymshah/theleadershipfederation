@@ -55,7 +55,7 @@ function PulsingDot({ city, visible, delay }: {
       <div className={`relative ${sizeMap[city.size as keyof typeof sizeMap]} rounded-full bg-[#e7ab1c] shadow-[0_0_12px_rgba(231,171,28,0.5)]`} />
       {/* Label */}
       <div className="absolute left-1/2 -translate-x-1/2 -bottom-7 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-20">
-        <span className="text-[10px] font-semibold text-white bg-black/80 backdrop-blur px-2 py-0.5 rounded">
+        <span className="text-[10px] font-semibold text-white bg-[#1a1a2e]/90 backdrop-blur px-2 py-0.5 rounded">
           {city.name}, {city.country}
         </span>
       </div>
@@ -79,16 +79,16 @@ export function GlobalPresence() {
   }, [])
 
   return (
-    <section ref={ref} className="relative py-24 lg:py-32 bg-[#050505] overflow-hidden">
+    <section ref={ref} className="relative py-16 lg:py-20 bg-[#1a1a2e] overflow-hidden">
       <div className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="text-center mb-14">
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c]/50 font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
             Global Footprint
           </span>
-          <h2 className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white/90 tracking-[-0.02em]">
+          <h2 className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white tracking-[-0.02em]">
             Where Leaders Converge
           </h2>
-          <p className="mt-3 text-white/25 text-[14px]">
+          <p className="mt-3 text-white/85 text-[14px]">
             Events across 10+ major cities, connecting leaders from 30+ countries
           </p>
         </div>

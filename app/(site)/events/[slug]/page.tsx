@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink, Camera } from "lucide-react"
-import { TicketPurchaseCard } from "@/components/site/TicketPurchaseCard"
+import { StickyBuyTicketsBar } from "@/components/site/StickyBuyTicketsBar"
 import { getGalleryImages } from "@/app/actions/galleryActions"
 import { getEvent } from "@/lib/get-event"
 import { SpeakerGrid } from "@/components/site/SpeakerGrid"
@@ -81,12 +81,12 @@ function getEventDisplayStatus(event: { status: string; start_date: string; end_
   const end = new Date(event.end_date).getTime()
 
   if (event.status === "completed" || now > end) {
-    return { label: "Completed", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", pulse: false }
+    return { label: "Completed", color: "bg-blue-500/15 text-blue-700 border-blue-500/30", pulse: false }
   }
   if (now >= start && now <= end) {
-    return { label: "Live Now", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", pulse: true }
+    return { label: "Live Now", color: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30", pulse: true }
   }
-  return { label: "Upcoming", color: "bg-[#c9a84c]/20 text-[#c9a84c] border-[#c9a84c]/30", pulse: false }
+  return { label: "Upcoming", color: "bg-[#e7ab1c]/15 text-[#a37410] border-[#e7ab1c]/40", pulse: false }
 }
 
 /** Group sessions by date string (YYYY-MM-DD) */
@@ -110,9 +110,9 @@ export default async function EventDetailPage({ params }: Props) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  const [speakersRes, ticketsRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes, customFieldsRes] = await Promise.all([
+  const [speakersRes, ticketsRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
-    supabase.from("tickets").select("*").eq("event_id", event.id).eq("status", "published").order("price_inr"),
+    supabase.from("tickets").select("id, price_inr").eq("event_id", event.id).eq("status", "published").order("price_inr"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
     supabase.from("sponsors").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("session_speakers").select("session_id, speaker_id").in(
@@ -120,7 +120,6 @@ export default async function EventDetailPage({ params }: Props) {
       (await supabase.from("sessions").select("id").eq("event_id", event.id)).data?.map((s: { id: string }) => s.id) ?? []
     ),
     getGalleryImages(event.id),
-    supabase.from("custom_fields").select("id, field_label, field_name, field_type, options, is_required, sort_order").eq("event_id", event.id).order("sort_order"),
   ])
 
   const speakers = speakersRes.data ?? []
@@ -128,27 +127,25 @@ export default async function EventDetailPage({ params }: Props) {
   const sessions = sessionsRes.data ?? []
   const sponsors = sponsorsRes.data ?? []
   const galleryImages = galleryRes.images ?? []
-  const customFields = customFieldsRes.data ?? []
 
-  // Fetch active price tiers for all tickets (for early bird / timed pricing)
+  // "From" price is the minimum of currently-active tier prices if any, else base price.
+  // We only need the cheapest displayed price for the CTA copy, so fetch only that.
   const now = new Date().toISOString()
   const ticketIds = tickets.map((t: { id: string }) => t.id)
   const { data: activePriceTiers } = ticketIds.length > 0
     ? await supabase
         .from("ticket_price_tiers")
-        .select("*")
+        .select("ticket_id, price_inr")
         .in("ticket_id", ticketIds)
         .eq("is_active", true)
         .lte("starts_at", now)
         .gte("ends_at", now)
-    : { data: [] as { ticket_id: string; price_inr: number; name: string }[] }
+    : { data: [] as { ticket_id: string; price_inr: number }[] }
 
-  // Build a map: ticketId -> active tier
-  const priceTierMap: Record<string, { price: number; name: string }> = {}
+  const priceTierMap: Record<string, { price: number }> = {}
   for (const tier of activePriceTiers ?? []) {
-    // Use the most recently created tier if multiple overlap
     if (!priceTierMap[tier.ticket_id]) {
-      priceTierMap[tier.ticket_id] = { price: tier.price_inr, name: tier.name }
+      priceTierMap[tier.ticket_id] = { price: tier.price_inr }
     }
   }
   const sessionSpeakerLinks = sessionSpeakersRes.data ?? []
@@ -169,14 +166,17 @@ export default async function EventDetailPage({ params }: Props) {
     title: "Title Sponsor", platinum: "Platinum", gold: "Gold", silver: "Silver", bronze: "Bronze", partner: "Partners",
   }
   const tierColors: Record<string, string> = {
-    title: "text-[#c9a84c] border-[#c9a84c]/20", platinum: "text-zinc-300 border-zinc-300/20",
-    gold: "text-yellow-400 border-yellow-400/20", silver: "text-zinc-400 border-zinc-400/20",
-    bronze: "text-amber-600 border-amber-600/20", partner: "text-blue-400 border-blue-400/20",
+    title: "text-[#a37410] border-[#e7ab1c]/40", platinum: "text-zinc-600 border-zinc-300",
+    gold: "text-yellow-700 border-yellow-400/40", silver: "text-zinc-500 border-zinc-400/40",
+    bronze: "text-amber-700 border-amber-600/40", partner: "text-blue-700 border-blue-400/40",
   }
   const sessionTypes: Record<string, string> = {
-    keynote: "bg-[#c9a84c]/10 text-[#c9a84c]", session: "bg-blue-500/10 text-blue-400",
-    panel: "bg-purple-500/10 text-purple-400", workshop: "bg-emerald-500/10 text-emerald-400",
-    break: "bg-zinc-500/10 text-zinc-400", networking: "bg-orange-500/10 text-orange-400",
+    keynote: "bg-[#e7ab1c]/10 text-[#a37410] border border-[#e7ab1c]/30",
+    session: "bg-blue-500/10 text-blue-700 border border-blue-500/20",
+    panel: "bg-purple-500/10 text-purple-700 border border-purple-500/20",
+    workshop: "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20",
+    break: "bg-zinc-500/10 text-zinc-600 border border-zinc-500/20",
+    networking: "bg-orange-500/10 text-orange-700 border border-orange-500/20",
   }
 
   const eventStatus = getEventDisplayStatus(event)
@@ -189,6 +189,15 @@ export default async function EventDetailPage({ params }: Props) {
   const sessionsByDate = groupSessionsByDate(sessions)
   const dayDates = Array.from(sessionsByDate.keys()).sort()
 
+  // Cheapest available ticket price (after applying any active tier discount)
+  const fromPrice: number | null = tickets.length > 0
+    ? Math.min(
+        ...tickets.map((t: { id: string; price_inr: number }) =>
+          priceTierMap[t.id]?.price ?? t.price_inr
+        )
+      )
+    : null
+
   // Stats for the key stats bar
   const stats: Array<{ label: string; value: number; icon: string }> = []
   if (speakers.length > 0) stats.push({ label: speakers.length === 1 ? "Speaker" : "Speakers", value: speakers.length, icon: "speakers" })
@@ -197,7 +206,18 @@ export default async function EventDetailPage({ params }: Props) {
   if (sponsors.length > 0) stats.push({ label: sponsors.length === 1 ? "Sponsor" : "Sponsors", value: sponsors.length, icon: "sponsors" })
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen bg-[#F4F8FF]">
+      {/* Sticky Buy Tickets bar — appears once user scrolls past the hero */}
+      {isUpcoming && tickets.length > 0 && (
+        <StickyBuyTicketsBar
+          eventTitle={event.title}
+          eventDate={event.start_date}
+          venue={event.venue}
+          fromPrice={fromPrice}
+          ticketsHref={`/events/${event.slug}/tickets`}
+        />
+      )}
+
       {/* ────────────────────────────────────────────────────────────
        *  1. HERO SECTION — Full-width, immersive
        * ──────────────────────────────────────────────────────────── */}
@@ -215,17 +235,17 @@ export default async function EventDetailPage({ params }: Props) {
                 sizes="100vw"
               />
             </div>
-            {/* Dark overlay for readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-[#050505]/40" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/60 to-transparent" />
+            {/* Dark overlay for text readability over the cover image */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/95 via-[#0a0a14]/70 to-[#0a0a14]/35" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14]/55 to-transparent" />
           </>
         ) : (
           <>
-            {/* Gradient background when no cover image */}
+            {/* Light frost background when no cover image */}
             <div
               className="absolute inset-0"
               style={{
-                background: "linear-gradient(160deg, #050505 0%, #0a0908 40%, #0f0d08 60%, #050505 100%)",
+                background: "linear-gradient(160deg, #F4F8FF 0%, #FAFCFF 40%, #FFFBF0 60%, #F4F8FF 100%)",
               }}
             />
             {/* Ambient gold glow */}
@@ -236,7 +256,7 @@ export default async function EventDetailPage({ params }: Props) {
                   width: "1200px",
                   height: "800px",
                   borderRadius: "50%",
-                  background: "radial-gradient(ellipse at center, rgba(201,168,76,0.06) 0%, transparent 60%)",
+                  background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
                 }}
               />
               <div
@@ -245,27 +265,31 @@ export default async function EventDetailPage({ params }: Props) {
                   width: "400px",
                   height: "400px",
                   borderRadius: "50%",
-                  background: "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 70%)",
+                  background: "radial-gradient(circle, rgba(231,171,28,0.08) 0%, transparent 70%)",
                 }}
               />
             </div>
           </>
         )}
 
-        {/* Bottom fade to background */}
+        {/* Bottom fade to page background */}
         <div
           className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-          style={{ background: "linear-gradient(to top, #050505, transparent)" }}
+          style={{ background: "linear-gradient(to top, #F4F8FF, transparent)" }}
           aria-hidden
         />
 
-        {/* Hero content */}
-        <div className="relative z-10 max-w-6xl mx-auto px-6 pb-16 pt-32 w-full">
+        {/* Hero content — text color adapts: light on cover image, dark on frost */}
+        <div className="relative z-10 max-w-6xl mx-auto px-6 pb-12 pt-24 w-full">
           {/* Back link + Status badge row */}
           <div className="flex items-center justify-between mb-10">
             <Link
               href="/events"
-              className="inline-flex items-center gap-1.5 text-sm text-white/25 hover:text-[#c9a84c] transition-colors"
+              className={`inline-flex items-center gap-1.5 text-sm transition-colors ${
+                hasCoverImage
+                  ? "text-white/55 hover:text-[#e7ab1c]"
+                  : "text-[#1a1a2e]/45 hover:text-[#e7ab1c]"
+              }`}
             >
               <ArrowLeft size={14} /> All Events
             </Link>
@@ -285,29 +309,45 @@ export default async function EventDetailPage({ params }: Props) {
           </div>
 
           {/* Event title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.05] mb-6 max-w-5xl">
+          <h1
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6 max-w-5xl ${
+              hasCoverImage ? "text-white" : "text-[#1a1a2e]"
+            }`}
+          >
             {event.title}
           </h1>
 
           {/* Tagline */}
           {tagline && (
-            <p className="text-lg sm:text-xl md:text-2xl text-white/50 font-light max-w-3xl leading-relaxed mb-8">
+            <p
+              className={`text-lg sm:text-xl md:text-2xl font-light max-w-3xl leading-relaxed mb-8 ${
+                hasCoverImage ? "text-white/65" : "text-[#1a1a2e]/65"
+              }`}
+            >
               {tagline}
             </p>
           )}
 
           {/* Date + Venue row */}
           <div className="flex flex-wrap items-center gap-6 mb-10">
-            <span className="flex items-center gap-2.5 text-base text-white/60">
-              <Calendar size={18} className="text-[#c9a84c]" />
+            <span
+              className={`flex items-center gap-2.5 text-base ${
+                hasCoverImage ? "text-white/75" : "text-[#1a1a2e]/70"
+              }`}
+            >
+              <Calendar size={18} className="text-[#e7ab1c]" />
               {fmtDate(event.start_date)}
               {event.start_date !== event.end_date && (
                 <> &mdash; {fmtDate(event.end_date)}</>
               )}
             </span>
             {event.venue && (
-              <span className="flex items-center gap-2.5 text-base text-white/60">
-                <MapPin size={18} className="text-[#c9a84c]" />
+              <span
+                className={`flex items-center gap-2.5 text-base ${
+                  hasCoverImage ? "text-white/75" : "text-[#1a1a2e]/70"
+                }`}
+              >
+                <MapPin size={18} className="text-[#e7ab1c]" />
                 {event.venue}
               </span>
             )}
@@ -326,15 +366,19 @@ export default async function EventDetailPage({ params }: Props) {
                     <div
                       className="w-20 h-20 rounded-xl flex items-center justify-center mb-1.5"
                       style={{
-                        background: "rgba(201,168,76,0.06)",
-                        border: "1px solid rgba(201,168,76,0.15)",
+                        background: "rgba(231,171,28,0.10)",
+                        border: "1px solid rgba(231,171,28,0.30)",
                       }}
                     >
-                      <span className="text-3xl font-bold text-[#c9a84c] tabular-nums">
+                      <span className="text-3xl font-bold text-[#e7ab1c] tabular-nums">
                         {unit.value.toString().padStart(2, "0")}
                       </span>
                     </div>
-                    <span className="text-[11px] font-medium text-white/30 uppercase tracking-wider">
+                    <span
+                      className={`text-[11px] font-medium uppercase tracking-wider ${
+                        hasCoverImage ? "text-white/60" : "text-[#1a1a2e]/55"
+                      }`}
+                    >
                       {unit.label}
                     </span>
                   </div>
@@ -345,16 +389,12 @@ export default async function EventDetailPage({ params }: Props) {
 
           {/* CTA Button — only for published events with tickets */}
           {isUpcoming && tickets.length > 0 && (
-            <a
-              href="#tickets"
-              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-[#0a0a0a] transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, #e7ab1c 0%, #c9a84c 100%)",
-                boxShadow: "0 0 40px rgba(231,171,28,0.25), 0 4px 12px rgba(0,0,0,0.4)",
-              }}
+            <Link
+              href={`/events/${event.slug}/tickets`}
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-white transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] bg-[#e7ab1c] hover:bg-[#d49c10] shadow-[0_8px_32px_rgba(231,171,28,0.35)]"
             >
               Register Now
-            </a>
+            </Link>
           )}
         </div>
       </section>
@@ -365,30 +405,23 @@ export default async function EventDetailPage({ params }: Props) {
       {stats.length > 0 && (
         <section className="relative z-10 -mt-1">
           <div className="max-w-6xl mx-auto px-6">
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                backdropFilter: "blur(20px)",
-              }}
-            >
+            <div className="rounded-2xl overflow-hidden bg-white shadow-lg border border-[#1a1a2e]/[0.06]">
               <div className={`grid grid-cols-2 md:grid-cols-${stats.length > 4 ? 4 : stats.length}`}>
                 {stats.map((stat, i) => (
                   <div
                     key={stat.label}
                     className={`flex flex-col items-center justify-center py-8 px-4 ${
-                      i < stats.length - 1 ? "border-r border-white/[0.04]" : ""
+                      i < stats.length - 1 ? "border-r border-[#1a1a2e]/[0.05]" : ""
                     }`}
                   >
                     <div className="flex items-center gap-2.5 mb-1">
-                      {stat.icon === "speakers" && <Users size={16} className="text-[#c9a84c]/60" />}
-                      {stat.icon === "sessions" && <Clock size={16} className="text-[#c9a84c]/60" />}
-                      {stat.icon === "tickets" && <Ticket size={16} className="text-[#c9a84c]/60" />}
-                      {stat.icon === "sponsors" && <Award size={16} className="text-[#c9a84c]/60" />}
-                      <span className="text-3xl font-bold text-white tabular-nums">{stat.value}</span>
+                      {stat.icon === "speakers" && <Users size={16} className="text-[#e7ab1c]" />}
+                      {stat.icon === "sessions" && <Clock size={16} className="text-[#e7ab1c]" />}
+                      {stat.icon === "tickets" && <Ticket size={16} className="text-[#e7ab1c]" />}
+                      {stat.icon === "sponsors" && <Award size={16} className="text-[#e7ab1c]" />}
+                      <span className="text-3xl font-bold text-[#1a1a2e] tabular-nums">{stat.value}</span>
                     </div>
-                    <span className="text-xs text-white/30 uppercase tracking-wider font-medium">
+                    <span className="text-xs text-[#1a1a2e]/55 uppercase tracking-wider font-medium">
                       {stat.label}
                     </span>
                   </div>
@@ -403,11 +436,11 @@ export default async function EventDetailPage({ params }: Props) {
        *  3. SPEAKERS SECTION
        * ──────────────────────────────────────────────────────────── */}
       {speakers.length > 0 && (
-        <section id="speakers" className="py-28 relative">
+        <section id="speakers" className="py-16 relative">
           {/* Subtle ambient glow */}
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ width: "800px", height: "600px", borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(201,168,76,0.03) 0%, transparent 60%)" }}
+            style={{ width: "800px", height: "600px", borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(231,171,28,0.06) 0%, transparent 60%)" }}
             aria-hidden
           />
 
@@ -415,13 +448,13 @@ export default async function EventDetailPage({ params }: Props) {
             {/* Section header */}
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
-                <span className="text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em]">
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
+                <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">
                   Meet the Minds
                 </span>
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e]">
                 Featured Speakers
               </h2>
             </div>
@@ -436,18 +469,18 @@ export default async function EventDetailPage({ params }: Props) {
        *  4. AGENDA SECTION — Day-by-day timeline
        * ──────────────────────────────────────────────────────────── */}
       {sessions.length > 0 && (
-        <section id="agenda" className="py-28 border-t border-white/[0.04]">
+        <section id="agenda" className="py-16 border-t border-[#1a1a2e]/[0.05]">
           <div className="max-w-6xl mx-auto px-6">
             {/* Section header */}
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
-                <span className="text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em]">
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
+                <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">
                   The Programme
                 </span>
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e]">
                 Event Agenda
               </h2>
             </div>
@@ -459,11 +492,11 @@ export default async function EventDetailPage({ params }: Props) {
                   <a
                     key={date}
                     href={`#day-${i + 1}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium text-white/50 hover:text-[#c9a84c] transition-all duration-200 hover:bg-[#c9a84c]/[0.06]"
-                    style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium text-[#1a1a2e]/55 hover:text-[#e7ab1c] transition-all duration-200 hover:bg-[#e7ab1c]/[0.08] bg-white shadow-sm"
+                    style={{ border: "1px solid rgba(26, 26, 46,0.08)" }}
                   >
-                    <span className="text-[#c9a84c] font-bold">Day {i + 1}</span>
-                    <span className="text-white/25">{fmtDateShort(date)}</span>
+                    <span className="text-[#e7ab1c] font-bold">Day {i + 1}</span>
+                    <span className="text-[#1a1a2e]/45">{fmtDateShort(date)}</span>
                   </a>
                 ))}
               </div>
@@ -480,20 +513,20 @@ export default async function EventDetailPage({ params }: Props) {
                       <div
                         className="shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center"
                         style={{
-                          background: "rgba(201,168,76,0.08)",
-                          border: "1px solid rgba(201,168,76,0.15)",
+                          background: "rgba(231,171,28,0.10)",
+                          border: "1px solid rgba(231,171,28,0.30)",
                         }}
                       >
-                        <span className="text-xl font-bold text-[#c9a84c] leading-none tabular-nums">{fmtDay(date)}</span>
-                        <span className="text-[9px] font-bold text-[#c9a84c]/50 uppercase tracking-wider mt-0.5">
+                        <span className="text-xl font-bold text-[#e7ab1c] leading-none tabular-nums">{fmtDay(date)}</span>
+                        <span className="text-[9px] font-bold text-[#e7ab1c]/70 uppercase tracking-wider mt-0.5">
                           {fmtMonth(date)}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-lg font-semibold text-[#1a1a2e]">
                           Day {dayIndex + 1}
                         </h3>
-                        <p className="text-sm text-white/30">{fmtDate(date)}</p>
+                        <p className="text-sm text-[#1a1a2e]/45">{fmtDate(date)}</p>
                       </div>
                     </div>
 
@@ -502,7 +535,7 @@ export default async function EventDetailPage({ params }: Props) {
                       {/* Vertical gold line */}
                       <div
                         className="absolute left-3 md:left-4 top-0 bottom-0 w-px"
-                        style={{ background: "linear-gradient(to bottom, rgba(201,168,76,0.3), rgba(201,168,76,0.05))" }}
+                        style={{ background: "linear-gradient(to bottom, rgba(231,171,28,0.4), rgba(231,171,28,0.1))" }}
                       />
 
                       <div className="space-y-4">
@@ -510,18 +543,15 @@ export default async function EventDetailPage({ params }: Props) {
                           <div key={session.id as string} className="relative group">
                             {/* Timeline dot */}
                             <div
-                              className="absolute -left-8 md:-left-10 top-5 w-2.5 h-2.5 rounded-full border-2 border-[#c9a84c]/40 bg-[#050505] group-hover:border-[#c9a84c] group-hover:bg-[#c9a84c]/20 transition-all duration-300"
+                              className="absolute -left-8 md:-left-10 top-5 w-2.5 h-2.5 rounded-full border-2 border-[#e7ab1c]/50 bg-[#F4F8FF] group-hover:border-[#e7ab1c] group-hover:bg-[#e7ab1c]/20 transition-all duration-300"
                               style={{ marginLeft: "7px" }}
                             />
 
                             {/* Session card */}
-                            <div
-                              className="rounded-xl p-5 md:p-6 transition-all duration-300 hover:bg-white/[0.03] group-hover:border-white/[0.08]"
-                              style={{ border: "1px solid rgba(255,255,255,0.04)" }}
-                            >
+                            <div className="rounded-xl p-5 md:p-6 bg-white shadow-sm border border-[#1a1a2e]/[0.06] transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30">
                               <div className="flex flex-col md:flex-row md:items-start gap-4">
                                 {/* Time */}
-                                <div className="shrink-0 text-sm font-mono text-white/30 w-36 tabular-nums pt-0.5">
+                                <div className="shrink-0 text-sm font-mono text-[#1a1a2e]/45 w-36 tabular-nums pt-0.5">
                                   {fmtTime(session.start_time as string)} &mdash; {fmtTime(session.end_time as string)}
                                 </div>
 
@@ -529,27 +559,27 @@ export default async function EventDetailPage({ params }: Props) {
                                 <div className="flex-1 min-w-0">
                                   {/* Badges row */}
                                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                                    <span className={`inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${sessionTypes[session.session_type as string] ?? "bg-white/5 text-white/30"}`}>
+                                    <span className={`inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${sessionTypes[session.session_type as string] ?? "bg-[#1a1a2e]/[0.04] text-[#1a1a2e]/55 border border-[#1a1a2e]/[0.06]"}`}>
                                       {session.session_type as string}
                                     </span>
                                     {(session.track as string | null) && (
-                                      <span className="text-[10px] text-white/20 uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/[0.03]">
+                                      <span className="text-[10px] text-[#e7ab1c] uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#e7ab1c]/10">
                                         {session.track as string}
                                       </span>
                                     )}
                                     {(session.room as string | null) && (
-                                      <span className="text-[10px] text-white/20 px-2 py-0.5 rounded-md bg-white/[0.03]">
+                                      <span className="text-[10px] text-[#1a1a2e]/55 px-2 py-0.5 rounded-md bg-[#1a1a2e]/[0.04]">
                                         {session.room as string}
                                       </span>
                                     )}
                                   </div>
 
                                   {/* Title */}
-                                  <h4 className="font-medium text-white/90 text-base">{session.title as string}</h4>
+                                  <h4 className="font-semibold text-[#1a1a2e] text-base">{session.title as string}</h4>
 
                                   {/* Description */}
                                   {(session.description as string | null) && (
-                                    <p className="text-sm text-white/30 mt-1.5 line-clamp-2 leading-relaxed">
+                                    <p className="text-sm text-[#1a1a2e]/55 mt-1.5 line-clamp-2 leading-relaxed">
                                       {session.description as string}
                                     </p>
                                   )}
@@ -569,22 +599,22 @@ export default async function EventDetailPage({ params }: Props) {
                                                 alt={sp.name}
                                                 width={24}
                                                 height={24}
-                                                className="w-6 h-6 rounded-full object-cover ring-1 ring-[#050505]"
+                                                className="w-6 h-6 rounded-full object-cover ring-2 ring-white"
                                               />
                                             ) : (
                                               <div
                                                 key={sp.id}
-                                                className="w-6 h-6 rounded-full flex items-center justify-center ring-1 ring-[#050505]"
-                                                style={{ background: "rgba(201,168,76,0.15)" }}
+                                                className="w-6 h-6 rounded-full flex items-center justify-center ring-2 ring-white"
+                                                style={{ background: "rgba(231,171,28,0.18)" }}
                                               >
-                                                <span className="text-[8px] font-bold text-[#c9a84c]/70">
+                                                <span className="text-[8px] font-bold text-[#e7ab1c]">
                                                   {sp.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                                                 </span>
                                               </div>
                                             )
                                           ))}
                                         </div>
-                                        <span className="text-[11px] text-white/35">
+                                        <span className="text-[11px] text-[#1a1a2e]/55">
                                           {sessionSpks.map((sp: { name: string }) => sp.name).join(", ")}
                                         </span>
                                       </div>
@@ -606,68 +636,49 @@ export default async function EventDetailPage({ params }: Props) {
       )}
 
       {/* ────────────────────────────────────────────────────────────
-       *  5. TICKETS SECTION
+       *  5. TICKETS CTA — links to /events/[slug]/tickets
        * ──────────────────────────────────────────────────────────── */}
-      {tickets.length > 0 && (
-        <section id="tickets" className="py-28 relative border-t border-white/[0.04]">
-          {/* Ambient glow */}
-          <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
-            style={{ width: "900px", height: "500px", borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(201,168,76,0.05) 0%, transparent 55%)" }}
-            aria-hidden
-          />
-
-          <div className="relative z-10 max-w-6xl mx-auto px-6">
-            {/* Section header */}
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
-                <span className="text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em]">
-                  Secure Your Place
-                </span>
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-                Choose Your Experience
-              </h2>
-              <p className="text-sm text-white/30 max-w-lg mx-auto">
-                Select the tier that matches your level of engagement. Limited seats available.
-              </p>
+      {tickets.length > 0 && isUpcoming && (
+        <section className="py-16 border-t border-[#1a1a2e]/[0.05]">
+          <div className="max-w-3xl mx-auto px-6 text-center">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="h-px w-8 bg-[#e7ab1c]/40" />
+              <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">
+                Secure Your Place
+              </span>
+              <div className="h-px w-8 bg-[#e7ab1c]/40" />
             </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e] mb-3">
+              Ready to Join?
+            </h2>
+            <p className="text-sm text-[#1a1a2e]/65 max-w-lg mx-auto mb-8">
+              {fromPrice != null && fromPrice > 0 ? (
+                <>Tickets start from &#8377;{new Intl.NumberFormat("en-IN").format(fromPrice)}. Limited seats available.</>
+              ) : (
+                <>Limited seats available. Reserve your spot now.</>
+              )}
+            </p>
+            <Link
+              href={`/events/${event.slug}/tickets`}
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full text-base font-bold text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_24px_rgba(231,171,28,0.35)]"
+            >
+              <Ticket size={16} />
+              View Tickets & Register
+            </Link>
+          </div>
+        </section>
+      )}
 
-            {isCompleted && event.status === "completed" ? (
-              /* Event ended message */
-              <div
-                className="max-w-lg mx-auto text-center py-12 rounded-2xl"
-                style={{
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-blue-500/10">
-                  <Clock size={28} className="text-blue-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">This Event Has Ended</h3>
-                <p className="text-sm text-white/30 max-w-sm mx-auto">
-                  Registration is no longer available. Stay tuned for future events.
-                </p>
-              </div>
-            ) : (
-              /* Ticket cards grid */
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                {tickets.map((ticket) => (
-                  <TicketPurchaseCard
-                    key={ticket.id}
-                    ticket={ticket}
-                    eventId={event.id}
-                    eventTitle={event.title}
-                    currentPrice={priceTierMap[ticket.id]?.price ?? null}
-                    tierName={priceTierMap[ticket.id]?.name ?? null}
-                    customFields={customFields}
-                  />
-                ))}
-              </div>
-            )}
+      {isCompleted && event.status === "completed" && (
+        <section className="py-16 border-t border-[#1a1a2e]/[0.05]">
+          <div className="max-w-lg mx-auto text-center px-6 py-12 rounded-2xl bg-white shadow-sm border border-[#1a1a2e]/[0.06]">
+            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-blue-500/10">
+              <Clock size={28} className="text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-[#1a1a2e] mb-2">This Event Has Ended</h3>
+            <p className="text-sm text-[#1a1a2e]/65 max-w-sm mx-auto">
+              Registration is no longer available. Stay tuned for future events.
+            </p>
           </div>
         </section>
       )}
@@ -676,18 +687,18 @@ export default async function EventDetailPage({ params }: Props) {
        *  6. SPONSORS SECTION
        * ──────────────────────────────────────────────────────────── */}
       {sponsors.length > 0 && (
-        <section className="py-28 border-t border-white/[0.04]">
+        <section className="py-16 border-t border-[#1a1a2e]/[0.05]">
           <div className="max-w-6xl mx-auto px-6">
             {/* Section header */}
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
-                <span className="text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em]">
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
+                <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">
                   Our Partners
                 </span>
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e]">
                 Sponsors & Partners
               </h2>
             </div>
@@ -695,7 +706,7 @@ export default async function EventDetailPage({ params }: Props) {
             {tierOrder.map((tier) => {
               const tierSponsors = sponsors.filter((s) => s.tier === tier)
               if (tierSponsors.length === 0) return null
-              const colorClass = tierColors[tier] ?? "text-white/40 border-white/[0.06]"
+              const colorClass = tierColors[tier] ?? "text-[#1a1a2e]/55 border-[#1a1a2e]/[0.08]"
               const isTitle = tier === "title"
 
               return (
@@ -710,7 +721,7 @@ export default async function EventDetailPage({ params }: Props) {
                     {tierSponsors.map((sponsor) => {
                       const cardContent = (
                         <div
-                          className={`rounded-xl text-center transition-all duration-300 hover:bg-white/[0.03] group ${
+                          className={`rounded-xl text-center bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/40 group ${
                             isTitle ? "px-12 py-8" : "px-8 py-5"
                           } ${colorClass}`}
                           style={{ border: "1px solid" }}
@@ -724,16 +735,16 @@ export default async function EventDetailPage({ params }: Props) {
                               className={`mx-auto mb-3 object-contain ${isTitle ? "h-16" : "h-10"} w-auto`}
                             />
                           ) : (
-                            <Building2 size={isTitle ? 32 : 24} className="mx-auto mb-3 opacity-40" />
+                            <Building2 size={isTitle ? 32 : 24} className="mx-auto mb-3 text-[#1a1a2e]/35" />
                           )}
-                          <p className={`font-semibold text-white/80 ${isTitle ? "text-base" : "text-sm"}`}>
+                          <p className={`font-semibold text-[#1a1a2e] ${isTitle ? "text-base" : "text-sm"}`}>
                             {sponsor.name}
                           </p>
                           {sponsor.description && (
-                            <p className="text-[11px] text-white/25 mt-1 max-w-[220px]">{sponsor.description}</p>
+                            <p className="text-[11px] text-[#1a1a2e]/55 mt-1 max-w-[220px]">{sponsor.description}</p>
                           )}
                           {sponsor.website && (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-[#c9a84c]/40 mt-2 group-hover:text-[#c9a84c]/70 transition-colors">
+                            <span className="inline-flex items-center gap-1 text-[10px] text-[#e7ab1c]/70 mt-2 group-hover:text-[#e7ab1c] transition-colors">
                               <ExternalLink size={9} /> Visit
                             </span>
                           )}
@@ -767,18 +778,18 @@ export default async function EventDetailPage({ params }: Props) {
        *  6.5. EVENT GALLERY SECTION
        * ──────────────────────────────────────────────────────────── */}
       {galleryImages.length > 0 && (
-        <section id="gallery" className="py-28 border-t border-white/[0.04]">
+        <section id="gallery" className="py-16 border-t border-[#1a1a2e]/[0.05]">
           <div className="max-w-6xl mx-auto px-6">
             {/* Section header */}
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
-                <span className="text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em]">
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
+                <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">
                   Captured Moments
                 </span>
-                <div className="h-px w-8 bg-[#c9a84c]/40" />
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e]">
                 Event Gallery
               </h2>
             </div>
@@ -788,10 +799,9 @@ export default async function EventDetailPage({ params }: Props) {
               {galleryImages.map((image) => (
                 <div
                   key={image.id}
-                  className="relative rounded-xl overflow-hidden aspect-square group cursor-pointer transition-all duration-300 hover:scale-105"
+                  className="relative rounded-xl overflow-hidden aspect-square group cursor-pointer transition-all duration-300 hover:scale-105 bg-white shadow-sm"
                   style={{
-                    border: "1px solid rgba(255,255,255,0.04)",
-                    boxShadow: "0 0 0 0 rgba(201,168,76,0)",
+                    border: "1px solid rgba(26, 26, 46,0.06)",
                   }}
                   onMouseEnter={undefined}
                 >
@@ -808,7 +818,7 @@ export default async function EventDetailPage({ params }: Props) {
                   <div
                     className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                     style={{
-                      boxShadow: "inset 0 0 0 2px rgba(201,168,76,0.5), 0 0 20px rgba(201,168,76,0.15)",
+                      boxShadow: "inset 0 0 0 2px rgba(231,171,28,0.6), 0 0 20px rgba(231,171,28,0.25)",
                     }}
                   />
 
@@ -818,9 +828,9 @@ export default async function EventDetailPage({ params }: Props) {
                       <span
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
                         style={{
-                          background: "rgba(201,168,76,0.2)",
-                          color: "#c9a84c",
-                          border: "1px solid rgba(201,168,76,0.3)",
+                          background: "rgba(231,171,28,0.95)",
+                          color: "#ffffff",
+                          border: "1px solid rgba(231,171,28,1)",
                           backdropFilter: "blur(8px)",
                         }}
                       >
@@ -836,7 +846,7 @@ export default async function EventDetailPage({ params }: Props) {
                       <div
                         className="px-4 pt-10 pb-4"
                         style={{
-                          background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)",
+                          background: "linear-gradient(to top, rgba(26, 26, 46,0.85) 0%, rgba(26, 26, 46,0.4) 60%, transparent 100%)",
                         }}
                       >
                         {image.caption && (
@@ -845,7 +855,7 @@ export default async function EventDetailPage({ params }: Props) {
                           </p>
                         )}
                         {image.photographer && (
-                          <p className="text-[11px] text-white/40">
+                          <p className="text-[11px] text-white/85">
                             Photo by {image.photographer}
                           </p>
                         )}
@@ -863,34 +873,28 @@ export default async function EventDetailPage({ params }: Props) {
        *  7. VENUE / LOCATION SECTION
        * ──────────────────────────────────────────────────────────── */}
       {event.venue && (
-        <section className="py-28 border-t border-white/[0.04]">
+        <section className="py-16 border-t border-[#1a1a2e]/[0.05]">
           <div className="max-w-6xl mx-auto px-6">
             <div className="max-w-2xl mx-auto">
-              <div
-                className="rounded-2xl p-8 md:p-10 text-center"
-                style={{
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
+              <div className="rounded-2xl p-8 md:p-10 text-center bg-white shadow-sm border border-[#1a1a2e]/[0.06]">
                 {/* Map pin icon */}
                 <div
                   className="w-14 h-14 rounded-full mx-auto mb-5 flex items-center justify-center"
                   style={{
-                    background: "rgba(201,168,76,0.08)",
-                    border: "1px solid rgba(201,168,76,0.15)",
+                    background: "rgba(231,171,28,0.10)",
+                    border: "1px solid rgba(231,171,28,0.30)",
                   }}
                 >
-                  <MapPin size={24} className="text-[#c9a84c]" />
+                  <MapPin size={24} className="text-[#e7ab1c]" />
                 </div>
 
                 {/* Venue name */}
-                <h3 className="text-xl md:text-2xl font-semibold text-white mb-2">
+                <h3 className="text-xl md:text-2xl font-semibold text-[#1a1a2e] mb-2">
                   {event.venue}
                 </h3>
 
                 {/* Date reminder */}
-                <p className="text-sm text-white/30 mb-4">
+                <p className="text-sm text-[#1a1a2e]/55 mb-4">
                   {fmtDate(event.start_date)}
                   {event.start_date !== event.end_date && (
                     <> &mdash; {fmtDate(event.end_date)}</>
@@ -899,7 +903,7 @@ export default async function EventDetailPage({ params }: Props) {
 
                 {/* Remaining description text */}
                 {descriptionRemainder && (
-                  <p className="text-sm text-white/25 leading-relaxed max-w-lg mx-auto mt-4">
+                  <p className="text-sm text-[#1a1a2e]/65 leading-relaxed max-w-lg mx-auto mt-4">
                     {descriptionRemainder}
                   </p>
                 )}
@@ -917,31 +921,30 @@ export default async function EventDetailPage({ params }: Props) {
           <div
             className="py-16 md:py-20"
             style={{
-              background: "linear-gradient(135deg, rgba(231,171,28,0.08) 0%, rgba(201,168,76,0.04) 50%, rgba(231,171,28,0.08) 100%)",
-              borderTop: "1px solid rgba(201,168,76,0.15)",
-              borderBottom: "1px solid rgba(201,168,76,0.15)",
+              background: "linear-gradient(135deg, rgba(231,171,28,0.10) 0%, rgba(231,171,28,0.05) 50%, rgba(231,171,28,0.10) 100%)",
+              borderTop: "1px solid rgba(231,171,28,0.25)",
+              borderBottom: "1px solid rgba(231,171,28,0.25)",
             }}
           >
             {/* Ambient glow behind */}
             <div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-              style={{ width: "600px", height: "300px", borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(231,171,28,0.08) 0%, transparent 60%)" }}
+              style={{ width: "600px", height: "300px", borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(231,171,28,0.12) 0%, transparent 60%)" }}
               aria-hidden
             />
 
             <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#1a1a2e] mb-3">
                 Don&apos;t Miss Out
               </h2>
-              <p className="text-base text-white/40 mb-8 max-w-lg mx-auto">
+              <p className="text-base text-[#1a1a2e]/55 mb-8 max-w-lg mx-auto">
                 Secure your place at {event.title}. Limited seats available.
               </p>
               <a
                 href="#tickets"
-                className="inline-flex items-center gap-2.5 px-10 py-4 rounded-xl text-base font-bold text-[#0a0a0a] transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+                className="inline-flex items-center gap-2.5 px-10 py-4 rounded-xl text-base font-bold text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
                 style={{
-                  background: "linear-gradient(135deg, #e7ab1c 0%, #c9a84c 100%)",
-                  boxShadow: "0 0 40px rgba(231,171,28,0.25), 0 4px 12px rgba(0,0,0,0.4)",
+                  boxShadow: "0 8px 32px rgba(231,171,28,0.35)",
                 }}
               >
                 Register Now

@@ -70,7 +70,7 @@ export function WaitlistTable({ rows }: { rows: WaitlistRow[] }) {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -111,7 +111,7 @@ export function WaitlistTable({ rows }: { rows: WaitlistRow[] }) {
                         {row.waitlist_position ?? "-"}
                       </span>
                     </td>
-                    <td className="px-5 py-3 font-medium text-gray-900">
+                    <td className="px-5 py-3 font-medium text-[#1a1a2e]">
                       {row.name}
                     </td>
                     <td className="px-5 py-3 text-gray-600">{row.email}</td>

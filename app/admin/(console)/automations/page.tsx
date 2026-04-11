@@ -412,7 +412,7 @@ export default function AdminAutomationsPage() {
       {/* Stats Overview */}
       {selectedEventId && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
                 <Settings size={18} className="text-blue-600" />
@@ -421,7 +421,7 @@ export default function AdminAutomationsPage() {
             </div>
             <p className="text-3xl font-bold text-[#333] tabular-nums">{stats?.totalAutomations ?? automations.length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
                 <Mail size={18} className="text-emerald-600" />
@@ -430,7 +430,7 @@ export default function AdminAutomationsPage() {
             </div>
             <p className="text-3xl font-bold text-emerald-600 tabular-nums">{totalSent}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
                 <Zap size={18} className="text-amber-600" />
@@ -444,7 +444,7 @@ export default function AdminAutomationsPage() {
 
       {/* No event selected */}
       {!selectedEventId && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] py-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] py-16 text-center">
           <Zap size={40} className="text-gray-200 mx-auto mb-3" />
           <p className="text-sm text-gray-400">Select an event to manage its email automations.</p>
         </div>
@@ -452,14 +452,14 @@ export default function AdminAutomationsPage() {
 
       {/* Loading */}
       {selectedEventId && loading && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] py-16 text-center text-gray-400 text-sm">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] py-16 text-center text-gray-400 text-sm">
           Loading automations...
         </div>
       )}
 
       {/* Empty state */}
       {selectedEventId && !loading && automations.length === 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] py-16 text-center">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] py-16 text-center">
           <Mail size={40} className="text-gray-200 mx-auto mb-3" />
           <p className="text-sm text-gray-400 mb-4">No automations yet for this event.</p>
           <button
@@ -487,7 +487,7 @@ export default function AdminAutomationsPage() {
             return (
               <div
                 key={auto.id}
-                className={`bg-white rounded-xl border shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 transition-all hover:shadow-md ${
+                className={`bg-white rounded-xl border shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] p-5 transition-all hover:shadow-md ${
                   auto.is_active ? "border-gray-200" : "border-gray-100 opacity-70"
                 }`}
               >
@@ -601,7 +601,7 @@ export default function AdminAutomationsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[#1a1a2e]/30 backdrop-blur-[2px]"
             onClick={closeFormModal}
           />
           {/* Drawer */}
@@ -785,7 +785,7 @@ export default function AdminAutomationsPage() {
       {previewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[#1a1a2e]/30 backdrop-blur-[2px]"
             onClick={() => setPreviewModal(null)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md mx-4 p-7">
@@ -825,7 +825,7 @@ export default function AdminAutomationsPage() {
       {triggerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[#1a1a2e]/30 backdrop-blur-[2px]"
             onClick={() => !triggering && setTriggerModal(null)}
           />
           <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md mx-4 p-7">

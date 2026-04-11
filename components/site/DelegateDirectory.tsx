@@ -37,27 +37,22 @@ export function DelegateDirectory({ delegates }: { delegates: Delegate[] }) {
       {/* ── Search Bar ──────────────────────────────────────────── */}
       <div className="max-w-lg mx-auto mb-12">
         <div
-          className="relative"
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "16px",
-          }}
+          className="relative bg-white border border-[#1a1a2e]/[0.08] rounded-2xl shadow-sm"
         >
           <Search
             size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25 pointer-events-none"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1a1a2e]/35 pointer-events-none"
           />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or company..."
-            className="w-full pl-11 pr-4 py-3.5 bg-transparent text-sm text-white placeholder-white/25 focus:outline-none focus:ring-1 focus:ring-[#c9a84c]/30 rounded-2xl transition-all"
+            className="w-full pl-11 pr-4 py-3.5 bg-transparent text-sm text-[#1a1a2e] placeholder-[#1a1a2e]/35 focus:outline-none focus:ring-2 focus:ring-[#e7ab1c]/30 rounded-2xl transition-all"
           />
         </div>
         {query.trim() && (
-          <p className="text-center text-xs text-white/20 mt-2">
+          <p className="text-center text-xs text-[#1a1a2e]/40 mt-2">
             {filtered.length} result{filtered.length !== 1 ? "s" : ""} found
           </p>
         )}
@@ -69,20 +64,17 @@ export function DelegateDirectory({ delegates }: { delegates: Delegate[] }) {
           {filtered.map((delegate) => (
             <div
               key={delegate.id}
-              className="group rounded-xl p-5 transition-all duration-300 hover:bg-white/[0.03]"
-              style={{
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
+              className="group rounded-xl p-5 bg-white shadow-sm border border-[#1a1a2e]/[0.06] hover:border-[#e7ab1c]/30 hover:shadow-md transition-all duration-300"
             >
               {/* Avatar + Name */}
               <div className="flex items-start gap-3">
                 <div
-                  className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center group-hover:ring-[#c9a84c]/30 ring-2 ring-white/[0.06] transition-all duration-300"
+                  className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center group-hover:ring-[#e7ab1c]/40 ring-2 ring-[#e7ab1c]/10 transition-all duration-300"
                   style={{
-                    background: "linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 100%)",
+                    background: "linear-gradient(135deg, rgba(231,171,28,0.18) 0%, rgba(231,171,28,0.06) 100%)",
                   }}
                 >
-                  <span className="text-sm font-bold text-[#c9a84c]/70">
+                  <span className="text-sm font-bold text-[#e7ab1c]">
                     {delegate.name
                       .split(" ")
                       .map((n) => n[0])
@@ -93,12 +85,12 @@ export function DelegateDirectory({ delegates }: { delegates: Delegate[] }) {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-white truncate">
+                  <h3 className="text-sm font-semibold text-[#1a1a2e] truncate">
                     {delegate.name}
                   </h3>
 
                   {(delegate.designation || delegate.company) && (
-                    <p className="text-xs text-white/35 mt-0.5 truncate">
+                    <p className="text-xs text-[#1a1a2e]/55 mt-0.5 truncate">
                       {delegate.designation}
                       {delegate.designation && delegate.company ? " at " : ""}
                       {delegate.company}
@@ -108,10 +100,10 @@ export function DelegateDirectory({ delegates }: { delegates: Delegate[] }) {
               </div>
 
               {/* Company badge + LinkedIn */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.04]">
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1a1a2e]/[0.06]">
                 {delegate.company ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] text-white/20 uppercase tracking-wider">
-                    <Building2 size={10} className="text-white/15" />
+                  <span className="inline-flex items-center gap-1 text-[10px] text-[#1a1a2e]/40 uppercase tracking-wider">
+                    <Building2 size={10} className="text-[#1a1a2e]/30" />
                     {delegate.company}
                   </span>
                 ) : (
@@ -123,7 +115,7 @@ export function DelegateDirectory({ delegates }: { delegates: Delegate[] }) {
                     href={delegate.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10px] text-[#c9a84c]/50 hover:text-[#c9a84c] transition-colors uppercase tracking-wider font-medium"
+                    className="inline-flex items-center gap-1 text-[10px] text-[#e7ab1c] hover:text-[#d49c10] transition-colors uppercase tracking-wider font-medium"
                   >
                     <ExternalLink size={12} />
                     Connect
@@ -135,8 +127,8 @@ export function DelegateDirectory({ delegates }: { delegates: Delegate[] }) {
         </div>
       ) : (
         <div className="text-center py-16">
-          <User size={32} className="mx-auto mb-3 text-white/10" />
-          <p className="text-sm text-white/25">
+          <User size={32} className="mx-auto mb-3 text-[#1a1a2e]/20" />
+          <p className="text-sm text-[#1a1a2e]/45">
             {query.trim() ? "No delegates match your search" : "No delegates to display"}
           </p>
         </div>

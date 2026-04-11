@@ -924,7 +924,7 @@ function ControlSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] p-4">
       <label className="flex items-center gap-1.5 text-[11px] text-[#777] uppercase tracking-wider mb-2.5">
         {icon}
         {title}

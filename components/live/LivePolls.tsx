@@ -92,7 +92,7 @@ export function LivePolls({ eventId }: { eventId: string }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-white/40">
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#1a1a2e]/45">
         <Loader2 className="w-6 h-6 animate-spin" />
         <p className="text-sm">Loading polls...</p>
       </div>
@@ -101,7 +101,7 @@ export function LivePolls({ eventId }: { eventId: string }) {
 
   if (polls.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-white/40">
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#1a1a2e]/45">
         <p className="text-base font-medium">No active polls right now</p>
         <p className="text-sm">Check back in a moment -- new polls appear automatically.</p>
       </div>
@@ -218,9 +218,9 @@ function PollCard({
     const maxCount = Math.max(...Object.values(results.option_counts), 1)
 
     return (
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-5">
+      <div className="rounded-2xl bg-white shadow-sm border border-[#1a1a2e]/[0.06] p-5">
         <p className="text-lg font-bold leading-snug mb-1">{poll.question}</p>
-        <p className="text-xs text-white/40 mb-4">
+        <p className="text-xs text-[#1a1a2e]/45 mb-4">
           {results.total_votes} vote{results.total_votes !== 1 ? "s" : ""}
         </p>
 
@@ -231,9 +231,9 @@ function PollCard({
               <div key={option}>
                 <div className="flex justify-between items-baseline mb-1">
                   <span className="text-sm font-medium">{option}</span>
-                  <span className="text-xs text-white/50">{pct}%</span>
+                  <span className="text-xs text-[#1a1a2e]/55">{pct}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-2 rounded-full bg-[#1a1a2e]/[0.08] overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-[#e7ab1c] to-[#f0c850] transition-all duration-700 ease-out"
                     style={{ width: `${(count / maxCount) * 100}%` }}
@@ -268,7 +268,7 @@ function PollCard({
   /* ── Voted state without results ───────────────────────────────────── */
   if (hasVoted) {
     return (
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-5">
+      <div className="rounded-2xl bg-white shadow-sm border border-[#1a1a2e]/[0.06] p-5">
         <p className="text-lg font-bold leading-snug mb-3">{poll.question}</p>
         <div className="flex items-center gap-2 text-[#e7ab1c] text-sm font-medium">
           <CheckCircle2 className="w-5 h-5" />
@@ -280,9 +280,9 @@ function PollCard({
 
   /* ── Voting UI ─────────────────────────────────────────────────────── */
   return (
-    <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-5">
+    <div className="rounded-2xl bg-white shadow-sm border border-[#1a1a2e]/[0.06] p-5">
       <p className="text-lg font-bold leading-snug mb-1">{poll.question}</p>
-      <p className="text-xs text-white/40 mb-4">
+      <p className="text-xs text-[#1a1a2e]/45 mb-4">
         {poll.poll_type === "single" && "Select one option"}
         {poll.poll_type === "multiple" &&
           `Select up to ${poll.max_votes_per_user} option${poll.max_votes_per_user !== 1 ? "s" : ""}`}
@@ -301,8 +301,8 @@ function PollCard({
                 onClick={() => toggleOption(option)}
                 className={`w-full text-left px-4 py-3.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
                   isSelected
-                    ? "bg-[#e7ab1c]/20 border-[#e7ab1c]/60 text-[#e7ab1c] border"
-                    : "bg-white/[0.06] border border-white/10 text-white/80 hover:bg-white/[0.08]"
+                    ? "bg-[#e7ab1c]/15 border-[#e7ab1c]/50 text-[#1a1a2e] border"
+                    : "bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] text-[#1a1a2e]/80 hover:bg-[#1a1a2e]/[0.03]"
                 }`}
               >
                 <span className="flex items-center gap-3">
@@ -310,11 +310,11 @@ function PollCard({
                     className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                       isSelected
                         ? "border-[#e7ab1c] bg-[#e7ab1c]"
-                        : "border-white/30"
+                        : "border-[#1a1a2e]/25"
                     }`}
                   >
                     {isSelected && (
-                      <span className="w-2 h-2 rounded-full bg-[#0a0a0a]" />
+                      <span className="w-2 h-2 rounded-full bg-white" />
                     )}
                   </span>
                   {option}
@@ -339,7 +339,7 @@ function PollCard({
                 className={`w-10 h-10 transition-colors ${
                   val <= rating
                     ? "fill-[#e7ab1c] text-[#e7ab1c]"
-                    : "fill-transparent text-white/25"
+                    : "fill-transparent text-[#1a1a2e]/25"
                 }`}
               />
             </button>
@@ -357,9 +357,9 @@ function PollCard({
               onChange={(e) => setTextInput(e.target.value)}
               placeholder="Your answer..."
               maxLength={100}
-              className="w-full px-4 py-3.5 pr-12 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder:text-white/30 text-sm focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-1 focus:ring-[#e7ab1c]/30 transition-colors"
+              className="w-full px-4 py-3.5 pr-12 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] text-[#1a1a2e] placeholder:text-[#1a1a2e]/35 text-sm focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-2 focus:ring-[#e7ab1c]/20 transition-colors"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/25">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#1a1a2e]/35">
               {textInput.length}/100
             </span>
           </div>
@@ -375,7 +375,7 @@ function PollCard({
       <button
         onClick={handleSubmit}
         disabled={submitting}
-        className="w-full py-3.5 rounded-xl bg-[#e7ab1c] text-[#0a0a0a] font-bold text-sm active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 transition-all flex items-center justify-center gap-2"
+        className="w-full py-3.5 rounded-xl bg-[#e7ab1c] hover:bg-[#d49c10] text-white font-bold text-sm active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 transition-all flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
       >
         {submitting ? (
           <>

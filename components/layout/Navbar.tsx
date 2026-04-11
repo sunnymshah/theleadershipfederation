@@ -71,7 +71,7 @@ export function Navbar() {
         mobileOpen
           ? "bg-[#F4F8FF]"
           : scrolled
-            ? "bg-white/75 backdrop-blur-2xl backdrop-saturate-[1.8] border-b border-black/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+            ? "bg-white/75 backdrop-blur-2xl backdrop-saturate-[1.8] border-b border-[#1a1a2e]/[0.06] shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]"
             : "bg-transparent"
       )}
     >
@@ -102,7 +102,7 @@ export function Navbar() {
                     "relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] tracking-[-0.01em] transition-all duration-200",
                     active
                       ? "text-[#e7ab1c] font-semibold bg-[#e7ab1c]/[0.08]"
-                      : "text-black/40 font-medium hover:text-black/70 hover:bg-black/[0.03]"
+                      : "text-[#1a1a2e]/75 font-medium hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04]"
                   )}
                   style={sfText}
                 >
@@ -111,7 +111,7 @@ export function Navbar() {
                     strokeWidth={active ? 2 : 1.6}
                     className={cn(
                       "transition-colors duration-200",
-                      active ? "text-[#e7ab1c]" : "text-black/25"
+                      active ? "text-[#e7ab1c]" : "text-[#1a1a2e]/55"
                     )}
                   />
                   {label}
@@ -139,7 +139,7 @@ export function Navbar() {
             </Link>
 
             <button
-              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-black/50 hover:text-black hover:bg-black/[0.04] transition-all duration-200"
+              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-[#1a1a2e]/80 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.05] transition-all duration-200"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
             >
@@ -151,7 +151,7 @@ export function Navbar() {
         {/* Mobile menu */}
         <div
           className={cn(
-            "lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-[#F4F8FF] border-t border-black/[0.06]",
+            "lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-[#F4F8FF] border-t border-[#1a1a2e]/[0.06]",
             mobileOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0 border-t-transparent"
           )}
         >
@@ -166,14 +166,14 @@ export function Navbar() {
                     "flex items-center gap-3 py-2.5 px-3 rounded-xl text-[14px] transition-all duration-200",
                     active
                       ? "text-[#e7ab1c] font-semibold bg-[#e7ab1c]/[0.08]"
-                      : "text-black/45 font-medium hover:text-black/80 hover:bg-black/[0.03]"
+                      : "text-[#1a1a2e]/80 font-medium hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04]"
                   )}
                   style={sfText}
                 >
                   <Icon
                     size={18}
                     strokeWidth={active ? 2 : 1.5}
-                    className={active ? "text-[#e7ab1c]" : "text-black/25"}
+                    className={active ? "text-[#e7ab1c]" : "text-[#1a1a2e]/55"}
                   />
                   {label}
                 </Link>

@@ -167,7 +167,7 @@ export function TeamManager() {
             setError(null)
             setSuccess(null)
           }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
         >
           <UserPlus size={16} /> Invite Member
         </button>
@@ -365,7 +365,7 @@ export function TeamManager() {
       {showInvite && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 z-40"
+            className="fixed inset-0 bg-[#1a1a2e]/60 z-40"
             onClick={() => setShowInvite(false)}
           />
           <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
@@ -452,7 +452,7 @@ export function TeamManager() {
                 <button
                   type="submit"
                   disabled={inviting}
-                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {inviting ? (
                     <>

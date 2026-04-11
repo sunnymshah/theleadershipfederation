@@ -45,7 +45,7 @@ export default async function WaitlistPage() {
     <div className="p-6 md:p-8 max-w-[1200px] mx-auto">
       {/* Page Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Waitlist</h2>
+        <h2 className="text-2xl font-bold text-[#1a1a2e] mb-1">Waitlist</h2>
         <p className="text-sm text-gray-500">
           All waitlisted attendees across events, ordered by position
         </p>
@@ -53,7 +53,7 @@ export default async function WaitlistPage() {
 
       {/* Summary */}
       <div className="mb-6 flex items-center gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 px-5 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-3 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-0.5">Total Waitlisted</p>
           <p className="text-2xl font-bold text-orange-600">{rows.length}</p>
         </div>
@@ -65,7 +65,7 @@ export default async function WaitlistPage() {
           Error loading waitlist: {error.message}
         </div>
       ) : rows.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />

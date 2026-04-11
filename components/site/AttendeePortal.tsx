@@ -54,13 +54,13 @@ function statusLabel(status: string) {
 function statusColor(status: string) {
   switch (status) {
     case "checked_in":
-      return "bg-emerald-500/20 text-emerald-400"
+      return "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
     case "confirmed":
-      return "bg-blue-500/20 text-blue-400"
+      return "bg-blue-500/15 text-blue-700 border border-blue-500/30"
     case "registered":
-      return "bg-amber-500/20 text-amber-400"
+      return "bg-amber-500/15 text-amber-700 border border-amber-500/30"
     default:
-      return "bg-white/10 text-white/60"
+      return "bg-[#1a1a2e]/10 text-[#1a1a2e]/75 border border-[#1a1a2e]/[0.10]"
   }
 }
 
@@ -82,15 +82,15 @@ function paymentLabel(status: string | null) {
 function paymentColor(status: string | null) {
   switch (status) {
     case "paid":
-      return "text-emerald-400"
+      return "text-emerald-700"
     case "pending":
-      return "text-amber-400"
+      return "text-amber-700"
     case "free":
-      return "text-blue-400"
+      return "text-blue-700"
     case "refunded":
-      return "text-red-400"
+      return "text-red-700"
     default:
-      return "text-white/40"
+      return "text-[#1a1a2e]/65"
   }
 }
 
@@ -161,19 +161,19 @@ export function AttendeePortal() {
   if (!searched) {
     return (
       <div className="max-w-lg mx-auto">
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8 md:p-10">
+        <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-8 md:p-10">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-[#c9a84c]/20 flex items-center justify-center">
-              <Ticket size={20} className="text-[#c9a84c]" />
+            <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center">
+              <Ticket size={20} className="text-[#e7ab1c]" />
             </div>
             <div>
               <h2
-                className="text-lg font-bold text-white"
+                className="text-lg font-bold text-[#1a1a2e]"
                 style={sfFont}
               >
                 Find My Tickets
               </h2>
-              <p className="text-sm text-white/40">
+              <p className="text-sm text-[#1a1a2e]/75">
                 Enter your registered email to access your tickets
               </p>
             </div>
@@ -183,7 +183,7 @@ export function AttendeePortal() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2"
+                className="block text-xs font-bold text-[#1a1a2e]/80 uppercase tracking-wider mb-2"
               >
                 Email Address
               </label>
@@ -194,18 +194,18 @@ export function AttendeePortal() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder:text-white/20 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-1 focus:ring-[#c9a84c]/30 transition-colors"
+                className="w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-xl text-sm text-[#1a1a2e] placeholder-[#1a1a2e]/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-colors"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-400">{error}</p>
+              <p className="text-sm text-red-600">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#c9a84c] hover:bg-[#b8993f] disabled:opacity-50 text-black font-semibold rounded-lg transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#e7ab1c] hover:bg-[#d49c10] disabled:opacity-50 text-[#1a1a2e] font-bold rounded-full transition-colors shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
             >
               {loading ? (
                 <>
@@ -231,7 +231,7 @@ export function AttendeePortal() {
       {/* Back button */}
       <button
         onClick={handleReset}
-        className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors mb-8"
+        className="flex items-center gap-2 text-sm text-[#1a1a2e]/75 hover:text-[#e7ab1c] transition-colors mb-8 font-medium"
       >
         <ArrowLeft size={16} />
         Search with a different email
@@ -239,19 +239,19 @@ export function AttendeePortal() {
 
       {/* Empty state */}
       {registrations && registrations.length === 0 && (
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-10 text-center">
-          <div className="w-14 h-14 rounded-full bg-white/[0.04] flex items-center justify-center mx-auto mb-5">
-            <Search size={24} className="text-white/20" />
+        <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-10 text-center">
+          <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mx-auto mb-5">
+            <Search size={24} className="text-[#e7ab1c]" />
           </div>
           <h3
-            className="text-xl font-bold text-white mb-2"
+            className="text-xl font-bold text-[#1a1a2e] mb-2"
             style={sfFont}
           >
             No Registrations Found
           </h3>
-          <p className="text-white/40 text-sm max-w-md mx-auto leading-relaxed">
+          <p className="text-[#1a1a2e]/75 text-sm max-w-md mx-auto leading-relaxed">
             We could not find any active registrations for{" "}
-            <span className="text-white/60 font-medium">{email}</span>.
+            <span className="text-[#1a1a2e] font-semibold">{email}</span>.
             Please check the email address and try again, or contact our
             support team for assistance.
           </p>
@@ -261,26 +261,26 @@ export function AttendeePortal() {
       {/* Registration cards */}
       {registrations && registrations.length > 0 && (
         <div className="space-y-5">
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-[#1a1a2e]/75">
             Showing {registrations.length} registration{registrations.length !== 1 ? "s" : ""} for{" "}
-            <span className="text-white/60 font-medium">{email}</span>
+            <span className="text-[#1a1a2e] font-semibold">{email}</span>
           </p>
 
           {registrations.map((reg) => (
             <div
               key={reg.id}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 md:p-7"
+              className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm hover:shadow-md hover:border-[#e7ab1c]/30 transition-all p-6 md:p-7"
             >
               {/* Header */}
               <div className="flex items-start justify-between gap-4 mb-5">
                 <div className="min-w-0 flex-1">
                   <h3
-                    className="text-lg font-bold text-white mb-1 truncate"
+                    className="text-lg font-bold text-[#1a1a2e] mb-1 truncate"
                     style={sfFont}
                   >
                     {reg.event_title}
                   </h3>
-                  <p className="text-sm text-white/40">
+                  <p className="text-sm text-[#1a1a2e]/75">
                     {reg.ticket_name}
                   </p>
                 </div>
@@ -299,13 +299,13 @@ export function AttendeePortal() {
               {/* Payment info */}
               <div className="flex items-center gap-4 text-sm mb-6">
                 <div className="flex items-center gap-1.5">
-                  <CreditCard size={14} className="text-white/30" />
-                  <span className={`font-medium ${paymentColor(reg.payment_status)}`}>
+                  <CreditCard size={14} className="text-[#e7ab1c]" />
+                  <span className={`font-semibold ${paymentColor(reg.payment_status)}`}>
                     {paymentLabel(reg.payment_status)}
                   </span>
                 </div>
                 {reg.payment_amount !== null && reg.payment_amount > 0 && (
-                  <span className="text-white/40">
+                  <span className="text-[#1a1a2e]/75 font-medium">
                     {formatCurrency(reg.payment_amount)}
                   </span>
                 )}
@@ -319,7 +319,7 @@ export function AttendeePortal() {
                     href={buildUrl("/api/attendee/badge", reg.id, reg.qr_token) ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border border-[#c9a84c]/30 text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full border border-[#e7ab1c]/40 text-[#a37410] bg-[#e7ab1c]/10 hover:bg-[#e7ab1c]/20 transition-colors"
                   >
                     <Download size={14} />
                     E-Ticket / Badge
@@ -332,7 +332,7 @@ export function AttendeePortal() {
                     href={buildUrl("/api/attendee/certificate", reg.id, reg.qr_token) ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full border border-emerald-500/40 text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
                   >
                     <Award size={14} />
                     Certificate
@@ -345,7 +345,7 @@ export function AttendeePortal() {
                     href={buildUrl("/api/attendee/invoice", reg.id, reg.qr_token) ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-full border border-blue-500/40 text-blue-700 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
                   >
                     <FileText size={14} />
                     Invoice

@@ -219,7 +219,7 @@ export function GalleryManager({ eventId }: { eventId: string }) {
                 />
 
                 {/* Overlay actions */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-start justify-end p-2 opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-[#1a1a2e]/0 group-hover:bg-[#1a1a2e]/30 transition-all flex items-start justify-end p-2 opacity-0 group-hover:opacity-100">
                   <div className="flex gap-1">
                     <button
                       onClick={() => toggleFeatured(image)}

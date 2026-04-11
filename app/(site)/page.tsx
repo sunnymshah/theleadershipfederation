@@ -80,8 +80,8 @@ export default async function HomePage() {
       {/* Ecosystem — bento grid, 3 pillars */}
       <EcosystemGrid />
 
-      {/* Testimonials — dark, large rotating quotes */}
-      <TestimonialTicker testimonials={testimonials.length > 0 ? testimonials : undefined} />
+      {/* Testimonials — only renders when real testimonials exist in DB */}
+      <TestimonialTicker testimonials={testimonials} />
 
       {/* Numbers — dark, animated counters */}
       <NumbersReveal />

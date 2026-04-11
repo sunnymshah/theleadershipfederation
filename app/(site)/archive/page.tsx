@@ -374,7 +374,7 @@ export default async function ArchivePage() {
   return (
     <main className="min-h-screen bg-[#F4F8FF]">
       {/* ── Hero ── */}
-      <section className="relative pt-28 sm:pt-36 pb-14 sm:pb-20 px-4 sm:px-6 overflow-hidden">
+      <section className="relative pt-20 sm:pt-24 pb-10 sm:pb-14 px-4 sm:px-6 overflow-hidden">
         <GoldStarburst />
 
         {/* Gold gradient line at top */}
@@ -385,7 +385,7 @@ export default async function ArchivePage() {
             Legacy Events
           </span>
           <h1
-            className="text-4xl sm:text-5xl md:text-7xl font-bold text-black mb-4 sm:mb-6 tracking-tight"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-[#1a1a2e] mb-4 sm:mb-6 tracking-tight"
             style={sfFont}
           >
             Event{" "}
@@ -393,7 +393,7 @@ export default async function ArchivePage() {
               Archive
             </span>
           </h1>
-          <p className="text-base sm:text-lg text-black/40 max-w-2xl mx-auto leading-relaxed px-2">
+          <p className="text-base sm:text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed px-2">
             Explore the journey of The Leadership Federation — every conclave,
             summit, and awards ceremony that has shaped global leadership
             discourse across 30+ countries.
@@ -424,7 +424,7 @@ export default async function ArchivePage() {
                 >
                   {nextEvent.title}
                 </h2>
-                <p className="text-white/40 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
+                <p className="text-white/85 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
                   <span className="flex items-center gap-1.5">
                     <Calendar size={14} className="text-[#e7ab1c]/60" />{" "}
                     {fmtDate(nextEvent.start_date)}
@@ -452,7 +452,7 @@ export default async function ArchivePage() {
         <div className="flex flex-wrap gap-2">
           {seriesNames.map((series) => {
             const count = PAST_EVENTS.filter((e) => e.series === series).length
-            const colors = seriesColors[series] ?? { bg: "bg-black/5", text: "text-black/40", border: "border-black/10" }
+            const colors = seriesColors[series] ?? { bg: "bg-[#1a1a2e]/5", text: "text-[#1a1a2e]/40", border: "border-[#1a1a2e]/10" }
             return (
               <span
                 key={series}
@@ -469,17 +469,17 @@ export default async function ArchivePage() {
       {/* ── Archive Grid ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-10 sm:pb-16">
         <div className="flex items-center justify-between mb-6 sm:mb-10">
-          <h2 className="text-xs font-bold text-black/25 uppercase tracking-[0.2em]">
+          <h2 className="text-xs font-bold text-[#1a1a2e]/65 uppercase tracking-[0.2em]">
             Past Editions ({allCards.length} events)
           </h2>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {allCards.map((event) => {
-            const colors = seriesColors[event.series] ?? { bg: "bg-black/5", text: "text-black/40", border: "border-black/10" }
+            const colors = seriesColors[event.series] ?? { bg: "bg-[#1a1a2e]/5", text: "text-[#1a1a2e]/40", border: "border-[#1a1a2e]/10" }
 
             const card = (
-              <div className="relative flex flex-col rounded-2xl overflow-hidden bg-white border border-black/[0.06] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 h-full">
+              <div className="relative flex flex-col rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_12px_40px_rgba(26, 26, 46,0.08)] transition-all duration-300 h-full">
                 {/* Cover area — gradient with city name */}
                 <div className="relative h-44 sm:h-48 overflow-hidden">
                   {event.coverImage ? (
@@ -510,7 +510,7 @@ export default async function ArchivePage() {
                   )}
 
                   {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/30 via-transparent to-transparent" />
 
                   {/* Edition badge */}
                   {event.edition && (
@@ -526,7 +526,7 @@ export default async function ArchivePage() {
 
                   {/* City overlay at bottom of image */}
                   {event.venue && (
-                    <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-black/60 to-transparent">
+                    <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-[#1a1a2e]/60 to-transparent">
                       <span className="flex items-center gap-1.5 text-xs text-white/80 font-medium">
                         <MapPin size={12} className="text-[#e7ab1c]" />
                         {event.venue}{event.venue !== event.city ? `, ${event.city}` : ""}
@@ -541,19 +541,19 @@ export default async function ArchivePage() {
                 {/* Content */}
                 <div className="flex flex-col flex-1 p-5 sm:p-6">
                   <h3
-                    className="text-base sm:text-lg font-bold text-black mb-2 group-hover:text-[#e7ab1c] transition-colors leading-snug"
+                    className="text-base sm:text-lg font-bold text-[#1a1a2e] mb-2 group-hover:text-[#e7ab1c] transition-colors leading-snug"
                     style={sfFont}
                   >
                     {event.title}
                   </h3>
 
-                  <div className="flex items-center gap-1.5 text-xs sm:text-sm text-black/35 mb-3">
-                    <Calendar size={13} className="shrink-0 text-black/20" />
+                  <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#1a1a2e]/65 mb-3">
+                    <Calendar size={13} className="shrink-0 text-[#e7ab1c]" />
                     {event.date}
                   </div>
 
                   {event.description && (
-                    <p className="text-xs sm:text-sm text-black/30 line-clamp-2 mb-4 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-[#1a1a2e]/70 line-clamp-2 mb-4 leading-relaxed">
                       {event.description}
                     </p>
                   )}
@@ -631,7 +631,7 @@ export default async function ArchivePage() {
                   >
                     {stat.value}
                   </div>
-                  <div className="text-[10px] sm:text-xs font-bold text-white/30 uppercase tracking-[0.15em]">
+                  <div className="text-[10px] sm:text-xs font-bold text-white/85 uppercase tracking-[0.15em]">
                     {stat.label}
                   </div>
                 </div>

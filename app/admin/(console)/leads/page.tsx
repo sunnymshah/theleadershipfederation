@@ -175,7 +175,7 @@ export default function AdminLeadsPage() {
         <button
           onClick={handleExport}
           disabled={exporting || leads.length === 0}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-40 transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-40 transition-colors"
         >
           {exporting ? (
             <Loader2 size={16} className="animate-spin" />

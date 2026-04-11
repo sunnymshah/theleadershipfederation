@@ -257,15 +257,15 @@ export default function MyTicketsPage() {
     return (
       <main className="min-h-screen bg-[#F4F8FF] relative">
         {/* Hero */}
-        <section className="pt-36 pb-16 px-6">
+        <section className="pt-24 pb-12 px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em] mb-6">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
               Self-Service Portal
             </span>
             <h1 className="text-[#1a1a2e] leading-[1.08] font-bold mb-6 text-3xl md:text-5xl">
               My Tickets
             </h1>
-            <p className="text-lg text-[#1a1a2e]/50 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg text-[#1a1a2e]/75 leading-relaxed max-w-2xl mx-auto">
               Look up your registrations to access your agenda, download
               e-tickets, certificates, networking tools, and session materials.
             </p>
@@ -273,18 +273,18 @@ export default function MyTicketsPage() {
         </section>
 
         {/* Lookup form */}
-        <section className="pb-32 px-6">
+        <section className="pb-20 px-6">
           <div className="max-w-lg mx-auto">
             <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-8 md:p-10">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-[#c9a84c]/10 flex items-center justify-center">
-                  <Ticket size={20} className="text-[#c9a84c]" />
+                <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center">
+                  <Ticket size={20} className="text-[#e7ab1c]" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[#1a1a2e]">
                     Find My Tickets
                   </h2>
-                  <p className="text-sm text-[#1a1a2e]/40">
+                  <p className="text-sm text-[#1a1a2e]/75">
                     Enter your registered email to access your portal
                   </p>
                 </div>
@@ -294,7 +294,7 @@ export default function MyTicketsPage() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-2"
+                    className="block text-xs font-bold text-[#1a1a2e]/80 uppercase tracking-wider mb-2"
                   >
                     Email Address
                   </label>
@@ -305,7 +305,7 @@ export default function MyTicketsPage() {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-[#1a1a2e] placeholder:text-[#1a1a2e]/25 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+                    className="w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-xl text-[#1a1a2e] placeholder:text-[#1a1a2e]/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
                   />
                 </div>
 
@@ -314,7 +314,7 @@ export default function MyTicketsPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#c9a84c] hover:bg-[#b8993f] disabled:opacity-50 text-white font-semibold rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#e7ab1c] hover:bg-[#d49c10] disabled:opacity-50 text-[#1a1a2e] font-bold rounded-full transition-colors shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
                 >
                   {loading ? (
                     <>
@@ -341,9 +341,9 @@ export default function MyTicketsPage() {
   if (!currentAttendee) {
     return (
       <main className="min-h-screen bg-[#F4F8FF] relative">
-        <section className="pt-36 pb-16 px-6">
+        <section className="pt-24 pb-12 px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em] mb-6">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
               Self-Service Portal
             </span>
             <h1 className="text-[#1a1a2e] leading-[1.08] font-bold mb-6 text-3xl md:text-5xl">
@@ -351,25 +351,25 @@ export default function MyTicketsPage() {
             </h1>
           </div>
         </section>
-        <section className="pb-32 px-6">
+        <section className="pb-20 px-6">
           <div className="max-w-3xl mx-auto">
             <button
               onClick={handleReset}
-              className="flex items-center gap-2 text-sm text-[#1a1a2e]/40 hover:text-[#1a1a2e]/70 transition-colors mb-8"
+              className="flex items-center gap-2 text-sm text-[#1a1a2e]/75 hover:text-[#e7ab1c] transition-colors mb-8 font-medium"
             >
               <ArrowLeft size={16} />
               Search with a different email
             </button>
             <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-10 text-center">
-              <div className="w-14 h-14 rounded-full bg-[#1a1a2e]/[0.04] flex items-center justify-center mx-auto mb-5">
-                <Search size={24} className="text-[#1a1a2e]/20" />
+              <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mx-auto mb-5">
+                <Search size={24} className="text-[#e7ab1c]" />
               </div>
               <h3 className="text-xl font-bold text-[#1a1a2e] mb-2">
                 No Registrations Found
               </h3>
-              <p className="text-[#1a1a2e]/40 text-sm max-w-md mx-auto leading-relaxed">
+              <p className="text-[#1a1a2e]/75 text-sm max-w-md mx-auto leading-relaxed">
                 We could not find any active registrations for{" "}
-                <span className="text-[#1a1a2e]/60 font-medium">{email}</span>.
+                <span className="text-[#1a1a2e] font-semibold">{email}</span>.
                 Please check the email address and try again.
               </p>
             </div>
@@ -386,9 +386,9 @@ export default function MyTicketsPage() {
   return (
     <main className="min-h-screen bg-[#F4F8FF] relative">
       {/* Hero */}
-      <section className="pt-36 pb-8 px-6">
+      <section className="pt-24 pb-6 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em] mb-4">
+          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-4">
             Self-Service Portal
           </span>
           <h1 className="text-[#1a1a2e] leading-[1.08] font-bold mb-2 text-3xl md:text-5xl">
@@ -397,12 +397,12 @@ export default function MyTicketsPage() {
         </div>
       </section>
 
-      <section className="pb-32 px-6">
+      <section className="pb-20 px-6">
         <div className="max-w-4xl mx-auto">
           {/* Back button */}
           <button
             onClick={handleReset}
-            className="flex items-center gap-2 text-sm text-[#1a1a2e]/40 hover:text-[#1a1a2e]/70 transition-colors mb-6"
+            className="flex items-center gap-2 text-sm text-[#1a1a2e]/75 hover:text-[#e7ab1c] transition-colors mb-6 font-medium"
           >
             <ArrowLeft size={16} />
             Search with a different email
@@ -415,10 +415,10 @@ export default function MyTicketsPage() {
                 <button
                   key={a.id}
                   onClick={() => setSelectedAttendeeIdx(idx)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
                     idx === selectedAttendeeIdx
-                      ? "bg-[#c9a84c] text-white border-[#c9a84c]"
-                      : "bg-white text-[#1a1a2e]/60 border-[#1a1a2e]/10 hover:border-[#c9a84c]/40"
+                      ? "bg-[#e7ab1c] text-[#1a1a2e] border-[#e7ab1c] shadow-[0_2px_12px_rgba(231,171,28,0.25)]"
+                      : "bg-white text-[#1a1a2e]/80 border-[#1a1a2e]/[0.10] hover:border-[#e7ab1c]/40"
                   }`}
                 >
                   {a.events?.title ?? "Event"}
@@ -437,7 +437,7 @@ export default function MyTicketsPage() {
                     <h2 className="text-xl font-bold text-[#1a1a2e]">
                       {currentAttendee.name}
                     </h2>
-                    <p className="text-sm text-[#1a1a2e]/50 mt-0.5">
+                    <p className="text-sm text-[#1a1a2e]/75 mt-0.5">
                       {[currentAttendee.designation, currentAttendee.company]
                         .filter(Boolean)
                         .join(" at ")}
@@ -456,20 +456,20 @@ export default function MyTicketsPage() {
                 </div>
 
                 {/* Event details */}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-[#1a1a2e]/50 mb-5">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-[#1a1a2e]/80 mb-5">
                   <span className="flex items-center gap-1.5">
-                    <Calendar size={14} className="text-[#c9a84c]" />
+                    <Calendar size={14} className="text-[#e7ab1c]" />
                     {evt?.title}
                   </span>
                   {evt?.venue && (
                     <span className="flex items-center gap-1.5">
-                      <MapPin size={14} className="text-[#c9a84c]" />
+                      <MapPin size={14} className="text-[#e7ab1c]" />
                       {evt.venue}
                     </span>
                   )}
                   {evt?.start_date && (
                     <span className="flex items-center gap-1.5">
-                      <Clock size={14} className="text-[#c9a84c]" />
+                      <Clock size={14} className="text-[#e7ab1c]" />
                       {fmtDateShort(evt.start_date)}
                       {evt.end_date && evt.end_date !== evt.start_date
                         ? ` - ${fmtDateShort(evt.end_date)}`
@@ -479,12 +479,12 @@ export default function MyTicketsPage() {
                 </div>
 
                 {/* QR Code */}
-                <div className="flex items-center gap-3 p-3 bg-[#F4F8FF] rounded-xl border border-[#1a1a2e]/[0.04] mb-5">
-                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center border border-[#1a1a2e]/5">
+                <div className="flex items-center gap-3 p-3 bg-[#F4F8FF] rounded-xl border border-[#1a1a2e]/[0.06] mb-5">
+                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center border border-[#1a1a2e]/[0.06]">
                     <QRDisplay value={`attendee:${currentAttendee.id}`} />
                   </div>
-                  <div className="text-xs text-[#1a1a2e]/40">
-                    <p className="font-medium text-[#1a1a2e]/60">Your QR Code</p>
+                  <div className="text-xs text-[#1a1a2e]/75">
+                    <p className="font-bold text-[#1a1a2e] text-sm">Your QR Code</p>
                     <p>Show this at the registration desk for quick check-in</p>
                   </div>
                 </div>
@@ -495,7 +495,7 @@ export default function MyTicketsPage() {
                     href={buildUrl("/api/attendee/badge", currentAttendee.id)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-lg border border-[#c9a84c]/30 text-[#c9a84c] bg-[#c9a84c]/5 hover:bg-[#c9a84c]/10 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-full border border-[#e7ab1c]/40 text-[#a37410] bg-[#e7ab1c]/10 hover:bg-[#e7ab1c]/20 transition-colors"
                   >
                     <Download size={14} />
                     E-Ticket
@@ -506,7 +506,7 @@ export default function MyTicketsPage() {
                       href={buildUrl("/api/attendee/certificate", currentAttendee.id)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-lg border border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-full border border-emerald-500/40 text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
                     >
                       <Award size={14} />
                       Certificate
@@ -517,7 +517,7 @@ export default function MyTicketsPage() {
                     href={buildUrl("/api/attendee/invoice", currentAttendee.id)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-lg border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-full border border-blue-500/40 text-blue-700 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
                   >
                     <FileText size={14} />
                     Invoice
@@ -534,10 +534,10 @@ export default function MyTicketsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
                     activeTab === tab.id
-                      ? "border-[#c9a84c] text-[#c9a84c]"
-                      : "border-transparent text-[#1a1a2e]/40 hover:text-[#1a1a2e]/60"
+                      ? "border-[#e7ab1c] text-[#e7ab1c]"
+                      : "border-transparent text-[#1a1a2e]/75 hover:text-[#1a1a2e]"
                   }`}
                 >
                   {tab.icon}
@@ -638,7 +638,7 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 size={24} className="animate-spin text-[#c9a84c]" />
+        <Loader2 size={24} className="animate-spin text-[#e7ab1c]" />
       </div>
     )
   }
@@ -646,20 +646,20 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
   if (sessions.length === 0) {
     return (
       <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-10 text-center">
-        <div className="w-14 h-14 rounded-full bg-[#c9a84c]/10 flex items-center justify-center mx-auto mb-4">
-          <Bookmark size={24} className="text-[#c9a84c]" />
+        <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/10 flex items-center justify-center mx-auto mb-4">
+          <Bookmark size={24} className="text-[#e7ab1c]" />
         </div>
         <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">
           No Sessions Bookmarked
         </h3>
-        <p className="text-sm text-[#1a1a2e]/40 mb-6 max-w-sm mx-auto">
+        <p className="text-sm text-[#1a1a2e]/75 mb-6 max-w-sm mx-auto">
           Browse the event schedule and bookmark sessions to build your personal
           agenda.
         </p>
         {eventSlug && (
           <Link
             href={`/events/${eventSlug}/schedule`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#c9a84c] hover:bg-[#b8993f] text-white text-sm font-semibold rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#e7ab1c] hover:bg-[#d49c10] text-[#1a1a2e] text-sm font-bold rounded-full transition-colors shadow-[0_2px_12px_rgba(231,171,28,0.25)]"
           >
             <Calendar size={16} />
             Browse Sessions
@@ -672,13 +672,13 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm text-[#1a1a2e]/40">
+        <p className="text-sm text-[#1a1a2e]/75">
           {sessions.length} session{sessions.length !== 1 ? "s" : ""} bookmarked
         </p>
         {eventSlug && (
           <Link
             href={`/events/${eventSlug}/schedule`}
-            className="inline-flex items-center gap-1.5 text-sm text-[#c9a84c] hover:text-[#b8993f] font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-[#e7ab1c] hover:text-[#d49c10] font-medium transition-colors"
           >
             Browse Sessions
             <ChevronRight size={14} />
@@ -688,21 +688,21 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
       {sessions.map((session) => (
         <div
           key={session.id}
-          className="rounded-xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-5 group hover:border-[#c9a84c]/20 transition-all"
+          className="rounded-xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-5 group hover:border-[#e7ab1c]/20 transition-all"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-mono text-[#1a1a2e]/40">
+                <span className="text-xs font-mono text-[#1a1a2e]/75">
                   {fmtTime(session.start_time)} - {fmtTime(session.end_time)}
                 </span>
                 {session.track && (
-                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#c9a84c]/10 text-[#c9a84c]">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#e7ab1c]/10 text-[#e7ab1c]">
                     {session.track}
                   </span>
                 )}
                 {session.room && (
-                  <span className="text-[10px] text-[#1a1a2e]/30 px-2 py-0.5 rounded bg-[#1a1a2e]/[0.03]">
+                  <span className="text-[10px] text-[#1a1a2e]/65 px-2 py-0.5 rounded bg-[#1a1a2e]/[0.03]">
                     {session.room}
                   </span>
                 )}
@@ -711,7 +711,7 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
                 {session.title}
               </h4>
               {session.description && (
-                <p className="text-xs text-[#1a1a2e]/40 mt-1 line-clamp-1">
+                <p className="text-xs text-[#1a1a2e]/75 mt-1 line-clamp-1">
                   {session.description}
                 </p>
               )}
@@ -719,7 +719,7 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
             <button
               onClick={() => handleRemove(session.id)}
               disabled={removing === session.id}
-              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[#1a1a2e]/20 hover:text-red-500 hover:bg-red-50 transition-all"
+              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[#1a1a2e]/65 hover:text-red-500 hover:bg-red-50 transition-all"
               title="Remove from agenda"
             >
               {removing === session.id ? (
@@ -827,7 +827,7 @@ function NetworkingTab({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 size={24} className="animate-spin text-[#c9a84c]" />
+        <Loader2 size={24} className="animate-spin text-[#e7ab1c]" />
       </div>
     )
   }
@@ -840,7 +840,7 @@ function NetworkingTab({
           Incoming Requests
         </h3>
         {incoming.length === 0 ? (
-          <p className="text-sm text-[#1a1a2e]/30 bg-white rounded-xl border border-[#1a1a2e]/[0.06] p-5 text-center">
+          <p className="text-sm text-[#1a1a2e]/65 bg-white rounded-xl border border-[#1a1a2e]/[0.06] p-5 text-center">
             No incoming networking requests yet.
           </p>
         ) : (
@@ -857,13 +857,13 @@ function NetworkingTab({
                       <p className="font-medium text-[#1a1a2e] text-sm">
                         {person?.name ?? "Unknown"}
                       </p>
-                      <p className="text-xs text-[#1a1a2e]/40">
+                      <p className="text-xs text-[#1a1a2e]/75">
                         {[person?.designation, person?.company]
                           .filter(Boolean)
                           .join(" at ")}
                       </p>
                       {req.message && (
-                        <p className="text-xs text-[#1a1a2e]/50 mt-2 italic bg-[#F4F8FF] rounded-lg p-2.5">
+                        <p className="text-xs text-[#1a1a2e]/75 mt-2 italic bg-[#F4F8FF] rounded-lg p-2.5">
                           &ldquo;{req.message}&rdquo;
                         </p>
                       )}
@@ -912,7 +912,7 @@ function NetworkingTab({
           Outgoing Requests
         </h3>
         {outgoing.length === 0 ? (
-          <p className="text-sm text-[#1a1a2e]/30 bg-white rounded-xl border border-[#1a1a2e]/[0.06] p-5 text-center">
+          <p className="text-sm text-[#1a1a2e]/65 bg-white rounded-xl border border-[#1a1a2e]/[0.06] p-5 text-center">
             No outgoing networking requests yet.
           </p>
         ) : (
@@ -929,13 +929,13 @@ function NetworkingTab({
                       <p className="font-medium text-[#1a1a2e] text-sm">
                         {person?.name ?? "Unknown"}
                       </p>
-                      <p className="text-xs text-[#1a1a2e]/40">
+                      <p className="text-xs text-[#1a1a2e]/75">
                         {[person?.designation, person?.company]
                           .filter(Boolean)
                           .join(" at ")}
                       </p>
                       {req.message && (
-                        <p className="text-xs text-[#1a1a2e]/50 mt-2 italic bg-[#F4F8FF] rounded-lg p-2.5">
+                        <p className="text-xs text-[#1a1a2e]/75 mt-2 italic bg-[#F4F8FF] rounded-lg p-2.5">
                           &ldquo;{req.message}&rdquo;
                         </p>
                       )}
@@ -962,20 +962,20 @@ function NetworkingTab({
           <div className="relative">
             <Search
               size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1a1a2e]/25"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1a1a2e]/65"
             />
             <input
               type="text"
               placeholder="Search by name, company, or role..."
               value={dirSearch}
               onChange={(e) => setDirSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] placeholder:text-[#1a1a2e]/25 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] placeholder:text-[#1a1a2e]/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
             />
           </div>
         </div>
 
         {filteredDirectory.length === 0 ? (
-          <p className="text-sm text-[#1a1a2e]/30 bg-white rounded-xl border border-[#1a1a2e]/[0.06] p-5 text-center">
+          <p className="text-sm text-[#1a1a2e]/65 bg-white rounded-xl border border-[#1a1a2e]/[0.06] p-5 text-center">
             {directory.length === 0
               ? "No delegates visible in the directory yet."
               : "No results matching your search."}
@@ -1003,7 +1003,7 @@ function NetworkingTab({
                       </a>
                     )}
                   </div>
-                  <p className="text-xs text-[#1a1a2e]/40 truncate">
+                  <p className="text-xs text-[#1a1a2e]/75 truncate">
                     {[person.designation, person.company]
                       .filter(Boolean)
                       .join(" at ")}
@@ -1014,7 +1014,7 @@ function NetworkingTab({
                     setConnectModal(person)
                     setConnectMessage("")
                   }}
-                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#c9a84c]/30 text-[#c9a84c] bg-[#c9a84c]/5 hover:bg-[#c9a84c]/10 transition-colors"
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#e7ab1c]/30 text-[#e7ab1c] bg-[#e7ab1c]/5 hover:bg-[#e7ab1c]/10 transition-colors"
                 >
                   <Send size={12} />
                   Connect
@@ -1027,14 +1027,14 @@ function NetworkingTab({
 
       {/* Connect Modal */}
       {connectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-[#1a1a2e]">
                   Connect with {connectModal.name}
                 </h3>
-                <p className="text-sm text-[#1a1a2e]/40">
+                <p className="text-sm text-[#1a1a2e]/75">
                   {[connectModal.designation, connectModal.company]
                     .filter(Boolean)
                     .join(" at ")}
@@ -1042,14 +1042,14 @@ function NetworkingTab({
               </div>
               <button
                 onClick={() => setConnectModal(null)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#1a1a2e]/30 hover:text-[#1a1a2e]/60 hover:bg-[#1a1a2e]/5 transition-all"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#1a1a2e]/65 hover:text-[#1a1a2e]/80 hover:bg-[#1a1a2e]/5 transition-all"
               >
                 <X size={16} />
               </button>
             </div>
 
             <div className="mb-4">
-              <label className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-medium text-[#1a1a2e]/75 uppercase tracking-wider mb-2">
                 Message (optional)
               </label>
               <textarea
@@ -1057,21 +1057,21 @@ function NetworkingTab({
                 onChange={(e) => setConnectMessage(e.target.value)}
                 placeholder="Introduce yourself or mention what you'd like to discuss..."
                 rows={3}
-                className="w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] placeholder:text-[#1a1a2e]/25 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all resize-none"
+                className="w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] placeholder:text-[#1a1a2e]/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all resize-none"
               />
             </div>
 
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConnectModal(null)}
-                className="px-4 py-2 text-sm font-medium text-[#1a1a2e]/50 hover:text-[#1a1a2e]/70 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e]/70 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSendRequest}
                 disabled={sending}
-                className="inline-flex items-center gap-2 px-5 py-2 bg-[#c9a84c] hover:bg-[#b8993f] disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2 bg-[#e7ab1c] hover:bg-[#d49c10] disabled:opacity-50 text-[#1a1a2e] text-sm font-bold rounded-full transition-colors shadow-[0_2px_12px_rgba(231,171,28,0.25)]"
               >
                 {sending ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -1129,65 +1129,65 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Name */}
         <div>
-          <label className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-[#1a1a2e]/75 uppercase tracking-wider mb-1.5">
             Full Name
           </label>
           <input
             type="text"
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
-            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
           />
         </div>
 
         {/* Company */}
         <div>
-          <label className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-[#1a1a2e]/75 uppercase tracking-wider mb-1.5">
             Company
           </label>
           <input
             type="text"
             value={form.company}
             onChange={(e) => handleChange("company", e.target.value)}
-            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
           />
         </div>
 
         {/* Designation */}
         <div>
-          <label className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-[#1a1a2e]/75 uppercase tracking-wider mb-1.5">
             Designation
           </label>
           <input
             type="text"
             value={form.designation}
             onChange={(e) => handleChange("designation", e.target.value)}
-            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
           />
         </div>
 
         {/* Phone */}
         <div>
-          <label className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-[#1a1a2e]/75 uppercase tracking-wider mb-1.5">
             Phone
           </label>
           <input
             type="tel"
             value={form.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
-            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
           />
         </div>
 
         {/* Dietary Preference */}
         <div>
-          <label className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-[#1a1a2e]/75 uppercase tracking-wider mb-1.5">
             Dietary Preference
           </label>
           <select
             value={form.dietary_preference}
             onChange={(e) => handleChange("dietary_preference", e.target.value)}
-            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
           >
             <option value="">No preference</option>
             <option value="vegetarian">Vegetarian</option>
@@ -1201,7 +1201,7 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
 
         {/* LinkedIn URL */}
         <div>
-          <label className="block text-xs font-medium text-[#1a1a2e]/50 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-[#1a1a2e]/75 uppercase tracking-wider mb-1.5">
             LinkedIn URL
           </label>
           <input
@@ -1209,7 +1209,7 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
             value={form.linkedin_url}
             onChange={(e) => handleChange("linkedin_url", e.target.value)}
             placeholder="https://linkedin.com/in/..."
-            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/10 rounded-lg text-sm text-[#1a1a2e] placeholder:text-[#1a1a2e]/25 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-2 focus:ring-[#c9a84c]/20 transition-all"
+            className="w-full px-4 py-2.5 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-lg text-sm text-[#1a1a2e] placeholder:text-[#1a1a2e]/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
           />
         </div>
       </div>
@@ -1222,7 +1222,7 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
           aria-checked={form.show_in_directory}
           onClick={() => handleChange("show_in_directory", !form.show_in_directory)}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            form.show_in_directory ? "bg-[#c9a84c]" : "bg-[#1a1a2e]/15"
+            form.show_in_directory ? "bg-[#e7ab1c]" : "bg-[#1a1a2e]/15"
           }`}
         >
           <span
@@ -1231,7 +1231,7 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
             }`}
           />
         </button>
-        <span className="text-sm text-[#1a1a2e]/60">
+        <span className="text-sm text-[#1a1a2e]/80">
           Show my profile in the event directory
         </span>
       </div>
@@ -1241,7 +1241,7 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#c9a84c] hover:bg-[#b8993f] disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#e7ab1c] hover:bg-[#d49c10] disabled:opacity-50 text-[#1a1a2e] text-sm font-bold rounded-full transition-colors shadow-[0_2px_12px_rgba(231,171,28,0.25)]"
         >
           {saving ? (
             <Loader2 size={16} className="animate-spin" />
@@ -1324,7 +1324,7 @@ function MaterialsTab({ attendeeId }: { attendeeId: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 size={24} className="animate-spin text-[#c9a84c]" />
+        <Loader2 size={24} className="animate-spin text-[#e7ab1c]" />
       </div>
     )
   }
@@ -1332,13 +1332,13 @@ function MaterialsTab({ attendeeId }: { attendeeId: string }) {
   if (sessions.length === 0) {
     return (
       <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-10 text-center">
-        <div className="w-14 h-14 rounded-full bg-[#c9a84c]/10 flex items-center justify-center mx-auto mb-4">
-          <BookOpen size={24} className="text-[#c9a84c]" />
+        <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/10 flex items-center justify-center mx-auto mb-4">
+          <BookOpen size={24} className="text-[#e7ab1c]" />
         </div>
         <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">
           No Materials Available
         </h3>
-        <p className="text-sm text-[#1a1a2e]/40 max-w-sm mx-auto">
+        <p className="text-sm text-[#1a1a2e]/75 max-w-sm mx-auto">
           Materials for your bookmarked sessions will appear here once speakers
           upload them.
         </p>
@@ -1348,7 +1348,7 @@ function MaterialsTab({ attendeeId }: { attendeeId: string }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[#1a1a2e]/40 mb-2">
+      <p className="text-sm text-[#1a1a2e]/75 mb-2">
         {sessions.length} session{sessions.length !== 1 ? "s" : ""} with
         downloadable materials
       </p>
@@ -1367,18 +1367,18 @@ function MaterialsTab({ attendeeId }: { attendeeId: string }) {
                 href={material.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#F4F8FF] border border-[#1a1a2e]/[0.04] hover:border-[#c9a84c]/20 text-sm text-[#1a1a2e]/70 hover:text-[#c9a84c] transition-all group"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#F4F8FF] border border-[#1a1a2e]/[0.04] hover:border-[#e7ab1c]/20 text-sm text-[#1a1a2e]/70 hover:text-[#e7ab1c] transition-all group"
               >
                 <FileText
                   size={16}
-                  className="text-[#1a1a2e]/25 group-hover:text-[#c9a84c] transition-colors shrink-0"
+                  className="text-[#1a1a2e]/65 group-hover:text-[#e7ab1c] transition-colors shrink-0"
                 />
                 <span className="flex-1 min-w-0 truncate">
                   {material.name ?? `Material ${idx + 1}`}
                 </span>
                 <ExternalLink
                   size={14}
-                  className="text-[#1a1a2e]/15 group-hover:text-[#c9a84c] transition-colors shrink-0"
+                  className="text-[#1a1a2e]/65 group-hover:text-[#e7ab1c] transition-colors shrink-0"
                 />
               </a>
             ))}

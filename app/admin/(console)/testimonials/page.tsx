@@ -131,7 +131,7 @@ export default function AdminTestimonialsPage() {
         </div>
         <button
           onClick={openAddForm}
-          className="bg-[#c9a84c] text-black font-semibold rounded-lg px-4 py-2 hover:bg-[#d4b85c] transition-colors"
+          className="bg-[#c9a84c] text-[#1a1a2e] font-semibold rounded-lg px-4 py-2 hover:bg-[#d4b85c] transition-colors"
         >
           + Add Testimonial
         </button>
@@ -168,7 +168,7 @@ export default function AdminTestimonialsPage() {
                   name="name"
                   required
                   defaultValue={editing?.name ?? ""}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="Full name"
                 />
               </div>
@@ -180,7 +180,7 @@ export default function AdminTestimonialsPage() {
                   type="text"
                   name="designation"
                   defaultValue={editing?.designation ?? ""}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="CEO, VP of Sales, etc."
                 />
               </div>
@@ -192,7 +192,7 @@ export default function AdminTestimonialsPage() {
                   type="text"
                   name="company"
                   defaultValue={editing?.company ?? ""}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                   placeholder="Company name"
                 />
               </div>
@@ -207,7 +207,7 @@ export default function AdminTestimonialsPage() {
                 required
                 rows={4}
                 defaultValue={editing?.quote ?? ""}
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
+                className="w-full bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
                 placeholder="What did they say about the experience?"
               />
             </div>
@@ -221,7 +221,7 @@ export default function AdminTestimonialsPage() {
                   type="file"
                   name="photo"
                   accept="image/*"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-white/10 file:text-white/70 hover:file:bg-white/15 transition-colors"
+                  className="w-full bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-white/10 file:text-white/70 hover:file:bg-white/15 transition-colors"
                 />
                 {editing?.image_url && (
                   <p className="text-white/30 text-xs mt-1">
@@ -238,7 +238,7 @@ export default function AdminTestimonialsPage() {
                   name="sortOrder"
                   min="0"
                   defaultValue={editing?.sort_order ?? 0}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
                 />
               </div>
               <div className="flex items-end pb-2">
@@ -247,7 +247,7 @@ export default function AdminTestimonialsPage() {
                     type="checkbox"
                     name="isFeaturedCheckbox"
                     defaultChecked={editing ? editing.is_featured : true}
-                    className="w-4 h-4 rounded border-white/20 bg-[#1a1a1a] text-[#c9a84c] accent-[#c9a84c]"
+                    className="w-4 h-4 rounded border-white/20 bg-[#1a1a2e] text-[#c9a84c] accent-[#c9a84c]"
                   />
                   <span className="text-sm text-white/60">Featured</span>
                 </label>
@@ -267,7 +267,7 @@ export default function AdminTestimonialsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-[#c9a84c] text-black font-semibold rounded-lg px-5 py-2 hover:bg-[#d4b85c] disabled:opacity-50 transition-colors"
+                className="bg-[#c9a84c] text-[#1a1a2e] font-semibold rounded-lg px-5 py-2 hover:bg-[#d4b85c] disabled:opacity-50 transition-colors"
               >
                 {submitting
                   ? "Saving..."

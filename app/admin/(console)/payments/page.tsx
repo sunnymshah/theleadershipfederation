@@ -57,35 +57,35 @@ export default async function PaymentsPage() {
   return (
     <div className="p-6 md:p-8 max-w-[1200px] mx-auto">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Payments</h2>
+        <h2 className="text-2xl font-bold text-[#1a1a2e] mb-1">Payments</h2>
         <p className="text-sm text-gray-500">Payment overview across all events</p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Total Collected</p>
-          <p className="text-2xl font-bold text-gray-900">{fmtCurrency(totalCollected)}</p>
+          <p className="text-2xl font-bold text-[#1a1a2e]">{fmtCurrency(totalCollected)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Paid</p>
           <p className="text-2xl font-bold text-emerald-600">{paidCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Pending</p>
           <p className="text-2xl font-bold text-orange-600">{pendingCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Free / Comp</p>
           <p className="text-2xl font-bold text-gray-600">{freeCount}</p>
         </div>
       </div>
 
       {/* Pending payments table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden mb-6">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">Pending Payments</h3>
+            <h3 className="font-semibold text-[#1a1a2e]">Pending Payments</h3>
             <p className="text-sm text-gray-500">Attendees with outstanding payments</p>
           </div>
           <Link
@@ -116,11 +116,11 @@ export default async function PaymentsPage() {
               <tbody>
                 {pendingAttendees.map((a) => (
                   <tr key={a.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-gray-900">{a.name}</td>
+                    <td className="px-5 py-3 font-medium text-[#1a1a2e]">{a.name}</td>
                     <td className="px-5 py-3 text-gray-600">{a.email}</td>
                     <td className="px-5 py-3 text-gray-600">{a.events?.title ?? "--"}</td>
                     <td className="px-5 py-3 text-gray-600">{a.tickets?.name ?? "--"}</td>
-                    <td className="px-5 py-3 text-right font-semibold text-gray-900 tabular-nums">
+                    <td className="px-5 py-3 text-right font-semibold text-[#1a1a2e] tabular-nums">
                       {a.payment_amount ? fmtCurrency(a.payment_amount) : "--"}
                     </td>
                     <td className="px-5 py-3">

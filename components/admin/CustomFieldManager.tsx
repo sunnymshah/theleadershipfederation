@@ -328,7 +328,7 @@ export function CustomFieldManager({ eventId }: { eventId: string }) {
       {/* ── Drawer (Add / Edit) ──────────────────────────────────── */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/20" onClick={() => { setDrawerOpen(false); setEditing(null) }} />
+          <div className="absolute inset-0 bg-[#1a1a2e]/20" onClick={() => { setDrawerOpen(false); setEditing(null) }} />
           <div className="relative w-full max-w-md bg-white shadow-2xl border-l border-[#e0e0e0] overflow-y-auto">
             {/* Drawer Header */}
             <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">

@@ -360,7 +360,7 @@ export default function ApprovalsPage() {
       {rejectModalOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 z-40"
+            className="fixed inset-0 bg-[#1a1a2e]/60 z-40"
             onClick={() => { setRejectModalOpen(false); setRejectingId(null) }}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

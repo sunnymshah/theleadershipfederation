@@ -120,18 +120,18 @@ export default function AdvisoryBoardAdminPage() {
   }
 
   return (
-    <div className="p-8 min-h-screen" style={{ background: "#0a0a0a" }}>
+    <div className="p-6 md:p-8 max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white">Advisory Board</h2>
-          <p className="text-sm text-white/40 mt-1">
+          <h2 className="text-2xl font-bold text-[#1a1a2e]">Advisory Board</h2>
+          <p className="text-sm text-[#1a1a2e]/55 mt-1">
             Manage advisory board members shown on the public website
           </p>
         </div>
         <button
           onClick={openAddForm}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-black text-sm font-semibold hover:bg-[#d4b85c] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors shadow-[0_4px_16px_rgba(231,171,28,0.25)]"
         >
           <Plus size={16} /> Add Member
         </button>
@@ -139,9 +139,9 @@ export default function AdvisoryBoardAdminPage() {
 
       {/* Error banner */}
       {actionError && !showForm && (
-        <div className="mb-6 flex items-center justify-between px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="mb-6 flex items-center justify-between px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-700 text-sm">
           <span>{actionError}</span>
-          <button onClick={() => setActionError(null)} className="text-red-400/50 hover:text-red-400">
+          <button onClick={() => setActionError(null)} className="text-red-700/60 hover:text-red-700">
             <X size={14} />
           </button>
         </div>
@@ -149,14 +149,14 @@ export default function AdvisoryBoardAdminPage() {
 
       {/* Inline Form */}
       {showForm && (
-        <div className="mb-8 bg-[#141414] border border-white/[0.06] rounded-xl p-6">
+        <div className="mb-8 bg-white shadow-sm border border-[#1a1a2e]/[0.06] rounded-xl p-6">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-[#1a1a2e]">
               {editingMember ? "Edit Member" : "Add New Member"}
             </h3>
             <button
               onClick={closeForm}
-              className="p-1.5 rounded-md text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors"
+              className="p-1.5 rounded-md text-[#1a1a2e]/45 hover:text-[#1a1a2e]/80 hover:bg-[#1a1a2e]/[0.04] transition-colors"
             >
               <X size={18} />
             </button>
@@ -165,8 +165,8 @@ export default function AdvisoryBoardAdminPage() {
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
-                Name <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium text-[#1a1a2e]/65 mb-1.5">
+                Name <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
@@ -174,14 +174,14 @@ export default function AdvisoryBoardAdminPage() {
                 required
                 defaultValue={editingMember?.name ?? ""}
                 placeholder="Full name"
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/25 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                className="w-full bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg px-3 py-2 text-[#1a1a2e] text-sm placeholder-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
               />
             </div>
 
             {/* Designation + Company */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-[#1a1a2e]/65 mb-1.5">
                   Designation
                 </label>
                 <input
@@ -189,11 +189,11 @@ export default function AdvisoryBoardAdminPage() {
                   name="designation"
                   defaultValue={editingMember?.designation ?? ""}
                   placeholder="e.g. CEO, Board Director"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/25 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg px-3 py-2 text-[#1a1a2e] text-sm placeholder-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-[#1a1a2e]/65 mb-1.5">
                   Company
                 </label>
                 <input
@@ -201,27 +201,27 @@ export default function AdvisoryBoardAdminPage() {
                   name="company"
                   defaultValue={editingMember?.company ?? ""}
                   placeholder="Organization name"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/25 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg px-3 py-2 text-[#1a1a2e] text-sm placeholder-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
                 />
               </div>
             </div>
 
             {/* Bio */}
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">Bio</label>
+              <label className="block text-sm font-medium text-[#1a1a2e]/65 mb-1.5">Bio</label>
               <textarea
                 name="bio"
                 rows={4}
                 defaultValue={editingMember?.bio ?? ""}
                 placeholder="Brief biography..."
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/25 focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
+                className="w-full bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg px-3 py-2 text-[#1a1a2e] text-sm placeholder-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all resize-none"
               />
             </div>
 
             {/* Photo upload */}
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">Photo</label>
-              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-white/10 rounded-lg cursor-pointer hover:border-[#c9a84c]/40 hover:bg-[#c9a84c]/5 transition-colors">
+              <label className="block text-sm font-medium text-[#1a1a2e]/65 mb-1.5">Photo</label>
+              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-[#1a1a2e]/[0.12] rounded-lg cursor-pointer hover:border-[#e7ab1c]/50 hover:bg-[#e7ab1c]/[0.04] transition-colors">
                 <svg
                   width="24"
                   height="24"
@@ -229,14 +229,14 @@ export default function AdvisoryBoardAdminPage() {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="1.5"
-                  className="text-white/30 mb-1.5"
+                  className="text-[#1a1a2e]/35 mb-1.5"
                 >
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                   <circle cx="8.5" cy="8.5" r="1.5" />
                   <path d="m21 15-5-5L5 21" />
                 </svg>
-                <span className="text-xs text-white/40">Click to upload photo</span>
-                <span className="text-[10px] text-white/20 mt-0.5">JPG, PNG up to 2MB</span>
+                <span className="text-xs text-[#1a1a2e]/55">Click to upload photo</span>
+                <span className="text-[10px] text-[#1a1a2e]/35 mt-0.5">JPG, PNG up to 2MB</span>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -246,7 +246,7 @@ export default function AdvisoryBoardAdminPage() {
                 />
               </label>
               {editingMember?.image_url && (
-                <p className="text-xs text-white/30 mt-1.5">
+                <p className="text-xs text-[#1a1a2e]/55 mt-1.5">
                   Current photo will be kept unless a new one is uploaded.
                 </p>
               )}
@@ -255,7 +255,7 @@ export default function AdvisoryBoardAdminPage() {
 
             {/* LinkedIn URL */}
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
+              <label className="block text-sm font-medium text-[#1a1a2e]/65 mb-1.5">
                 LinkedIn URL
               </label>
               <input
@@ -263,14 +263,14 @@ export default function AdvisoryBoardAdminPage() {
                 name="linkedin_url"
                 defaultValue={editingMember?.linkedin_url ?? ""}
                 placeholder="https://linkedin.com/in/..."
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/25 focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                className="w-full bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg px-3 py-2 text-[#1a1a2e] text-sm placeholder-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
               />
             </div>
 
             {/* Sort Order + Active */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-[#1a1a2e]/65 mb-1.5">
                   Sort Order
                 </label>
                 <input
@@ -278,7 +278,7 @@ export default function AdvisoryBoardAdminPage() {
                   name="sortOrder"
                   min="0"
                   defaultValue={editingMember?.sort_order ?? 0}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg px-3 py-2 text-[#1a1a2e] text-sm focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
                 />
               </div>
               <div className="flex items-end pb-1">
@@ -288,16 +288,16 @@ export default function AdvisoryBoardAdminPage() {
                     name="is_active"
                     value="true"
                     defaultChecked={editingMember ? editingMember.is_active : true}
-                    className="w-4 h-4 rounded border-white/20 bg-[#1a1a1a] accent-[#c9a84c]"
+                    className="w-4 h-4 rounded border-[#1a1a2e]/20 bg-white accent-[#e7ab1c]"
                   />
-                  <span className="text-sm text-white/60">Active (visible on public site)</span>
+                  <span className="text-sm text-[#1a1a2e]/65">Active (visible on public site)</span>
                 </label>
               </div>
             </div>
 
             {/* Form error */}
             {actionError && (
-              <div className="px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              <div className="px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/25 text-red-700 text-sm">
                 {actionError}
               </div>
             )}
@@ -307,14 +307,14 @@ export default function AdvisoryBoardAdminPage() {
               <button
                 type="button"
                 onClick={closeForm}
-                className="flex-1 py-2.5 rounded-lg border border-white/10 text-sm text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors"
+                className="flex-1 py-2.5 rounded-lg border border-[#1a1a2e]/[0.08] bg-white text-sm text-[#1a1a2e]/65 hover:text-[#1a1a2e] hover:bg-[#F4F8FF] transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-black text-sm font-semibold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] disabled:opacity-50 transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(231,171,28,0.25)]"
               >
                 {submitting ? (
                   <>
@@ -333,18 +333,18 @@ export default function AdvisoryBoardAdminPage() {
 
       {/* Members Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-white/40 gap-2">
+        <div className="flex items-center justify-center py-20 text-[#1a1a2e]/45 gap-2">
           <Loader2 size={18} className="animate-spin" /> Loading members...
         </div>
       ) : members.length === 0 ? (
-        <div className="bg-[#141414] border border-white/[0.06] rounded-xl p-12 text-center">
-          <div className="w-14 h-14 rounded-full bg-[#c9a84c]/10 flex items-center justify-center mx-auto mb-4">
-            <Users size={24} className="text-[#c9a84c]" />
+        <div className="bg-white shadow-sm border border-[#1a1a2e]/[0.06] rounded-xl p-12 text-center">
+          <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/10 flex items-center justify-center mx-auto mb-4">
+            <Users size={24} className="text-[#e7ab1c]" />
           </div>
-          <p className="text-white/40 text-sm mb-4">No advisory board members yet.</p>
+          <p className="text-[#1a1a2e]/55 text-sm mb-4">No advisory board members yet.</p>
           <button
             onClick={openAddForm}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c9a84c] text-black text-sm font-semibold hover:bg-[#d4b85c] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors shadow-[0_4px_16px_rgba(231,171,28,0.25)]"
           >
             <Plus size={16} /> Add First Member
           </button>
@@ -354,7 +354,7 @@ export default function AdvisoryBoardAdminPage() {
           {members.map((member) => (
             <div
               key={member.id}
-              className="bg-[#141414] border border-white/[0.06] rounded-xl p-5 group hover:border-white/[0.12] transition-colors cursor-pointer relative"
+              className="bg-white shadow-sm border border-[#1a1a2e]/[0.06] rounded-xl p-5 group hover:border-[#e7ab1c]/40 hover:shadow-md transition-all cursor-pointer relative"
               onClick={() => openEditForm(member)}
             >
               {/* Top row: photo/initials + badges */}
@@ -364,25 +364,25 @@ export default function AdvisoryBoardAdminPage() {
                     <img
                       src={member.image_url}
                       alt={member.name}
-                      className="w-12 h-12 rounded-full object-cover border border-white/10"
+                      className="w-12 h-12 rounded-full object-cover border border-[#1a1a2e]/[0.08]"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-[#c9a84c]/15 flex items-center justify-center text-[#c9a84c] text-sm font-bold shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-[#e7ab1c]/15 flex items-center justify-center text-[#e7ab1c] text-sm font-bold shrink-0">
                       {getInitials(member.name)}
                     </div>
                   )}
                   <div className="min-w-0">
-                    <h4 className="text-white font-medium text-sm truncate">{member.name}</h4>
+                    <h4 className="text-[#1a1a2e] font-semibold text-sm truncate">{member.name}</h4>
                     {member.designation && (
-                      <p className="text-white/40 text-xs truncate">{member.designation}</p>
+                      <p className="text-[#1a1a2e]/55 text-xs truncate">{member.designation}</p>
                     )}
                   </div>
                 </div>
                 <span
                   className={`shrink-0 ml-2 px-2 py-0.5 rounded-full text-[10px] font-medium ${
                     member.is_active
-                      ? "bg-emerald-500/15 text-emerald-400"
-                      : "bg-white/5 text-white/30"
+                      ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/20"
+                      : "bg-[#1a1a2e]/[0.04] text-[#1a1a2e]/45 border border-[#1a1a2e]/[0.06]"
                   }`}
                 >
                   {member.is_active ? "Active" : "Inactive"}
@@ -391,18 +391,18 @@ export default function AdvisoryBoardAdminPage() {
 
               {/* Company */}
               {member.company && (
-                <p className="text-white/50 text-xs mb-2 truncate">{member.company}</p>
+                <p className="text-[#1a1a2e]/65 text-xs mb-2 truncate">{member.company}</p>
               )}
 
               {/* Bio preview */}
               {member.bio && (
-                <p className="text-white/30 text-xs leading-relaxed line-clamp-2 mb-3">
+                <p className="text-[#1a1a2e]/55 text-xs leading-relaxed line-clamp-2 mb-3">
                   {member.bio}
                 </p>
               )}
 
               {/* Footer: LinkedIn + actions */}
-              <div className="flex items-center justify-between pt-2 border-t border-white/[0.04]">
+              <div className="flex items-center justify-between pt-2 border-t border-[#1a1a2e]/[0.05]">
                 <div className="flex items-center gap-2">
                   {member.linkedin_url && (
                     <a
@@ -410,13 +410,13 @@ export default function AdvisoryBoardAdminPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-white/25 hover:text-[#0a66c2] transition-colors"
+                      className="text-[#1a1a2e]/35 hover:text-[#0a66c2] transition-colors"
                       title="LinkedIn profile"
                     >
                       <ExternalLink size={14} />
                     </a>
                   )}
-                  <span className="text-[10px] text-white/20">#{member.sort_order}</span>
+                  <span className="text-[10px] text-[#1a1a2e]/35">#{member.sort_order}</span>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
@@ -424,7 +424,7 @@ export default function AdvisoryBoardAdminPage() {
                       e.stopPropagation()
                       openEditForm(member)
                     }}
-                    className="p-1.5 rounded-md text-white/30 hover:text-white/70 hover:bg-white/5 transition-colors"
+                    className="p-1.5 rounded-md text-[#1a1a2e]/45 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04] transition-colors"
                     title="Edit"
                   >
                     <Pencil size={14} />
@@ -435,7 +435,7 @@ export default function AdvisoryBoardAdminPage() {
                       handleDelete(member.id)
                     }}
                     disabled={deletingId === member.id}
-                    className="p-1.5 rounded-md text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
+                    className="p-1.5 rounded-md text-red-500/60 hover:text-red-600 hover:bg-red-500/10 transition-colors disabled:opacity-30"
                     title="Delete"
                   >
                     {deletingId === member.id ? (
