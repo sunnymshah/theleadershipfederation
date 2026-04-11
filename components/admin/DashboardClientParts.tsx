@@ -124,7 +124,7 @@ export function DashboardClientParts({
               onClick={() => router.push(`/admin/events/${event.id}`)}
             >
               <td className="px-5 py-4">
-                <div className="font-medium text-gray-900">{event.title}</div>
+                <div className="font-medium text-[#1a1a2e]">{event.title}</div>
                 <div className="text-[11px] text-gray-400">/{event.slug}</div>
               </td>
               <td className="px-5 py-4 text-gray-600 text-xs">{event.start_date_fmt}</td>
@@ -136,12 +136,12 @@ export function DashboardClientParts({
                 </span>
               </td>
               <td className="px-5 py-4 text-right">
-                <span className="text-gray-900 font-semibold tabular-nums">
+                <span className="text-[#1a1a2e] font-semibold tabular-nums">
                   {event.totalRegistrations}
                 </span>
               </td>
               <td className="px-5 py-4 text-right">
-                <span className="text-gray-900 font-semibold tabular-nums">
+                <span className="text-[#1a1a2e] font-semibold tabular-nums">
                   {event.revenue_fmt}
                 </span>
               </td>

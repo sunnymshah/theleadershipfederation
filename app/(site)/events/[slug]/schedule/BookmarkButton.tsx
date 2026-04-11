@@ -129,7 +129,7 @@ export function BookmarkButton({ sessionId, sessionTitle }: Props) {
 
   if (bookmarked) {
     return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
         <BookmarkCheck size={14} />
         Added to Agenda
       </div>
@@ -151,13 +151,13 @@ export function BookmarkButton({ sessionId, sessionTitle }: Props) {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleBookmark()
             }}
-            className="px-3 py-1.5 text-xs bg-white/[0.04] border border-white/10 rounded-lg text-white placeholder:text-white/25 focus:outline-none focus:border-[#c9a84c]/50 focus:ring-1 focus:ring-[#c9a84c]/20 transition-all w-48"
+            className="px-3 py-1.5 text-xs bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg text-[#1a1a2e] placeholder:text-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-2 focus:ring-[#e7ab1c]/20 transition-all w-48"
           />
         )}
         <button
           onClick={handleBookmark}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#c9a84c]/30 text-[#c9a84c] bg-[#c9a84c]/5 hover:bg-[#c9a84c]/10 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#e7ab1c]/40 text-[#e7ab1c] bg-[#e7ab1c]/[0.06] hover:bg-[#e7ab1c]/[0.12] transition-colors disabled:opacity-50"
         >
           {loading ? (
             <Loader2 size={14} className="animate-spin" />

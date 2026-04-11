@@ -47,7 +47,7 @@ export default async function DelegateDirectoryPage({ params }: Props) {
   const delegateList = delegates ?? []
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen bg-[#F4F8FF]">
       {/* ── Hero Header ──────────────────────────────────────────── */}
       <section className="relative pt-32 pb-16 overflow-hidden">
         {/* Ambient glow */}
@@ -57,7 +57,7 @@ export default async function DelegateDirectoryPage({ params }: Props) {
             width: "900px",
             height: "600px",
             borderRadius: "50%",
-            background: "radial-gradient(ellipse at center, rgba(201,168,76,0.06) 0%, transparent 60%)",
+            background: "radial-gradient(ellipse at center, rgba(231,171,28,0.08) 0%, transparent 60%)",
           }}
           aria-hidden
         />
@@ -66,7 +66,7 @@ export default async function DelegateDirectoryPage({ params }: Props) {
           {/* Breadcrumb */}
           <Link
             href={`/events/${event.slug}`}
-            className="inline-flex items-center gap-1.5 text-sm text-white/25 hover:text-[#c9a84c] transition-colors mb-8"
+            className="inline-flex items-center gap-1.5 text-sm text-[#1a1a2e]/45 hover:text-[#e7ab1c] transition-colors mb-8"
           >
             <ArrowLeft size={14} /> Back to Event
           </Link>
@@ -74,16 +74,16 @@ export default async function DelegateDirectoryPage({ params }: Props) {
           {/* Title */}
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-3 mb-4">
-              <div className="h-px w-8 bg-[#c9a84c]/40" />
-              <span className="text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em]">
+              <div className="h-px w-8 bg-[#e7ab1c]/40" />
+              <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">
                 Networking
               </span>
-              <div className="h-px w-8 bg-[#c9a84c]/40" />
+              <div className="h-px w-8 bg-[#e7ab1c]/40" />
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1a1a2e] mb-3">
               Delegate Directory
             </h1>
-            <p className="text-base text-white/40 max-w-xl mx-auto">
+            <p className="text-base text-[#1a1a2e]/55 max-w-xl mx-auto">
               {event.title}
             </p>
           </div>
@@ -93,13 +93,13 @@ export default async function DelegateDirectoryPage({ params }: Props) {
             <div
               className="inline-flex items-center gap-3 px-6 py-3 rounded-full"
               style={{
-                background: "rgba(201,168,76,0.06)",
-                border: "1px solid rgba(201,168,76,0.15)",
+                background: "rgba(231,171,28,0.08)",
+                border: "1px solid rgba(231,171,28,0.2)",
               }}
             >
-              <Users size={18} className="text-[#c9a84c]" />
-              <span className="text-lg font-bold text-[#c9a84c] tabular-nums">{delegateList.length}+</span>
-              <span className="text-sm text-white/40">Leaders Attending</span>
+              <Users size={18} className="text-[#e7ab1c]" />
+              <span className="text-lg font-bold text-[#e7ab1c] tabular-nums">{delegateList.length}+</span>
+              <span className="text-sm text-[#1a1a2e]/55">Leaders Attending</span>
             </div>
           </div>
 

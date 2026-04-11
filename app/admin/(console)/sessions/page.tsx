@@ -115,7 +115,7 @@ export default function AdminSessionsPage() {
           <h2 className="text-2xl font-bold text-[#333] mb-1">Agenda / Sessions</h2>
           <p className="text-sm text-[#888]">Build the event schedule with sessions, panels, and breaks</p>
         </div>
-        <button onClick={() => { setEditing(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
+        <button onClick={() => { setEditing(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
           <Plus size={16} /> New Session
         </button>
       </div>
@@ -185,7 +185,7 @@ export default function AdminSessionsPage() {
       {/* Drawer */}
       {drawerOpen && (
         <>
-          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null) }} />
+          <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null) }} />
           <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-[#333]">{editing ? "Edit Session" : "Add Session"}</h3>
@@ -247,7 +247,7 @@ export default function AdminSessionsPage() {
               {actionError && <div className="px-3 py-2.5 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">{actionError}</div>}
               <div className="flex gap-3 pt-3">
                 <button type="button" onClick={() => { setDrawerOpen(false); setEditing(null) }} className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors">Cancel</button>
-                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                   {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : editing ? "Update" : "Add Session"}
                 </button>
               </div>

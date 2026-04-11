@@ -66,7 +66,7 @@ export function EcosystemGrid() {
   }, [])
 
   return (
-    <section ref={ref} className="relative py-24 lg:py-32 bg-[#F4F8FF] overflow-hidden">
+    <section ref={ref} className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section header */}
         <div
@@ -77,16 +77,16 @@ export function EcosystemGrid() {
             transition: "all 0.8s cubic-bezier(0.16,1,0.3,1)",
           }}
         >
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c]/60 font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
             Three Pillars
           </span>
           <h2
-            className="mt-3 text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-black font-bold tracking-[-0.02em]"
+            className="mt-3 text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-[#1a1a2e] font-bold tracking-[-0.02em]"
             style={sfDisplay}
           >
             The Ecosystem
           </h2>
-          <p className="mt-3 text-black/30 text-[15px]" style={sfText}>
+          <p className="mt-3 text-[#1a1a2e]/70 text-[15px]" style={sfText}>
             One mission. Global impact.
           </p>
         </div>
@@ -96,7 +96,7 @@ export function EcosystemGrid() {
           {/* Featured card — tall */}
           <Link
             href={pillars[0].href}
-            className="group relative block rounded-3xl overflow-hidden bg-black min-h-[420px] lg:min-h-[480px]"
+            className="group relative block rounded-3xl overflow-hidden bg-[#1a1a2e] min-h-[420px] lg:min-h-[480px]"
             style={{
               opacity: visible ? 1 : 0,
               transform: visible ? "translateY(0) scale(1)" : "translateY(30px) scale(0.98)",
@@ -109,7 +109,7 @@ export function EcosystemGrid() {
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] via-[#1a1a2e]/40 to-transparent" />
 
             {/* Stat badge */}
             <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-xl rounded-xl px-4 py-2.5 border border-white/[0.08]">
@@ -131,7 +131,7 @@ export function EcosystemGrid() {
                   {pillars[0].title}
                 </h3>
               </div>
-              <p className="text-[14px] text-white/45 leading-[1.7] max-w-sm mb-5" style={sfText}>
+              <p className="text-[14px] text-white/85 leading-[1.7] max-w-sm mb-5" style={sfText}>
                 {pillars[0].description}
               </p>
               <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">
@@ -148,7 +148,7 @@ export function EcosystemGrid() {
                 <Link
                   key={p.title}
                   href={p.href}
-                  className="group relative block rounded-3xl overflow-hidden bg-black flex-1 min-h-[220px]"
+                  className="group relative block rounded-3xl overflow-hidden bg-[#1a1a2e] flex-1 min-h-[220px]"
                   style={{
                     opacity: visible ? 1 : 0,
                     transform: visible ? "translateY(0) scale(1)" : "translateY(30px) scale(0.98)",
@@ -161,7 +161,7 @@ export function EcosystemGrid() {
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/90 via-[#1a1a2e]/50 to-[#1a1a2e]/20" />
 
                   {/* Stat badge */}
                   <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-xl rounded-lg px-3 py-2 border border-white/[0.08]">
@@ -183,7 +183,7 @@ export function EcosystemGrid() {
                         {p.title}
                       </h3>
                     </div>
-                    <p className="text-[13px] text-white/40 leading-[1.6] max-w-xs mb-3" style={sfText}>
+                    <p className="text-[13px] text-white/85 leading-[1.6] max-w-xs mb-3" style={sfText}>
                       {p.description}
                     </p>
                     <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">

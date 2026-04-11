@@ -54,7 +54,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-[#050505] relative overflow-hidden">
+    <footer className="bg-[#1a1a2e] relative overflow-hidden">
       {/* Gold accent line */}
       <div className="h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c]/40 to-transparent" />
 
@@ -78,7 +78,7 @@ export function Footer() {
             >
               Stay in the loop
             </h3>
-            <p className="text-[13px] text-white/25 mb-5 leading-relaxed" style={sfText}>
+            <p className="text-[13px] text-white/85 mb-5 leading-relaxed" style={sfText}>
               Exclusive updates on upcoming conclaves, speaker announcements, and leadership insights. No spam.
             </p>
             <form onSubmit={handleSubscribe} className="flex gap-2">
@@ -88,13 +88,13 @@ export function Footer() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
-                className="flex-1 min-w-0 px-4 py-2.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[13px] text-white placeholder-white/20 focus:outline-none focus:border-[#e7ab1c]/30 transition-colors"
+                className="flex-1 min-w-0 px-4 py-2.5 rounded-full bg-white/[0.08] border border-white/[0.15] text-[13px] text-white placeholder-white/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-colors"
                 style={sfText}
               />
               <button
                 type="submit"
                 disabled={status !== "idle"}
-                className="shrink-0 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-black hover:bg-[#d49c10] disabled:opacity-60 transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.2)]"
+                className="shrink-0 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] disabled:opacity-60 transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.2)]"
                 style={sfText}
               >
                 {status === "loading" ? (
@@ -121,7 +121,7 @@ export function Footer() {
                 className="h-[32px] w-auto object-contain brightness-0 invert"
               />
             </Link>
-            <p className="text-white/25 text-[13px] leading-[1.7] max-w-[280px] mb-6" style={sfText}>
+            <p className="text-white/85 text-[13px] leading-[1.7] max-w-[280px] mb-6" style={sfText}>
               The global platform connecting CXOs, policymakers, and ecosystem builders
               across 30+ countries.
             </p>
@@ -134,7 +134,7 @@ export function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/25 hover:text-[#e7ab1c] hover:border-[#e7ab1c]/20 hover:bg-[#e7ab1c]/[0.06] transition-all duration-300"
+                  className="w-8 h-8 rounded-full bg-white/[0.06] border border-white/[0.12] flex items-center justify-center text-white/85 hover:text-[#e7ab1c] hover:border-[#e7ab1c]/40 hover:bg-[#e7ab1c]/[0.10] transition-all duration-300"
                   aria-label={label}
                 >
                   <Icon size={14} />
@@ -147,7 +147,7 @@ export function Footer() {
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title} className="md:col-span-2 md:first:col-start-6">
               <h4
-                className="text-[11px] font-bold text-white/20 uppercase tracking-[0.15em] mb-4"
+                className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.15em] mb-4"
                 style={sfText}
               >
                 {title}
@@ -157,7 +157,7 @@ export function Footer() {
                   <li key={label}>
                     <Link
                       href={href}
-                      className="text-[13px] text-white/35 hover:text-[#e7ab1c] transition-colors duration-200"
+                      className="text-[13px] text-white/85 hover:text-[#e7ab1c] transition-colors duration-200"
                       style={sfText}
                     >
                       {label}
@@ -171,14 +171,14 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-14 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[12px] text-white/15" style={sfText}>
+          <p className="text-[12px] text-white/65" style={sfText}>
             &copy; {new Date().getFullYear()} The Leadership Federation. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-[12px] text-white/15" style={sfText}>
+          <div className="flex items-center gap-4 text-[12px] text-white/85" style={sfText}>
             <a href="mailto:register@theleadershipfederation.com" className="hover:text-[#e7ab1c] transition-colors">
               register@theleadershipfederation.com
             </a>
-            <span className="text-white/10">&middot;</span>
+            <span className="text-white/30">&middot;</span>
             <a href="tel:+917227993338" className="hover:text-[#e7ab1c] transition-colors">
               +91 72279 93338
             </a>

@@ -73,7 +73,7 @@ export function SendEmailButton({ attendeeId, attendeeName, hasBeenSent = false 
         }
         className={cn(
           "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200",
-          "focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/50 focus:ring-offset-1 focus:ring-offset-[#0a0a0a]",
+          "focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/50 focus:ring-offset-1 focus:ring-offset-[#1a1a2e]",
           "disabled:cursor-not-allowed disabled:opacity-60",
           state === "success"
             ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"

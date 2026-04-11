@@ -6,12 +6,6 @@ import { randomBytes } from "crypto"
 
 export async function POST(request: NextRequest) {
   try {
-    // Lazy-init Razorpay inside the handler so env vars are available at
-    // runtime (they are NOT available at build/compile time).
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID!,
-      key_secret: process.env.RAZORPAY_KEY_SECRET!,
-    })
     const body = await request.json()
     const { ticketId, attendeeDetails, customFieldValues, promoCode } = body as {
       ticketId: string
@@ -60,12 +54,18 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Check for duplicate registration ──────────────────────────────
-    const { data: existing } = await supabase
+    // Use maybeSingle so 0-rows is not treated as an error and so the query
+    // never throws on PGRST116. Order by created_at to get the most recent
+    // record if multiple ever existed (shouldn't, but defensive).
+    const { data: existingList } = await supabase
       .from("attendees")
       .select("id, payment_status")
       .eq("event_id", ticket.event_id)
       .eq("email", attendeeDetails.email)
-      .single()
+      .order("created_at", { ascending: false })
+      .limit(1)
+
+    const existing = existingList?.[0] ?? null
 
     if (existing) {
       // Allow re-attempt if previous payment failed
@@ -216,6 +216,27 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Paid ticket: create Razorpay order ────────────────────────────
+    // Lazy-init Razorpay only for paid tickets so env vars are checked at
+    // runtime, not at module load. This makes free tickets keep working even
+    // when Razorpay credentials are missing, and gives a clear error message
+    // when they are.
+    const keyId = process.env.RAZORPAY_KEY_ID
+    const keySecret = process.env.RAZORPAY_KEY_SECRET
+    if (!keyId || !keySecret) {
+      console.error(
+        "[create-order] Missing Razorpay credentials. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your environment (Vercel → Project Settings → Environment Variables) and redeploy."
+      )
+      return NextResponse.json(
+        {
+          error:
+            "Payment gateway is not configured. Please contact the event organiser.",
+        },
+        { status: 503 }
+      )
+    }
+
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret })
+
     const amountInPaise = discountedPrice * 100
     const receiptId = `tkt_${ticketId.slice(0, 8)}_${Date.now()}`
 
@@ -233,12 +254,25 @@ export async function POST(request: NextRequest) {
       orderNotes.promo_code_id = validatedPromoId
     }
 
-    const order = await razorpay.orders.create({
-      amount: amountInPaise,
-      currency: "INR",
-      receipt: receiptId,
-      notes: orderNotes,
-    })
+    let order
+    try {
+      order = await razorpay.orders.create({
+        amount: amountInPaise,
+        currency: "INR",
+        receipt: receiptId,
+        notes: orderNotes,
+      })
+    } catch (rzpErr) {
+      const message =
+        rzpErr instanceof Error ? rzpErr.message : String(rzpErr)
+      console.error("[create-order] Razorpay order creation failed:", message)
+      return NextResponse.json(
+        {
+          error: `Payment gateway error: ${message}. Please try again or contact support.`,
+        },
+        { status: 502 }
+      )
+    }
 
     // Increment promo code used_count for paid orders too
     await incrementPromoUsedCount()
@@ -260,9 +294,12 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
-    console.error("[create-order] Error:", err)
+    const message = err instanceof Error ? err.message : String(err)
+    console.error("[create-order] Error:", message, err)
     return NextResponse.json(
-      { error: "Failed to create payment order. Please try again." },
+      {
+        error: `Failed to create payment order: ${message}`,
+      },
       { status: 500 }
     )
   }

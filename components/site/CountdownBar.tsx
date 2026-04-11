@@ -41,7 +41,7 @@ export function CountdownBar({ event }: CountdownBarProps) {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-slideUp">
-      <div className="bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#e7ab1c]/20">
+      <div className="bg-[#1a1a2e]/95 backdrop-blur-xl border-t border-[#e7ab1c]/20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
             {/* Pulse */}
@@ -64,7 +64,7 @@ export function CountdownBar({ event }: CountdownBarProps) {
                   <span className="text-[18px] font-bold text-[#e7ab1c] tabular-nums leading-none">
                     {String(value).padStart(2, "0")}
                   </span>
-                  <span className="text-[10px] text-white/30 font-medium">{label}</span>
+                  <span className="text-[10px] text-white/85 font-medium">{label}</span>
                 </div>
               ))}
             </div>
@@ -78,13 +78,13 @@ export function CountdownBar({ event }: CountdownBarProps) {
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href={`/events/${event.slug}`}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-black hover:bg-[#d49c10] transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.3)]"
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.3)]"
             >
               Register <ArrowRight size={12} />
             </Link>
             <button
               onClick={() => setDismissed(true)}
-              className="p-1.5 rounded-full text-white/20 hover:text-white/50 hover:bg-white/5 transition-all"
+              className="p-1.5 rounded-full text-white/65 hover:text-white hover:bg-white/10 transition-all"
               aria-label="Dismiss"
             >
               <X size={14} />

@@ -20,20 +20,13 @@ interface TestimonialTickerProps {
   testimonials?: Testimonial[]
 }
 
-const defaultTestimonials: Testimonial[] = [
-  { quote: "The most impactful 48 hours of my professional year. Every conversation leads to something real.", author: "Vikram Rao", role: "CTO", company: "Reliance Jio" },
-  { quote: "Connections here turned into three major partnerships within a month. The curation is extraordinary.", author: "Priya Nair", role: "VP Strategy", company: "HCLTech" },
-  { quote: "Not a conference. A boardroom with 700 of the world's sharpest minds under one roof.", author: "Ahmad Al-Rashid", role: "CEO", company: "Gulf Ventures" },
-  { quote: "Every edition raises the bar. I've attended all seven — each one outdoes the last.", author: "Sunita Kapoor", role: "CHRO", company: "Axis Bank" },
-  { quote: "This is where real decisions happen, not just discussions. The access is unmatched anywhere.", author: "David Chen", role: "Managing Director", company: "Barclays Asia" },
-  { quote: "From Bengaluru to Dubai — TLF's network is genuinely global. The scale is remarkable.", author: "Mei Lin Tan", role: "COO", company: "TechBridge SG" },
-]
-
 export function TestimonialTicker({ testimonials: propTestimonials }: TestimonialTickerProps) {
-  const testimonials = propTestimonials && propTestimonials.length > 0 ? propTestimonials : defaultTestimonials
   const sectionRef = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
+
+  const testimonials = propTestimonials ?? []
+  const hasTestimonials = testimonials.length > 0
 
   useEffect(() => {
     const el = sectionRef.current
@@ -52,21 +45,22 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
   }, [])
 
   useEffect(() => {
-    if (!visible) return
+    if (!visible || !hasTestimonials) return
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % testimonials.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [visible])
+  }, [visible, hasTestimonials, testimonials.length])
+
+  // If no real testimonials in DB, don't render this section at all
+  if (!hasTestimonials) return null
 
   const active = testimonials[activeIndex]
-  const nextIndex = (activeIndex + 1) % testimonials.length
-  const prevIndex = (activeIndex - 1 + testimonials.length) % testimonials.length
 
   return (
     <section
       ref={sectionRef}
-      className="relative py-24 lg:py-32 bg-[#050505] overflow-hidden"
+      className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden"
     >
       {/* Ambient glow */}
       <div
@@ -74,77 +68,60 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
         style={{
           width: "800px",
           height: "400px",
-          background: "radial-gradient(ellipse at center, rgba(231,171,28,0.05) 0%, transparent 60%)",
-        }}
-      />
-
-      {/* Subtle grid texture */}
-      <div
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)
-          `,
-          backgroundSize: "80px 80px",
+          background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
         }}
       />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section label */}
         <div
-          className="text-center mb-16"
+          className="text-center mb-14"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
             transition: "all 0.8s cubic-bezier(0.16,1,0.3,1)",
           }}
         >
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c]/50 font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
             What Leaders Say
           </span>
         </div>
 
-        {/* Main quote area */}
-        <div className="relative min-h-[280px] sm:min-h-[240px] flex items-center justify-center">
+        {/* Quote card */}
+        <div className="relative bg-white rounded-3xl shadow-sm border border-[#1a1a2e]/[0.06] px-6 sm:px-12 lg:px-16 py-12 sm:py-16">
           {/* Large decorative quote mark */}
           <div
-            className="absolute -top-4 left-0 sm:left-8 text-[120px] sm:text-[160px] leading-none font-serif text-[#e7ab1c]/[0.06] select-none pointer-events-none"
-            style={{
-              opacity: visible ? 1 : 0,
-              transition: "opacity 1s ease 0.3s",
-            }}
+            className="absolute top-4 left-6 sm:left-10 text-[100px] sm:text-[140px] leading-none font-serif text-[#e7ab1c]/15 select-none pointer-events-none"
+            aria-hidden
           >
             &ldquo;
           </div>
 
-          {/* Quote text — crossfade on change */}
-          <div className="relative w-full text-center px-4 sm:px-12">
-            <blockquote
-              key={activeIndex}
-              className="testimonial-quote-enter"
-            >
+          <div className="relative w-full text-center min-h-[200px] flex flex-col justify-center">
+            <blockquote key={activeIndex} className="testimonial-quote-enter">
               <p
-                className="text-[20px] sm:text-[26px] lg:text-[32px] text-white/85 font-medium leading-[1.4] tracking-[-0.01em]"
+                className="text-[20px] sm:text-[26px] lg:text-[30px] text-[#1a1a2e] font-medium leading-[1.45] tracking-[-0.01em]"
                 style={sfDisplay}
               >
                 {active.quote}
               </p>
               <footer className="mt-8 flex flex-col items-center gap-1">
-                <div className="w-8 h-[1px] bg-[#e7ab1c]/30 mb-4" />
+                <div className="w-8 h-[1px] bg-[#e7ab1c]/50 mb-4" />
                 <cite className="not-italic">
                   <span
-                    className="text-[15px] font-semibold text-white/70"
+                    className="text-[15px] font-semibold text-[#1a1a2e]"
                     style={sfText}
                   >
                     {active.author}
                   </span>
-                  <span
-                    className="block text-[13px] text-white/25 mt-0.5"
-                    style={sfText}
-                  >
-                    {active.role}, {active.company}
-                  </span>
+                  {(active.role || active.company) && (
+                    <span
+                      className="block text-[13px] text-[#1a1a2e]/55 mt-0.5"
+                      style={sfText}
+                    >
+                      {[active.role, active.company].filter(Boolean).join(", ")}
+                    </span>
+                  )}
                 </cite>
               </footer>
             </blockquote>
@@ -152,47 +129,29 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
         </div>
 
         {/* Dot indicators */}
-        <div className="flex items-center justify-center gap-2 mt-12">
-          {testimonials.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveIndex(i)}
-              className="group p-1"
-              aria-label={`View testimonial ${i + 1}`}
-            >
-              <div
-                className="h-1 rounded-full transition-all duration-500"
-                style={{
-                  width: i === activeIndex ? "32px" : "8px",
-                  backgroundColor:
-                    i === activeIndex
-                      ? "rgba(231,171,28,0.7)"
-                      : "rgba(255,255,255,0.12)",
-                }}
-              />
-            </button>
-          ))}
-        </div>
-
-        {/* Preview names of adjacent testimonials */}
-        <div className="hidden sm:flex items-center justify-between mt-10 px-4">
-          <button
-            onClick={() => setActiveIndex(prevIndex)}
-            className="text-left group"
-          >
-            <span className="text-[11px] text-white/15 group-hover:text-white/30 transition-colors" style={sfText}>
-              {testimonials[prevIndex].author}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveIndex(nextIndex)}
-            className="text-right group"
-          >
-            <span className="text-[11px] text-white/15 group-hover:text-white/30 transition-colors" style={sfText}>
-              {testimonials[nextIndex].author}
-            </span>
-          </button>
-        </div>
+        {testimonials.length > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-10">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveIndex(i)}
+                className="group p-1"
+                aria-label={`View testimonial ${i + 1}`}
+              >
+                <div
+                  className="h-1 rounded-full transition-all duration-500"
+                  style={{
+                    width: i === activeIndex ? "32px" : "8px",
+                    backgroundColor:
+                      i === activeIndex
+                        ? "rgba(231,171,28,0.85)"
+                        : "rgba(26,26,46,0.18)",
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <style jsx>{`

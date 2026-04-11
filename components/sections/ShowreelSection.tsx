@@ -3,9 +3,9 @@ import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
 
 export function ShowreelSection() {
   return (
-    <section className="py-24 lg:py-32 bg-[#F4F8FF]">
+    <section className="py-16 lg:py-20 bg-[#F4F8FF]">
       <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
-        <AnimateOnScroll className="text-center mb-12">
+        <AnimateOnScroll className="text-center mb-10">
           <span className="text-[11px] tracking-[0.2em] uppercase text-[#1a1a2e]/30 font-semibold">
             Showreel
           </span>
@@ -26,7 +26,7 @@ export function ShowreelSection() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/60 via-transparent to-[#1a1a2e]/20" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <button className="w-20 h-20 rounded-full bg-white/90 hover:bg-white flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+            <button className="w-20 h-20 rounded-full bg-white/90 hover:bg-white flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-[0_8px_32px_rgba(26, 26, 46,0.15)]">
               <Play size={28} className="text-[#1a1a2e] ml-1" fill="#1a1a2e" />
             </button>
             <p className="mt-6 text-white/60 text-[14px] font-medium tracking-wide">

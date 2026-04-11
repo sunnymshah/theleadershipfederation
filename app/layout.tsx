@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#050505',
+  themeColor: '#1a1a2e',
 }
 
 export const metadata: Metadata = {

@@ -55,16 +55,16 @@ export default async function LiveEventPage({ params }: Props) {
     .order("start_time", { ascending: true })
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#F4F8FF] text-[#1a1a2e]">
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-white/10">
+      <header className="sticky top-0 z-50 bg-[#F4F8FF]/95 backdrop-blur-md border-b border-[#1a1a2e]/[0.06]">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
           <Link
             href={`/events/${slug}`}
-            className="shrink-0 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center active:bg-white/20 transition-colors"
+            className="shrink-0 w-9 h-9 rounded-full bg-[#1a1a2e]/[0.05] flex items-center justify-center active:bg-[#1a1a2e]/[0.1] transition-colors"
             aria-label="Back to event"
           >
-            <ArrowLeft className="w-4 h-4 text-white/70" />
+            <ArrowLeft className="w-4 h-4 text-[#1a1a2e]/70" />
           </Link>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-[0.2em] text-[#e7ab1c] font-semibold">

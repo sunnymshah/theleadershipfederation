@@ -70,12 +70,12 @@ interface Speaker {
 }
 
 const sessionTypeColors: Record<string, string> = {
-  keynote: "bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/20",
-  session: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  panel: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  workshop: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  break: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-  networking: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  keynote: "bg-[#e7ab1c]/10 text-[#a37410] border-[#e7ab1c]/30",
+  session: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  panel: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+  workshop: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+  break: "bg-zinc-500/10 text-zinc-600 border-zinc-500/20",
+  networking: "bg-orange-500/10 text-orange-700 border-orange-500/20",
 }
 
 /* ── Page Component ───────────────────────────────────────────────── */
@@ -166,35 +166,35 @@ export default async function SchedulePage({ params }: Props) {
   })
 
   return (
-    <main className="min-h-screen bg-[#050505]">
+    <main className="min-h-screen bg-[#F4F8FF]">
       {/* Hero */}
       <section className="pt-36 pb-12 px-6">
         <div className="max-w-5xl mx-auto">
           <Link
             href={`/events/${slug}`}
-            className="inline-flex items-center gap-2 text-sm text-white/25 hover:text-[#c9a84c] transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-sm text-[#1a1a2e]/45 hover:text-[#e7ab1c] transition-colors mb-6"
           >
             <ArrowLeft size={16} />
             Back to Event
           </Link>
 
           <div className="text-center">
-            <span className="inline-block text-[11px] font-bold text-[#c9a84c] uppercase tracking-[0.25em] mb-4">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-4">
               Event Schedule
             </span>
-            <h1 className="text-white leading-[1.08] font-bold mb-3 text-3xl md:text-5xl">
+            <h1 className="text-[#1a1a2e] leading-[1.08] font-bold mb-3 text-3xl md:text-5xl">
               {event.title}
             </h1>
-            <div className="flex items-center justify-center gap-4 text-sm text-white/40">
+            <div className="flex items-center justify-center gap-4 text-sm text-[#1a1a2e]/55">
               {event.venue && (
                 <span className="flex items-center gap-1.5">
-                  <MapPin size={14} className="text-[#c9a84c]" />
+                  <MapPin size={14} className="text-[#e7ab1c]" />
                   {event.venue}
                 </span>
               )}
               {event.start_date && (
                 <span className="flex items-center gap-1.5">
-                  <Calendar size={14} className="text-[#c9a84c]" />
+                  <Calendar size={14} className="text-[#e7ab1c]" />
                   {fmtDate(event.start_date)}
                 </span>
               )}
@@ -207,14 +207,14 @@ export default async function SchedulePage({ params }: Props) {
       <section className="pb-32 px-6">
         <div className="max-w-5xl mx-auto">
           {sessions.length === 0 ? (
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-10 text-center">
-              <div className="w-14 h-14 rounded-full bg-[#c9a84c]/10 flex items-center justify-center mx-auto mb-4">
-                <Calendar size={24} className="text-[#c9a84c]" />
+            <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-10 text-center">
+              <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/10 flex items-center justify-center mx-auto mb-4">
+                <Calendar size={24} className="text-[#e7ab1c]" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">
+              <h3 className="text-lg font-bold text-[#1a1a2e] mb-2">
                 Schedule Coming Soon
               </h3>
-              <p className="text-sm text-white/40 max-w-sm mx-auto">
+              <p className="text-sm text-[#1a1a2e]/55 max-w-sm mx-auto">
                 The session schedule for this event has not been published yet.
                 Check back soon!
               </p>
@@ -234,19 +234,19 @@ export default async function SchedulePage({ params }: Props) {
                     <div key={date} id={`day-${dayIndex + 1}`}>
                       {/* Day header */}
                       <div className="flex items-center gap-4 mb-8">
-                        <div className="shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center bg-[#c9a84c]/10 border border-[#c9a84c]/20">
-                          <span className="text-xl font-bold text-[#c9a84c] leading-none tabular-nums">
+                        <div className="shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center bg-[#e7ab1c]/10 border border-[#e7ab1c]/30">
+                          <span className="text-xl font-bold text-[#e7ab1c] leading-none tabular-nums">
                             {fmtDay(date)}
                           </span>
-                          <span className="text-[9px] font-bold text-[#c9a84c]/60 uppercase tracking-wider mt-0.5">
+                          <span className="text-[9px] font-bold text-[#e7ab1c]/70 uppercase tracking-wider mt-0.5">
                             {fmtMonth(date)}
                           </span>
                         </div>
                         <div>
-                          <h2 className="text-lg font-semibold text-white">
+                          <h2 className="text-lg font-semibold text-[#1a1a2e]">
                             Day {dayIndex + 1}
                           </h2>
-                          <p className="text-sm text-white/30">
+                          <p className="text-sm text-[#1a1a2e]/45">
                             {fmtDate(date)}
                           </p>
                         </div>
@@ -263,7 +263,7 @@ export default async function SchedulePage({ params }: Props) {
                               {/* Time label */}
                               <div className="flex items-start gap-4">
                                 <div className="shrink-0 w-20 pt-5 text-right">
-                                  <span className="text-xs font-mono font-medium text-white/30">
+                                  <span className="text-xs font-mono font-medium text-[#1a1a2e]/45">
                                     {fmtTime(slotTime)}
                                   </span>
                                 </div>
@@ -283,13 +283,13 @@ export default async function SchedulePage({ params }: Props) {
                                       sessionTypeColors[
                                         session.session_type ?? ""
                                       ] ??
-                                      "bg-white/5 text-white/40 border-white/10"
+                                      "bg-[#1a1a2e]/[0.04] text-[#1a1a2e]/55 border-[#1a1a2e]/[0.06]"
 
                                     return (
                                       <div
                                         key={session.id}
                                         data-track={session.track ?? ""}
-                                        className="schedule-session rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 hover:border-[#c9a84c]/20 hover:bg-white/[0.04] transition-all"
+                                        className="schedule-session rounded-xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-5 hover:border-[#e7ab1c]/40 hover:shadow-md transition-all"
                                       >
                                         {/* Badges */}
                                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -301,38 +301,38 @@ export default async function SchedulePage({ params }: Props) {
                                             </span>
                                           )}
                                           {session.track && (
-                                            <span className="text-[10px] font-semibold text-[#c9a84c] uppercase tracking-wider px-2 py-0.5 rounded bg-[#c9a84c]/10">
+                                            <span className="text-[10px] font-semibold text-[#e7ab1c] uppercase tracking-wider px-2 py-0.5 rounded bg-[#e7ab1c]/10">
                                               {session.track}
                                             </span>
                                           )}
                                           {session.room && (
-                                            <span className="text-[10px] text-white/25 px-2 py-0.5 rounded bg-white/[0.04]">
+                                            <span className="text-[10px] text-[#1a1a2e]/55 px-2 py-0.5 rounded bg-[#1a1a2e]/[0.04]">
                                               {session.room}
                                             </span>
                                           )}
                                         </div>
 
                                         {/* Title */}
-                                        <h3 className="font-medium text-white text-sm leading-snug mb-1">
+                                        <h3 className="font-semibold text-[#1a1a2e] text-sm leading-snug mb-1">
                                           {session.title}
                                         </h3>
 
                                         {/* Time range */}
-                                        <p className="text-xs font-mono text-white/30 mb-2">
+                                        <p className="text-xs font-mono text-[#1a1a2e]/45 mb-2">
                                           {fmtTime(session.start_time)} &mdash;{" "}
                                           {fmtTime(session.end_time)}
                                         </p>
 
                                         {/* Description preview */}
                                         {session.description && (
-                                          <p className="text-xs text-white/35 line-clamp-2 leading-relaxed mb-3">
+                                          <p className="text-xs text-[#1a1a2e]/55 line-clamp-2 leading-relaxed mb-3">
                                             {session.description}
                                           </p>
                                         )}
 
                                         {/* Speaker names */}
                                         {speakerNames.length > 0 && (
-                                          <p className="text-xs text-white/50 mb-3">
+                                          <p className="text-xs text-[#1a1a2e]/70 mb-3">
                                             <span className="font-medium">
                                               {speakerNames.join(", ")}
                                             </span>

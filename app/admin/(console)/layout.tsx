@@ -56,7 +56,7 @@ export default async function ConsoleLayout({
       {/* ── Right side: top bar + workspace ─────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top context bar — Zoho's slim header */}
-        <header className="h-[52px] shrink-0 bg-white border-b border-[#e0e0e0] flex items-center justify-between px-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <header className="h-[52px] shrink-0 bg-white border-b border-[#e0e0e0] flex items-center justify-between px-6 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center gap-3">
             <span className="text-[14px] font-semibold text-[#333]">
               The Leadership Federation

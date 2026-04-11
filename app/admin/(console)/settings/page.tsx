@@ -731,7 +731,7 @@ export default function AdminSettingsPage() {
         {/* ── Profile Drawer ─────────────────────────────────────── */}
         {profileDrawerOpen && (
           <>
-            <div className="fixed inset-0 bg-black/60 z-40" onClick={() => setProfileDrawerOpen(false)} />
+            <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => setProfileDrawerOpen(false)} />
             <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
               {/* Drawer header */}
               <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
@@ -888,7 +888,7 @@ export default function AdminSettingsPage() {
         {/* ── SQL Modal ──────────────────────────────────────────── */}
         {sqlModalOpen && (
           <>
-            <div className="fixed inset-0 bg-black/60 z-[60]" onClick={() => setSqlModalOpen(false)} />
+            <div className="fixed inset-0 bg-[#1a1a2e]/60 z-[60]" onClick={() => setSqlModalOpen(false)} />
             <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
               <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
                 {/* Modal header */}

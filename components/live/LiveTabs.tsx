@@ -37,7 +37,7 @@ export function LiveTabs({
   return (
     <>
       {/* Tab bar */}
-      <nav className="sticky top-[57px] z-40 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-white/10">
+      <nav className="sticky top-[57px] z-40 bg-[#F4F8FF]/95 backdrop-blur-md border-b border-[#1a1a2e]/[0.06]">
         <div className="max-w-lg mx-auto flex">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -49,7 +49,7 @@ export function LiveTabs({
                 className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-semibold transition-colors relative ${
                   isActive
                     ? "text-[#e7ab1c]"
-                    : "text-white/50 active:text-white/70"
+                    : "text-[#1a1a2e]/55 active:text-[#1a1a2e]/80"
                 }`}
               >
                 <Icon className="w-5 h-5" />

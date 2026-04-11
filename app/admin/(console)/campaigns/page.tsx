@@ -339,7 +339,7 @@ export default function AdminCampaignsPage() {
         </div>
 
         {/* Campaign Table */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden">
           {loading ? (
             <div className="py-16 text-center text-gray-400 text-sm">Loading campaigns...</div>
           ) : campaigns.length === 0 ? (
@@ -373,7 +373,7 @@ export default function AdminCampaignsPage() {
                     return (
                       <tr key={c.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                         <td className="px-5 py-3">
-                          <span className="font-medium text-gray-900">{c.name}</span>
+                          <span className="font-medium text-[#1a1a2e]">{c.name}</span>
                         </td>
                         <td className="px-5 py-3 text-gray-600 text-xs">
                           {c.events?.title ?? "—"}
@@ -499,28 +499,28 @@ export default function AdminCampaignsPage() {
           <>
             {/* Stat Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
                 <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Total Sent</p>
                 <p className="text-3xl font-bold text-[#333] tabular-nums">{statsData.sent}</p>
               </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
                 <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Opened</p>
                 <p className="text-3xl font-bold text-emerald-600 tabular-nums">{statsData.opened}</p>
                 <p className="text-xs text-gray-500 mt-1">{openRate}% open rate</p>
               </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
                 <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Clicked</p>
                 <p className="text-3xl font-bold text-blue-600 tabular-nums">{statsData.clicked}</p>
                 <p className="text-xs text-gray-500 mt-1">{clickRate}% click rate</p>
               </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
                 <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Failed</p>
                 <p className="text-3xl font-bold text-red-500 tabular-nums">{statsData.failed}</p>
               </div>
             </div>
 
             {/* Open Rate Bar */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] mb-8">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] mb-8">
               <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-3">Delivery Overview</p>
               <div className="space-y-3">
                 <div>
@@ -551,7 +551,7 @@ export default function AdminCampaignsPage() {
             </div>
 
             {/* Recipient Table */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/60">
                 <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                   Recipients ({statsRecipients.length})
@@ -576,7 +576,7 @@ export default function AdminCampaignsPage() {
                         const rBadge = STATUS_BADGE[r.status] ?? STATUS_BADGE.draft
                         return (
                           <tr key={r.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                            <td className="px-5 py-2.5 font-medium text-gray-900">
+                            <td className="px-5 py-2.5 font-medium text-[#1a1a2e]">
                               {r.attendees?.name ?? "—"}
                             </td>
                             <td className="px-5 py-2.5 text-gray-600">{r.email}</td>
@@ -681,7 +681,7 @@ export default function AdminCampaignsPage() {
 
       {/* Step Content */}
       <div className="max-w-[800px]">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] p-6">
 
           {/* ─── Step 1: Setup ────────────────────────────────────────── */}
           {step === 1 && (
@@ -1026,7 +1026,7 @@ export default function AdminCampaignsPage() {
 
       {/* ── Confirmation Modal ───────────────────────────────────────── */}
       {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]/40">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-[#333] mb-2">Confirm Send</h3>
             <p className="text-sm text-gray-600 mb-1">

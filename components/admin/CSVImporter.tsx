@@ -142,7 +142,7 @@ export function CSVImporter({ events, tickets, onClose, onComplete }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={onClose} />
       <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
@@ -305,7 +305,7 @@ export function CSVImporter({ events, tickets, onClose, onComplete }: Props) {
                 <button
                   onClick={handleImport}
                   disabled={!eventId}
-                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   <Upload size={14} /> Import {rows.length} Attendees
                 </button>
@@ -355,7 +355,7 @@ export function CSVImporter({ events, tickets, onClose, onComplete }: Props) {
 
               <button
                 onClick={() => { onComplete(); onClose() }}
-                className="w-full max-w-xs mx-auto py-2.5 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+                className="w-full max-w-xs mx-auto py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
               >
                 Done
               </button>

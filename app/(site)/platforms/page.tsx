@@ -58,18 +58,18 @@ export default function PlatformsPage() {
   return (
     <main className="bg-[#F4F8FF]">
       {/* Hero */}
-      <section className="pt-36 pb-24 px-6">
+      <section className="pt-24 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
             The Ecosystem
           </span>
           <h1
-            className="text-black leading-[1.08] font-bold mb-8"
+            className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
             style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
           >
             Our Platforms
           </h1>
-          <p className="text-lg md:text-xl text-black/40 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-[#1a1a2e]/75 leading-relaxed max-w-3xl mx-auto">
             Three interconnected pillars that form the backbone of The
             Leadership Federation, each designed to create lasting value
             for the leaders who engage with them.
@@ -80,19 +80,19 @@ export default function PlatformsPage() {
       {/* Pillar 1: Global Conclaves & Summits */}
       <section className="pb-10 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-black p-10 md:p-16 overflow-hidden">
+          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
             <div className="grid md:grid-cols-2 gap-12 md:gap-16">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center mb-8">
                   <CalendarDays size={26} strokeWidth={1.4} className="text-[#e7ab1c]" />
                 </div>
                 <h2
-                  className="text-white leading-[1.12] font-bold mb-5"
+                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
                   style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
                 >
                   Global Conclaves & Summits
                 </h2>
-                <p className="text-white/40 text-[15px] leading-[1.75] mb-8">
+                <p className="text-[#1a1a2e]/75 text-[15px] leading-[1.75] mb-8">
                   India&rsquo;s largest and most influential gatherings of GCC
                   leaders. Over 50 flagship events have brought together CXOs,
                   transformation architects, policymakers, and innovators for
@@ -101,14 +101,14 @@ export default function PlatformsPage() {
                 </p>
 
                 <div className="mb-8">
-                  <p className="text-[11px] font-bold text-[#e7ab1c]/60 uppercase tracking-[0.2em] mb-4">
+                  <p className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.2em] mb-4">
                     Flagship Events
                   </p>
                   <div className="flex flex-wrap gap-2.5">
                     {CONCLAVES_EVENTS.map((name) => (
                       <span
                         key={name}
-                        className="text-[13px] text-white/50 px-4 py-2 rounded-full border border-[#e7ab1c]/20 bg-[#e7ab1c]/5"
+                        className="text-[13px] text-[#a37410] font-semibold px-4 py-2 rounded-full border border-[#e7ab1c]/30 bg-[#e7ab1c]/10"
                       >
                         {name}
                       </span>
@@ -128,10 +128,10 @@ export default function PlatformsPage() {
                 {CONCLAVES_FEATURES.map(({ icon: Icon, text }) => (
                   <div
                     key={text}
-                    className="flex items-start gap-4 p-5 rounded-xl bg-white/[0.03] border border-white/[0.06]"
+                    className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
                   >
-                    <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c]/60 mt-0.5 shrink-0" />
-                    <p className="text-[14px] text-white/50 leading-[1.6]">{text}</p>
+                    <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
+                    <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{text}</p>
                   </div>
                 ))}
               </div>
@@ -143,19 +143,19 @@ export default function PlatformsPage() {
       {/* Pillar 2: The Inner Circle */}
       <section className="py-10 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white/70 border border-black/[0.04] p-10 md:p-16 overflow-hidden">
+          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
             <div className="grid md:grid-cols-2 gap-12 md:gap-16">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center mb-8">
                   <Users size={26} strokeWidth={1.4} className="text-[#e7ab1c]" />
                 </div>
                 <h2
-                  className="text-black leading-[1.12] font-bold mb-5"
+                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
                   style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
                 >
                   The Inner Circle
                 </h2>
-                <p className="text-black/35 text-[15px] leading-[1.75] mb-8">
+                <p className="text-[#1a1a2e]/75 text-[15px] leading-[1.75] mb-8">
                   An exclusive, invite-only membership designed for senior
                   leaders who seek more than conferences. The Inner Circle
                   offers curated peer connections, private roundtables, and
@@ -175,10 +175,10 @@ export default function PlatformsPage() {
                 {INNER_CIRCLE_FEATURES.map(({ icon: Icon, text }) => (
                   <div
                     key={text}
-                    className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-black/[0.04]"
+                    className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
                   >
-                    <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c]/60 mt-0.5 shrink-0" />
-                    <p className="text-[14px] text-black/40 leading-[1.6]">{text}</p>
+                    <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
+                    <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{text}</p>
                   </div>
                 ))}
               </div>
@@ -190,19 +190,19 @@ export default function PlatformsPage() {
       {/* Pillar 3: The Sunny Shah Show */}
       <section className="py-10 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white/70 border border-black/[0.04] p-10 md:p-16 overflow-hidden">
+          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
             <div className="grid md:grid-cols-2 gap-12 md:gap-16">
               <div>
                 <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center mb-8">
                   <Mic2 size={26} strokeWidth={1.4} className="text-[#e7ab1c]" />
                 </div>
                 <h2
-                  className="text-black leading-[1.12] font-bold mb-5"
+                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
                   style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
                 >
                   The Sunny Shah Show
                 </h2>
-                <p className="text-black/35 text-[15px] leading-[1.75] mb-8">
+                <p className="text-[#1a1a2e]/75 text-[15px] leading-[1.75] mb-8">
                   A thought leadership media platform featuring in-depth
                   interviews with global C-suite executives, industry pioneers,
                   and visionary leaders. From AI transformation to geopolitical
@@ -222,10 +222,10 @@ export default function PlatformsPage() {
                 {SHOW_FEATURES.map(({ icon: Icon, text }) => (
                   <div
                     key={text}
-                    className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-black/[0.04]"
+                    className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
                   >
-                    <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c]/60 mt-0.5 shrink-0" />
-                    <p className="text-[14px] text-black/40 leading-[1.6]">{text}</p>
+                    <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
+                    <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{text}</p>
                   </div>
                 ))}
               </div>
@@ -235,15 +235,15 @@ export default function PlatformsPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="pt-16 pb-32 px-6">
+      <section className="pt-12 pb-20 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2
-            className="text-black leading-[1.12] font-bold mb-5"
+            className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
             style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", ...sfFont }}
           >
             Find Your Platform
           </h2>
-          <p className="text-black/35 text-base leading-relaxed mb-10 max-w-xl mx-auto">
+          <p className="text-[#1a1a2e]/75 text-base leading-relaxed mb-10 max-w-xl mx-auto">
             Whether through our flagship conclaves, the exclusivity of the
             Inner Circle, or the insights of The Sunny Shah Show, there is a
             path for every leader.
@@ -258,7 +258,7 @@ export default function PlatformsPage() {
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-transparent text-black/50 text-sm font-semibold border border-black/10 transition-all duration-200 hover:border-black/20"
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-white text-[#1a1a2e] text-sm font-semibold border border-[#1a1a2e]/[0.12] transition-all duration-200 hover:border-[#e7ab1c]/40 hover:text-[#e7ab1c]"
             >
               Apply for Inner Circle
               <ArrowRight size={16} />

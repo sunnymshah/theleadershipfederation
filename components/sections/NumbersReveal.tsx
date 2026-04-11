@@ -52,7 +52,7 @@ export function NumbersReveal() {
   return (
     <section
       ref={ref}
-      className="relative py-28 lg:py-36 bg-[#050505] overflow-hidden"
+      className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden"
     >
       {/* Ambient gold glow */}
       <div
@@ -61,44 +61,44 @@ export function NumbersReveal() {
           width: "900px",
           height: "500px",
           borderRadius: "50%",
-          background: "radial-gradient(ellipse at center, rgba(231,171,28,0.06) 0%, transparent 60%)",
+          background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
         }}
       />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="text-center mb-16">
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c]/50 font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
             The Impact
           </span>
-          <h2 className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white/90 tracking-[-0.02em]">
+          <h2 className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-[#1a1a2e] tracking-[-0.02em]">
             Numbers That Speak
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-6">
           {stats.map((stat, i) => (
             <div
               key={stat.label}
-              className="text-center group"
+              className="text-center group bg-white rounded-2xl shadow-sm border border-[#1a1a2e]/[0.06] hover:shadow-md hover:border-[#e7ab1c]/30 transition-all duration-500 px-4 py-8"
               style={{
                 opacity: visible ? 1 : 0,
                 transform: visible ? "translateY(0) scale(1)" : "translateY(40px) scale(0.9)",
                 transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${i * 150}ms`,
               }}
             >
-              <div className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-white leading-none tracking-tight">
+              <div className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-[#1a1a2e] leading-none tracking-tight">
                 <Counter target={stat.value} suffix={stat.suffix} active={visible} />
               </div>
               <div className="mt-3 text-[14px] font-semibold text-[#e7ab1c] tracking-wide">
                 {stat.label}
               </div>
-              <div className="mt-1.5 text-[12px] text-white/20 font-medium">
+              <div className="mt-1.5 text-[12px] text-[#1a1a2e]/55 font-medium">
                 {stat.sublabel}
               </div>
 
               {/* Gold underline accent */}
               <div
-                className="mx-auto mt-5 h-[2px] rounded-full bg-gradient-to-r from-transparent via-[#e7ab1c]/40 to-transparent"
+                className="mx-auto mt-5 h-[2px] rounded-full bg-gradient-to-r from-transparent via-[#e7ab1c]/60 to-transparent"
                 style={{
                   width: visible ? "60px" : "0px",
                   transition: `width 1s ease ${i * 150 + 600}ms`,

@@ -347,7 +347,7 @@ export default async function AdminDashboard() {
     <div className="p-6 md:p-8 max-w-[1400px] mx-auto">
       {/* Page Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Dashboard</h2>
+        <h2 className="text-2xl font-bold text-[#1a1a2e] mb-1">Dashboard</h2>
         <p className="text-sm text-gray-500">
           Analytics and performance overview across all events
         </p>
@@ -356,14 +356,14 @@ export default async function AdminDashboard() {
       {/* ═══ ROW 1: Stat Cards (3 columns) ════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         {/* Total Events */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Events</p>
             <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
               <CalendarIcon />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">{totalEvents}</p>
+          <p className="text-3xl font-bold text-[#1a1a2e] mb-2">{totalEvents}</p>
           <div className="flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-gray-300 inline-block" />
@@ -381,7 +381,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Total Registrations */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Registrations</p>
             <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -389,7 +389,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-baseline gap-2 mb-2">
-            <p className="text-3xl font-bold text-gray-900">{fmtNumber(totalRegistrations)}</p>
+            <p className="text-3xl font-bold text-[#1a1a2e]">{fmtNumber(totalRegistrations)}</p>
             {totalRegistrations > 0 && (
               <span className="flex items-center gap-0.5 text-emerald-600 text-xs font-medium">
                 <TrendUpIcon /> Active
@@ -400,14 +400,14 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Total Revenue */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Revenue</p>
             <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center text-[#b8941a]">
               <RupeeIcon />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">
+          <p className="text-3xl font-bold text-[#1a1a2e] mb-2">
             ₹{fmtCurrency(totalRevenue)}
           </p>
           <p className="text-xs text-gray-500">{fmtFullCurrency(totalRevenue)}</p>
@@ -417,14 +417,14 @@ export default async function AdminDashboard() {
       {/* ═══ ROW 2: Stat Cards (3 columns) ════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {/* Tickets Sold */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Tickets Sold</p>
             <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
               <TicketIcon />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">
+          <p className="text-3xl font-bold text-[#1a1a2e] mb-2">
             {fmtNumber(totalSold)}{" "}
             <span className="text-sm font-normal text-gray-400">/ {fmtNumber(totalCapacity)}</span>
           </p>
@@ -438,7 +438,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Check-in Rate */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Check-in Rate</p>
             <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
@@ -467,25 +467,25 @@ export default async function AdminDashboard() {
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-bold text-gray-900">{checkInRate}%</span>
+                <span className="text-sm font-bold text-[#1a1a2e]">{checkInRate}%</span>
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{fmtNumber(totalCheckedIn)}</p>
+              <p className="text-2xl font-bold text-[#1a1a2e]">{fmtNumber(totalCheckedIn)}</p>
               <p className="text-xs text-gray-500">of {fmtNumber(totalRegistrations)} checked in</p>
             </div>
           </div>
         </div>
 
         {/* Pending Actions */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending Actions</p>
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${pendingActions > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-400"}`}>
               <AlertIcon />
             </div>
           </div>
-          <p className={`text-3xl font-bold mb-2 ${pendingActions > 0 ? "text-orange-600" : "text-gray-900"}`}>
+          <p className={`text-3xl font-bold mb-2 ${pendingActions > 0 ? "text-orange-600" : "text-[#1a1a2e]"}`}>
             {pendingActions}
           </p>
           <div className="flex flex-col gap-1 text-xs text-gray-500">
@@ -502,8 +502,8 @@ export default async function AdminDashboard() {
 
       {/* ═══ Sales Summary — Revenue by Ticket Tier ═══════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <h3 className="font-semibold text-gray-900 mb-1">Sales Summary</h3>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
+          <h3 className="font-semibold text-[#1a1a2e] mb-1">Sales Summary</h3>
           <p className="text-sm text-gray-500 mb-5">Revenue by ticket tier</p>
 
           {tierSales.length === 0 ? (
@@ -524,7 +524,7 @@ export default async function AdminDashboard() {
                       <span className="text-sm font-medium text-gray-700 truncate mr-3">{tier.name}</span>
                       <div className="flex items-center gap-3 text-xs text-gray-500 shrink-0">
                         <span>{tier.sold} sold</span>
-                        <span className="font-semibold text-gray-900">{fmtFullCurrency(tier.revenue)}</span>
+                        <span className="font-semibold text-[#1a1a2e]">{fmtFullCurrency(tier.revenue)}</span>
                       </div>
                     </div>
                     <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden">
@@ -549,8 +549,8 @@ export default async function AdminDashboard() {
         </div>
 
         {/* ═══ Registration Overview — Donut Chart ════════════════════════ */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <h3 className="font-semibold text-gray-900 mb-1">Registration Overview</h3>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
+          <h3 className="font-semibold text-[#1a1a2e] mb-1">Registration Overview</h3>
           <p className="text-sm text-gray-500 mb-5">Status breakdown across all events</p>
 
           <div className="flex items-center gap-8">
@@ -562,7 +562,7 @@ export default async function AdminDashboard() {
               />
               <div className="absolute inset-[25%] bg-white rounded-full flex items-center justify-center">
                 <div className="text-center">
-                  <p className="text-xl font-bold text-gray-900">{fmtNumber(donutTotal)}</p>
+                  <p className="text-xl font-bold text-[#1a1a2e]">{fmtNumber(donutTotal)}</p>
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider">Total</p>
                 </div>
               </div>
@@ -579,7 +579,7 @@ export default async function AdminDashboard() {
                     />
                     <span className="text-sm text-gray-700">{d.label}</span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900 tabular-nums">
+                  <span className="text-sm font-semibold text-[#1a1a2e] tabular-nums">
                     {fmtNumber(d.count)}
                   </span>
                 </div>
@@ -590,8 +590,8 @@ export default async function AdminDashboard() {
       </div>
 
       {/* ═══ Revenue Trend — Last 30 Days Bar Chart ═══════════════════════ */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] mb-8">
-        <h3 className="font-semibold text-gray-900 mb-1">Revenue Trend</h3>
+      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] mb-8">
+        <h3 className="font-semibold text-[#1a1a2e] mb-1">Revenue Trend</h3>
         <p className="text-sm text-gray-500 mb-5">Daily revenue from latest event registrations</p>
 
         {revenueByDay.length === 0 ? (
@@ -637,7 +637,7 @@ export default async function AdminDashboard() {
               <span className="text-xs text-gray-500">
                 {revenueByDay.length} day{revenueByDay.length !== 1 ? "s" : ""} of sales
               </span>
-              <span className="text-xs font-semibold text-gray-900">
+              <span className="text-xs font-semibold text-[#1a1a2e]">
                 Total: {fmtFullCurrency(revenueByDay.reduce((sum, d) => sum + d.revenue, 0))}
               </span>
             </div>
@@ -646,9 +646,9 @@ export default async function AdminDashboard() {
       </div>
 
       {/* ═══ Event Performance Table ══════════════════════════════════════ */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] mb-8 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] mb-8 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">Event Performance</h3>
+          <h3 className="font-semibold text-[#1a1a2e]">Event Performance</h3>
           <p className="text-sm text-gray-500">Click any row to view event details</p>
         </div>
 
@@ -667,10 +667,10 @@ export default async function AdminDashboard() {
       </div>
 
       {/* ═══ Recent Activity ══════════════════════════════════════════════ */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)] mb-8 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] mb-8 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">Recent Activity</h3>
+            <h3 className="font-semibold text-[#1a1a2e]">Recent Activity</h3>
             <p className="text-sm text-gray-500">Last 10 registrations</p>
           </div>
           <Link
@@ -699,7 +699,7 @@ export default async function AdminDashboard() {
               <tbody>
                 {recentList.map((r) => (
                   <tr key={r.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-gray-900">{r.name}</td>
+                    <td className="px-5 py-3 font-medium text-[#1a1a2e]">{r.name}</td>
                     <td className="px-5 py-3 text-gray-600">{r.email}</td>
                     <td className="px-5 py-3 text-gray-600">{r.events?.title ?? "--"}</td>
                     <td className="px-5 py-3 text-gray-600">{r.tickets?.name ?? "--"}</td>
@@ -723,52 +723,52 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Link
           href="/admin/events"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
         >
           <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
             <PlusIcon />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">Create Event</p>
+            <p className="text-sm font-medium text-[#1a1a2e]">Create Event</p>
             <p className="text-[11px] text-gray-400">New event</p>
           </div>
         </Link>
 
         <Link
           href="/admin/speakers"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
         >
           <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
             <MicIcon />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">Add Speaker</p>
+            <p className="text-sm font-medium text-[#1a1a2e]">Add Speaker</p>
             <p className="text-[11px] text-gray-400">Manage speakers</p>
           </div>
         </Link>
 
         <Link
           href="/admin/check-in"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
         >
           <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-100 transition-colors">
             <ScanIcon />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">View Check-ins</p>
+            <p className="text-sm font-medium text-[#1a1a2e]">View Check-ins</p>
             <p className="text-[11px] text-gray-400">QR scanner</p>
           </div>
         </Link>
 
         <Link
           href="/admin/invoices"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
         >
           <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center text-[#b8941a] group-hover:bg-[#e7ab1c]/20 transition-colors">
             <FileIcon />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900">Generate Report</p>
+            <p className="text-sm font-medium text-[#1a1a2e]">Generate Report</p>
             <p className="text-[11px] text-gray-400">Invoices & certs</p>
           </div>
         </Link>

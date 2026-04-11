@@ -37,27 +37,27 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F4F8FF] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Branding */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-[#c9a84c] mb-4">
-            <span className="text-[#050505] text-sm font-extrabold tracking-widest">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-[#e7ab1c] mb-4 shadow-[0_8px_24px_rgba(231,171,28,0.30)]">
+            <span className="text-white text-sm font-extrabold tracking-widest">
               TLF
             </span>
           </div>
-          <h1 className="text-xl font-semibold text-white/90">Admin Console</h1>
-          <p className="text-sm text-white/35 mt-1">
+          <h1 className="text-xl font-semibold text-[#1a1a2e]">Admin Console</h1>
+          <p className="text-sm text-[#1a1a2e]/55 mt-1">
             Sign in to manage events, tickets & speakers
           </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-5 bg-white p-7 rounded-2xl shadow-sm border border-[#1a1a2e]/[0.06]">
           <div>
             <label
               htmlFor="email"
-              className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5"
+              className="block text-[11px] text-[#1a1a2e]/55 uppercase tracking-wider mb-1.5 font-medium"
             >
               Email
             </label>
@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/60 transition-colors"
+              className="w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg text-sm text-[#1a1a2e] placeholder-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
               placeholder="admin@theleadershipfederation.com"
             />
           </div>
@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-[11px] text-white/50 uppercase tracking-wider mb-1.5"
+              className="block text-[11px] text-[#1a1a2e]/55 uppercase tracking-wider mb-1.5 font-medium"
             >
               Password
             </label>
@@ -85,13 +85,13 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/60 transition-colors"
+              className="w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/[0.08] rounded-lg text-sm text-[#1a1a2e] placeholder-[#1a1a2e]/35 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-all"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <div className="px-4 py-3 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-sm">
+            <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-[#c9a84c] text-[#0a0a0a] text-sm font-bold tracking-wide hover:bg-[#d4b85c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-lg bg-[#e7ab1c] text-white text-sm font-bold tracking-wide hover:bg-[#d49c10] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
           >
             {loading ? "Signing in…" : "Sign In"}
           </button>

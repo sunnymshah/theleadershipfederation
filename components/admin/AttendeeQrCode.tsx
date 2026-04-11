@@ -48,7 +48,7 @@ export function AttendeeQrCode({ attendeeName, qrToken }: Props) {
 
       {open && (
         <>
-          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => setOpen(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-white border border-[#e0e0e0] rounded-2xl shadow-2xl w-full max-w-sm p-6">
               <div className="flex items-center justify-between mb-5">

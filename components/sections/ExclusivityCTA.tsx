@@ -44,7 +44,7 @@ export function ExclusivityCTA() {
   return (
     <section
       ref={ref}
-      className="relative py-28 lg:py-36 bg-[#F4F8FF] overflow-hidden"
+      className="relative py-16 lg:py-20 bg-[#F4F8FF] overflow-hidden"
     >
       {/* Subtle radial gradient behind CTA */}
       <div
@@ -67,7 +67,7 @@ export function ExclusivityCTA() {
           }}
         >
           <div className="text-center mb-6">
-            <span className="text-[10px] tracking-[0.2em] uppercase text-black/20 font-semibold" style={sfText}>
+            <span className="text-[10px] tracking-[0.2em] uppercase text-[#1a1a2e]/55 font-semibold" style={sfText}>
               As Featured In
             </span>
           </div>
@@ -75,7 +75,7 @@ export function ExclusivityCTA() {
             {pressLogos.map((p) => (
               <div
                 key={p.name}
-                className="flex items-center gap-1.5 opacity-25 hover:opacity-50 transition-opacity duration-300"
+                className="flex items-center gap-1.5 opacity-60 hover:opacity-90 transition-opacity duration-300"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -85,7 +85,7 @@ export function ExclusivityCTA() {
                   className="h-[18px] w-auto object-contain"
                   style={{ filter: "brightness(0) opacity(0.8)" }}
                 />
-                <span className="text-[11px] font-semibold text-black/40 whitespace-nowrap" style={sfText}>
+                <span className="text-[11px] font-semibold text-[#1a1a2e]/75 whitespace-nowrap" style={sfText}>
                   {p.name}
                 </span>
               </div>
@@ -94,7 +94,7 @@ export function ExclusivityCTA() {
         </div>
 
         {/* Divider */}
-        <div className="w-12 h-[1px] bg-black/[0.06] mx-auto mb-16" />
+        <div className="w-12 h-[1px] bg-[#1a1a2e]/[0.06] mx-auto mb-16" />
 
         {/* CTA content */}
         <div
@@ -106,7 +106,7 @@ export function ExclusivityCTA() {
           }}
         >
           <h2
-            className="text-[clamp(2rem,4.5vw,3.2rem)] leading-[1.05] text-black font-bold tracking-[-0.03em]"
+            className="text-[clamp(2rem,4.5vw,3.2rem)] leading-[1.05] text-[#1a1a2e] font-bold tracking-[-0.03em]"
             style={sfDisplay}
           >
             Your seat at the
@@ -114,7 +114,7 @@ export function ExclusivityCTA() {
             <span className="text-[#e7ab1c]">table awaits</span>
           </h2>
           <p
-            className="mt-5 text-black/30 text-[16px] leading-relaxed max-w-md mx-auto"
+            className="mt-5 text-[#1a1a2e]/75 text-[16px] leading-relaxed max-w-md mx-auto"
             style={sfText}
           >
             Whether you are a leader, enterprise, or institution — there is a place for you
@@ -137,7 +137,7 @@ export function ExclusivityCTA() {
             <MagneticButton>
               <Link
                 href="/platforms"
-                className="inline-flex items-center gap-2 px-7 py-[14px] rounded-full text-[14px] font-medium text-black/40 border border-black/[0.08] hover:border-black/15 hover:text-black/65 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-7 py-[14px] rounded-full text-[14px] font-medium text-[#1a1a2e]/80 border border-[#1a1a2e]/[0.12] hover:border-[#e7ab1c]/40 hover:text-[#1a1a2e] transition-all duration-200"
               >
                 Join Inner Circle
               </Link>
@@ -145,7 +145,7 @@ export function ExclusivityCTA() {
             <MagneticButton>
               <Link
                 href="/partners"
-                className="inline-flex items-center gap-2 px-7 py-[14px] rounded-full text-[14px] font-medium text-black/40 border border-black/[0.08] hover:border-black/15 hover:text-black/65 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-7 py-[14px] rounded-full text-[14px] font-medium text-[#1a1a2e]/80 border border-[#1a1a2e]/[0.12] hover:border-[#e7ab1c]/40 hover:text-[#1a1a2e] transition-all duration-200"
               >
                 Partner With Us
               </Link>

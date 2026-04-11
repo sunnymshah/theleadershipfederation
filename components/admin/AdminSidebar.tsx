@@ -446,7 +446,7 @@ export function AdminSidebar({
     .filter((section) => section.items.length > 0)
 
   return (
-    <aside className="w-[250px] shrink-0 bg-white border-r border-[#e0e0e0] flex flex-col h-screen sticky top-0 shadow-[1px_0_4px_rgba(0,0,0,0.04)]">
+    <aside className="w-[250px] shrink-0 bg-white border-r border-[#e0e0e0] flex flex-col h-screen sticky top-0 shadow-[1px_0_4px_rgba(26, 26, 46,0.04)]">
       {/* ── Logo / Branding ──────────────────────────────────────────── */}
       <div className="px-5 py-4 border-b border-[#e8e8e8]">
         <Link href="/admin" className="flex items-center gap-3">

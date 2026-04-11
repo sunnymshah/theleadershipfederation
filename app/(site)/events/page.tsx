@@ -64,13 +64,13 @@ export default async function EventsPage() {
   return (
     <main className="min-h-screen bg-[#F4F8FF]">
       {/* ── Hero ── */}
-      <section className="pt-28 sm:pt-36 pb-16 sm:pb-20 px-4 sm:px-6">
+      <section className="pt-20 sm:pt-24 pb-12 sm:pb-14 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto text-center">
           <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5 px-4 py-1.5 rounded-full bg-[#e7ab1c]/8 border border-[#e7ab1c]/15">
             Curated Experiences
           </span>
           <h1
-            className="text-4xl sm:text-5xl md:text-7xl font-bold text-black mb-6 tracking-tight"
+            className="text-4xl sm:text-5xl md:text-7xl font-bold text-[#1a1a2e] mb-6 tracking-tight"
             style={sfFont}
           >
             Our{" "}
@@ -78,7 +78,7 @@ export default async function EventsPage() {
               Events
             </span>
           </h1>
-          <p className="text-base sm:text-lg text-black/40 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed">
             World-class leadership summits, conclaves, and strategic forums
             bringing together CXOs, policymakers, and visionary thought leaders
             from 30+ countries.
@@ -91,7 +91,7 @@ export default async function EventsPage() {
         <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-16 sm:mb-24">
           <div className="flex items-center gap-3 mb-8 sm:mb-10">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <h2 className="text-xs font-bold text-black/40 uppercase tracking-[0.2em]">
+            <h2 className="text-xs font-bold text-[#1a1a2e]/80 uppercase tracking-[0.2em]">
               Upcoming Events
             </h2>
           </div>
@@ -109,7 +109,7 @@ export default async function EventsPage() {
                 <Link
                   key={event.id}
                   href={`/events/${event.slug}`}
-                  className="group relative block rounded-2xl overflow-hidden transition-all duration-300 bg-white border border-black/[0.06] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:border-[#e7ab1c]/20"
+                  className="group relative block rounded-2xl overflow-hidden transition-all duration-300 bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_12px_40px_rgba(26, 26, 46,0.08)] hover:border-[#e7ab1c]/20"
                 >
                   <div className="flex flex-col md:flex-row">
                     {/* Cover image */}
@@ -133,7 +133,7 @@ export default async function EventsPage() {
                         <span className="text-2xl sm:text-3xl font-bold text-[#e7ab1c] leading-none tabular-nums">
                           {fmtDay(event.start_date)}
                         </span>
-                        <span className="text-[10px] font-bold text-[#e7ab1c]/60 uppercase tracking-[0.15em] mt-1">
+                        <span className="text-[10px] font-bold text-[#e7ab1c] uppercase tracking-[0.15em] mt-1">
                           {fmtMonth(event.start_date)}
                         </span>
                       </div>
@@ -141,16 +141,16 @@ export default async function EventsPage() {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <h3
-                          className="text-xl sm:text-2xl md:text-3xl font-bold text-black group-hover:text-[#e7ab1c] transition-colors duration-300 mb-3"
+                          className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1a1a2e] group-hover:text-[#e7ab1c] transition-colors duration-300 mb-3"
                           style={sfFont}
                         >
                           {event.title}
                         </h3>
-                        <div className="flex flex-wrap gap-4 sm:gap-5 text-sm text-black/35 mb-3">
+                        <div className="flex flex-wrap gap-4 sm:gap-5 text-sm text-[#1a1a2e]/75 mb-3">
                           <span className="flex items-center gap-2">
                             <Calendar
                               size={14}
-                              className="text-black/20"
+                              className="text-[#e7ab1c]"
                             />
                             {fmtDate(event.start_date)}
                             {event.end_date &&
@@ -160,7 +160,7 @@ export default async function EventsPage() {
                             <span className="flex items-center gap-2">
                               <MapPin
                                 size={14}
-                                className="text-black/20"
+                                className="text-[#e7ab1c]"
                               />
                               {event.venue}
                             </span>
@@ -168,10 +168,10 @@ export default async function EventsPage() {
                         </div>
 
                         {/* Speaker and ticket tier info */}
-                        <div className="flex flex-wrap gap-4 text-xs text-black/25 mb-3">
+                        <div className="flex flex-wrap gap-4 text-xs text-[#1a1a2e]/65 mb-3">
                           {speakerCount > 0 && (
                             <span className="flex items-center gap-1.5">
-                              <Mic2 size={12} className="text-[#e7ab1c]/50" />
+                              <Mic2 size={12} className="text-[#e7ab1c]" />
                               {speakerCount} Speaker
                               {speakerCount !== 1 ? "s" : ""}
                             </span>
@@ -180,7 +180,7 @@ export default async function EventsPage() {
                             <span className="flex items-center gap-1.5">
                               <Ticket
                                 size={12}
-                                className="text-[#e7ab1c]/50"
+                                className="text-[#e7ab1c]"
                               />
                               {ticketCount} Ticket Type
                               {ticketCount !== 1 ? "s" : ""}
@@ -189,7 +189,7 @@ export default async function EventsPage() {
                         </div>
 
                         {event.description && (
-                          <p className="text-sm text-black/30 line-clamp-2 max-w-2xl">
+                          <p className="text-sm text-[#1a1a2e]/70 line-clamp-2 max-w-2xl">
                             {event.description}
                           </p>
                         )}
@@ -217,7 +217,7 @@ export default async function EventsPage() {
       {past.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
           <div className="flex items-center justify-between mb-8 sm:mb-10">
-            <h2 className="text-xs font-bold text-black/25 uppercase tracking-[0.2em]">
+            <h2 className="text-xs font-bold text-[#1a1a2e]/65 uppercase tracking-[0.2em]">
               Past Events
             </h2>
             <Link
@@ -234,7 +234,7 @@ export default async function EventsPage() {
               <Link
                 key={event.id}
                 href={`/events/${event.slug}`}
-                className="group block rounded-2xl overflow-hidden bg-white border border-black/[0.06] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:border-[#e7ab1c]/15 transition-all duration-300"
+                className="group block rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_8px_30px_rgba(26, 26, 46,0.06)] hover:border-[#e7ab1c]/15 transition-all duration-300"
               >
                 {/* Compact cover */}
                 {event.cover_image_url && (
@@ -256,20 +256,20 @@ export default async function EventsPage() {
                       <span className="text-sm font-bold text-[#e7ab1c] leading-none tabular-nums">
                         {fmtDay(event.start_date)}
                       </span>
-                      <span className="text-[8px] font-bold text-[#e7ab1c]/50 uppercase tracking-wider">
+                      <span className="text-[8px] font-bold text-[#e7ab1c] uppercase tracking-wider">
                         {fmtMonth(event.start_date)}
                       </span>
                     </div>
                     <div className="min-w-0">
                       <h3
-                        className="text-base font-semibold text-black/70 group-hover:text-[#e7ab1c] transition-colors truncate"
+                        className="text-base font-bold text-[#1a1a2e] group-hover:text-[#e7ab1c] transition-colors truncate"
                         style={sfFont}
                       >
                         {event.title}
                       </h3>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-3 text-xs text-black/25">
+                  <div className="flex flex-wrap gap-3 text-xs text-[#1a1a2e]/65">
                     <span className="flex items-center gap-1">
                       <Calendar size={11} /> {fmtDate(event.start_date)}
                     </span>
@@ -291,7 +291,7 @@ export default async function EventsPage() {
 
       {/* ── Empty State ── */}
       {allEvents.length === 0 && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center pb-32">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center pb-20">
           <div className="max-w-md mx-auto">
             {/* Decorative icon cluster */}
             <div className="relative w-28 h-28 mx-auto mb-8">
@@ -303,16 +303,16 @@ export default async function EventsPage() {
             </div>
 
             <h3
-              className="text-2xl sm:text-3xl font-bold text-black mb-3"
+              className="text-2xl sm:text-3xl font-bold text-[#1a1a2e] mb-3"
               style={sfFont}
             >
               Events Coming Soon
             </h3>
-            <p className="text-black/35 text-base mb-2 leading-relaxed">
+            <p className="text-[#1a1a2e]/75 text-base mb-2 leading-relaxed">
               The Leadership Federation is preparing world-class experiences for
               CXOs, policymakers, and visionary leaders.
             </p>
-            <p className="text-black/20 text-sm mb-8">
+            <p className="text-[#1a1a2e]/65 text-sm mb-8">
               Check back soon for upcoming conclaves, summits, and awards
               ceremonies.
             </p>

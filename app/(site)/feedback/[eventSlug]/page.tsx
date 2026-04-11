@@ -36,21 +36,20 @@ export default async function FeedbackPage({ params }: Props) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-16"
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-20 bg-[#F4F8FF]"
       style={{
-        background: "linear-gradient(160deg, #050505 0%, #0a0908 40%, #0f0d08 60%, #050505 100%)",
         fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
       }}
     >
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none" aria-hidden>
         <div
-          className="absolute top-[20%] left-1/2 -translate-x-1/2"
+          className="absolute top-[15%] left-1/2 -translate-x-1/2"
           style={{
             width: "800px",
             height: "600px",
             borderRadius: "50%",
-            background: "radial-gradient(ellipse at center, rgba(201,168,76,0.04) 0%, transparent 60%)",
+            background: "radial-gradient(ellipse at center, rgba(231,171,28,0.08) 0%, transparent 60%)",
           }}
         />
       </div>
@@ -59,13 +58,13 @@ export default async function FeedbackPage({ params }: Props) {
       <div className="relative z-10 w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#c9a84c]/20 bg-[#c9a84c]/[0.04] mb-6">
-            <span className="text-[10px] font-bold text-[#c9a84c] uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#e7ab1c]/30 bg-[#e7ab1c]/10 mb-6">
+            <span className="text-[10px] font-bold text-[#e7ab1c] uppercase tracking-widest">
               Share Your Feedback
             </span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">{event.title}</h1>
-          <p className="text-sm text-white/30">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-3">{event.title}</h1>
+          <p className="text-sm text-[#1a1a2e]/75">
             {fmtDate} {event.venue && <>&middot; {event.venue}</>}
           </p>
         </div>

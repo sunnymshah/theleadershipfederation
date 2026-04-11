@@ -3,6 +3,106 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createHmac, randomBytes } from "crypto"
 import { revalidatePath } from "next/cache"
+import { Resend } from "resend"
+import QRCode from "qrcode"
+import { confirmationEmailHtml } from "@/lib/email-templates"
+
+/**
+ * Send a confirmation email to the newly registered attendee.
+ * Runs unauthenticated because the payment verify flow is public (protected
+ * instead by the Razorpay signature check). Any failure here is logged but
+ * does not fail the request — the attendee is already registered and can
+ * trigger a resend from the admin panel.
+ */
+async function sendRegistrationConfirmationEmail(params: {
+  attendeeName: string
+  attendeeEmail: string
+  eventTitle: string
+  eventStartDate: string
+  eventEndDate: string | null
+  eventVenue: string | null
+  ticketName: string | null
+  qrToken: string
+}): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.warn(
+      "[verify] RESEND_API_KEY not set — skipping confirmation email. " +
+        "Attendee was registered successfully; email can be sent later from the admin panel."
+    )
+    return
+  }
+
+  try {
+    const resend = new Resend(apiKey)
+
+    // Generate QR code as PNG buffer for inline attachment
+    const qrDataUrl = await QRCode.toDataURL(params.qrToken, {
+      width: 400,
+      margin: 2,
+      color: { dark: "#000000", light: "#ffffff" },
+      errorCorrectionLevel: "H",
+    })
+    const qrBase64 = qrDataUrl.replace(/^data:image\/png;base64,/, "")
+    const qrBuffer = Buffer.from(qrBase64, "base64")
+    const qrCid = "qrcode@tlf"
+
+    const html = confirmationEmailHtml({
+      attendeeName: params.attendeeName,
+      attendeeEmail: params.attendeeEmail,
+      eventTitle: params.eventTitle,
+      eventDate: params.eventStartDate,
+      eventEndDate: params.eventEndDate || undefined,
+      eventVenue: params.eventVenue || "",
+      ticketName: params.ticketName,
+      qrToken: params.qrToken,
+      qrCid,
+    })
+
+    const primaryFrom =
+      process.env.RESEND_FROM_ADDRESS ||
+      "The Leadership Federation <events@theleadershipfederation.com>"
+    const fallbackFrom = "The Leadership Federation <onboarding@resend.dev>"
+
+    const attachments = [
+      {
+        filename: "qrcode.png",
+        content: qrBuffer,
+        contentType: "image/png",
+        // @ts-expect-error - Resend supports content_id for inline CID attachments
+        content_id: qrCid,
+      },
+    ]
+
+    const subject = `Registration Confirmed: ${params.eventTitle}`
+
+    const { error: primaryError } = await resend.emails.send({
+      from: primaryFrom,
+      to: [params.attendeeEmail],
+      subject,
+      html,
+      attachments,
+    })
+
+    if (primaryError) {
+      console.warn(
+        `[verify] Primary from address failed, retrying with fallback: ${primaryError.message}`
+      )
+      const { error: fallbackError } = await resend.emails.send({
+        from: fallbackFrom,
+        to: [params.attendeeEmail],
+        subject,
+        html,
+        attachments,
+      })
+      if (fallbackError) {
+        console.error(`[verify] Email delivery failed: ${fallbackError.message}`)
+      }
+    }
+  } catch (err) {
+    console.error("[verify] Confirmation email error:", err)
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,10 +173,12 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
 
-    // Fetch ticket details
+    // Fetch ticket details (joined with event for email content)
     const { data: ticket, error: ticketError } = await supabase
       .from("tickets")
-      .select("id, name, price_inr, inventory_limit, sold, event_id")
+      .select(
+        "id, name, price_inr, inventory_limit, sold, event_id, events(title, start_date, end_date, venue)"
+      )
       .eq("id", ticketId)
       .single()
 
@@ -189,6 +291,33 @@ export async function POST(request: NextRequest) {
     revalidatePath("/events", "page")
     revalidatePath("/admin/attendees", "page")
     revalidatePath("/admin", "page")
+
+    // Send confirmation email (fire-and-forget; never blocks the response)
+    const eventInfo = (ticket.events as unknown) as {
+      title: string
+      start_date: string
+      end_date: string | null
+      venue: string | null
+    } | null
+    if (eventInfo && attendee) {
+      void sendRegistrationConfirmationEmail({
+        attendeeName: attendee.name,
+        attendeeEmail: attendee.email,
+        eventTitle: eventInfo.title,
+        eventStartDate: eventInfo.start_date,
+        eventEndDate: eventInfo.end_date,
+        eventVenue: eventInfo.venue,
+        ticketName: ticket.name,
+        qrToken,
+      })
+
+      // Best-effort: mark confirmation_sent_at even though send is async.
+      // If the send fails, admin can still resend — this flag mainly drives UI.
+      await supabase
+        .from("attendees")
+        .update({ confirmation_sent_at: new Date().toISOString() })
+        .eq("id", attendee.id)
+    }
 
     return NextResponse.json({
       success: true,

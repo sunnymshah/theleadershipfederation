@@ -175,7 +175,7 @@ function SessionFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]/30 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#eee]">
           <h3 className="text-[16px] font-semibold text-[#333]">{session ? "Edit Session" : "Add Session"}</h3>
@@ -352,7 +352,7 @@ export default function AgendaBuilderPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-[22px] font-bold text-[#1a1a1a]">Agenda Builder</h1>
+          <h1 className="text-[22px] font-bold text-[#1a1a2e]">Agenda Builder</h1>
           <p className="text-[13px] text-[#888] mt-0.5">
             {sessions.length} sessions · {conflicts.length} conflict{conflicts.length !== 1 ? "s" : ""}
           </p>

@@ -130,7 +130,7 @@ export function LiveQA({ eventId }: { eventId: string }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-white/40">
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#1a1a2e]/45">
         <Loader2 className="w-6 h-6 animate-spin" />
         <p className="text-sm">Loading Q&A...</p>
       </div>
@@ -146,7 +146,7 @@ export function LiveQA({ eventId }: { eventId: string }) {
       {/* Question list */}
       <div className="flex flex-col gap-4 pb-20">
         {questions.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3 text-white/40">
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-[#1a1a2e]/45">
             <MessageCirclePlus className="w-8 h-8" />
             <p className="text-base font-medium">No questions yet</p>
             <p className="text-sm">Be the first to ask!</p>
@@ -179,7 +179,7 @@ export function LiveQA({ eventId }: { eventId: string }) {
       {/* Floating "Ask" button */}
       <button
         onClick={() => setShowForm(true)}
-        className="fixed bottom-6 right-4 z-50 flex items-center gap-2 px-5 py-3.5 rounded-full bg-[#e7ab1c] text-[#0a0a0a] font-bold text-sm shadow-lg shadow-[#e7ab1c]/25 active:scale-95 transition-transform"
+        className="fixed bottom-6 right-4 z-50 flex items-center gap-2 px-5 py-3.5 rounded-full bg-[#e7ab1c] hover:bg-[#d49c10] text-white font-bold text-sm shadow-lg shadow-[#e7ab1c]/25 active:scale-95 transition-all"
       >
         <MessageCirclePlus className="w-5 h-5" />
         Ask a Question
@@ -219,10 +219,10 @@ function QuestionCard({
 
   return (
     <div
-      className={`rounded-2xl border p-4 transition-colors ${
+      className={`rounded-2xl border p-4 transition-colors shadow-sm ${
         isFeatured
           ? "bg-[#e7ab1c]/[0.06] border-[#e7ab1c]/30"
-          : "bg-white/[0.04] border-white/10"
+          : "bg-white border-[#1a1a2e]/[0.06]"
       }`}
     >
       {/* Featured badge */}
@@ -241,9 +241,9 @@ function QuestionCard({
       </p>
 
       {/* Author & time */}
-      <div className="flex items-center gap-2 text-xs text-white/40 mb-3">
+      <div className="flex items-center gap-2 text-xs text-[#1a1a2e]/45 mb-3">
         <span>{author}</span>
-        <span className="w-0.5 h-0.5 rounded-full bg-white/30" />
+        <span className="w-0.5 h-0.5 rounded-full bg-[#1a1a2e]/30" />
         <span>{timeAgo(question.created_at)}</span>
       </div>
 
@@ -256,7 +256,7 @@ function QuestionCard({
               Answered{question.answered_by ? ` by ${question.answered_by}` : ""}
             </span>
           </div>
-          <p className="text-sm text-white/80 leading-relaxed">
+          <p className="text-sm text-[#1a1a2e]/85 leading-relaxed">
             {question.answer}
           </p>
         </div>
@@ -268,8 +268,8 @@ function QuestionCard({
         disabled={isUpvoted}
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
           isUpvoted
-            ? "bg-[#e7ab1c]/20 text-[#e7ab1c]"
-            : "bg-white/[0.06] text-white/50 hover:bg-white/10 hover:text-white/70"
+            ? "bg-[#e7ab1c]/15 text-[#e7ab1c]"
+            : "bg-[#1a1a2e]/[0.04] text-[#1a1a2e]/55 hover:bg-[#1a1a2e]/[0.08] hover:text-[#1a1a2e]/80"
         }`}
       >
         <Heart
@@ -335,16 +335,16 @@ function AskQuestionForm({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-md flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-[#F4F8FF]/95 backdrop-blur-md flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <h2 className="text-base font-bold">Ask a Question</h2>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a2e]/[0.06]">
+        <h2 className="text-base font-bold text-[#1a1a2e]">Ask a Question</h2>
         <button
           onClick={onClose}
-          className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center active:bg-white/20 transition-colors"
+          className="w-9 h-9 rounded-full bg-[#1a1a2e]/[0.05] flex items-center justify-center active:bg-[#1a1a2e]/[0.1] transition-colors"
           aria-label="Close"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4 text-[#1a1a2e]" />
         </button>
       </div>
 
@@ -352,8 +352,8 @@ function AskQuestionForm({
       <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-5">
         {/* Name */}
         <div>
-          <label className="block text-xs text-white/50 font-medium mb-1.5">
-            Your Name <span className="text-white/30">(optional)</span>
+          <label className="block text-xs text-[#1a1a2e]/55 font-medium mb-1.5">
+            Your Name <span className="text-[#1a1a2e]/30">(optional)</span>
           </label>
           <input
             type="text"
@@ -362,13 +362,13 @@ function AskQuestionForm({
             placeholder="e.g. Priya"
             disabled={isAnonymous}
             maxLength={60}
-            className="w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-1 focus:ring-[#e7ab1c]/30 disabled:opacity-40 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#1a1a2e]/[0.08] text-[#1a1a2e] placeholder:text-[#1a1a2e]/35 text-sm focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-2 focus:ring-[#e7ab1c]/20 disabled:opacity-40 transition-colors"
           />
         </div>
 
         {/* Question */}
         <div>
-          <label className="block text-xs text-white/50 font-medium mb-1.5">
+          <label className="block text-xs text-[#1a1a2e]/55 font-medium mb-1.5">
             Your Question <span className="text-red-400">*</span>
           </label>
           <textarea
@@ -378,9 +378,9 @@ function AskQuestionForm({
             placeholder="What would you like to ask the speaker?"
             rows={4}
             maxLength={500}
-            className="w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder:text-white/25 text-sm leading-relaxed focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-1 focus:ring-[#e7ab1c]/30 resize-none transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#1a1a2e]/[0.08] text-[#1a1a2e] placeholder:text-[#1a1a2e]/35 text-sm leading-relaxed focus:outline-none focus:border-[#e7ab1c]/50 focus:ring-2 focus:ring-[#e7ab1c]/20 resize-none transition-colors"
           />
-          <p className="text-right text-[10px] text-white/25 mt-1">
+          <p className="text-right text-[10px] text-[#1a1a2e]/25 mt-1">
             {questionText.length}/500
           </p>
         </div>
@@ -393,16 +393,16 @@ function AskQuestionForm({
         >
           <span
             className={`relative w-11 h-6 rounded-full transition-colors ${
-              isAnonymous ? "bg-[#e7ab1c]" : "bg-white/15"
+              isAnonymous ? "bg-[#e7ab1c]" : "bg-[#1a1a2e]/[0.12]"
             }`}
           >
             <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
                 isAnonymous ? "translate-x-5" : ""
               }`}
             />
           </span>
-          <span className="text-sm text-white/70">Submit anonymously</span>
+          <span className="text-sm text-[#1a1a2e]/75">Submit anonymously</span>
         </button>
 
         {/* Error */}
@@ -410,11 +410,11 @@ function AskQuestionForm({
       </div>
 
       {/* Submit button pinned to bottom */}
-      <div className="px-4 py-4 border-t border-white/10 bg-[#0a0a0a]">
+      <div className="px-4 py-4 border-t border-[#1a1a2e]/[0.06] bg-[#F4F8FF]">
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="w-full py-3.5 rounded-xl bg-[#e7ab1c] text-[#0a0a0a] font-bold text-sm active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 transition-all flex items-center justify-center gap-2"
+          className="w-full py-3.5 rounded-xl bg-[#e7ab1c] hover:bg-[#d49c10] text-white font-bold text-sm active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 transition-all flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
         >
           {submitting ? (
             <>

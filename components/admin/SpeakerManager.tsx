@@ -270,7 +270,7 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
       {/* ── Bulk Import Modal ─────────────────────────────────────────── */}
       {bulkOpen && (
         <>
-          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setBulkOpen(false); setBulkText("") }} />
+          <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => { setBulkOpen(false); setBulkText("") }} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl border border-[#e0e0e0] z-50 shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">
               <h3 className="text-lg font-semibold text-[#333]">Bulk Import Speakers</h3>
@@ -321,7 +321,7 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
       {/* ── Slide-Out Drawer ─────────────────────────────────────────── */}
       {drawerOpen && (
         <>
-          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} />
+          <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} />
           <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-[#333]">{editing ? "Edit Speaker" : "Add Speaker"}</h3>

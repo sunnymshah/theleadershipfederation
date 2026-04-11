@@ -77,7 +77,7 @@ export function LiveSchedule({ sessions }: { sessions: Session[] }) {
 
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-white/40">
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-[#1a1a2e]/45">
         <Clock className="w-8 h-8" />
         <p className="text-base font-medium">Schedule not available yet</p>
         <p className="text-sm">Check back closer to the event.</p>
@@ -103,12 +103,12 @@ export function LiveSchedule({ sessions }: { sessions: Session[] }) {
               return (
                 <div
                   key={session.id}
-                  className={`rounded-xl border p-4 transition-colors ${
+                  className={`rounded-xl border p-4 transition-colors shadow-sm ${
                     live
                       ? "bg-[#e7ab1c]/[0.08] border-[#e7ab1c]/40"
                       : isBreak
-                        ? "bg-white/[0.02] border-white/[0.06]"
-                        : "bg-white/[0.04] border-white/10"
+                        ? "bg-[#F4F8FF] border-[#1a1a2e]/[0.05]"
+                        : "bg-white border-[#1a1a2e]/[0.06]"
                   }`}
                 >
                   {/* Time + live indicator */}
@@ -119,7 +119,7 @@ export function LiveSchedule({ sessions }: { sessions: Session[] }) {
                         Now
                       </span>
                     )}
-                    <span className="text-xs text-white/40 flex items-center gap-1">
+                    <span className="text-xs text-[#1a1a2e]/55 flex items-center gap-1">
                       {getSessionIcon(session.session_type)}
                       {fmtTime(session.start_time)} - {fmtTime(session.end_time)}
                     </span>
@@ -128,7 +128,7 @@ export function LiveSchedule({ sessions }: { sessions: Session[] }) {
                   {/* Title */}
                   <p
                     className={`text-sm font-semibold leading-snug ${
-                      isBreak ? "text-white/50" : "text-white"
+                      isBreak ? "text-[#1a1a2e]/55" : "text-[#1a1a2e]"
                     }`}
                   >
                     {session.title}
@@ -136,7 +136,7 @@ export function LiveSchedule({ sessions }: { sessions: Session[] }) {
 
                   {/* Description */}
                   {session.description && (
-                    <p className="text-xs text-white/40 mt-1 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-[#1a1a2e]/55 mt-1 line-clamp-2 leading-relaxed">
                       {session.description}
                     </p>
                   )}
@@ -144,13 +144,13 @@ export function LiveSchedule({ sessions }: { sessions: Session[] }) {
                   {/* Speaker + Location */}
                   <div className="flex flex-wrap items-center gap-3 mt-2">
                     {session.speaker_name && (
-                      <span className="flex items-center gap-1 text-xs text-white/50">
+                      <span className="flex items-center gap-1 text-xs text-[#1a1a2e]/60">
                         <User className="w-3 h-3" />
                         {session.speaker_name}
                       </span>
                     )}
                     {session.location && (
-                      <span className="flex items-center gap-1 text-xs text-white/50">
+                      <span className="flex items-center gap-1 text-xs text-[#1a1a2e]/60">
                         <MapPin className="w-3 h-3" />
                         {session.location}
                       </span>

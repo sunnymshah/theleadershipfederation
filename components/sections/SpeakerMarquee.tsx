@@ -19,17 +19,17 @@ interface SpeakerData {
 
 function SpeakerCard({ name, role, initials, imageUrl }: SpeakerData) {
   return (
-    <div className="mx-3 shrink-0 flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.05] hover:border-[#e7ab1c]/20 hover:bg-[#e7ab1c]/[0.03] transition-all duration-500 group">
-      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#e7ab1c]/20 to-[#e7ab1c]/5 flex items-center justify-center shrink-0 group-hover:from-[#e7ab1c]/30 group-hover:to-[#e7ab1c]/10 transition-all duration-500 overflow-hidden relative">
+    <div className="mx-3 shrink-0 flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-white shadow-sm border border-[#1a1a2e]/[0.06] hover:border-[#e7ab1c]/40 hover:shadow-md transition-all duration-500 group">
+      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#e7ab1c]/25 to-[#e7ab1c]/10 flex items-center justify-center shrink-0 group-hover:from-[#e7ab1c]/35 group-hover:to-[#e7ab1c]/15 transition-all duration-500 overflow-hidden relative">
         {imageUrl ? (
           <Image src={imageUrl} alt={name} fill className="object-cover" sizes="44px" />
         ) : (
-          <span className="text-[13px] font-bold text-[#e7ab1c]/70" style={sfDisplay}>{initials}</span>
+          <span className="text-[13px] font-bold text-[#a37410]" style={sfDisplay}>{initials}</span>
         )}
       </div>
       <div className="min-w-0">
-        <p className="text-[13px] font-semibold text-white/70 truncate" style={sfText}>{name}</p>
-        <p className="text-[11px] text-white/25 truncate" style={sfText}>{role}</p>
+        <p className="text-[13px] font-semibold text-[#1a1a2e] truncate" style={sfText}>{name}</p>
+        <p className="text-[11px] text-[#1a1a2e]/55 truncate" style={sfText}>{role}</p>
       </div>
     </div>
   )
@@ -55,22 +55,22 @@ export function SpeakerMarquee({ speakers }: Props) {
   const doubled2 = [...row2, ...row2]
 
   return (
-    <section className="relative py-20 lg:py-28 bg-[#050505] overflow-hidden">
+    <section className="relative py-20 lg:py-28 bg-[#F4F8FF] overflow-hidden">
       {/* Top edge gold line */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#e7ab1c]/20 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#e7ab1c]/30 to-transparent" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="text-center mb-14">
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c]/50 font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
             The Network
           </span>
           <h2
-            className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-white/90 tracking-[-0.02em]"
+            className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-[#1a1a2e] tracking-[-0.02em]"
             style={sfDisplay}
           >
             Leaders Who Shape Industries
           </h2>
-          <p className="mt-3 text-white/25 text-[14px] max-w-md mx-auto" style={sfText}>
+          <p className="mt-3 text-[#1a1a2e]/65 text-[14px] max-w-md mx-auto" style={sfText}>
             CXOs, policymakers, and innovators from 30+ countries across Asia, the Middle East, and beyond
           </p>
         </div>
@@ -78,8 +78,8 @@ export function SpeakerMarquee({ speakers }: Props) {
 
       {/* Row 1 — scrolls left */}
       <div className="relative mb-4">
-        <div className="absolute left-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-r from-[#050505] to-transparent" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-l from-[#050505] to-transparent" />
+        <div className="absolute left-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-r from-[#F4F8FF] to-transparent" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-l from-[#F4F8FF] to-transparent" />
         <div className="flex animate-speaker-scroll-left items-center whitespace-nowrap">
           {doubled1.map((s, i) => (
             <SpeakerCard key={`r1-${s.initials}-${i}`} {...s} />
@@ -90,8 +90,8 @@ export function SpeakerMarquee({ speakers }: Props) {
       {/* Row 2 — scrolls right */}
       {doubled2.length > 0 && (
         <div className="relative">
-          <div className="absolute left-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-r from-[#050505] to-transparent" />
-          <div className="absolute right-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-l from-[#050505] to-transparent" />
+          <div className="absolute left-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-r from-[#F4F8FF] to-transparent" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 lg:w-40 z-10 bg-gradient-to-l from-[#F4F8FF] to-transparent" />
           <div className="flex animate-speaker-scroll-right items-center whitespace-nowrap">
             {doubled2.map((s, i) => (
               <SpeakerCard key={`r2-${s.initials}-${i}`} {...s} />

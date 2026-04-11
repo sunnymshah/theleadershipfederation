@@ -19,7 +19,7 @@ function StarRatingInput({
 
   return (
     <div>
-      <label className="block text-xs text-white/40 uppercase tracking-wider mb-2 font-medium">
+      <label className="block text-xs text-[#1a1a2e]/80 uppercase tracking-wider mb-2 font-bold">
         {label}
       </label>
       <div className="flex items-center gap-1">
@@ -36,14 +36,14 @@ function StarRatingInput({
               size={28}
               className={
                 star <= (hover || value)
-                  ? "fill-[#c9a84c] text-[#c9a84c] transition-colors"
-                  : "fill-none text-white/15 transition-colors"
+                  ? "fill-[#e7ab1c] text-[#e7ab1c] transition-colors"
+                  : "fill-none text-[#1a1a2e]/30 transition-colors"
               }
             />
           </button>
         ))}
         {value > 0 && (
-          <span className="text-sm text-white/30 ml-2 tabular-nums">{value}/5</span>
+          <span className="text-sm text-[#1a1a2e]/75 ml-2 tabular-nums font-semibold">{value}/5</span>
         )}
       </div>
     </div>
@@ -104,10 +104,12 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
   /* ── Thank you state ─────────────────────────────────────────── */
   if (submitted) {
     return (
-      <div className="rounded-2xl p-12 text-center border border-emerald-500/20 bg-emerald-500/[0.03]">
-        <CheckCircle2 size={48} className="text-emerald-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Thank You!</h2>
-        <p className="text-sm text-white/40 max-w-md mx-auto">
+      <div className="rounded-2xl p-12 text-center border border-emerald-500/30 bg-white shadow-sm">
+        <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-5">
+          <CheckCircle2 size={32} className="text-emerald-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-[#1a1a2e] mb-2">Thank You!</h2>
+        <p className="text-sm text-[#1a1a2e]/75 max-w-md mx-auto leading-relaxed">
           Your feedback has been submitted successfully. We appreciate you taking the time
           to help us improve future events.
         </p>
@@ -116,12 +118,12 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
   }
 
   const inputClass =
-    "w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#c9a84c]/40 transition-colors"
+    "w-full px-4 py-3 bg-[#F4F8FF] border border-[#1a1a2e]/[0.10] rounded-xl text-sm text-[#1a1a2e] placeholder-[#1a1a2e]/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-colors"
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Identity */}
-      <div className="rounded-2xl p-6 border border-white/[0.06] bg-white/[0.02] space-y-4">
+      <div className="rounded-2xl p-6 border border-[#1a1a2e]/[0.06] bg-white shadow-sm space-y-4">
         <input
           type="text"
           placeholder="Your Name"
@@ -140,8 +142,8 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
       </div>
 
       {/* Star Ratings */}
-      <div className="rounded-2xl p-6 border border-white/[0.06] bg-white/[0.02] space-y-6">
-        <p className="text-xs text-white/20 uppercase tracking-wider font-semibold">Rate Your Experience</p>
+      <div className="rounded-2xl p-6 border border-[#1a1a2e]/[0.06] bg-white shadow-sm space-y-6">
+        <p className="text-xs text-[#e7ab1c] uppercase tracking-wider font-bold">Rate Your Experience</p>
         <StarRatingInput label="Overall Experience" value={overall} onChange={setOverall} />
         <StarRatingInput label="Content Quality" value={content} onChange={setContent} />
         <StarRatingInput label="Venue & Logistics" value={venue} onChange={setVenue} />
@@ -150,8 +152,8 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
       </div>
 
       {/* Would Recommend */}
-      <div className="rounded-2xl p-6 border border-white/[0.06] bg-white/[0.02]">
-        <label className="block text-xs text-white/40 uppercase tracking-wider mb-3 font-medium">
+      <div className="rounded-2xl p-6 border border-[#1a1a2e]/[0.06] bg-white shadow-sm">
+        <label className="block text-xs text-[#1a1a2e]/80 uppercase tracking-wider mb-3 font-bold">
           Would you recommend this event?
         </label>
         <div className="flex gap-3">
@@ -160,8 +162,8 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
             onClick={() => setWouldRecommend(true)}
             className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all border ${
               wouldRecommend === true
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                : "bg-white/[0.02] border-white/[0.08] text-white/30 hover:text-white/50"
+                ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-700"
+                : "bg-[#F4F8FF] border-[#1a1a2e]/[0.10] text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:border-[#e7ab1c]/40"
             }`}
           >
             Yes
@@ -171,8 +173,8 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
             onClick={() => setWouldRecommend(false)}
             className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all border ${
               wouldRecommend === false
-                ? "bg-red-500/10 border-red-500/30 text-red-400"
-                : "bg-white/[0.02] border-white/[0.08] text-white/30 hover:text-white/50"
+                ? "bg-red-500/15 border-red-500/40 text-red-700"
+                : "bg-[#F4F8FF] border-[#1a1a2e]/[0.10] text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:border-[#e7ab1c]/40"
             }`}
           >
             No
@@ -181,9 +183,9 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
       </div>
 
       {/* Text areas */}
-      <div className="rounded-2xl p-6 border border-white/[0.06] bg-white/[0.02] space-y-4">
+      <div className="rounded-2xl p-6 border border-[#1a1a2e]/[0.06] bg-white shadow-sm space-y-4">
         <div>
-          <label className="block text-xs text-white/40 uppercase tracking-wider mb-2 font-medium">
+          <label className="block text-xs text-[#1a1a2e]/80 uppercase tracking-wider mb-2 font-bold">
             What was the best part?
           </label>
           <textarea
@@ -195,7 +197,7 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
           />
         </div>
         <div>
-          <label className="block text-xs text-white/40 uppercase tracking-wider mb-2 font-medium">
+          <label className="block text-xs text-[#1a1a2e]/80 uppercase tracking-wider mb-2 font-bold">
             What could be improved?
           </label>
           <textarea
@@ -207,7 +209,7 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
           />
         </div>
         <div>
-          <label className="block text-xs text-white/40 uppercase tracking-wider mb-2 font-medium">
+          <label className="block text-xs text-[#1a1a2e]/80 uppercase tracking-wider mb-2 font-bold">
             Additional Comments
           </label>
           <textarea
@@ -222,8 +224,8 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
 
       {/* Error */}
       {error && (
-        <div className="px-4 py-3 rounded-xl bg-red-500/[0.06] border border-red-500/[0.12]">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
@@ -231,11 +233,7 @@ export function FeedbackForm({ eventId }: { eventId: string }) {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-4 rounded-xl text-sm font-bold text-[#0a0a0a] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2"
-        style={{
-          background: "linear-gradient(135deg, #c9a84c 0%, #d9b85c 100%)",
-          boxShadow: "0 0 20px rgba(201,168,76,0.2), 0 2px 6px rgba(0,0,0,0.3)",
-        }}
+        className="w-full py-4 rounded-full text-sm font-bold text-[#1a1a2e] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2 bg-[#e7ab1c] hover:bg-[#d49c10] shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
       >
         {submitting ? (
           <>

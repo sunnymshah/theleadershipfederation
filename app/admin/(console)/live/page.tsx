@@ -205,7 +205,7 @@ export default function LiveDashboardPage() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#0a0a0a] flex items-center justify-center">
+      <div className="fixed inset-0 bg-[#1a1a2e] flex items-center justify-center">
         <Loader2 size={32} className="text-[#c9a84c] animate-spin" />
       </div>
     )
@@ -213,7 +213,7 @@ export default function LiveDashboardPage() {
 
   if (events.length === 0) {
     return (
-      <div className="fixed inset-0 bg-[#0a0a0a] flex items-center justify-center">
+      <div className="fixed inset-0 bg-[#1a1a2e] flex items-center justify-center">
         <p className="text-white/40 text-lg">No events available.</p>
       </div>
     )
@@ -222,7 +222,7 @@ export default function LiveDashboardPage() {
   const pct = stats?.checkInRate ?? 0
 
   return (
-    <div className="fixed inset-0 bg-[#0a0a0a] text-white overflow-hidden flex flex-col" style={{ fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }}>
+    <div className="fixed inset-0 bg-[#1a1a2e] text-white overflow-hidden flex flex-col" style={{ fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }}>
       {/* ── Top Bar ───────────────────────────────────────────────── */}
       <div className="shrink-0 h-14 flex items-center justify-between px-8 border-b border-white/[0.06]">
         <div className="flex items-center gap-4">
@@ -236,7 +236,7 @@ export default function LiveDashboardPage() {
               <ChevronDown size={14} className={cn("transition-transform", dropdownOpen && "rotate-180")} />
             </button>
             {dropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-72 bg-[#1a1a1a] border border-white/[0.1] rounded-lg shadow-2xl z-50 py-1">
+              <div className="absolute top-full left-0 mt-1 w-72 bg-[#1a1a2e] border border-white/[0.1] rounded-lg shadow-2xl z-50 py-1">
                 {events.map((ev) => (
                   <button
                     key={ev.id}

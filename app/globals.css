@@ -48,7 +48,7 @@ body {
 
 /* Admin scrollbar override */
 .admin-scrollbar::-webkit-scrollbar-track {
-  background: #050505;
+  background: #1a1a2e;
 }
 .admin-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(201, 168, 76, 0.28);

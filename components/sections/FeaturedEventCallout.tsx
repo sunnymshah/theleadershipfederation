@@ -74,16 +74,16 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
           fill
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-black/75" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-[#1a1a2e]/75" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a2e]/60 via-transparent to-[#1a1a2e]/60" />
       </div>
 
       {/* Top edge */}
       <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-[#F4F8FF] to-transparent z-10 pointer-events-none" />
       {/* Bottom edge */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#050505] to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#F4F8FF] to-transparent z-10 pointer-events-none" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 py-32 lg:py-44">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 py-20 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left — event info */}
           <div
@@ -110,36 +110,42 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               {e.title}
             </h2>
 
-            <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-white/40 text-[14px]" style={sfText}>
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-white/85 text-[14px]" style={sfText}>
               <span className="inline-flex items-center gap-2">
-                <Calendar size={14} strokeWidth={1.5} className="text-[#e7ab1c]/60" />
+                <Calendar size={14} strokeWidth={1.5} className="text-[#e7ab1c]" />
                 {fmtDateRange(e.start_date, e.end_date)}
               </span>
               {e.venue && (
                 <span className="inline-flex items-center gap-2">
-                  <MapPin size={14} strokeWidth={1.5} className="text-[#e7ab1c]/60" />
+                  <MapPin size={14} strokeWidth={1.5} className="text-[#e7ab1c]" />
                   {e.venue}
                 </span>
               )}
             </div>
 
-            <p className="mt-6 text-white/30 text-[15px] leading-[1.7] max-w-md" style={sfText}>
+            <p className="mt-6 text-white/75 text-[15px] leading-[1.7] max-w-md" style={sfText}>
               {e.description}
             </p>
 
-            <div className="mt-8">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <MagneticButton>
                 <Link
-                  href={`/events/${e.slug}`}
-                  className="group inline-flex items-center gap-2 px-8 py-[14px] rounded-full font-semibold text-[14px] text-black bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] shadow-[0_4px_24px_rgba(231,171,28,0.3)]"
+                  href={`/events/${e.slug}#tickets`}
+                  className="group inline-flex items-center gap-2 px-8 py-[14px] rounded-full font-semibold text-[14px] text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] shadow-[0_4px_24px_rgba(231,171,28,0.4)]"
                 >
-                  View Event
+                  Buy Tickets
                   <ArrowRight
                     size={15}
                     className="group-hover:translate-x-1 transition-transform duration-200"
                   />
                 </Link>
               </MagneticButton>
+              <Link
+                href={`/events/${e.slug}`}
+                className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full font-semibold text-[14px] text-white border border-white/30 hover:border-white/60 hover:bg-white/10 transition-all duration-200"
+              >
+                View Details
+              </Link>
             </div>
           </div>
 
@@ -157,12 +163,12 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               const days = getDaysUntil(e.start_date)
               if (days === null) return null
               return (
-                <div className="bg-white/[0.06] backdrop-blur-xl rounded-2xl px-8 py-6 border border-white/[0.08]">
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl px-8 py-6 border border-white/20">
                   <div className="text-center">
                     <div className="text-[48px] font-bold text-[#e7ab1c] leading-none tabular-nums" style={sfDisplay}>
                       {days}
                     </div>
-                    <div className="text-[11px] text-white/30 uppercase tracking-[0.15em] font-semibold mt-1" style={sfText}>
+                    <div className="text-[11px] text-white/80 uppercase tracking-[0.15em] font-semibold mt-1" style={sfText}>
                       Days to Go
                     </div>
                   </div>
@@ -172,8 +178,8 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
 
             {/* Event description snippet */}
             {e.description && (
-              <div className="bg-white/[0.04] backdrop-blur-xl rounded-xl px-5 py-4 border border-white/[0.06] max-w-xs">
-                <p className="text-[13px] text-white/40 leading-relaxed line-clamp-3" style={sfText}>
+              <div className="bg-white/10 backdrop-blur-xl rounded-xl px-5 py-4 border border-white/20 max-w-xs">
+                <p className="text-[13px] text-white/85 leading-relaxed line-clamp-3" style={sfText}>
                   {e.description}
                 </p>
               </div>

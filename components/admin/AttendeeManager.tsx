@@ -305,7 +305,7 @@ export function AttendeeManager({ eventId }: { eventId: string }) {
       {/* ── Drawer ───────────────────────────────────────────────────── */}
       {drawerOpen && (
         <>
-          <div className="fixed inset-0 bg-black/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null) }} />
+          <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null) }} />
           <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-[#333]">{editing ? "Edit Lead" : "Add Lead"}</h3>

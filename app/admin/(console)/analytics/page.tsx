@@ -269,7 +269,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-[22px] font-bold text-[#1a1a1a]">Analytics</h1>
+          <h1 className="text-[22px] font-bold text-[#1a1a2e]">Analytics</h1>
           <p className="text-[13px] text-[#888] mt-0.5">Event performance, engagement, and ROI</p>
         </div>
         <div className="flex items-center gap-3">
@@ -299,7 +299,7 @@ export default function AnalyticsPage() {
               <span className="text-[12px] text-[#888] font-medium uppercase tracking-wider">{card.label}</span>
               <card.icon size={16} className="text-[#ccc]" />
             </div>
-            <div className="text-[28px] font-bold text-[#1a1a1a]">{card.value}</div>
+            <div className="text-[28px] font-bold text-[#1a1a2e]">{card.value}</div>
             {card.change && (
               <div className="flex items-center gap-1 mt-1">
                 {card.up ? <ArrowUp size={12} className="text-green-500" /> : <ArrowDown size={12} className="text-red-400" />}
