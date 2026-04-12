@@ -11,6 +11,7 @@ import {
   Ticket,
   Sparkles,
 } from "lucide-react"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 0
 
@@ -66,23 +67,29 @@ export default async function EventsPage() {
       {/* ── Hero ── */}
       <section className="pt-20 sm:pt-24 pb-12 sm:pb-14 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5 px-4 py-1.5 rounded-full bg-[#e7ab1c]/8 border border-[#e7ab1c]/15">
-            Curated Experiences
-          </span>
-          <h1
-            className="text-4xl sm:text-5xl md:text-7xl font-bold text-[#1a1a2e] mb-6 tracking-tight"
-            style={sfFont}
-          >
-            Our{" "}
-            <span className="bg-gradient-to-r from-[#e7ab1c] to-[#d49c10] bg-clip-text text-transparent">
-              Events
+          <AnimateOnScroll animation="fade-up" delay={0}>
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5 px-4 py-1.5 rounded-full bg-[#e7ab1c]/8 border border-[#e7ab1c]/15">
+              Curated Experiences
             </span>
-          </h1>
-          <p className="text-base sm:text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed">
-            World-class leadership summits, conclaves, and strategic forums
-            bringing together CXOs, policymakers, and visionary thought leaders
-            from 30+ countries.
-          </p>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={100}>
+            <h1
+              className="text-4xl sm:text-5xl md:text-7xl font-bold text-[#1a1a2e] mb-6 tracking-tight"
+              style={sfFont}
+            >
+              Our{" "}
+              <span className="bg-gradient-to-r from-[#e7ab1c] to-[#d49c10] bg-clip-text text-transparent">
+                Events
+              </span>
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={200}>
+            <p className="text-base sm:text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed">
+              World-class leadership summits, conclaves, and strategic forums
+              bringing together CXOs, policymakers, and visionary thought leaders
+              from 30+ countries.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
@@ -97,7 +104,7 @@ export default async function EventsPage() {
           </div>
 
           <div className="grid gap-6">
-            {upcoming.map((event) => {
+            {upcoming.map((event, i) => {
               const speakerCount = Array.isArray(event.speakers)
                 ? event.speakers.length
                 : 0
@@ -106,8 +113,8 @@ export default async function EventsPage() {
                 : 0
 
               return (
+                <AnimateOnScroll key={event.id} animation="fade-up" delay={i * 100}>
                 <Link
-                  key={event.id}
                   href={`/events/${event.slug}`}
                   className="group relative block rounded-2xl overflow-hidden transition-all duration-300 bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_12px_40px_rgba(26, 26, 46,0.08)] hover:border-[#e7ab1c]/20"
                 >
@@ -207,6 +214,7 @@ export default async function EventsPage() {
                   {/* Gold bottom accent */}
                   <div className="h-[3px] bg-gradient-to-r from-transparent via-[#e7ab1c] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </Link>
+                </AnimateOnScroll>
               )
             })}
           </div>
@@ -229,102 +237,106 @@ export default async function EventsPage() {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {past.map((event) => (
-              <Link
-                key={event.id}
-                href={`/events/${event.slug}`}
-                className="group block rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_8px_30px_rgba(26, 26, 46,0.06)] hover:border-[#e7ab1c]/15 transition-all duration-300"
-              >
-                {/* Compact cover */}
-                {event.cover_image_url && (
-                  <div className="relative h-32 overflow-hidden">
-                    <Image
-                      src={event.cover_image_url}
-                      alt={event.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
-                  </div>
-                )}
+          <StaggerChildren animation="fade-up" stagger={80}>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {past.map((event) => (
+                <Link
+                  key={event.id}
+                  href={`/events/${event.slug}`}
+                  className="group block rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_8px_30px_rgba(26, 26, 46,0.06)] hover:border-[#e7ab1c]/15 transition-all duration-300"
+                >
+                  {/* Compact cover */}
+                  {event.cover_image_url && (
+                    <div className="relative h-32 overflow-hidden">
+                      <Image
+                        src={event.cover_image_url}
+                        alt={event.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
+                    </div>
+                  )}
 
-                <div className="p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 bg-[#e7ab1c]/10 border border-[#e7ab1c]/15">
-                      <span className="text-sm font-bold text-[#e7ab1c] leading-none tabular-nums">
-                        {fmtDay(event.start_date)}
-                      </span>
-                      <span className="text-[8px] font-bold text-[#e7ab1c] uppercase tracking-wider">
-                        {fmtMonth(event.start_date)}
-                      </span>
+                  <div className="p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0 bg-[#e7ab1c]/10 border border-[#e7ab1c]/15">
+                        <span className="text-sm font-bold text-[#e7ab1c] leading-none tabular-nums">
+                          {fmtDay(event.start_date)}
+                        </span>
+                        <span className="text-[8px] font-bold text-[#e7ab1c] uppercase tracking-wider">
+                          {fmtMonth(event.start_date)}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3
+                          className="text-base font-bold text-[#1a1a2e] group-hover:text-[#e7ab1c] transition-colors truncate"
+                          style={sfFont}
+                        >
+                          {event.title}
+                        </h3>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h3
-                        className="text-base font-bold text-[#1a1a2e] group-hover:text-[#e7ab1c] transition-colors truncate"
-                        style={sfFont}
-                      >
-                        {event.title}
-                      </h3>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-3 text-xs text-[#1a1a2e]/65">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={11} /> {fmtDate(event.start_date)}
-                    </span>
-                    {event.venue && (
+                    <div className="flex flex-wrap gap-3 text-xs text-[#1a1a2e]/65">
                       <span className="flex items-center gap-1">
-                        <MapPin size={11} /> {event.venue}
+                        <Calendar size={11} /> {fmtDate(event.start_date)}
                       </span>
-                    )}
+                      {event.venue && (
+                        <span className="flex items-center gap-1">
+                          <MapPin size={11} /> {event.venue}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Gold bottom accent */}
-                <div className="h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </Link>
-            ))}
-          </div>
+                  {/* Gold bottom accent */}
+                  <div className="h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </Link>
+              ))}
+            </div>
+          </StaggerChildren>
         </section>
       )}
 
       {/* ── Empty State ── */}
       {allEvents.length === 0 && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center pb-20">
-          <div className="max-w-md mx-auto">
-            {/* Decorative icon cluster */}
-            <div className="relative w-28 h-28 mx-auto mb-8">
-              <div className="absolute inset-0 rounded-3xl bg-[#e7ab1c]/8 border border-[#e7ab1c]/15 rotate-6" />
-              <div className="absolute inset-0 rounded-3xl bg-[#e7ab1c]/5 border border-[#e7ab1c]/10 -rotate-3" />
-              <div className="relative w-full h-full rounded-3xl bg-white border border-[#e7ab1c]/20 flex items-center justify-center shadow-sm">
-                <Sparkles size={36} className="text-[#e7ab1c]" />
+        <AnimateOnScroll animation="scale">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center pb-20">
+            <div className="max-w-md mx-auto">
+              {/* Decorative icon cluster */}
+              <div className="relative w-28 h-28 mx-auto mb-8">
+                <div className="absolute inset-0 rounded-3xl bg-[#e7ab1c]/8 border border-[#e7ab1c]/15 rotate-6" />
+                <div className="absolute inset-0 rounded-3xl bg-[#e7ab1c]/5 border border-[#e7ab1c]/10 -rotate-3" />
+                <div className="relative w-full h-full rounded-3xl bg-white border border-[#e7ab1c]/20 flex items-center justify-center shadow-sm">
+                  <Sparkles size={36} className="text-[#e7ab1c]" />
+                </div>
               </div>
+
+              <h3
+                className="text-2xl sm:text-3xl font-bold text-[#1a1a2e] mb-3"
+                style={sfFont}
+              >
+                Events Coming Soon
+              </h3>
+              <p className="text-[#1a1a2e]/75 text-base mb-2 leading-relaxed">
+                The Leadership Federation is preparing world-class experiences for
+                CXOs, policymakers, and visionary leaders.
+              </p>
+              <p className="text-[#1a1a2e]/65 text-sm mb-8">
+                Check back soon for upcoming conclaves, summits, and awards
+                ceremonies.
+              </p>
+
+              <Link
+                href="/archive"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold text-[#e7ab1c] border border-[#e7ab1c]/25 hover:bg-[#e7ab1c]/5 transition-all"
+              >
+                Browse Past Events <ArrowRight size={14} />
+              </Link>
             </div>
-
-            <h3
-              className="text-2xl sm:text-3xl font-bold text-[#1a1a2e] mb-3"
-              style={sfFont}
-            >
-              Events Coming Soon
-            </h3>
-            <p className="text-[#1a1a2e]/75 text-base mb-2 leading-relaxed">
-              The Leadership Federation is preparing world-class experiences for
-              CXOs, policymakers, and visionary leaders.
-            </p>
-            <p className="text-[#1a1a2e]/65 text-sm mb-8">
-              Check back soon for upcoming conclaves, summits, and awards
-              ceremonies.
-            </p>
-
-            <Link
-              href="/archive"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold text-[#e7ab1c] border border-[#e7ab1c]/25 hover:bg-[#e7ab1c]/5 transition-all"
-            >
-              Browse Past Events <ArrowRight size={14} />
-            </Link>
           </div>
-        </div>
+        </AnimateOnScroll>
       )}
     </main>
   )

@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Linkedin, Instagram, Facebook } from "@/components/icons/SocialIcons"
 import Link from "next/link"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 86400
 
@@ -57,19 +58,25 @@ export default function MediaPage() {
       {/* Hero */}
       <section className="pt-24 pb-12 px-6">
         <div className="max-w-5xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
-            Insights & Conversations
-          </span>
-          <h1
-            className="text-4xl md:text-6xl font-bold tracking-tight text-[#1a1a2e] mb-6"
-            style={sfFont}
-          >
-            Media & Thought Leadership
-          </h1>
-          <p className="text-lg text-[#1a1a2e]/70 max-w-2xl mx-auto leading-relaxed">
-            Original conversations with global CXOs, exclusive event coverage, and the
-            ideas shaping the future of leadership — all in one place.
-          </p>
+          <AnimateOnScroll animation="fade-up">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
+              Insights & Conversations
+            </span>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={120}>
+            <h1
+              className="text-4xl md:text-6xl font-bold tracking-tight text-[#1a1a2e] mb-6"
+              style={sfFont}
+            >
+              Media & Thought Leadership
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={240}>
+            <p className="text-lg text-[#1a1a2e]/70 max-w-2xl mx-auto leading-relaxed">
+              Original conversations with global CXOs, exclusive event coverage, and the
+              ideas shaping the future of leadership — all in one place.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
@@ -158,14 +165,16 @@ export default function MediaPage() {
 
       {/* In The Press */}
       <section className="max-w-6xl mx-auto px-6 pb-24">
-        <div className="flex items-center gap-3 mb-10">
-          <Newspaper size={18} className="text-[#e7ab1c]" />
-          <h2 className="text-2xl font-bold text-[#1a1a2e]" style={sfFont}>
-            In The Press
-          </h2>
-        </div>
+        <AnimateOnScroll animation="fade-up">
+          <div className="flex items-center gap-3 mb-10">
+            <Newspaper size={18} className="text-[#e7ab1c]" />
+            <h2 className="text-2xl font-bold text-[#1a1a2e]" style={sfFont}>
+              In The Press
+            </h2>
+          </div>
+        </AnimateOnScroll>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <StaggerChildren className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" animation="fade-up" stagger={80}>
           {PRESS_OUTLETS.map((outlet) => (
             <div
               key={outlet}
@@ -176,7 +185,7 @@ export default function MediaPage() {
               </span>
             </div>
           ))}
-        </div>
+        </StaggerChildren>
       </section>
 
       {/* Videos & Highlights — only renders if real videos are added */}
@@ -199,7 +208,7 @@ export default function MediaPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 gap-6" animation="scale" stagger={100}>
             {realVideos.map((vid) => (
               <div
                 key={vid.title}
@@ -223,12 +232,12 @@ export default function MediaPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </StaggerChildren>
         </section>
       )}
 
       {/* Follow CTA */}
-      <section className="max-w-4xl mx-auto px-6 pb-16">
+      <AnimateOnScroll as="section" className="max-w-4xl mx-auto px-6 pb-16" animation="fade-up">
         <div className="rounded-2xl p-10 md:p-14 text-center bg-white border border-[#1a1a2e]/[0.06] shadow-sm">
           <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/15 flex items-center justify-center mx-auto mb-6 border border-[#e7ab1c]/30">
             <Mic2 size={24} className="text-[#e7ab1c]" />
@@ -273,7 +282,7 @@ export default function MediaPage() {
             </Link>
           </div>
         </div>
-      </section>
+      </AnimateOnScroll>
     </main>
   )
 }

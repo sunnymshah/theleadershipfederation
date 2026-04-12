@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server"
 import Image from "next/image"
 import Link from "next/link"
 import { Users, ArrowRight, ExternalLink } from "lucide-react"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 0
 
@@ -41,22 +42,28 @@ export default async function AdvisoryBoardPage() {
           aria-hidden
         />
         <div className="relative z-10 max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="h-px w-8 bg-[#e7ab1c]/40" />
-            <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">Leadership</span>
-            <div className="h-px w-8 bg-[#e7ab1c]/40" />
-          </div>
-          <h1
-            className="text-4xl md:text-5xl font-bold tracking-[-0.02em] text-[#1a1a2e] mb-6"
-            style={sfDisplay}
-          >
-            Advisory Board & Jury
-          </h1>
-          <p className="text-[16px] text-[#1a1a2e]/65 max-w-2xl mx-auto leading-relaxed" style={sfText}>
-            The Leadership Federation is guided by an eminent panel of global CXOs, board
-            directors, and domain experts who shape our strategic direction and uphold the
-            highest standards across our awards, conclaves, and initiatives.
-          </p>
+          <AnimateOnScroll animation="fade-up">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="h-px w-8 bg-[#e7ab1c]/40" />
+              <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">Leadership</span>
+              <div className="h-px w-8 bg-[#e7ab1c]/40" />
+            </div>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={120}>
+            <h1
+              className="text-4xl md:text-5xl font-bold tracking-[-0.02em] text-[#1a1a2e] mb-6"
+              style={sfDisplay}
+            >
+              Advisory Board & Jury
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={240}>
+            <p className="text-[16px] text-[#1a1a2e]/65 max-w-2xl mx-auto leading-relaxed" style={sfText}>
+              The Leadership Federation is guided by an eminent panel of global CXOs, board
+              directors, and domain experts who shape our strategic direction and uphold the
+              highest standards across our awards, conclaves, and initiatives.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
@@ -82,7 +89,7 @@ export default async function AdvisoryBoardPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" animation="fade-up" stagger={100}>
             {boardMembers.map((member) => {
               const initials = member.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
               return (
@@ -126,7 +133,7 @@ export default async function AdvisoryBoardPage() {
                 </div>
               )
             })}
-          </div>
+          </StaggerChildren>
         )}
       </section>
     </main>
