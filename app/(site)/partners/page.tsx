@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Building2,
 } from "lucide-react"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 86400
 
@@ -109,20 +110,26 @@ export default function PartnersPage() {
       {/* Hero */}
       <section className="pt-24 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-            Our Network
-          </span>
-          <h1
-            className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
-            style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
-          >
-            Partners & Ecosystem
-          </h1>
-          <p className="text-lg md:text-xl text-[#1a1a2e]/75 leading-relaxed max-w-3xl mx-auto">
-            The Leadership Federation is powered by partnerships with
-            world-leading enterprises, institutions, and organisations that
-            share our commitment to advancing global leadership.
-          </p>
+          <AnimateOnScroll animation="fade-up">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
+              Our Network
+            </span>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={120}>
+            <h1
+              className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
+            >
+              Partners & Ecosystem
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={240}>
+            <p className="text-lg md:text-xl text-[#1a1a2e]/75 leading-relaxed max-w-3xl mx-auto">
+              The Leadership Federation is powered by partnerships with
+              world-leading enterprises, institutions, and organisations that
+              share our commitment to advancing global leadership.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
@@ -148,8 +155,8 @@ export default function PartnersPage() {
       </section>
 
       {/* Partner categories */}
-      {PARTNER_CATEGORIES.map(({ title, partners }) => (
-        <section key={title} className="pb-16 px-6">
+      {PARTNER_CATEGORIES.map(({ title, partners }, catIdx) => (
+        <AnimateOnScroll key={title} as="section" className="pb-16 px-6" animation="fade-up" delay={catIdx * 100}>
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <Building2 size={16} strokeWidth={1.4} className="text-[#e7ab1c]" />
@@ -163,7 +170,7 @@ export default function PartnersPage() {
               ))}
             </div>
           </div>
-        </section>
+        </AnimateOnScroll>
       ))}
 
       <div className="max-w-5xl mx-auto px-6">

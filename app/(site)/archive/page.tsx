@@ -11,6 +11,7 @@ import {
   Handshake,
 } from "lucide-react"
 import { GoldStarburst } from "@/components/ui/GoldPattern"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 0
 
@@ -381,23 +382,29 @@ export default async function ArchivePage() {
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#e7ab1c] to-transparent" />
 
         <div className="relative z-10 max-w-6xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5 px-4 py-1.5 rounded-full bg-[#e7ab1c]/8 border border-[#e7ab1c]/15">
-            Legacy Events
-          </span>
-          <h1
-            className="text-4xl sm:text-5xl md:text-7xl font-bold text-[#1a1a2e] mb-4 sm:mb-6 tracking-tight"
-            style={sfFont}
-          >
-            Event{" "}
-            <span className="bg-gradient-to-r from-[#e7ab1c] to-[#d49c10] bg-clip-text text-transparent">
-              Archive
+          <AnimateOnScroll animation="fade-up">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5 px-4 py-1.5 rounded-full bg-[#e7ab1c]/8 border border-[#e7ab1c]/15">
+              Legacy Events
             </span>
-          </h1>
-          <p className="text-base sm:text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed px-2">
-            Explore the journey of The Leadership Federation — every conclave,
-            summit, and awards ceremony that has shaped global leadership
-            discourse across 30+ countries.
-          </p>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={120}>
+            <h1
+              className="text-4xl sm:text-5xl md:text-7xl font-bold text-[#1a1a2e] mb-4 sm:mb-6 tracking-tight"
+              style={sfFont}
+            >
+              Event{" "}
+              <span className="bg-gradient-to-r from-[#e7ab1c] to-[#d49c10] bg-clip-text text-transparent">
+                Archive
+              </span>
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={240}>
+            <p className="text-base sm:text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed px-2">
+              Explore the journey of The Leadership Federation — every conclave,
+              summit, and awards ceremony that has shaped global leadership
+              discourse across 30+ countries.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
@@ -474,7 +481,7 @@ export default async function ArchivePage() {
           </h2>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        <StaggerChildren className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6" animation="fade-up" stagger={80}>
           {allCards.map((event) => {
             const colors = seriesColors[event.series] ?? { bg: "bg-[#1a1a2e]/5", text: "text-[#1a1a2e]/40", border: "border-[#1a1a2e]/10" }
 
@@ -596,7 +603,7 @@ export default async function ArchivePage() {
               </Link>
             )
           })}
-        </div>
+        </StaggerChildren>
       </section>
 
       {/* ── Stats Summary Bar ── */}

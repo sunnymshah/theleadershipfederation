@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { Linkedin } from "@/components/icons/SocialIcons"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 86400
 
@@ -74,55 +75,63 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="pt-24 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-            About Us
-          </span>
-          <h1
-            className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
-            style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
-          >
-            The Leadership Federation
-          </h1>
-          <p className="text-lg md:text-xl text-[#1a1a2e]/70 leading-relaxed max-w-3xl mx-auto">
-            A global leadership platform connecting GCC leaders, CXOs,
-            decision-makers, innovators, policymakers, and ecosystem builders
-            to drive meaningful impact across industries and borders.
-          </p>
+          <AnimateOnScroll animation="fade-up" delay={0}>
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
+              About Us
+            </span>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={100}>
+            <h1
+              className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
+            >
+              The Leadership Federation
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={200}>
+            <p className="text-lg md:text-xl text-[#1a1a2e]/70 leading-relaxed max-w-3xl mx-auto">
+              A global leadership platform connecting GCC leaders, CXOs,
+              decision-makers, innovators, policymakers, and ecosystem builders
+              to drive meaningful impact across industries and borders.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
       {/* Vision — light card with gold accent */}
       <section className="pb-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-12 md:p-20 text-center relative overflow-hidden">
-            {/* Ambient gold glow */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-              style={{
-                width: "700px",
-                height: "400px",
-                borderRadius: "50%",
-                background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
-              }}
-              aria-hidden
-            />
-            <div className="relative z-10">
-              <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-                Our Vision
-              </span>
-              <h2
-                className="text-[#1a1a2e] leading-[1.12] font-bold max-w-3xl mx-auto"
-                style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
-              >
-                To build the world&rsquo;s most impactful leadership ecosystem
-              </h2>
-              <p className="mt-6 text-[#1a1a2e]/70 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
-                Where every conversation sparks action, every connection creates
-                value, and every leader finds the platform to amplify their impact
-                on the global stage.
-              </p>
+          <AnimateOnScroll animation="scale">
+            <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-12 md:p-20 text-center relative overflow-hidden">
+              {/* Ambient gold glow */}
+              <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{
+                  width: "700px",
+                  height: "400px",
+                  borderRadius: "50%",
+                  background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
+                }}
+                aria-hidden
+              />
+              <div className="relative z-10">
+                <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
+                  Our Vision
+                </span>
+                <h2
+                  className="text-[#1a1a2e] leading-[1.12] font-bold max-w-3xl mx-auto"
+                  style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
+                >
+                  To build the world&rsquo;s most impactful leadership ecosystem
+                </h2>
+                <p className="mt-6 text-[#1a1a2e]/70 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+                  Where every conversation sparks action, every connection creates
+                  value, and every leader finds the platform to amplify their impact
+                  on the global stage.
+                </p>
+              </div>
             </div>
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
 
@@ -130,7 +139,7 @@ export default function AboutPage() {
       <section className="pb-16 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-5 gap-12 md:gap-16 items-start">
-            <div className="md:col-span-2">
+            <AnimateOnScroll animation="fade-right" className="md:col-span-2">
               <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-[#1a1a2e]/[0.06] shadow-sm relative bg-gradient-to-br from-[#1a1a2e] via-[#2a2440] to-[#1a1a2e]">
                 {/*
                   To show the real Sunny Shah photo here:
@@ -173,9 +182,9 @@ export default function AboutPage() {
                   <p className="text-xs text-white/85 mt-0.5">Founder & CEO</p>
                 </div>
               </div>
-            </div>
+            </AnimateOnScroll>
 
-            <div className="md:col-span-3">
+            <AnimateOnScroll animation="fade-left" delay={200} className="md:col-span-3">
               <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
                 The Founder
               </span>
@@ -213,7 +222,7 @@ export default function AboutPage() {
               >
                 <Linkedin size={15} /> Connect on LinkedIn
               </Link>
-            </div>
+            </AnimateOnScroll>
           </div>
         </div>
       </section>
@@ -233,7 +242,7 @@ export default function AboutPage() {
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-5">
+          <StaggerChildren animation="fade-up" stagger={100} className="grid sm:grid-cols-2 gap-5">
             {WHY_TLF.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
@@ -250,7 +259,7 @@ export default function AboutPage() {
                 </p>
               </div>
             ))}
-          </div>
+          </StaggerChildren>
         </div>
       </section>
 
@@ -258,7 +267,7 @@ export default function AboutPage() {
       <section className="pb-16 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+            <StaggerChildren animation="scale" stagger={80} className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
               {STATS.map(({ value, label }) => (
                 <div key={label}>
                   <p
@@ -272,33 +281,35 @@ export default function AboutPage() {
                   </p>
                 </div>
               ))}
-            </div>
+            </StaggerChildren>
           </div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="pb-20 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2
-            className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
-            style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", ...sfFont }}
-          >
-            Join the Ecosystem
-          </h2>
-          <p className="text-[#1a1a2e]/70 text-base leading-relaxed mb-10 max-w-xl mx-auto">
-            Whether you are a CXO seeking strategic connections, a GCC leader
-            driving transformation, or a policymaker shaping the future, there
-            is a place for you in The Leadership Federation.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#e7ab1c] text-white text-sm font-semibold transition-all duration-200 hover:bg-[#d49c10] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
-          >
-            Get in Touch
-            <ArrowRight size={16} />
-          </Link>
-        </div>
+        <AnimateOnScroll animation="fade-up">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2
+              className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
+              style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", ...sfFont }}
+            >
+              Join the Ecosystem
+            </h2>
+            <p className="text-[#1a1a2e]/70 text-base leading-relaxed mb-10 max-w-xl mx-auto">
+              Whether you are a CXO seeking strategic connections, a GCC leader
+              driving transformation, or a policymaker shaping the future, there
+              is a place for you in The Leadership Federation.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#e7ab1c] text-white text-sm font-semibold transition-all duration-200 hover:bg-[#d49c10] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
+            >
+              Get in Touch
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        </AnimateOnScroll>
       </section>
     </main>
   )

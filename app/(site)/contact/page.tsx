@@ -8,6 +8,7 @@ import {
   Phone,
 } from "lucide-react"
 import { ContactForm } from "@/components/site/ContactForm"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 86400
 
@@ -52,25 +53,31 @@ export default function ContactPage() {
       {/* Hero */}
       <section className="pt-24 pb-12 px-6">
         <div className="max-w-5xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
-            We Would Love to Hear From You
-          </span>
-          <h1
-            className="text-4xl md:text-6xl font-bold tracking-tight text-[#1a1a2e] mb-6"
-            style={sfFont}
-          >
-            Get In Touch
-          </h1>
-          <p className="text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed">
-            Whether you are looking to attend our next event, explore a partnership, or
-            join the Inner Circle, our team is here to help.
-          </p>
+          <AnimateOnScroll animation="fade-up">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
+              We Would Love to Hear From You
+            </span>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={100}>
+            <h1
+              className="text-4xl md:text-6xl font-bold tracking-tight text-[#1a1a2e] mb-6"
+              style={sfFont}
+            >
+              Get In Touch
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={200}>
+            <p className="text-lg text-[#1a1a2e]/75 max-w-2xl mx-auto leading-relaxed">
+              Whether you are looking to attend our next event, explore a partnership, or
+              join the Inner Circle, our team is here to help.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
       {/* Inquiry Type Cards */}
       <section className="max-w-6xl mx-auto px-6 pb-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StaggerChildren animation="fade-up" stagger={100} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {INQUIRY_TYPES.map((item) => {
             const Icon = item.icon
             return (
@@ -90,17 +97,17 @@ export default function ContactPage() {
               </div>
             )
           })}
-        </div>
+        </StaggerChildren>
       </section>
 
       {/* Form + Office Info */}
       <section className="max-w-6xl mx-auto px-6 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+          <AnimateOnScroll animation="fade-left" className="lg:col-span-2">
             <ContactForm sourcePage="contact" />
-          </div>
+          </AnimateOnScroll>
 
-          <div className="flex flex-col gap-6">
+          <AnimateOnScroll animation="fade-right" delay={200} className="flex flex-col gap-6">
             {/* Address */}
             <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
               <div className="flex items-center gap-3 mb-4">
@@ -143,7 +150,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-sm font-bold text-[#1a1a2e]">Key Contacts</h3>
               </div>
-              <div className="space-y-4 text-sm">
+              <StaggerChildren animation="fade-up" stagger={80} className="space-y-4 text-sm">
                 <div>
                   <p className="font-bold text-[#1a1a2e]">Harshal Patel</p>
                   <p className="text-[#1a1a2e]/65 text-xs mb-0.5">Sponsorship & Exhibitor Opportunities</p>
@@ -170,9 +177,9 @@ export default function ContactPage() {
                   <p className="text-[#1a1a2e]/65 text-xs mb-0.5">VP Marketing</p>
                   <a href="mailto:Hello@theleadershipfederation.com" className="text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c]">Hello@theleadershipfederation.com</a>
                 </div>
-              </div>
+              </StaggerChildren>
             </div>
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
     </main>

@@ -16,6 +16,7 @@ import {
   TrendingUp,
   BookOpen,
 } from "lucide-react"
+import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
 export const revalidate = 86400
 
@@ -60,25 +61,31 @@ export default function PlatformsPage() {
       {/* Hero */}
       <section className="pt-24 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-            The Ecosystem
-          </span>
-          <h1
-            className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
-            style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
-          >
-            Our Platforms
-          </h1>
-          <p className="text-lg md:text-xl text-[#1a1a2e]/75 leading-relaxed max-w-3xl mx-auto">
-            Three interconnected pillars that form the backbone of The
-            Leadership Federation, each designed to create lasting value
-            for the leaders who engage with them.
-          </p>
+          <AnimateOnScroll animation="fade-up">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
+              The Ecosystem
+            </span>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={120}>
+            <h1
+              className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
+            >
+              Our Platforms
+            </h1>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={240}>
+            <p className="text-lg md:text-xl text-[#1a1a2e]/75 leading-relaxed max-w-3xl mx-auto">
+              Three interconnected pillars that form the backbone of The
+              Leadership Federation, each designed to create lasting value
+              for the leaders who engage with them.
+            </p>
+          </AnimateOnScroll>
         </div>
       </section>
 
       {/* Pillar 1: Global Conclaves & Summits */}
-      <section className="pb-10 px-6">
+      <AnimateOnScroll as="section" className="pb-10 px-6" animation="fade-up">
         <div className="max-w-5xl mx-auto">
           <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
             <div className="grid md:grid-cols-2 gap-12 md:gap-16">
@@ -124,7 +131,7 @@ export default function PlatformsPage() {
                 </Link>
               </div>
 
-              <div className="flex flex-col justify-center gap-5">
+              <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
                 {CONCLAVES_FEATURES.map(({ icon: Icon, text }) => (
                   <div
                     key={text}
@@ -134,14 +141,14 @@ export default function PlatformsPage() {
                     <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{text}</p>
                   </div>
                 ))}
-              </div>
+              </StaggerChildren>
             </div>
           </div>
         </div>
-      </section>
+      </AnimateOnScroll>
 
       {/* Pillar 2: The Inner Circle */}
-      <section className="py-10 px-6">
+      <AnimateOnScroll as="section" className="py-10 px-6" animation="fade-up">
         <div className="max-w-5xl mx-auto">
           <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
             <div className="grid md:grid-cols-2 gap-12 md:gap-16">
@@ -171,7 +178,7 @@ export default function PlatformsPage() {
                 </Link>
               </div>
 
-              <div className="flex flex-col justify-center gap-5">
+              <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
                 {INNER_CIRCLE_FEATURES.map(({ icon: Icon, text }) => (
                   <div
                     key={text}
@@ -181,14 +188,14 @@ export default function PlatformsPage() {
                     <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{text}</p>
                   </div>
                 ))}
-              </div>
+              </StaggerChildren>
             </div>
           </div>
         </div>
-      </section>
+      </AnimateOnScroll>
 
       {/* Pillar 3: The Sunny Shah Show */}
-      <section className="py-10 px-6">
+      <AnimateOnScroll as="section" className="py-10 px-6" animation="fade-up">
         <div className="max-w-5xl mx-auto">
           <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
             <div className="grid md:grid-cols-2 gap-12 md:gap-16">
@@ -218,7 +225,7 @@ export default function PlatformsPage() {
                 </Link>
               </div>
 
-              <div className="flex flex-col justify-center gap-5">
+              <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
                 {SHOW_FEATURES.map(({ icon: Icon, text }) => (
                   <div
                     key={text}
@@ -228,11 +235,11 @@ export default function PlatformsPage() {
                     <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{text}</p>
                   </div>
                 ))}
-              </div>
+              </StaggerChildren>
             </div>
           </div>
         </div>
-      </section>
+      </AnimateOnScroll>
 
       {/* Bottom CTA */}
       <section className="pt-12 pb-20 px-6">
