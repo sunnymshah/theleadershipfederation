@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, MapPin, Clock } from "lucide-react"
 import { TicketPurchaseCard } from "@/components/site/TicketPurchaseCard"
 import { getEvent } from "@/lib/get-event"
 
-export const revalidate = 0
+export const revalidate = 30
 
 interface Props {
   params: Promise<{ slug: string }>

@@ -13,7 +13,7 @@ import {
 import { GoldStarburst } from "@/components/ui/GoldPattern"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
-export const revalidate = 0
+export const revalidate = 3600
 
 export const metadata = {
   title: "Archive — Past Events | The Leadership Federation",

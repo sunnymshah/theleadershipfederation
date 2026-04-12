@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
-export const revalidate = 0
+export const revalidate = 60
 
 export const metadata = {
   title: "Events | The Leadership Federation",

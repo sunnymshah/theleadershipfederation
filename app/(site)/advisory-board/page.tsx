@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Users, ArrowRight, ExternalLink } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
-export const revalidate = 0
+export const revalidate = 300
 
 export const metadata = {
   title: "Advisory Board & Jury | The Leadership Federation",
