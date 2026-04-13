@@ -11,6 +11,7 @@ import {
   Info,
   Layers,
   CalendarDays,
+  Ticket,
   Handshake,
   Shield,
   Tv,
@@ -33,6 +34,7 @@ const navLinks = [
   { label: "About",          href: "/about",          icon: Info },
   { label: "Platforms",      href: "/platforms",       icon: Layers },
   { label: "Events",         href: "/events",          icon: CalendarDays },
+  { label: "Tickets",        href: "/tickets",         icon: Ticket },
   { label: "Partners",       href: "/partners",        icon: Handshake },
   { label: "Advisory Board", href: "/advisory-board",  icon: Shield },
   { label: "Media",          href: "/media",            icon: Tv },
@@ -123,7 +125,7 @@ export function Navbar() {
           {/* CTA + Mobile toggle */}
           <div className="flex items-center gap-2.5">
             <Link
-              href="/events"
+              href="/tickets"
               className={cn(
                 "hidden lg:inline-flex items-center gap-1.5 px-5 py-[8px]",
                 "text-[12.5px] font-semibold tracking-[-0.01em] rounded-full",
@@ -181,7 +183,7 @@ export function Navbar() {
             })}
             <div className="pt-3 px-1">
               <Link
-                href="/events"
+                href="/tickets"
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 text-[13px] font-semibold rounded-full bg-[#e7ab1c] text-white shadow-[0_2px_12px_rgba(231,171,28,0.25)]"
                 style={sfText}
               >
