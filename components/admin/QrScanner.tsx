@@ -92,11 +92,38 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const scannerContainerId = "qr-scanner-region"
   const processingRef = useRef(false)
+  const lastTokenRef = useRef<string | null>(null)
+  const lastTokenTimeRef = useRef(0)
+
+  /* ── Stop camera (extracted as non-state for use in processQrToken) ── */
+  const stopCameraInternal = useCallback(async () => {
+    if (scannerRef.current) {
+      try { await scannerRef.current.stop() } catch { /* ignore */ }
+      try { scannerRef.current.clear() } catch { /* ignore */ }
+      scannerRef.current = null
+    }
+    setCameraActive(false)
+  }, [])
 
   /* ── Process a scanned / entered QR token ──────────────────────────── */
-  const processQrToken = useCallback(async (token: string) => {
+  const processQrToken = useCallback(async (token: string, fromCamera = false) => {
+    // Prevent re-entry while already processing
     if (processingRef.current) return
+
+    // Debounce: ignore same token scanned within 5 seconds (prevents rapid re-fire)
+    const now = Date.now()
+    if (token === lastTokenRef.current && now - lastTokenTimeRef.current < 5000) {
+      return
+    }
+
     processingRef.current = true
+    lastTokenRef.current = token
+    lastTokenTimeRef.current = now
+
+    // Stop camera immediately on scan to prevent continued firing
+    if (fromCamera) {
+      stopCameraInternal()
+    }
 
     setState({ kind: "loading" })
 
@@ -110,12 +137,6 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
       }
 
       const attendee = result.attendee as AttendeeResult
-
-      // If filtering by event, make sure the attendee belongs to this event
-      if (selectedEventId && attendee.events) {
-        // The attendee's event_id is embedded; we check via the join
-        // Nothing to block — the server already resolved the attendee
-      }
 
       if (attendee.status === "checked_in") {
         playBeep(false)
@@ -146,7 +167,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
     } finally {
       processingRef.current = false
     }
-  }, [selectedEventId])
+  }, [selectedEventId, stopCameraInternal])
 
   /* ── Start camera ──────────────────────────────────────────────────── */
   const startCamera = useCallback(async () => {
@@ -175,7 +196,8 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
           aspectRatio: 1,
         },
         (decodedText) => {
-          processQrToken(decodedText)
+          // fromCamera = true → stops camera immediately to prevent re-fire loop
+          processQrToken(decodedText, true)
         },
         () => {
           // QR parse error — ignore (camera still scanning)
@@ -196,23 +218,10 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
     }
   }, [processQrToken])
 
-  /* ── Stop camera ───────────────────────────────────────────────────── */
+  /* ── Stop camera (public — used by effects) ─────────────────────── */
   const stopCamera = useCallback(async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop()
-      } catch {
-        // ignore
-      }
-      try {
-        scannerRef.current.clear()
-      } catch {
-        // ignore
-      }
-      scannerRef.current = null
-    }
-    setCameraActive(false)
-  }, [])
+    await stopCameraInternal()
+  }, [stopCameraInternal])
 
   /* ── Auto-start camera on mount (if not manual mode) ───────────────── */
   useEffect(() => {
@@ -263,6 +272,9 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
     setState({ kind: "idle" })
     setManualInput("")
     processingRef.current = false
+    // Clear dedup so the same QR can be re-scanned after reset
+    lastTokenRef.current = null
+    lastTokenTimeRef.current = 0
     if (!manualMode) {
       startCamera()
     }
