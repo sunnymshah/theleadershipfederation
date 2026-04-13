@@ -55,6 +55,7 @@ function formatEventDateRange(startDate: string, endDate?: string): string {
 /**
  * Returns a fully self-contained HTML email string for attendee confirmations.
  * Uses inline styles only (no external CSS) for maximum email client compatibility.
+ * TLF navy theme (#1a1a2e) with gold (#e7ab1c) accents.
  */
 export function confirmationEmailHtml(data: ConfirmationEmailData): string {
   const eventDateFormatted = formatEventDateRange(data.eventDate, data.eventEndDate)
@@ -79,12 +80,12 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
     @media only screen and (max-width: 620px) {
       .email-container { width: 100% !important; padding: 16px !important; }
       .content-cell { padding: 24px 20px !important; }
-      .qr-img { width: 180px !important; height: 180px !important; }
+      .qr-img { width: 160px !important; height: 160px !important; }
       .detail-table td { display: block !important; width: 100% !important; padding: 4px 0 !important; }
     }
   </style>
 </head>
-<body style="margin:0; padding:0; background-color:#050505; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+<body style="margin:0; padding:0; background-color:#1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
 
   <!-- Preheader text (hidden) -->
   <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
@@ -92,14 +93,14 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
   </div>
 
   <!-- Outer wrapper -->
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#050505;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a1a2e;">
     <tr>
       <td align="center" style="padding: 32px 16px;">
 
         <!-- Email container -->
-        <table role="presentation" class="email-container" width="580" cellpadding="0" cellspacing="0" border="0" style="background-color:#0a0a0a; border-radius:12px; border:1px solid #1a1a1a; overflow:hidden;">
+        <table role="presentation" class="email-container" width="580" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a1a2e; border-radius:12px; border:1px solid #2e2e4a; overflow:hidden;">
 
-          <!-- Gold accent bar -->
+          <!-- Gold accent bar (top) -->
           <tr>
             <td style="height:4px; background: linear-gradient(90deg, #c9a84c, #e8d48b, #c9a84c);"></td>
           </tr>
@@ -109,7 +110,7 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
             <td align="center" style="padding: 32px 24px 16px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="font-size:24px; font-weight:700; color:#c9a84c; letter-spacing:2px; text-transform:uppercase; font-family: Georgia, 'Times New Roman', serif;">
+                  <td align="center" style="font-size:24px; font-weight:700; color:#e7ab1c; letter-spacing:2px; text-transform:uppercase; font-family: Georgia, 'Times New Roman', serif;">
                     THE LEADERSHIP FEDERATION
                   </td>
                 </tr>
@@ -120,7 +121,7 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
           <!-- Divider -->
           <tr>
             <td style="padding:0 32px;">
-              <div style="height:1px; background-color:#1a1a1a;"></div>
+              <div style="height:1px; background-color:#2e2e4a;"></div>
             </td>
           </tr>
 
@@ -129,8 +130,8 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
             <td align="center" class="content-cell" style="padding: 32px 32px 8px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td align="center" style="background-color: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); border-radius: 8px; padding: 12px 24px;">
-                    <span style="font-size:14px; font-weight:600; color:#c9a84c; text-transform:uppercase; letter-spacing:1.5px;">
+                  <td align="center" style="background-color: rgba(231,171,28,0.1); border: 1px solid rgba(231,171,28,0.3); border-radius: 8px; padding: 12px 24px;">
+                    <span style="font-size:14px; font-weight:600; color:#e7ab1c; text-transform:uppercase; letter-spacing:1.5px;">
                       &#10003; Registration Confirmed
                     </span>
                   </td>
@@ -145,16 +146,16 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
               <p style="margin:0; font-size:18px; color:#ffffff; font-weight:600;">
                 Hello ${escapeHtml(data.attendeeName)},
               </p>
-              <p style="margin:12px 0 0; font-size:15px; color:#a0a0a0; line-height:1.6;">
+              <p style="margin:12px 0 0; font-size:15px; color:#c8c8d8; line-height:1.6;">
                 Thank you for registering. We are pleased to confirm your spot at the event below. Please present the QR code at check-in.
               </p>
             </td>
           </tr>
 
-          <!-- Event details card -->
+          <!-- Combined event details + QR code card -->
           <tr>
             <td class="content-cell" style="padding: 16px 32px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#111111; border-radius:10px; border:1px solid #1a1a1a;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#252540; border-radius:10px; border:1px solid #2e2e4a;">
                 <tr>
                   <td style="padding: 24px;">
                     <!-- Event title -->
@@ -169,7 +170,7 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
                           <span style="font-size:16px;">&#128197;</span>
                         </td>
                         <td style="padding:6px 0; vertical-align:top;">
-                          <span style="font-size:14px; color:#d0d0d0; line-height:1.4;">${escapeHtml(eventDateFormatted)}</span>
+                          <span style="font-size:14px; color:#c8c8d8; line-height:1.4;">${escapeHtml(eventDateFormatted)}</span>
                         </td>
                       </tr>
                       <tr>
@@ -177,7 +178,7 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
                           <span style="font-size:16px;">&#128205;</span>
                         </td>
                         <td style="padding:6px 0; vertical-align:top;">
-                          <span style="font-size:14px; color:#d0d0d0; line-height:1.4;">${escapeHtml(data.eventVenue || "Venue to be announced")}</span>
+                          <span style="font-size:14px; color:#c8c8d8; line-height:1.4;">${escapeHtml(data.eventVenue || "Venue to be announced")}</span>
                         </td>
                       </tr>
                       ${data.ticketName ? `
@@ -186,38 +187,46 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
                           <span style="font-size:16px;">&#127903;</span>
                         </td>
                         <td style="padding:6px 0; vertical-align:top;">
-                          <span style="font-size:14px; color:#d0d0d0; line-height:1.4;">${escapeHtml(data.ticketName)}</span>
+                          <span style="font-size:14px; color:#c8c8d8; line-height:1.4;">${escapeHtml(data.ticketName)}</span>
                         </td>
                       </tr>` : ""}
                     </table>
                   </td>
                 </tr>
-              </table>
-            </td>
-          </tr>
 
-          <!-- QR Code section -->
-          <tr>
-            <td align="center" class="content-cell" style="padding: 16px 32px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background-color:#111111; border-radius:10px; border:1px solid #1a1a1a;">
+                <!-- Thin gold divider inside card -->
                 <tr>
-                  <td align="center" style="padding: 24px 32px 12px;">
-                    <p style="margin:0; font-size:13px; font-weight:600; color:#c9a84c; text-transform:uppercase; letter-spacing:1px;">
-                      Your Check-in QR Code
+                  <td style="padding:0 24px;">
+                    <div style="height:1px; background-color:rgba(231,171,28,0.3);"></div>
+                  </td>
+                </tr>
+
+                <!-- QR code section inside card -->
+                <tr>
+                  <td align="center" style="padding: 20px 24px 8px;">
+                    <p style="margin:0; font-size:12px; font-weight:700; color:#e7ab1c; text-transform:uppercase; letter-spacing:1.5px;">
+                      YOUR CHECK-IN QR CODE
                     </p>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding: 8px 32px;">
-                    <div style="background-color:#ffffff; border-radius:8px; padding:12px; display:inline-block;">
+                  <td align="center" style="padding: 12px 24px 8px;">
+                    <div style="background-color:#ffffff; border-radius:10px; padding:14px; display:inline-block;">
                       <img class="qr-img" src="cid:${escapeHtml(data.qrCid)}" alt="Check-in QR Code" width="200" height="200" style="display:block; width:200px; height:200px; border:0;" />
                     </div>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding: 12px 32px 24px;">
-                    <p style="margin:0; font-size:12px; color:#666666; line-height:1.4;">
-                      Token: ${escapeHtml(data.qrToken.slice(0, 8))}...
+                  <td align="center" style="padding: 8px 24px 4px;">
+                    <p style="margin:0; font-size:13px; color:#c8c8d8; line-height:1.4;">
+                      Present this QR code at check-in
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding: 4px 24px 24px;">
+                    <p style="margin:0; font-size:11px; color:#6a6a8a; line-height:1.4;">
+                      Token: ${escapeHtml(data.qrToken.slice(0, 8))}&hellip;
                     </p>
                   </td>
                 </tr>
@@ -228,11 +237,11 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
           <!-- Important note -->
           <tr>
             <td class="content-cell" style="padding: 8px 32px 24px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:rgba(201,168,76,0.05); border-radius:8px; border-left:3px solid #c9a84c;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:rgba(231,171,28,0.05); border-radius:8px; border-left:3px solid #e7ab1c;">
                 <tr>
                   <td style="padding:16px 20px;">
-                    <p style="margin:0; font-size:13px; color:#a0a0a0; line-height:1.6;">
-                      <strong style="color:#c9a84c;">Note:</strong> Please save this email or take a screenshot of the QR code. You will need it for check-in at the event.
+                    <p style="margin:0; font-size:13px; color:#c8c8d8; line-height:1.6;">
+                      <strong style="color:#e7ab1c;">Note:</strong> Please save this email or take a screenshot of the QR code. You will need it for check-in at the event.
                     </p>
                   </td>
                 </tr>
@@ -243,30 +252,30 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
           <!-- Divider -->
           <tr>
             <td style="padding:0 32px;">
-              <div style="height:1px; background-color:#1a1a1a;"></div>
+              <div style="height:1px; background-color:#2e2e4a;"></div>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
             <td align="center" style="padding: 24px 32px;">
-              <p style="margin:0; font-size:13px; color:#666666; line-height:1.5;">
+              <p style="margin:0; font-size:13px; color:#8888a0; line-height:1.5;">
                 The Leadership Federation
               </p>
-              <p style="margin:8px 0 0; font-size:12px; color:#444444;">
-                <a href="https://theleadershipfederation.com" style="color:#c9a84c; text-decoration:none;">Website</a>
+              <p style="margin:8px 0 0; font-size:12px; color:#6a6a8a;">
+                <a href="https://theleadershipfederation.com" style="color:#e7ab1c; text-decoration:none;">Website</a>
                 &nbsp;&nbsp;&#183;&nbsp;&nbsp;
-                <a href="https://www.linkedin.com/company/theleadershipfederation" style="color:#c9a84c; text-decoration:none;">LinkedIn</a>
+                <a href="https://www.linkedin.com/company/theleadershipfederation" style="color:#e7ab1c; text-decoration:none;">LinkedIn</a>
                 &nbsp;&nbsp;&#183;&nbsp;&nbsp;
-                <a href="https://www.instagram.com/theleadershipfederation" style="color:#c9a84c; text-decoration:none;">Instagram</a>
+                <a href="https://www.instagram.com/theleadershipfederation" style="color:#e7ab1c; text-decoration:none;">Instagram</a>
               </p>
-              <p style="margin:16px 0 0; font-size:11px; color:#333333;">
+              <p style="margin:16px 0 0; font-size:11px; color:#4a4a64;">
                 You are receiving this email because you registered for a Leadership Federation event.
               </p>
             </td>
           </tr>
 
-          <!-- Bottom gold accent bar -->
+          <!-- Gold accent bar (bottom) -->
           <tr>
             <td style="height:3px; background: linear-gradient(90deg, #c9a84c, #e8d48b, #c9a84c);"></td>
           </tr>

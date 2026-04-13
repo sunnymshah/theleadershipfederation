@@ -311,9 +311,9 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
 
       {/* ── Scanner area ─────────────────────────────────────────── */}
       {!manualMode && state.kind !== "found" && state.kind !== "checked_in" && state.kind !== "already_checked_in" && (
-        <div className="relative rounded-2xl border border-[#e0e0e0] bg-[#1a1a2e] overflow-hidden">
+        <div className="relative rounded-xl sm:rounded-2xl border border-[#e0e0e0] bg-[#1a1a2e] overflow-hidden">
           {/* Camera viewfinder */}
-          <div className="relative w-full" style={{ minHeight: 360 }}>
+          <div className="relative w-full" style={{ minHeight: 280 }}>
             <div id={scannerContainerId} className="w-full" />
 
             {/* Scanning overlay */}
@@ -382,27 +382,28 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
           </div>
 
           {/* Status bar below camera */}
-          <div className="px-5 py-3 border-t border-[#e0e0e0] bg-white flex items-center justify-between">
+          <div className="px-3 sm:px-5 py-2.5 sm:py-3 border-t border-[#e0e0e0] bg-white flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={cn(
-                "w-2 h-2 rounded-full",
+                "w-2 h-2 rounded-full shrink-0",
                 cameraActive ? "bg-emerald-400 animate-pulse" : "bg-[#ccc]",
               )} />
-              <span className="text-xs text-[#888]">
-                {cameraActive ? "Scanning for QR codes..." : "Camera inactive"}
+              <span className="text-[11px] sm:text-xs text-[#888]">
+                {cameraActive ? "Scanning..." : "Camera inactive"}
               </span>
             </div>
-            <span className="text-[10px] text-[#bbb]">Point camera at QR code</span>
+            <span className="text-[10px] text-[#bbb] hidden sm:inline">Point camera at QR code</span>
           </div>
         </div>
       )}
 
       {/* ── Manual entry ─────────────────────────────────────────── */}
       {manualMode && state.kind !== "found" && state.kind !== "checked_in" && state.kind !== "already_checked_in" && (
-        <div className="rounded-2xl border border-[#e0e0e0] bg-white p-8">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-[#c9a84c]/10 flex items-center justify-center">
-              <Keyboard size={28} className="text-[#c9a84c]" />
+        <div className="rounded-xl sm:rounded-2xl border border-[#e0e0e0] bg-white p-5 sm:p-8">
+          <div className="flex items-center justify-center mb-5 sm:mb-6">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#c9a84c]/10 flex items-center justify-center">
+              <Keyboard size={24} className="text-[#c9a84c] sm:hidden" />
+              <Keyboard size={28} className="text-[#c9a84c] hidden sm:block" />
             </div>
           </div>
           <form onSubmit={handleManualSubmit} className="space-y-4">
