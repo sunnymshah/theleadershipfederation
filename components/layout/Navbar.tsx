@@ -4,24 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import {
-  Menu,
-  X,
-  House,
-  Info,
-  Layers,
-  CalendarDays,
-  Ticket,
-  Handshake,
-  Shield,
-  Tv,
-  Mail,
-  ArrowRight,
-  Archive,
-  Crown,
-  Trophy,
-  Users,
-} from "lucide-react"
+import { Menu, X, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const sfText = {
@@ -30,19 +13,19 @@ const sfText = {
 }
 
 const navLinks = [
-  { label: "Home", href: "/", icon: House },
-  { label: "About", href: "/about", icon: Info },
-  { label: "Platforms", href: "/platforms", icon: Layers },
-  { label: "Memberships", href: "/memberships", icon: Crown },
-  { label: "Events", href: "/events", icon: CalendarDays },
-  { label: "Tickets", href: "/tickets", icon: Ticket },
-  { label: "Partners", href: "/partners", icon: Handshake },
-  { label: "Advisory", href: "/advisory-board", icon: Shield },
-  { label: "Media", href: "/media", icon: Tv },
-  { label: "Archive", href: "/archive", icon: Archive },
-  { label: "Winners", href: "/winners", icon: Trophy },
-  { label: "Inner Circle", href: "/inner-circle", icon: Users },
-  { label: "Contact", href: "/contact", icon: Mail },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Platforms", href: "/platforms" },
+  { label: "Memberships", href: "/memberships" },
+  { label: "Events", href: "/events" },
+  { label: "Tickets", href: "/tickets" },
+  { label: "Partners", href: "/partners" },
+  { label: "Advisory", href: "/advisory-board" },
+  { label: "Media", href: "/media" },
+  { label: "Archive", href: "/archive" },
+  { label: "Winners", href: "/winners" },
+  { label: "Inner Circle", href: "/inner-circle" },
+  { label: "Contact", href: "/contact" },
 ]
 
 export function Navbar() {
@@ -80,81 +63,49 @@ export function Navbar() {
         mobileOpen
           ? "bg-[#F4F8FF]"
           : scrolled
-            ? "bg-white/80 backdrop-blur-2xl backdrop-saturate-[1.8] border-b border-[#1a1a2e]/[0.06] shadow-[0_1px_3px_rgba(26,26,46,0.04)]"
+            ? "bg-white/85 backdrop-blur-2xl backdrop-saturate-[1.8] border-b border-[#1a1a2e]/[0.06] shadow-[0_1px_3px_rgba(26,26,46,0.04)]"
             : "bg-transparent"
       )}
     >
-      <nav className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-[56px] lg:h-[60px] gap-3">
+      <nav className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-[54px] lg:h-[58px] gap-3">
           {/* Logo — left */}
           <Link href="/" className="shrink-0">
             <Image
               src="/logo-tlf.png"
               alt="The Leadership Federation"
-              width={160}
-              height={44}
-              className="h-[30px] lg:h-[34px] w-auto object-contain"
+              width={150}
+              height={40}
+              className="h-[28px] lg:h-[30px] w-auto object-contain"
               priority
             />
           </Link>
 
-          {/* Desktop nav — centered, flex-1 */}
-          <div className="hidden xl:flex items-center justify-center flex-1 gap-0.5">
-            {navLinks.map(({ label, href, icon: Icon }) => {
-              const active = isActive(href)
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    "flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-all duration-200 whitespace-nowrap",
-                    active
-                      ? "text-[#e7ab1c] bg-[#e7ab1c]/[0.08]"
-                      : "text-[#1a1a2e]/70 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04]"
-                  )}
-                  style={sfText}
-                >
-                  <Icon
-                    size={13}
-                    strokeWidth={active ? 2 : 1.6}
+          {/* Desktop nav — minimalistic text-only, centered */}
+          <div className="hidden lg:flex items-center justify-center flex-1">
+            <div className="flex items-center gap-0">
+              {navLinks.map(({ label, href }) => {
+                const active = isActive(href)
+                return (
+                  <Link
+                    key={href}
+                    href={href}
                     className={cn(
-                      active ? "text-[#e7ab1c]" : "text-[#1a1a2e]/55"
+                      "relative px-2.5 py-1 text-[11.5px] tracking-[-0.005em] whitespace-nowrap transition-colors duration-200",
+                      active
+                        ? "text-[#1a1a2e] font-semibold"
+                        : "text-[#1a1a2e]/60 hover:text-[#1a1a2e] font-medium"
                     )}
-                  />
-                  <span
-                    className={cn(
-                      "text-[12px] tracking-[-0.01em]",
-                      active ? "font-semibold" : "font-medium"
-                    )}
+                    style={sfText}
                   >
                     {label}
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
-
-          {/* Tablet nav — icon only, centered */}
-          <div className="hidden lg:flex xl:hidden items-center justify-center flex-1 gap-1">
-            {navLinks.map(({ label, href, icon: Icon }) => {
-              const active = isActive(href)
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  title={label}
-                  aria-label={label}
-                  className={cn(
-                    "flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200",
-                    active
-                      ? "text-[#e7ab1c] bg-[#e7ab1c]/[0.08]"
-                      : "text-[#1a1a2e]/65 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04]"
-                  )}
-                >
-                  <Icon size={16} strokeWidth={active ? 2 : 1.7} />
-                </Link>
-              )
-            })}
+                    {active && (
+                      <span className="absolute left-2.5 right-2.5 -bottom-[1px] h-[1.5px] rounded-full bg-[#e7ab1c]" />
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
           </div>
 
           {/* CTA + Mobile toggle — right */}
@@ -162,17 +113,16 @@ export function Navbar() {
             <Link
               href="/register"
               className={cn(
-                "hidden lg:inline-flex items-center gap-1.5 px-4 py-[7px]",
-                "text-[12.5px] font-semibold tracking-[-0.01em] rounded-full",
-                "bg-[#e7ab1c] text-white",
-                "hover:bg-[#d49c10] transition-all duration-200",
-                "active:scale-[0.97]",
-                "shadow-[0_2px_12px_rgba(231,171,28,0.25)]"
+                "hidden lg:inline-flex items-center gap-1.5 px-3.5 py-[6px]",
+                "text-[11.5px] font-semibold tracking-[-0.005em] rounded-full",
+                "bg-[#1a1a2e] text-white",
+                "hover:bg-[#2a2a4e] transition-all duration-200",
+                "active:scale-[0.97]"
               )}
               style={sfText}
             >
               Register
-              <ArrowRight size={12} strokeWidth={2.2} />
+              <ArrowRight size={11} strokeWidth={2.2} />
             </Link>
 
             <button
@@ -199,27 +149,20 @@ export function Navbar() {
           )}
         >
           <div className="pb-5 pt-3 space-y-0.5">
-            {navLinks.map(({ label, href, icon: Icon }) => {
+            {navLinks.map(({ label, href }) => {
               const active = isActive(href)
               return (
                 <Link
                   key={href}
                   href={href}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 px-3 rounded-xl text-[14px] transition-all duration-200",
+                    "flex items-center py-2.5 px-3 rounded-xl text-[14px] transition-all duration-200",
                     active
-                      ? "text-[#e7ab1c] font-semibold bg-[#e7ab1c]/[0.08]"
-                      : "text-[#1a1a2e]/80 font-medium hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04]"
+                      ? "text-[#1a1a2e] font-semibold bg-[#e7ab1c]/[0.08]"
+                      : "text-[#1a1a2e]/75 font-medium hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04]"
                   )}
                   style={sfText}
                 >
-                  <Icon
-                    size={18}
-                    strokeWidth={active ? 2 : 1.5}
-                    className={
-                      active ? "text-[#e7ab1c]" : "text-[#1a1a2e]/55"
-                    }
-                  />
                   {label}
                 </Link>
               )
@@ -227,10 +170,10 @@ export function Navbar() {
             <div className="pt-3 px-1">
               <Link
                 href="/register"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 text-[13px] font-semibold rounded-full bg-[#e7ab1c] text-white shadow-[0_2px_12px_rgba(231,171,28,0.25)]"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 text-[13px] font-semibold rounded-full bg-[#1a1a2e] text-white"
                 style={sfText}
               >
-                Register Now
+                Register
                 <ArrowRight size={13} strokeWidth={2.2} />
               </Link>
             </div>

@@ -128,6 +128,16 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/integrations": "settings",
   "/admin/team": "team",
   "/admin/settings": "settings",
+  "/admin/reports": "analytics",
+  "/admin/memberships": "attendees",
+  "/admin/winners": "attendees",
+  "/admin/registrations": "attendees",
+  "/admin/contact-inquiries": "attendees",
+  "/admin/newsletter": "attendees",
+  "/admin/advisory-board": "speakers",
+  "/admin/testimonials": "attendees",
+  "/admin/badges": "attendees",
+  "/admin/approvals": "attendees",
 }
 
 /**
