@@ -13,6 +13,7 @@ import {
   Globe,
 } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
+import { getMembershipTiers } from "@/app/actions/membershipActions"
 
 export const revalidate = 3600
 
@@ -54,7 +55,20 @@ interface Tier {
   icon: typeof Crown
 }
 
-const TIERS: Tier[] = [
+/* ── Style / icon lookup by slug ─────────────────────────────────── */
+
+const TIER_STYLE: Record<string, { icon: typeof Crown; accent: string; accentLight: string }> = {
+  silver:   { icon: Shield, accent: "#94a3b8", accentLight: "#94a3b8" },
+  gold:     { icon: Star,   accent: "#e7ab1c", accentLight: "#e7ab1c" },
+  platinum: { icon: Crown,  accent: "#c9a84c", accentLight: "#c9a84c" },
+  titanium: { icon: Zap,    accent: "#1a1a2e", accentLight: "#1a1a2e" },
+}
+
+const DEFAULT_STYLE = { icon: Shield, accent: "#94a3b8", accentLight: "#94a3b8" }
+
+/* ── Hardcoded fallback tiers ────────────────────────────────────── */
+
+const FALLBACK_TIERS: Tier[] = [
   {
     name: "Silver",
     slug: "silver",
@@ -134,6 +148,22 @@ const TIERS: Tier[] = [
     ],
   },
 ]
+
+/** Format an integer price with Indian comma grouping */
+function formatINR(amount: number): string {
+  const s = amount.toString()
+  // Indian grouping: last 3 digits, then groups of 2
+  if (s.length <= 3) return s
+  const last3 = s.slice(-3)
+  const rest = s.slice(0, -3)
+  const grouped = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",")
+  return `${grouped},${last3}`
+}
+
+/** Format an integer price with standard comma grouping */
+function formatUSD(amount: number): string {
+  return amount.toLocaleString("en-US")
+}
 
 /* ── Comparison table ─────────────────────────────────────────────── */
 
@@ -215,7 +245,32 @@ const VALUE_PROPS = [
 
 /* ═══════════════════════════════════════════════════════════════════ */
 
-export default function MembershipsPage() {
+export default async function MembershipsPage() {
+  /* Fetch tiers from DB, fall back to hardcoded if empty or on error */
+  let TIERS: Tier[] = FALLBACK_TIERS
+  try {
+    const result = await getMembershipTiers()
+    if (result.success && result.tiers && result.tiers.length > 0) {
+      TIERS = result.tiers.map((t) => {
+        const style = TIER_STYLE[t.slug] ?? DEFAULT_STYLE
+        return {
+          name: t.name,
+          slug: t.slug,
+          priceINR: formatINR(t.price_inr),
+          priceUSD: formatUSD(t.price_usd),
+          discount: t.discount_percent ?? 0,
+          isPopular: t.is_popular ?? false,
+          benefits: (t.benefits as string[]) ?? [],
+          accent: style.accent,
+          accentLight: style.accentLight,
+          icon: style.icon,
+        }
+      })
+    }
+  } catch {
+    // DB unavailable — use fallback tiers
+  }
+
   return (
     <main className="bg-[#F4F8FF]">
       {/* ── Hero ──────────────────────────────────────────────────── */}
