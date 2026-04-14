@@ -137,7 +137,6 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/advisory-board": "speakers",
   "/admin/testimonials": "attendees",
   "/admin/badges": "attendees",
-  "/admin/approvals": "attendees",
 }
 
 /**
