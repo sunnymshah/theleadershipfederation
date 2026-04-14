@@ -63,8 +63,8 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
   }, [event?.start_date])
 
   const statItems = [
-    { value: stats?.events ?? 50, suffix: "+", label: "Events" },
-    { value: stats?.speakers ?? 500, suffix: "+", label: "Speakers" },
+    { value: Math.max(stats?.events ?? 0, 50), suffix: "+", label: "Events" },
+    { value: Math.max(stats?.speakers ?? 0, 500), suffix: "+", label: "Speakers" },
     { value: 30, suffix: "+", label: "Countries" },
   ]
 

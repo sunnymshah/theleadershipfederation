@@ -57,7 +57,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
   return (
     <section
       ref={ref}
-      className="relative py-16 lg:py-20 bg-[#1a1a2e] overflow-hidden"
+      className="relative py-12 lg:py-16 bg-[#1a1a2e] overflow-hidden"
     >
       {/* Background decorative elements */}
       <div

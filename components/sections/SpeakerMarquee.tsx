@@ -55,12 +55,12 @@ export function SpeakerMarquee({ speakers }: Props) {
   const doubled2 = [...row2, ...row2]
 
   return (
-    <section className="relative py-20 lg:py-28 bg-[#F4F8FF] overflow-hidden">
+    <section className="relative py-12 lg:py-16 bg-[#F4F8FF] overflow-hidden">
       {/* Top edge gold line */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#e7ab1c]/30 to-transparent" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-        <div className="text-center mb-14">
+        <div className="text-center mb-8">
           <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
             The Network
           </span>
