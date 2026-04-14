@@ -21,6 +21,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createStaticClient } from "@/utils/supabase/static"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -30,9 +31,12 @@ async function getAuthenticatedClient() {
   return { supabase, user }
 }
 
-async function getPublicClient() {
-  const cookieStore = await cookies()
-  return createClient(cookieStore)
+/**
+ * Cookie-free client for public reads. Using this keeps pages statically
+ * cacheable — cookies() access would force dynamic rendering.
+ */
+function getPublicClient() {
+  return createStaticClient()
 }
 
 function int(fd: FormData, key: string, fallback = 0): number {
@@ -59,7 +63,7 @@ function str(fd: FormData, key: string): string | null {
 
 export async function getPartners(activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
     let q = supabase.from("partners").select("*").order("sort_order", { ascending: true })
     if (activeOnly) q = q.eq("is_active", true)
     const { data, error } = await q
@@ -145,7 +149,7 @@ export async function deletePartner(id: string) {
 
 export async function getPlatformFeatures(activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
     let q = supabase.from("platform_features").select("*").order("sort_order", { ascending: true })
     if (activeOnly) q = q.eq("is_active", true)
     const { data, error } = await q
@@ -227,7 +231,7 @@ export async function deletePlatformFeature(id: string) {
 
 export async function getAboutSections(activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
     let q = supabase.from("about_sections").select("*")
       .order("section_type", { ascending: true })
       .order("sort_order",   { ascending: true })
@@ -323,7 +327,7 @@ export async function deleteAboutSection(id: string) {
 
 export async function getContactData(activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
 
     let deptQ = supabase.from("contact_departments").select("*").order("sort_order", { ascending: true })
     if (activeOnly) deptQ = deptQ.eq("is_active", true)
@@ -558,7 +562,7 @@ export async function deleteOfficeLocation(id: string) {
 
 export async function getMediaData(activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
 
     let outletsQ = supabase.from("press_outlets").select("*").order("sort_order", { ascending: true })
     if (activeOnly) outletsQ = outletsQ.eq("is_active", true)
@@ -709,7 +713,7 @@ export async function deleteMediaVideo(id: string) {
 
 export async function getInnerCircleContent(activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
     let q = supabase.from("inner_circle_content").select("*")
       .order("content_type", { ascending: true })
       .order("sort_order",   { ascending: true })
@@ -801,7 +805,7 @@ export async function deleteInnerCircleItem(id: string) {
 
 export async function getMembershipComparisonRows(activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
     let q = supabase.from("membership_comparison_rows").select("*").order("sort_order", { ascending: true })
     if (activeOnly) q = q.eq("is_active", true)
     const { data, error } = await q
@@ -884,7 +888,7 @@ export async function deleteComparisonRow(id: string) {
 
 export async function getFaqs(page?: string, activeOnly = false) {
   try {
-    const supabase = activeOnly ? await getPublicClient() : (await getAuthenticatedClient()).supabase
+    const supabase = activeOnly ? getPublicClient() : (await getAuthenticatedClient()).supabase
     let q = supabase.from("faqs").select("*")
       .order("page",       { ascending: true })
       .order("sort_order", { ascending: true })

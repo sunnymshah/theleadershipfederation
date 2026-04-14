@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { GoldChevrons, GoldOrbs } from "@/components/ui/GoldPattern"
+import { GoldChevrons } from "@/components/ui/GoldPattern"
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
 import { MagneticButton } from "@/components/ui/MagneticButton"
 
@@ -100,7 +100,6 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
       {/* Background patterns — behind everything */}
       <div className="absolute inset-0 z-0">
         <GoldChevrons />
-        <GoldOrbs />
       </div>
 
       <style jsx>{`

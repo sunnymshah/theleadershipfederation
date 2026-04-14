@@ -23,7 +23,6 @@ const navLinks = [
   { label: "Advisory", href: "/advisory-board" },
   { label: "Media", href: "/media" },
   { label: "Archive", href: "/archive" },
-  { label: "Winners", href: "/winners" },
   { label: "Inner Circle", href: "/inner-circle" },
   { label: "Contact", href: "/contact" },
 ]

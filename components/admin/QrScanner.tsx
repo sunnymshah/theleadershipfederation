@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Html5Qrcode } from "html5-qrcode"
+import type { Html5Qrcode } from "html5-qrcode"
 import {
   lookupByQrToken,
   checkInAttendee,
@@ -185,6 +185,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
         scannerRef.current = null
       }
 
+      const { Html5Qrcode } = await import("html5-qrcode")
       const scanner = new Html5Qrcode(scannerContainerId)
       scannerRef.current = scanner
 
