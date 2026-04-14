@@ -4,7 +4,6 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CountdownBar } from "@/components/site/CountdownBar"
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton"
-import { SiteBackground } from "@/components/ui/SiteBackground"
 
 export default async function SiteLayout({
   children,
@@ -26,8 +25,7 @@ export default async function SiteLayout({
   const nextEvent = upcomingEvents?.[0] ?? undefined
 
   return (
-    <div className="bg-[#F4F8FF] text-[#1a1a2e] min-h-screen relative">
-      <SiteBackground />
+    <div className="text-[#1a1a2e] min-h-screen relative">
       <Navbar />
       {children}
       <Footer />

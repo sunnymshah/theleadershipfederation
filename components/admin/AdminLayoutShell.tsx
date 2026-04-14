@@ -36,7 +36,7 @@ export function AdminLayoutShell({
   }, [sidebarOpen])
 
   return (
-    <div className="flex min-h-screen bg-[#f4f5f7] admin-scrollbar">
+    <div className="flex min-h-screen admin-scrollbar relative">
       {/* Desktop sidebar — always visible on lg+ */}
       <div className="hidden lg:block shrink-0">
         <AdminSidebar userEmail={userEmail} userRole={userRole} />
