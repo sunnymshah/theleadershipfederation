@@ -1,6 +1,6 @@
 export default function EventsLoading() {
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen">
       {/* Hero skeleton */}
       <section className="pt-28 sm:pt-36 pb-16 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto text-center">

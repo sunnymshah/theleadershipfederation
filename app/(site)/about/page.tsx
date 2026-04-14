@@ -71,7 +71,7 @@ function hasFounderPhoto(): boolean {
 export default function AboutPage() {
   const founderPhotoExists = hasFounderPhoto()
   return (
-    <main className="bg-[#F4F8FF]">
+    <main className="">
       {/* Hero */}
       <section className="pt-24 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">

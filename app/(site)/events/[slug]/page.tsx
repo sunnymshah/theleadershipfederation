@@ -172,7 +172,7 @@ export default async function EventDetailPage({ params }: Props) {
   if (sponsors.length > 0) stats.push({ label: sponsors.length === 1 ? "Sponsor" : "Sponsors", value: sponsors.length, icon: "sponsors" })
 
   return (
-    <div className="min-h-screen bg-[#F4F8FF]">
+    <div className="min-h-screen">
       {/* No pricing on event page — all registration happens via /tickets */}
 
       {/* ────────────────────────────────────────────────────────────

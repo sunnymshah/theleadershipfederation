@@ -27,7 +27,7 @@ export function LogoMarquee() {
   const doubled = [...partners, ...partners]
 
   return (
-    <section className="py-8 sm:py-14 bg-[#F4F8FF] overflow-hidden border-y border-[#1a1a2e]/[0.06]">
+    <section className="py-8 sm:py-14 overflow-hidden border-y border-[#1a1a2e]/[0.06]">
       <div className="text-center mb-5 sm:mb-8">
         <span
           className="text-[11px] sm:text-[13px] font-extrabold text-[#1a1a2e]/70 uppercase tracking-[0.15em] sm:tracking-[0.2em]"

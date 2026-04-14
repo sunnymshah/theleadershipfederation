@@ -1,6 +1,6 @@
 export default function EventDetailLoading() {
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen">
       {/* Hero skeleton */}
       <section className="relative pt-0 pb-12">
         <div className="w-full h-[55vh] bg-[#1a1a2e]/[0.04] animate-pulse" />

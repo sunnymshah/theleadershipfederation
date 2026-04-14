@@ -255,7 +255,7 @@ export default function MyTicketsPage() {
 
   if (!searched || (!currentAttendee && !error)) {
     return (
-      <main className="min-h-screen bg-[#F4F8FF] relative">
+      <main className="min-h-screen relative">
         {/* Hero */}
         <section className="pt-24 pb-12 px-6">
           <div className="max-w-4xl mx-auto text-center">
@@ -340,7 +340,7 @@ export default function MyTicketsPage() {
 
   if (!currentAttendee) {
     return (
-      <main className="min-h-screen bg-[#F4F8FF] relative">
+      <main className="min-h-screen relative">
         <section className="pt-24 pb-12 px-6">
           <div className="max-w-4xl mx-auto text-center">
             <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
@@ -384,7 +384,7 @@ export default function MyTicketsPage() {
   const evt = currentAttendee.events
 
   return (
-    <main className="min-h-screen bg-[#F4F8FF] relative">
+    <main className="min-h-screen relative">
       {/* Hero */}
       <section className="pt-24 pb-6 px-6">
         <div className="max-w-4xl mx-auto text-center">

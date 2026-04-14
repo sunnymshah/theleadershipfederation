@@ -116,7 +116,7 @@ const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFon
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen">
       {/* Hero */}
       <section className="pt-24 pb-12 px-6">
         <div className="max-w-5xl mx-auto text-center">

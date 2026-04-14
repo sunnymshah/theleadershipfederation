@@ -3,7 +3,7 @@ import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
 
 export function ShowreelSection() {
   return (
-    <section className="py-16 lg:py-20 bg-[#F4F8FF]">
+    <section className="py-16 lg:py-20">
       <div className="max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
         <AnimateOnScroll className="text-center mb-10">
           <span className="text-[11px] tracking-[0.2em] uppercase text-[#1a1a2e]/30 font-semibold">

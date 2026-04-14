@@ -33,7 +33,7 @@ export default async function AdvisoryBoardPage() {
   const boardMembers = members ?? []
 
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen">
       {/* Hero */}
       <section className="relative pt-24 pb-12 px-6 overflow-hidden">
         <div
