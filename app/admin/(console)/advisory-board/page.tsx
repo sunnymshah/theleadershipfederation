@@ -8,6 +8,32 @@ import {
   deleteAdvisoryBoardMember,
 } from "@/app/actions/advisoryBoardActions"
 import { Plus, Pencil, Trash2, X, Loader2, Users, ExternalLink } from "lucide-react"
+import { PageContentEditor, type SectionDef } from "@/components/admin/PageContentEditor"
+
+const ADVISORY_PAGE_SECTIONS: SectionDef[] = [
+  {
+    kind: "fields",
+    sectionKey: "hero",
+    label: "Hero",
+    description: "Top of the /advisory-board page.",
+    fields: [
+      { name: "eyebrow", label: "Eyebrow", placeholder: "Leadership" },
+      { name: "title", label: "Headline", placeholder: "Advisory Board & Jury" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+  {
+    kind: "fields",
+    sectionKey: "empty_state",
+    label: "Empty State",
+    description: "Shown when no board members are published.",
+    fields: [
+      { name: "title", label: "Headline", placeholder: "Coming Soon" },
+      { name: "description", label: "Description", textarea: true },
+      { name: "cta_label", label: "Button Label", placeholder: "Express Interest" },
+    ],
+  },
+]
 
 interface AdvisoryMember {
   id: string
@@ -146,6 +172,18 @@ export default function AdvisoryBoardAdminPage() {
           </button>
         </div>
       )}
+
+      {/* Page content */}
+      <div className="mb-8">
+        <h3 className="text-sm font-bold text-[#333] mb-3 uppercase tracking-wider">
+          Page Content
+        </h3>
+        <PageContentEditor pageSlug="advisory_board" sections={ADVISORY_PAGE_SECTIONS} />
+      </div>
+
+      <h3 className="text-sm font-bold text-[#333] mb-3 uppercase tracking-wider">
+        Board Members
+      </h3>
 
       {/* Inline Form */}
       {showForm && (

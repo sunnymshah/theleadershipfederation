@@ -4,8 +4,14 @@ import Image from "next/image"
 import Link from "next/link"
 import { Users, ArrowRight, ExternalLink } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
+import { getPageSections } from "@/app/actions/pageContentActions"
 
 export const revalidate = 300
+
+function pickStr(obj: Record<string, unknown> | undefined, key: string, fallback: string): string {
+  const v = obj?.[key]
+  return typeof v === "string" && v.length > 0 ? v : fallback
+}
 
 export const metadata = {
   title: "Advisory Board & Jury | The Leadership Federation",
@@ -24,13 +30,36 @@ export default async function AdvisoryBoardPage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  const { data: members } = await supabase
-    .from("advisory_board_members")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order")
+  const [{ data: members }, { sections }] = await Promise.all([
+    supabase
+      .from("advisory_board_members")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order"),
+    getPageSections("advisory_board"),
+  ])
 
   const boardMembers = members ?? []
+
+  const hero = {
+    eyebrow: pickStr(sections.hero, "eyebrow", "Leadership"),
+    title: pickStr(sections.hero, "title", "Advisory Board & Jury"),
+    description: pickStr(
+      sections.hero,
+      "description",
+      "The Leadership Federation is guided by an eminent panel of global CXOs, board directors, and domain experts who shape our strategic direction and uphold the highest standards across our awards, conclaves, and initiatives."
+    ),
+  }
+
+  const emptyState = {
+    title: pickStr(sections.empty_state, "title", "Coming Soon"),
+    description: pickStr(
+      sections.empty_state,
+      "description",
+      "Our advisory board profiles are being updated. Check back soon to meet the leaders guiding The Leadership Federation."
+    ),
+    ctaLabel: pickStr(sections.empty_state, "cta_label", "Express Interest"),
+  }
 
   return (
     <main className="min-h-screen">
@@ -45,7 +74,7 @@ export default async function AdvisoryBoardPage() {
           <AnimateOnScroll animation="fade-up">
             <div className="inline-flex items-center gap-3 mb-4">
               <div className="h-px w-8 bg-[#e7ab1c]/40" />
-              <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">Leadership</span>
+              <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">{hero.eyebrow}</span>
               <div className="h-px w-8 bg-[#e7ab1c]/40" />
             </div>
           </AnimateOnScroll>
@@ -54,14 +83,12 @@ export default async function AdvisoryBoardPage() {
               className="text-4xl md:text-5xl font-bold tracking-[-0.02em] text-[#1a1a2e] mb-6"
               style={sfDisplay}
             >
-              Advisory Board & Jury
+              {hero.title}
             </h1>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={240}>
             <p className="text-[16px] text-[#1a1a2e]/65 max-w-2xl mx-auto leading-relaxed" style={sfText}>
-              The Leadership Federation is guided by an eminent panel of global CXOs, board
-              directors, and domain experts who shape our strategic direction and uphold the
-              highest standards across our awards, conclaves, and initiatives.
+              {hero.description}
             </p>
           </AnimateOnScroll>
         </div>
@@ -75,17 +102,16 @@ export default async function AdvisoryBoardPage() {
               <Users size={28} className="text-[#e7ab1c]" />
             </div>
             <h2 className="text-2xl font-bold text-[#1a1a2e] mb-3" style={sfDisplay}>
-              Coming Soon
+              {emptyState.title}
             </h2>
             <p className="text-[#1a1a2e]/55 text-[15px] max-w-md mx-auto mb-8" style={sfText}>
-              Our advisory board profiles are being updated. Check back soon to meet the
-              leaders guiding The Leadership Federation.
+              {emptyState.description}
             </p>
             <Link
               href="/contact"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-all duration-200 shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
             >
-              Express Interest <ArrowRight size={15} />
+              {emptyState.ctaLabel} <ArrowRight size={15} />
             </Link>
           </div>
         ) : (

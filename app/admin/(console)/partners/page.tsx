@@ -15,6 +15,69 @@ import {
 } from "@/app/actions/cmsActions"
 import { Plus, Pencil, Trash2, Loader2, Handshake, Filter, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PageContentEditor, type SectionDef } from "@/components/admin/PageContentEditor"
+
+const PARTNERS_PAGE_SECTIONS: SectionDef[] = [
+  {
+    kind: "fields",
+    sectionKey: "hero",
+    label: "Hero",
+    description: "Top of the page: eyebrow, headline, intro paragraph.",
+    fields: [
+      { name: "eyebrow", label: "Eyebrow", placeholder: "Our Network" },
+      { name: "title", label: "Headline", placeholder: "Partners & Ecosystem" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+  {
+    kind: "list",
+    sectionKey: "stats",
+    label: "Stats Strip",
+    description: "The four-up stats row (e.g. 100+ Partners, 30+ Countries).",
+    titleField: "label",
+    itemLabel: "Stat",
+    itemFields: [
+      { name: "value", label: "Value", placeholder: "100+" },
+      { name: "label", label: "Label", placeholder: "Partners" },
+    ],
+  },
+  {
+    kind: "list",
+    sectionKey: "categories",
+    label: "Partner Category Labels",
+    description: "Section titles used above each group of partner logos.",
+    titleField: "title",
+    itemLabel: "Category",
+    itemFields: [
+      { name: "slug", label: "Slug (title / powered_by / associate / media)", placeholder: "title" },
+      { name: "title", label: "Display Title", placeholder: "Title Partners" },
+    ],
+  },
+  {
+    kind: "fields",
+    sectionKey: "benefits_header",
+    label: "\u201CBecome a Partner\u201D Header",
+    description: "Eyebrow, headline, and intro for the Become-a-Partner block.",
+    fields: [
+      { name: "eyebrow", label: "Eyebrow", placeholder: "Partner With Us" },
+      { name: "title", label: "Headline", placeholder: "Become a Partner" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+  {
+    kind: "list",
+    sectionKey: "benefits",
+    label: "Partner Benefits",
+    description: "Three cards highlighting what partners get.",
+    titleField: "title",
+    itemLabel: "Benefit",
+    itemFields: [
+      { name: "icon", label: "Icon key (globe / handshake / trendingup / users / sparkles / calendar)", placeholder: "globe" },
+      { name: "title", label: "Title", placeholder: "Global Visibility" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+]
 
 interface Partner {
   id: string
@@ -119,6 +182,18 @@ export default function AdminPartnersPage() {
           <button onClick={() => setError(null)} className="text-red-400 hover:text-red-700">Dismiss</button>
         </div>
       )}
+
+      {/* Page content (hero, stats strip, category labels, benefits) */}
+      <div className="mb-8">
+        <h2 className="text-sm font-bold text-[#333] mb-3 uppercase tracking-wider">
+          Page Content
+        </h2>
+        <PageContentEditor pageSlug="partners" sections={PARTNERS_PAGE_SECTIONS} />
+      </div>
+
+      <h2 className="text-sm font-bold text-[#333] mb-3 uppercase tracking-wider">
+        Partner Logos
+      </h2>
 
       {/* Filter */}
       <div className="flex items-center gap-3 mb-5">
