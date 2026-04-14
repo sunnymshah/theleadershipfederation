@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CountdownBar } from "@/components/site/CountdownBar"
+import { WhatsAppButton } from "@/components/ui/WhatsAppButton"
 
 export default async function SiteLayout({
   children,
@@ -28,6 +29,7 @@ export default async function SiteLayout({
       <Navbar />
       {children}
       <Footer />
+      <WhatsAppButton />
       <CountdownBar event={nextEvent} />
     </div>
   )

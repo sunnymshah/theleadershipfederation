@@ -8,6 +8,8 @@ import { NumbersReveal } from "@/components/sections/NumbersReveal"
 import { SpeakerMarquee } from "@/components/sections/SpeakerMarquee"
 import { FeaturedEventCallout } from "@/components/sections/FeaturedEventCallout"
 import { ExclusivityCTA } from "@/components/sections/ExclusivityCTA"
+import { BeASpeaker } from "@/components/sections/BeASpeaker"
+import { NewsletterSection } from "@/components/sections/NewsletterSection"
 
 export const revalidate = 60
 
@@ -87,8 +89,14 @@ export default async function HomePage() {
       {/* Speaker network — dark, two-row marquee */}
       <SpeakerMarquee speakers={speakers} />
 
+      {/* Be a Speaker — dark, speaker application CTA */}
+      <BeASpeaker />
+
       {/* CTA + press logos — light, closing section */}
       <ExclusivityCTA />
+
+      {/* Newsletter — warm background, subscription form */}
+      <NewsletterSection />
     </main>
   )
 }

@@ -18,6 +18,9 @@ import {
   Mail,
   ArrowRight,
   Archive,
+  Crown,
+  Trophy,
+  Users,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -33,12 +36,15 @@ const navLinks = [
   { label: "Home",           href: "/",               icon: House },
   { label: "About",          href: "/about",          icon: Info },
   { label: "Platforms",      href: "/platforms",       icon: Layers },
+  { label: "Memberships",   href: "/memberships",     icon: Crown },
   { label: "Events",         href: "/events",          icon: CalendarDays },
   { label: "Tickets",        href: "/tickets",         icon: Ticket },
   { label: "Partners",       href: "/partners",        icon: Handshake },
   { label: "Advisory Board", href: "/advisory-board",  icon: Shield },
   { label: "Media",          href: "/media",            icon: Tv },
   { label: "Archive",        href: "/archive",          icon: Archive },
+  { label: "Winners",        href: "/winners",          icon: Trophy },
+  { label: "Inner Circle",   href: "/inner-circle",     icon: Users },
   { label: "Contact",        href: "/contact",          icon: Mail },
 ]
 
