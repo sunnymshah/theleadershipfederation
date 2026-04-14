@@ -29,7 +29,12 @@ const benefits = [
   },
 ]
 
-export function BeASpeaker() {
+interface BeASpeakerProps {
+  eventCount?: number
+  speakerCount?: number
+}
+
+export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
   const ref = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
 
@@ -191,8 +196,8 @@ export function BeASpeaker() {
                 <div className="grid grid-cols-3 gap-4 mb-8">
                   {[
                     { value: "30+", label: "Countries" },
-                    { value: "200+", label: "Speakers" },
-                    { value: "50+", label: "Events" },
+                    { value: `${speakerCount ?? 200}+`, label: "Speakers" },
+                    { value: `${eventCount ?? 50}+`, label: "Events" },
                   ].map((stat) => (
                     <div key={stat.label} className="text-center">
                       <div

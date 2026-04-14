@@ -1,13 +1,13 @@
 "use server"
 
+import { cookies } from "next/headers"
+import { createClient } from "@/utils/supabase/server"
+
 /**
  * Server Action: submitContactInquiry
  *
  * Receives form data from the ContactForm client component and inserts it
- * into the Supabase `leads` table.
- *
- * TODO: Wire up actual Supabase insert once the `leads` table schema is
- * finalized. For now, logs the data and returns success.
+ * into the Supabase `contact_inquiries` table.
  */
 
 export async function submitContactInquiry(formData: FormData) {
@@ -20,7 +20,6 @@ export async function submitContactInquiry(formData: FormData) {
     inquiry_type: formData.get("inquiry_type") as string,
     message: formData.get("message") as string,
     source_page: (formData.get("source_page") as string) || "contact",
-    created_at: new Date().toISOString(),
   }
 
   // Basic validation
@@ -29,13 +28,11 @@ export async function submitContactInquiry(formData: FormData) {
   }
 
   try {
-    // TODO: Replace with Supabase insert
-    // const cookieStore = await cookies()
-    // const supabase = createClient(cookieStore)
-    // const { error } = await supabase.from("leads").insert(payload)
-    // if (error) throw error
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    const { error } = await supabase.from("contact_inquiries").insert(payload)
+    if (error) throw error
 
-    console.log("[Contact Inquiry]", JSON.stringify(payload, null, 2))
     return { success: true }
   } catch (err) {
     console.error("[Contact Inquiry] Failed:", err)

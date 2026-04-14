@@ -90,7 +90,7 @@ export default async function HomePage() {
       <SpeakerMarquee speakers={speakers} />
 
       {/* Be a Speaker — dark, speaker application CTA */}
-      <BeASpeaker />
+      <BeASpeaker eventCount={eventCount ?? 0} speakerCount={speakerCount ?? 0} />
 
       {/* CTA + press logos — light, closing section */}
       <ExclusivityCTA />
