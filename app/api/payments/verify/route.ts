@@ -4,7 +4,6 @@ import { createClient } from "@/utils/supabase/server"
 import { createHmac, randomBytes } from "crypto"
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
-import QRCode from "qrcode"
 import { confirmationEmailHtml } from "@/lib/email-templates"
 
 /**
@@ -36,16 +35,13 @@ async function sendRegistrationConfirmationEmail(params: {
   try {
     const resend = new Resend(apiKey)
 
-    // Generate QR code as PNG buffer for inline attachment
-    const qrDataUrl = await QRCode.toDataURL(params.qrToken, {
-      width: 400,
-      margin: 2,
-      color: { dark: "#000000", light: "#ffffff" },
-      errorCorrectionLevel: "H",
-    })
-    const qrBase64 = qrDataUrl.replace(/^data:image\/png;base64,/, "")
-    const qrBuffer = Buffer.from(qrBase64, "base64")
-    const qrCid = "qrcode@tlf"
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : "https://theleadershipfederation.com")
+
+    const qrImageUrl = `${siteUrl}/api/qr/${encodeURIComponent(params.qrToken)}`
 
     const html = confirmationEmailHtml({
       attendeeName: params.attendeeName,
@@ -56,22 +52,13 @@ async function sendRegistrationConfirmationEmail(params: {
       eventVenue: params.eventVenue || "",
       ticketName: params.ticketName,
       qrToken: params.qrToken,
-      qrCid,
+      qrImageUrl,
     })
 
     const primaryFrom =
       process.env.RESEND_FROM_ADDRESS ||
       "The Leadership Federation <events@theleadershipfederation.com>"
     const fallbackFrom = "The Leadership Federation <onboarding@resend.dev>"
-
-    const attachments = [
-      {
-        filename: "qrcode.png",
-        content: qrBuffer,
-        contentType: "image/png",
-        content_id: qrCid,
-      },
-    ]
 
     const subject = `Registration Confirmed: ${params.eventTitle}`
 
@@ -80,7 +67,6 @@ async function sendRegistrationConfirmationEmail(params: {
       to: [params.attendeeEmail],
       subject,
       html,
-      attachments,
     })
 
     if (primaryError) {
@@ -92,7 +78,6 @@ async function sendRegistrationConfirmationEmail(params: {
         to: [params.attendeeEmail],
         subject,
         html,
-        attachments,
       })
       if (fallbackError) {
         console.error(`[verify] Email delivery failed: ${fallbackError.message}`)

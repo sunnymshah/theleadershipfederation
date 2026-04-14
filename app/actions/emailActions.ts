@@ -11,7 +11,6 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { Resend } from "resend"
-import QRCode from "qrcode"
 import { confirmationEmailHtml } from "@/lib/email-templates"
 
 /* ── Resend client (lazy, null-safe) ────────────────────────────────── */
@@ -36,30 +35,18 @@ const FALLBACK_FROM = "The Leadership Federation <onboarding@resend.dev>"
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://theleadershipfederation.com")
+
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
   return { supabase, user }
-}
-
-/**
- * Generate a QR code PNG as a base64-encoded string.
- * The QR code encodes the qr_token value which can be scanned at the event.
- */
-async function generateQrCodeBase64(token: string): Promise<string> {
-  const dataUrl = await QRCode.toDataURL(token, {
-    width: 400,
-    margin: 2,
-    color: {
-      dark: "#000000",
-      light: "#ffffff",
-    },
-    errorCorrectionLevel: "H",
-  })
-  // Strip the data:image/png;base64, prefix
-  return dataUrl.replace(/^data:image\/png;base64,/, "")
 }
 
 /* ── Single attendee confirmation ───────────────────────────────────── */
@@ -116,10 +103,8 @@ export async function sendConfirmationEmail(attendeeId: string): Promise<{
       }
     }
 
-    // Generate QR code image
-    const qrBase64 = await generateQrCodeBase64(qrToken)
-    const qrBuffer = Buffer.from(qrBase64, "base64")
-    const qrCid = "qrcode@tlf"
+    // Build QR image URL (served by /api/qr/[token])
+    const qrImageUrl = `${SITE_URL}/api/qr/${encodeURIComponent(qrToken)}`
 
     // Build the email HTML
     const html = confirmationEmailHtml({
@@ -131,7 +116,7 @@ export async function sendConfirmationEmail(attendeeId: string): Promise<{
       eventVenue: event.venue || "",
       ticketName: ticket?.name || null,
       qrToken,
-      qrCid,
+      qrImageUrl,
     })
 
     // Send via Resend
@@ -143,21 +128,11 @@ export async function sendConfirmationEmail(attendeeId: string): Promise<{
       }
     }
 
-    let fromAddress = FROM_ADDRESS
     const { data: emailResult, error: emailError } = await resend.emails.send({
-      from: fromAddress,
+      from: FROM_ADDRESS,
       to: [attendee.email],
       subject: `Registration Confirmed: ${event.title}`,
       html,
-      attachments: [
-        {
-          filename: "qrcode.png",
-          content: qrBuffer,
-          contentType: "image/png",
-          // @ts-expect-error - Resend supports content_id for inline CID attachments
-          content_id: qrCid,
-        },
-      ],
     })
 
     // If the primary from address fails (domain not verified), retry with fallback
@@ -170,15 +145,6 @@ export async function sendConfirmationEmail(attendeeId: string): Promise<{
         to: [attendee.email],
         subject: `Registration Confirmed: ${event.title}`,
         html,
-        attachments: [
-          {
-            filename: "qrcode.png",
-            content: qrBuffer,
-            contentType: "image/png",
-            // @ts-expect-error - Resend supports content_id for inline CID attachments
-            content_id: qrCid,
-          },
-        ],
       })
 
       if (retryError || !retryResult) {

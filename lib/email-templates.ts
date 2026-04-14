@@ -14,8 +14,8 @@ export interface ConfirmationEmailData {
   eventVenue: string
   ticketName: string | null
   qrToken: string
-  /** CID reference for the inline QR code image attachment */
-  qrCid: string
+  /** Full URL to the QR code image (served from /api/qr/[token]) */
+  qrImageUrl: string
 }
 
 /**
@@ -212,7 +212,7 @@ export function confirmationEmailHtml(data: ConfirmationEmailData): string {
                 <tr>
                   <td align="center" style="padding: 12px 24px 8px;">
                     <div style="background-color:#ffffff; border-radius:10px; padding:14px; display:inline-block;">
-                      <img class="qr-img" src="cid:${escapeHtml(data.qrCid)}" alt="Check-in QR Code" width="200" height="200" style="display:block; width:200px; height:200px; border:0;" />
+                      <img class="qr-img" src="${escapeHtml(data.qrImageUrl)}" alt="Check-in QR Code" width="200" height="200" style="display:block; width:200px; height:200px; border:0;" />
                     </div>
                   </td>
                 </tr>
