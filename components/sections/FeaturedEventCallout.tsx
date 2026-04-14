@@ -84,7 +84,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
       {/* Bottom edge */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#F4F8FF] to-transparent z-10 pointer-events-none" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 py-20 lg:py-24">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 py-14 lg:py-18">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left — event info */}
           <div

@@ -64,7 +64,7 @@ export function NewsletterSection() {
   return (
     <section
       ref={ref}
-      className="relative py-16 lg:py-20 overflow-hidden"
+      className="relative py-10 lg:py-14 overflow-hidden"
       style={{ background: "linear-gradient(135deg, #fdf6e3 0%, #fef9ed 50%, #f8f0da 100%)" }}
     >
       {/* Decorative elements */}
