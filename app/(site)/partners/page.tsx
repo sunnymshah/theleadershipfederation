@@ -6,9 +6,24 @@ import {
   Globe,
   TrendingUp,
   Building2,
+  Users,
+  Sparkles,
+  Calendar,
+  type LucideIcon,
 } from "lucide-react"
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
 import { getPartners } from "@/app/actions/cmsActions"
+import { getPageSections } from "@/app/actions/pageContentActions"
+
+const ICONS: Record<string, LucideIcon> = {
+  globe: Globe,
+  handshake: Handshake,
+  trendingup: TrendingUp,
+  building2: Building2,
+  users: Users,
+  sparkles: Sparkles,
+  calendar: Calendar,
+}
 
 export const revalidate = 86400
 
@@ -98,6 +113,18 @@ function PartnerLogo({ name, logo }: { name: string; logo?: string | null }) {
   )
 }
 
+type StrObj = Record<string, string>
+
+function pickStr(obj: Record<string, unknown> | undefined, key: string, fallback: string): string {
+  const v = obj?.[key]
+  return typeof v === "string" && v.length > 0 ? v : fallback
+}
+
+function pickList(obj: Record<string, unknown> | undefined): StrObj[] {
+  const items = obj?.items
+  return Array.isArray(items) ? (items as StrObj[]) : []
+}
+
 export default async function PartnersPage() {
   let partners: PartnerRow[] = FALLBACK_PARTNERS
   try {
@@ -109,9 +136,52 @@ export default async function PartnersPage() {
     // fall back to seeds
   }
 
+  const { sections } = await getPageSections("partners")
+
+  const hero = {
+    eyebrow: pickStr(sections.hero, "eyebrow", "Our Network"),
+    title: pickStr(sections.hero, "title", "Partners & Ecosystem"),
+    description: pickStr(
+      sections.hero,
+      "description",
+      "The Leadership Federation is powered by partnerships with world-leading enterprises, institutions, and organisations that share our commitment to advancing global leadership."
+    ),
+  }
+
+  const stats = pickList(sections.stats)
+  const statsList = stats.length > 0 ? stats : [
+    { value: "100+", label: "Partners" },
+    { value: "30+", label: "Countries" },
+    { value: "6", label: "Categories" },
+    { value: "50+", label: "Events" },
+  ]
+
+  const categoryRows = pickList(sections.categories)
+  const categoryMap: Record<string, string> = {}
+  for (const c of categoryRows) if (c.slug && c.title) categoryMap[c.slug] = c.title
+
+  const benefitsHeader = {
+    eyebrow: pickStr(sections.benefits_header, "eyebrow", "Partner With Us"),
+    title: pickStr(sections.benefits_header, "title", "Become a Partner"),
+    description: pickStr(
+      sections.benefits_header,
+      "description",
+      "Join a curated ecosystem of global enterprises and institutions that are shaping the future of leadership across the GCC, Asia, and beyond."
+    ),
+  }
+
+  const benefitsDb = pickList(sections.benefits)
+  const benefits = benefitsDb.length > 0
+    ? benefitsDb.map((b) => ({
+        icon: ICONS[(b.icon || "").toLowerCase()] ?? Handshake,
+        title: b.title ?? "",
+        description: b.description ?? "",
+      }))
+    : BENEFITS
+
   const byCategory = CATEGORY_ORDER
     .map(({ slug, title }) => ({
-      title,
+      title: categoryMap[slug] ?? title,
       partners: partners.filter(p => p.category === slug),
     }))
     .filter(c => c.partners.length > 0)
@@ -123,7 +193,7 @@ export default async function PartnersPage() {
         <div className="max-w-4xl mx-auto text-center">
           <AnimateOnScroll animation="fade-up">
             <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-              Our Network
+              {hero.eyebrow}
             </span>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={120}>
@@ -131,14 +201,12 @@ export default async function PartnersPage() {
               className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
               style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
             >
-              Partners & Ecosystem
+              {hero.title}
             </h1>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={240}>
             <p className="text-lg md:text-xl text-[#1a1a2e]/75 leading-relaxed max-w-3xl mx-auto">
-              The Leadership Federation is powered by partnerships with
-              world-leading enterprises, institutions, and organisations that
-              share our commitment to advancing global leadership.
+              {hero.description}
             </p>
           </AnimateOnScroll>
         </div>
@@ -149,12 +217,7 @@ export default async function PartnersPage() {
         <div className="max-w-5xl mx-auto">
           <div className="rounded-2xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-8 md:p-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {[
-                { value: "100+", label: "Partners" },
-                { value: "30+", label: "Countries" },
-                { value: "6", label: "Categories" },
-                { value: "50+", label: "Events" },
-              ].map(({ value, label }) => (
+              {statsList.map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-[#e7ab1c] text-3xl md:text-4xl leading-none font-bold mb-1.5" style={sfFont}>{value}</p>
                   <p className="text-[12px] font-semibold text-[#1a1a2e]/65 uppercase tracking-[0.15em]">{label}</p>
@@ -193,23 +256,21 @@ export default async function PartnersPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
-              Partner With Us
+              {benefitsHeader.eyebrow}
             </span>
             <h2
               className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
               style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
             >
-              Become a Partner
+              {benefitsHeader.title}
             </h2>
             <p className="text-[#1a1a2e]/75 text-base leading-relaxed max-w-2xl mx-auto">
-              Join a curated ecosystem of global enterprises and institutions
-              that are shaping the future of leadership across the GCC, Asia,
-              and beyond.
+              {benefitsHeader.description}
             </p>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-5 mb-14">
-            {BENEFITS.map(({ icon: Icon, title, description }) => (
+            {benefits.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
                 className="rounded-2xl bg-white p-8 md:p-10 border border-[#1a1a2e]/[0.06] shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"

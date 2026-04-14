@@ -43,6 +43,77 @@ import {
   Table2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PageContentEditor, type SectionDef } from "@/components/admin/PageContentEditor"
+
+const MEMBERSHIPS_PAGE_SECTIONS: SectionDef[] = [
+  {
+    kind: "fields",
+    sectionKey: "hero",
+    label: "Hero",
+    description: "Top of the /memberships page.",
+    fields: [
+      { name: "eyebrow", label: "Eyebrow", placeholder: "Memberships" },
+      { name: "title", label: "Headline", placeholder: "Become a Member" },
+      { name: "description", label: "Description", textarea: true },
+      { name: "note", label: "Small disclaimer (e.g. GST note)", textarea: true },
+    ],
+  },
+  {
+    kind: "fields",
+    sectionKey: "value_props_header",
+    label: "Value Props · Header",
+    description: "Heading + intro shown above the four value prop cards.",
+    fields: [
+      { name: "title", label: "Headline", placeholder: "Why Members Stay" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+  {
+    kind: "list",
+    sectionKey: "value_props",
+    label: "Value Props",
+    description: "The four cards below the tier grid explaining what members get.",
+    titleField: "title",
+    itemLabel: "Value Prop",
+    itemFields: [
+      { name: "icon", label: "Icon key (users / calendar / sparkles / globe)", placeholder: "users" },
+      { name: "title", label: "Title", placeholder: "Global Leader Network" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+  {
+    kind: "fields",
+    sectionKey: "comparison_header",
+    label: "Comparison Table · Header",
+    description: "Heading + intro shown above the tier comparison table.",
+    fields: [
+      { name: "title", label: "Headline", placeholder: "Compare Tiers" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+  {
+    kind: "fields",
+    sectionKey: "faq_header",
+    label: "FAQ · Header",
+    description: "Heading + intro shown above the FAQ block.",
+    fields: [
+      { name: "title", label: "Headline", placeholder: "Frequently Asked Questions" },
+      { name: "description", label: "Description", textarea: true },
+    ],
+  },
+  {
+    kind: "fields",
+    sectionKey: "bottom_cta",
+    label: "Bottom CTA",
+    description: "The dark gradient call-to-action at the bottom of the page.",
+    fields: [
+      { name: "title", label: "Headline", placeholder: "Ready to Lead?" },
+      { name: "description", label: "Description", textarea: true },
+      { name: "button_label", label: "Button Label", placeholder: "Apply for Membership" },
+      { name: "button_href", label: "Button Link", placeholder: "/register?type=membership&tier=platinum" },
+    ],
+  },
+]
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -117,7 +188,7 @@ export default function AdminMembershipsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"applications" | "tiers" | "comparison">("applications")
+  const [activeTab, setActiveTab] = useState<"applications" | "tiers" | "comparison" | "page">("applications")
 
   /* Tier form state */
   const [tierFormOpen, setTierFormOpen] = useState(false)
@@ -322,7 +393,25 @@ export default function AdminMembershipsPage() {
             Comparison Table
           </span>
         </button>
+        <button
+          onClick={() => setActiveTab("page")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+            activeTab === "page"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          )}
+        >
+          <span className="flex items-center gap-2">
+            <Pencil size={15} />
+            Page Content
+          </span>
+        </button>
       </div>
+
+      {activeTab === "page" && (
+        <PageContentEditor pageSlug="memberships" sections={MEMBERSHIPS_PAGE_SECTIONS} />
+      )}
 
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">

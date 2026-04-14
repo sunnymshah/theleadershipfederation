@@ -11,10 +11,39 @@ import {
   Shield,
   Zap,
   Globe,
+  Handshake,
+  TrendingUp,
+  type LucideIcon,
 } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 import { getMembershipTiers } from "@/app/actions/membershipActions"
 import { getMembershipComparisonRows, getFaqs } from "@/app/actions/cmsActions"
+import { getPageSections } from "@/app/actions/pageContentActions"
+
+const VALUE_PROP_ICONS: Record<string, LucideIcon> = {
+  users: Users,
+  calendar: Calendar,
+  sparkles: Sparkles,
+  globe: Globe,
+  handshake: Handshake,
+  trendingup: TrendingUp,
+  crown: Crown,
+  shield: Shield,
+  star: Star,
+  zap: Zap,
+}
+
+type StrObj = Record<string, string>
+
+function pickStr(obj: Record<string, unknown> | undefined, key: string, fallback: string): string {
+  const v = obj?.[key]
+  return typeof v === "string" && v.length > 0 ? v : fallback
+}
+
+function pickList(obj: Record<string, unknown> | undefined): StrObj[] {
+  const items = obj?.items
+  return Array.isArray(items) ? (items as StrObj[]) : []
+}
 
 export const revalidate = 3600
 
@@ -309,6 +338,71 @@ export default async function MembershipsPage() {
     }
   } catch {/* fall back */}
 
+  /* Fetch editable page content */
+  const { sections } = await getPageSections("memberships")
+
+  const hero = {
+    eyebrow: pickStr(sections.hero, "eyebrow", "Memberships"),
+    title: pickStr(sections.hero, "title", "Become a Member"),
+    description: pickStr(
+      sections.hero,
+      "description",
+      "Join a global network of CXOs, founders, and decision-makers. Every membership tier includes full event credits, exclusive directory access, and year-round leadership opportunities."
+    ),
+    note: pickStr(
+      sections.hero,
+      "note",
+      "All prices exclusive of GST. USD pricing available for international members."
+    ),
+  }
+
+  const valuePropsHeader = {
+    title: pickStr(sections.value_props_header, "title", "Why Members Stay"),
+    description: pickStr(
+      sections.value_props_header,
+      "description",
+      "Every tier is designed to deliver more value than your investment."
+    ),
+  }
+
+  const valuePropsDb = pickList(sections.value_props)
+  const VP = valuePropsDb.length > 0
+    ? valuePropsDb.map((v) => ({
+        icon: VALUE_PROP_ICONS[(v.icon || "").toLowerCase()] ?? Users,
+        title: v.title ?? "",
+        desc: v.description ?? "",
+      }))
+    : VALUE_PROPS
+
+  const comparisonHeader = {
+    title: pickStr(sections.comparison_header, "title", "Compare Tiers"),
+    description: pickStr(
+      sections.comparison_header,
+      "description",
+      "A detailed breakdown of what each membership tier includes."
+    ),
+  }
+
+  const faqHeader = {
+    title: pickStr(sections.faq_header, "title", "Frequently Asked Questions"),
+    description: pickStr(
+      sections.faq_header,
+      "description",
+      "Everything you need to know about our membership program."
+    ),
+  }
+
+  const bottomCta = {
+    title: pickStr(sections.bottom_cta, "title", "Ready to Lead?"),
+    description: pickStr(
+      sections.bottom_cta,
+      "description",
+      "Join a global community of leaders shaping the future. Start with any tier and upgrade as you grow."
+    ),
+    buttonLabel: pickStr(sections.bottom_cta, "button_label", "Apply for Membership"),
+    buttonHref: pickStr(sections.bottom_cta, "button_href", "/register?type=membership&tier=platinum"),
+  }
+
   return (
     <main className="">
       {/* ── Hero ──────────────────────────────────────────────────── */}
@@ -319,7 +413,7 @@ export default async function MembershipsPage() {
               className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6"
               style={sfText}
             >
-              Memberships
+              {hero.eyebrow}
             </span>
           </AnimateOnScroll>
 
@@ -328,7 +422,7 @@ export default async function MembershipsPage() {
               className="text-[36px] sm:text-[48px] lg:text-[56px] font-bold text-[#1a1a2e] leading-[1.08] tracking-[-0.03em] mb-6"
               style={sfDisplay}
             >
-              Become a Member
+              {hero.title}
             </h1>
           </AnimateOnScroll>
 
@@ -337,9 +431,7 @@ export default async function MembershipsPage() {
               className="text-[16px] sm:text-[18px] text-[#1a1a2e]/65 leading-[1.6] max-w-2xl mx-auto mb-4"
               style={sfText}
             >
-              Join a global network of CXOs, founders, and decision-makers.
-              Every membership tier includes full event credits, exclusive directory
-              access, and year-round leadership opportunities.
+              {hero.description}
             </p>
           </AnimateOnScroll>
 
@@ -348,7 +440,7 @@ export default async function MembershipsPage() {
               className="text-[13px] text-[#1a1a2e]/45 leading-[1.5]"
               style={sfText}
             >
-              All prices exclusive of GST. USD pricing available for international members.
+              {hero.note}
             </p>
           </AnimateOnScroll>
         </div>
@@ -377,7 +469,7 @@ export default async function MembershipsPage() {
               className="text-[28px] sm:text-[36px] font-bold text-[#1a1a2e] text-center tracking-[-0.02em] mb-4"
               style={sfDisplay}
             >
-              Why Members Stay
+              {valuePropsHeader.title}
             </h2>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={80}>
@@ -385,7 +477,7 @@ export default async function MembershipsPage() {
               className="text-[15px] text-[#1a1a2e]/55 text-center max-w-xl mx-auto mb-12"
               style={sfText}
             >
-              Every tier is designed to deliver more value than your investment.
+              {valuePropsHeader.description}
             </p>
           </AnimateOnScroll>
 
@@ -394,7 +486,7 @@ export default async function MembershipsPage() {
             animation="fade-up"
             stagger={80}
           >
-            {VALUE_PROPS.map((vp) => (
+            {VP.map((vp) => (
               <div
                 key={vp.title}
                 className="bg-white rounded-2xl p-6 border border-[#1a1a2e]/[0.06]"
@@ -428,7 +520,7 @@ export default async function MembershipsPage() {
               className="text-[28px] sm:text-[36px] font-bold text-[#1a1a2e] text-center tracking-[-0.02em] mb-4"
               style={sfDisplay}
             >
-              Compare Tiers
+              {comparisonHeader.title}
             </h2>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={80}>
@@ -436,7 +528,7 @@ export default async function MembershipsPage() {
               className="text-[15px] text-[#1a1a2e]/55 text-center max-w-xl mx-auto mb-10"
               style={sfText}
             >
-              A detailed breakdown of what each membership tier includes.
+              {comparisonHeader.description}
             </p>
           </AnimateOnScroll>
 
@@ -521,7 +613,7 @@ export default async function MembershipsPage() {
               className="text-[28px] sm:text-[36px] font-bold text-[#1a1a2e] text-center tracking-[-0.02em] mb-4"
               style={sfDisplay}
             >
-              Frequently Asked Questions
+              {faqHeader.title}
             </h2>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={80}>
@@ -529,7 +621,7 @@ export default async function MembershipsPage() {
               className="text-[15px] text-[#1a1a2e]/55 text-center max-w-xl mx-auto mb-10"
               style={sfText}
             >
-              Everything you need to know about our membership program.
+              {faqHeader.description}
             </p>
           </AnimateOnScroll>
 
@@ -582,21 +674,20 @@ export default async function MembershipsPage() {
               className="text-[28px] sm:text-[36px] font-bold text-white tracking-[-0.02em] mb-4 relative z-10"
               style={sfDisplay}
             >
-              Ready to Lead?
+              {bottomCta.title}
             </h2>
             <p
               className="text-[15px] text-white/60 max-w-lg mx-auto mb-8 leading-[1.6] relative z-10"
               style={sfText}
             >
-              Join a global community of leaders shaping the future. Start with
-              any tier and upgrade as you grow.
+              {bottomCta.description}
             </p>
             <Link
-              href="/register?type=membership&tier=platinum"
+              href={bottomCta.buttonHref}
               className="inline-flex items-center gap-2 px-8 py-3.5 text-[14px] font-semibold rounded-full bg-[#e7ab1c] text-white hover:bg-[#d49c10] transition-all duration-200 active:scale-[0.97] shadow-[0_4px_20px_rgba(231,171,28,0.3)] relative z-10"
               style={sfText}
             >
-              Apply for Membership
+              {bottomCta.buttonLabel}
               <ArrowRight size={15} strokeWidth={2.2} />
             </Link>
           </div>
