@@ -7,9 +7,11 @@ import {
   ExternalLink,
   PlayCircle,
 } from "lucide-react"
+import Image from "next/image"
 import { Linkedin, Instagram, Facebook } from "@/components/icons/SocialIcons"
 import Link from "next/link"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
+import { getMediaData } from "@/app/actions/cmsActions"
 
 export const revalidate = 86400
 
@@ -19,14 +21,38 @@ export const metadata = {
     "Watch The Sunny Shah Show, explore press coverage, and dive into video highlights from The Leadership Federation's global events.",
 }
 
-const PRESS_OUTLETS = [
-  "Economic Times",
-  "Forbes India",
-  "Business Standard",
-  "CNBC-TV18",
-  "YourStory",
-  "Gulf News",
+/* ── Types ────────────────────────────────────────────────────────────── */
+
+type Outlet = {
+  id: string
+  name: string
+  logo_url: string | null
+  article_url: string | null
+  sort_order: number
+}
+
+type MediaVideo = {
+  id: string
+  title: string
+  description: string | null
+  youtube_id: string | null
+  thumbnail_url: string | null
+  label: string | null
+  sort_order: number
+}
+
+/* ── Fallbacks ────────────────────────────────────────────────────────── */
+
+const FALLBACK_OUTLETS: Outlet[] = [
+  { id: "o1", name: "Economic Times",    logo_url: null, article_url: null, sort_order: 1 },
+  { id: "o2", name: "Forbes India",      logo_url: null, article_url: null, sort_order: 2 },
+  { id: "o3", name: "Business Standard", logo_url: null, article_url: null, sort_order: 3 },
+  { id: "o4", name: "CNBC-TV18",         logo_url: null, article_url: null, sort_order: 4 },
+  { id: "o5", name: "YourStory",         logo_url: null, article_url: null, sort_order: 5 },
+  { id: "o6", name: "Gulf News",         logo_url: null, article_url: null, sort_order: 6 },
 ]
+
+const FALLBACK_VIDEOS: MediaVideo[] = []
 
 // Real social URLs from the official Leadership Federation website
 const SOCIAL = {
@@ -36,22 +62,23 @@ const SOCIAL = {
   whatsapp: "https://wa.me/919327471565",
 }
 
-// TODO: Replace each `embedId` with a real YouTube video ID once available.
-// Add as many videos as needed and they'll automatically render in the grid.
-// To get an embed ID: from `https://www.youtube.com/watch?v=ABC123XYZ`, the ID is `ABC123XYZ`.
-const VIDEO_HIGHLIGHTS: Array<{
-  title: string
-  label: string
-  embedId: string | null
-}> = [
-  // Add real videos here, e.g.:
-  // { title: "5th GCC Leadership Conclave Highlights", label: "Bengaluru 2025", embedId: "ABC123XYZ" },
-]
-
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
-export default function MediaPage() {
-  const realVideos = VIDEO_HIGHLIGHTS.filter((v) => v.embedId)
+export default async function MediaPage() {
+  let outlets: Outlet[] = FALLBACK_OUTLETS
+  let videos: MediaVideo[] = FALLBACK_VIDEOS
+
+  try {
+    const res = await getMediaData(true)
+    if (res.success) {
+      if (res.outlets && res.outlets.length > 0) outlets = res.outlets as Outlet[]
+      if (res.videos  && res.videos.length  > 0) videos  = res.videos  as MediaVideo[]
+    }
+  } catch {
+    /* fall back */
+  }
+
+  const realVideos = videos.filter((v) => v.youtube_id)
 
   return (
     <main className="min-h-screen">
@@ -80,10 +107,9 @@ export default function MediaPage() {
         </div>
       </section>
 
-      {/* Featured: The Sunny Shah Show — link-out card (no fake embed) */}
+      {/* Featured: The Sunny Shah Show */}
       <section className="max-w-6xl mx-auto px-6 pb-20">
         <div className="bg-white border border-[#1a1a2e]/[0.06] rounded-2xl overflow-hidden md:flex shadow-sm">
-          {/* Visual side — gold gradient with show branding */}
           <div
             className="md:w-1/2 relative min-h-[320px] flex items-center justify-center overflow-hidden"
             style={{
@@ -91,7 +117,6 @@ export default function MediaPage() {
                 "linear-gradient(135deg, #1a1a2e 0%, #2a2440 50%, #1a1a2e 100%)",
             }}
           >
-            {/* Gold ring + play icon */}
             <div className="absolute inset-0 pointer-events-none" aria-hidden>
               <div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -117,7 +142,6 @@ export default function MediaPage() {
             </div>
           </div>
 
-          {/* Content side */}
           <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
             <div className="flex items-center gap-2 mb-4">
               <Mic2 size={18} className="text-[#e7ab1c]" />
@@ -164,31 +188,55 @@ export default function MediaPage() {
       </section>
 
       {/* In The Press */}
-      <section className="max-w-6xl mx-auto px-6 pb-24">
-        <AnimateOnScroll animation="fade-up">
-          <div className="flex items-center gap-3 mb-10">
-            <Newspaper size={18} className="text-[#e7ab1c]" />
-            <h2 className="text-2xl font-bold text-[#1a1a2e]" style={sfFont}>
-              In The Press
-            </h2>
-          </div>
-        </AnimateOnScroll>
-
-        <StaggerChildren className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" animation="fade-up" stagger={80}>
-          {PRESS_OUTLETS.map((outlet) => (
-            <div
-              key={outlet}
-              className="bg-white border border-[#1a1a2e]/[0.06] rounded-xl h-24 flex items-center justify-center px-4 transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30 cursor-pointer group shadow-sm"
-            >
-              <span className="text-sm font-semibold text-[#1a1a2e]/65 group-hover:text-[#1a1a2e] transition-colors duration-200 text-center select-none">
-                {outlet}
-              </span>
+      {outlets.length > 0 && (
+        <section className="max-w-6xl mx-auto px-6 pb-24">
+          <AnimateOnScroll animation="fade-up">
+            <div className="flex items-center gap-3 mb-10">
+              <Newspaper size={18} className="text-[#e7ab1c]" />
+              <h2 className="text-2xl font-bold text-[#1a1a2e]" style={sfFont}>
+                In The Press
+              </h2>
             </div>
-          ))}
-        </StaggerChildren>
-      </section>
+          </AnimateOnScroll>
 
-      {/* Videos & Highlights — only renders if real videos are added */}
+          <StaggerChildren className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" animation="fade-up" stagger={80}>
+            {outlets.map((outlet) => {
+              const cardInner = outlet.logo_url ? (
+                <Image
+                  src={outlet.logo_url}
+                  alt={outlet.name}
+                  width={120}
+                  height={48}
+                  className="max-h-10 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+              ) : (
+                <span className="text-sm font-semibold text-[#1a1a2e]/65 group-hover:text-[#1a1a2e] transition-colors duration-200 text-center select-none">
+                  {outlet.name}
+                </span>
+              )
+              const commonCls =
+                "bg-white border border-[#1a1a2e]/[0.06] rounded-xl h-24 flex items-center justify-center px-4 transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30 group shadow-sm"
+              return outlet.article_url ? (
+                <Link
+                  key={outlet.id}
+                  href={outlet.article_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${commonCls} cursor-pointer`}
+                >
+                  {cardInner}
+                </Link>
+              ) : (
+                <div key={outlet.id} className={commonCls}>
+                  {cardInner}
+                </div>
+              )
+            })}
+          </StaggerChildren>
+        </section>
+      )}
+
+      {/* Videos & Highlights */}
       {realVideos.length > 0 && (
         <section className="max-w-6xl mx-auto px-6 pb-24">
           <div className="flex items-center justify-between mb-10">
@@ -211,12 +259,12 @@ export default function MediaPage() {
           <StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 gap-6" animation="scale" stagger={100}>
             {realVideos.map((vid) => (
               <div
-                key={vid.title}
+                key={vid.id}
                 className="bg-white border border-[#1a1a2e]/[0.06] rounded-2xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
               >
                 <div className="w-full aspect-video bg-[#1a1a2e] relative">
                   <iframe
-                    src={`https://www.youtube.com/embed/${vid.embedId}`}
+                    src={`https://www.youtube.com/embed/${vid.youtube_id}`}
                     title={vid.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -226,9 +274,11 @@ export default function MediaPage() {
 
                 <div className="p-5">
                   <h3 className="text-base font-bold text-[#1a1a2e]">{vid.title}</h3>
-                  <span className="text-[11px] text-[#1a1a2e]/55 uppercase tracking-wider font-medium">
-                    {vid.label}
-                  </span>
+                  {vid.label && (
+                    <span className="text-[11px] text-[#1a1a2e]/55 uppercase tracking-wider font-medium">
+                      {vid.label}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}

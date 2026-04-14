@@ -7,7 +7,8 @@ import {
   TrendingUp,
   Building2,
 } from "lucide-react"
-import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
+import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
+import { getPartners } from "@/app/actions/cmsActions"
 
 export const revalidate = 86400
 
@@ -17,48 +18,41 @@ export const metadata = {
     "Our partners and ecosystem builders powering global leadership conversations across 30+ countries.",
 }
 
-type PartnerCategory = {
-  title: string
-  partners: { name: string; logo?: string }[]
+/* ── Fallbacks: used if the DB table is empty or unreachable ──────── */
+
+type PartnerRow = {
+  id: string
+  name: string
+  category: "title" | "powered_by" | "associate" | "media"
+  logo_url: string | null
+  website_url?: string | null
+  sort_order: number
 }
 
-const PARTNER_CATEGORIES: PartnerCategory[] = [
-  {
-    title: "Title Partners",
-    partners: [
-      { name: "Tata", logo: "/partners/tata.jpg" },
-      { name: "Reliance Jio", logo: "/partners/reliance-jio.png" },
-      { name: "HCL Tech", logo: "/partners/hcltech.png" },
-      { name: "EY", logo: "/partners/ey.png" },
-    ],
-  },
-  {
-    title: "Powered By Partners",
-    partners: [
-      { name: "Axis Bank", logo: "/partners/axis-bank.png" },
-      { name: "ICICI Bank", logo: "/partners/icici-bank.png" },
-      { name: "SBI", logo: "/partners/sbi.png" },
-      { name: "Barclays", logo: "/partners/barclays.png" },
-      { name: "Atos", logo: "/partners/atos.png" },
-    ],
-  },
-  {
-    title: "Associate Partners",
-    partners: [
-      { name: "Apollo", logo: "/partners/apollo.png" },
-      { name: "Cadila Pharmaceuticals", logo: "/partners/cadila.png" },
-      { name: "Prabhudas Lilladher", logo: "/partners/prabhudas-lilladher.png" },
-      { name: "SIBAE", logo: "/partners/sibae.png" },
-      { name: "Frost & Sullivan", logo: "/partners/frost-sullivan.png" },
-      { name: "H&M", logo: "/partners/hm.png" },
-    ],
-  },
-  {
-    title: "Media Partners",
-    partners: [
-      { name: "Gulf News", logo: "/partners/gulf-news.png" },
-    ],
-  },
+const FALLBACK_PARTNERS: PartnerRow[] = [
+  { id: "t1",  name: "Tata",                   category: "title",      logo_url: "/partners/tata.jpg",                 sort_order: 1 },
+  { id: "t2",  name: "Reliance Jio",           category: "title",      logo_url: "/partners/reliance-jio.png",         sort_order: 2 },
+  { id: "t3",  name: "HCL Tech",               category: "title",      logo_url: "/partners/hcltech.png",              sort_order: 3 },
+  { id: "t4",  name: "EY",                     category: "title",      logo_url: "/partners/ey.png",                   sort_order: 4 },
+  { id: "p1",  name: "Axis Bank",              category: "powered_by", logo_url: "/partners/axis-bank.png",            sort_order: 10 },
+  { id: "p2",  name: "ICICI Bank",             category: "powered_by", logo_url: "/partners/icici-bank.png",           sort_order: 11 },
+  { id: "p3",  name: "SBI",                    category: "powered_by", logo_url: "/partners/sbi.png",                  sort_order: 12 },
+  { id: "p4",  name: "Barclays",               category: "powered_by", logo_url: "/partners/barclays.png",             sort_order: 13 },
+  { id: "p5",  name: "Atos",                   category: "powered_by", logo_url: "/partners/atos.png",                 sort_order: 14 },
+  { id: "a1",  name: "Apollo",                 category: "associate",  logo_url: "/partners/apollo.png",               sort_order: 20 },
+  { id: "a2",  name: "Cadila Pharmaceuticals", category: "associate",  logo_url: "/partners/cadila.png",               sort_order: 21 },
+  { id: "a3",  name: "Prabhudas Lilladher",    category: "associate",  logo_url: "/partners/prabhudas-lilladher.png",  sort_order: 22 },
+  { id: "a4",  name: "SIBAE",                  category: "associate",  logo_url: "/partners/sibae.png",                sort_order: 23 },
+  { id: "a5",  name: "Frost & Sullivan",       category: "associate",  logo_url: "/partners/frost-sullivan.png",       sort_order: 24 },
+  { id: "a6",  name: "H&M",                    category: "associate",  logo_url: "/partners/hm.png",                   sort_order: 25 },
+  { id: "m1",  name: "Gulf News",              category: "media",      logo_url: "/partners/gulf-news.png",            sort_order: 30 },
+]
+
+const CATEGORY_ORDER: { slug: PartnerRow["category"]; title: string }[] = [
+  { slug: "title",      title: "Title Partners" },
+  { slug: "powered_by", title: "Powered By Partners" },
+  { slug: "associate",  title: "Associate Partners" },
+  { slug: "media",      title: "Media Partners" },
 ]
 
 const BENEFITS = [
@@ -84,7 +78,7 @@ const BENEFITS = [
 
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
-function PartnerLogo({ name, logo }: { name: string; logo?: string }) {
+function PartnerLogo({ name, logo }: { name: string; logo?: string | null }) {
   return (
     <div className="flex items-center justify-center h-20 rounded-xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm px-6 transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30">
       {logo ? (
@@ -104,7 +98,24 @@ function PartnerLogo({ name, logo }: { name: string; logo?: string }) {
   )
 }
 
-export default function PartnersPage() {
+export default async function PartnersPage() {
+  let partners: PartnerRow[] = FALLBACK_PARTNERS
+  try {
+    const res = await getPartners(true)
+    if (res.success && res.partners && res.partners.length > 0) {
+      partners = res.partners as PartnerRow[]
+    }
+  } catch {
+    // fall back to seeds
+  }
+
+  const byCategory = CATEGORY_ORDER
+    .map(({ slug, title }) => ({
+      title,
+      partners: partners.filter(p => p.category === slug),
+    }))
+    .filter(c => c.partners.length > 0)
+
   return (
     <main className="">
       {/* Hero */}
@@ -155,7 +166,7 @@ export default function PartnersPage() {
       </section>
 
       {/* Partner categories */}
-      {PARTNER_CATEGORIES.map(({ title, partners }, catIdx) => (
+      {byCategory.map(({ title, partners }, catIdx) => (
         <AnimateOnScroll key={title} as="section" className="pb-16 px-6" animation="fade-up" delay={catIdx * 100}>
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
@@ -166,7 +177,7 @@ export default function PartnersPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {partners.map((p) => (
-                <PartnerLogo key={p.name} name={p.name} logo={p.logo} />
+                <PartnerLogo key={p.id} name={p.name} logo={p.logo_url} />
               ))}
             </div>
           </div>
