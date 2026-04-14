@@ -137,6 +137,13 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/advisory-board": "speakers",
   "/admin/testimonials": "attendees",
   "/admin/badges": "attendees",
+  "/admin/partners": "sponsors",
+  "/admin/platforms": "sponsors",
+  "/admin/about": "sponsors",
+  "/admin/contact": "sponsors",
+  "/admin/media": "sponsors",
+  "/admin/inner-circle": "sponsors",
+  "/admin/faqs": "attendees",
 }
 
 /**

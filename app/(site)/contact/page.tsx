@@ -9,9 +9,14 @@ import {
   Trophy,
   Megaphone,
   Building2,
+  Users,
+  Briefcase,
+  Star,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { ContactForm } from "@/components/site/ContactForm"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
+import { getContactData } from "@/app/actions/cmsActions"
 
 export const revalidate = 86400
 
@@ -20,6 +25,91 @@ export const metadata = {
   description:
     "Get in touch with The Leadership Federation for event registration, partnerships, speaker nominations, or Inner Circle membership.",
 }
+
+/* ── Icon resolver ────────────────────────────────────────────────────── */
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  CalendarCheck,
+  Handshake,
+  Mic2,
+  Crown,
+  MapPin,
+  Mail,
+  Phone,
+  Trophy,
+  Megaphone,
+  Building2,
+  Users,
+  Briefcase,
+}
+
+function resolveIcon(name?: string | null): LucideIcon {
+  if (!name) return Star
+  return ICON_MAP[name] ?? Star
+}
+
+/* ── Types ────────────────────────────────────────────────────────────── */
+
+type Department = {
+  id: string
+  name: string
+  description: string | null
+  icon: string | null
+  sort_order: number
+}
+
+type Person = {
+  id: string
+  department_id: string | null
+  name: string
+  role: string | null
+  email: string | null
+  phone: string | null
+  phone_raw: string | null
+  sort_order: number
+}
+
+type Office = {
+  id: string
+  city: string
+  address_lines: string[] | null
+  timezone: string | null
+  phone: string | null
+  email: string | null
+  is_primary: boolean
+  sort_order: number
+}
+
+/* ── Fallbacks ────────────────────────────────────────────────────────── */
+
+const FALLBACK_DEPARTMENTS: Department[] = [
+  { id: "d1", name: "Sponsorship & Exhibitor",               description: "Partner with us as a sponsor or exhibitor at our global leadership events.", icon: "Handshake", sort_order: 1 },
+  { id: "d2", name: "Award Nomination & Speaker Opportunity", description: "Nominate for awards or explore speaking engagements at TLF events.",         icon: "Trophy",    sort_order: 2 },
+  { id: "d3", name: "Marketing & Support",                    description: "Media inquiries, marketing collaborations, and general support.",             icon: "Megaphone", sort_order: 3 },
+  { id: "d4", name: "General Inquiries",                      description: "For general questions, event registration, and other inquiries.",             icon: "Mail",      sort_order: 4 },
+]
+
+const FALLBACK_PERSONS: Person[] = [
+  { id: "p1", department_id: "d1", name: "Harshal Patel",   role: null,              email: "Harshal@theleadershipfederation.com", phone: "+91 72279 93338", phone_raw: "+917227993338", sort_order: 1 },
+  { id: "p2", department_id: "d2", name: "Ovais Kapadia",   role: null,              email: "Ovais@theleadershipfederation.com",   phone: "+91 91060 33979", phone_raw: "+919106033979", sort_order: 1 },
+  { id: "p3", department_id: "d2", name: "Manan Desai",     role: null,              email: "Manan@theleadershipfederation.com",   phone: "+91 99782 57508", phone_raw: "+919978257508", sort_order: 2 },
+  { id: "p4", department_id: "d3", name: "Jessica Morgan",  role: "VP Marketing",     email: "Hello@theleadershipfederation.com",   phone: null,              phone_raw: null,            sort_order: 1 },
+  { id: "p5", department_id: "d4", name: "General",         role: "General Inquiries", email: "hello@theleadershipfederation.com",  phone: null,              phone_raw: null,            sort_order: 1 },
+  { id: "p6", department_id: "d4", name: "Registration",    role: "Event Registration", email: "register@theleadershipfederation.com", phone: null,           phone_raw: null,            sort_order: 2 },
+]
+
+const FALLBACK_OFFICES: Office[] = [
+  {
+    id: "o1", city: "Dubai",
+    address_lines: [
+      "The Leadership Federation",
+      "Office No. 44-43, Building of Dubai Municipality",
+      "Bur Dubai - Al Fahidi",
+      "Dubai, United Arab Emirates",
+    ],
+    timezone: null, phone: null, email: null, is_primary: true, sort_order: 1,
+  },
+]
 
 const INQUIRY_TYPES = [
   {
@@ -48,73 +138,33 @@ const INQUIRY_TYPES = [
   },
 ]
 
-const DEPARTMENTS = [
-  {
-    icon: Handshake,
-    department: "Sponsorship & Exhibitor",
-    description: "Partner with us as a sponsor or exhibitor at our global leadership events.",
-    contacts: [
-      {
-        name: "Harshal Patel",
-        email: "Harshal@theleadershipfederation.com",
-        phone: "+91 72279 93338",
-        phoneRaw: "+917227993338",
-      },
-    ],
-  },
-  {
-    icon: Trophy,
-    department: "Award Nomination & Speaker Opportunity",
-    description: "Nominate for awards or explore speaking engagements at TLF events.",
-    contacts: [
-      {
-        name: "Ovais Kapadia",
-        email: "Ovais@theleadershipfederation.com",
-        phone: "+91 91060 33979",
-        phoneRaw: "+919106033979",
-      },
-      {
-        name: "Manan Desai",
-        email: "Manan@theleadershipfederation.com",
-        phone: "+91 99782 57508",
-        phoneRaw: "+919978257508",
-      },
-    ],
-  },
-  {
-    icon: Megaphone,
-    department: "Marketing & Support",
-    description: "Media inquiries, marketing collaborations, and general support.",
-    contacts: [
-      {
-        name: "Jessica Morgan",
-        role: "VP Marketing",
-        email: "Hello@theleadershipfederation.com",
-      },
-    ],
-  },
-  {
-    icon: Mail,
-    department: "General Inquiries",
-    description: "For general questions, event registration, and other inquiries.",
-    contacts: [
-      {
-        name: "General",
-        email: "hello@theleadershipfederation.com",
-        label: "General Inquiries",
-      },
-      {
-        name: "Registration",
-        email: "register@theleadershipfederation.com",
-        label: "Event Registration",
-      },
-    ],
-  },
-]
-
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  let departments: Department[] = FALLBACK_DEPARTMENTS
+  let persons: Person[] = FALLBACK_PERSONS
+  let offices: Office[] = FALLBACK_OFFICES
+
+  try {
+    const res = await getContactData(true)
+    if (res.success) {
+      if (res.departments && res.departments.length > 0) {
+        departments = res.departments as Department[]
+      }
+      if (res.persons && res.persons.length > 0) {
+        persons = res.persons as Person[]
+      }
+      if (res.offices && res.offices.length > 0) {
+        offices = res.offices as Office[]
+      }
+    }
+  } catch {
+    /* fall back */
+  }
+
+  const primaryOffice = offices.find(o => o.is_primary) ?? offices[0]
+  const keyContacts = persons.filter(p => p.phone && p.phone_raw).slice(0, 4)
+
   return (
     <main className="min-h-screen">
       {/* Hero */}
@@ -142,7 +192,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Inquiry Type Cards */}
+      {/* Inquiry Type Cards — static */}
       <section className="max-w-6xl mx-auto px-6 pb-16">
         <StaggerChildren animation="fade-up" stagger={100} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {INQUIRY_TYPES.map((item) => {
@@ -176,20 +226,24 @@ export default function ContactPage() {
 
           <AnimateOnScroll animation="fade-right" delay={200} className="flex flex-col gap-6">
             {/* Address */}
-            <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
-                  <MapPin size={18} className="text-[#e7ab1c]" />
+            {primaryOffice && (
+              <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
+                    <MapPin size={18} className="text-[#e7ab1c]" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#1a1a2e]">Office</h3>
                 </div>
-                <h3 className="text-sm font-bold text-[#1a1a2e]">Office</h3>
+                <p className="text-sm text-[#1a1a2e]/75 leading-relaxed">
+                  {(primaryOffice.address_lines ?? []).map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      {i < (primaryOffice.address_lines?.length ?? 0) - 1 && <br />}
+                    </span>
+                  ))}
+                </p>
               </div>
-              <p className="text-sm text-[#1a1a2e]/75 leading-relaxed">
-                The Leadership Federation<br />
-                Office No. 44-43, Building of Dubai Municipality<br />
-                Bur Dubai - Al Fahidi<br />
-                Dubai, United Arab Emirates
-              </p>
-            </div>
+            )}
 
             {/* Email */}
             <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
@@ -200,166 +254,186 @@ export default function ContactPage() {
                 <h3 className="text-sm font-bold text-[#1a1a2e]">Email</h3>
               </div>
               <div className="space-y-1.5">
-                <a href="mailto:register@theleadershipfederation.com" className="text-sm text-[#1a1a2e]/80 hover:text-[#e7ab1c] transition-colors block">
-                  register@theleadershipfederation.com
-                </a>
-                <a href="mailto:Hello@theleadershipfederation.com" className="text-sm text-[#1a1a2e]/80 hover:text-[#e7ab1c] transition-colors block">
-                  Hello@theleadershipfederation.com
-                </a>
+                {Array.from(
+                  new Set(
+                    persons
+                      .filter(p => p.email && !p.phone)
+                      .map(p => p.email as string)
+                  )
+                ).map((email) => (
+                  <a
+                    key={email}
+                    href={`mailto:${email}`}
+                    className="text-sm text-[#1a1a2e]/80 hover:text-[#e7ab1c] transition-colors block"
+                  >
+                    {email}
+                  </a>
+                ))}
               </div>
             </div>
 
             {/* Key Contacts */}
-            <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
-                  <Phone size={18} className="text-[#e7ab1c]" />
+            {keyContacts.length > 0 && (
+              <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
+                    <Phone size={18} className="text-[#e7ab1c]" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#1a1a2e]">Key Contacts</h3>
                 </div>
-                <h3 className="text-sm font-bold text-[#1a1a2e]">Key Contacts</h3>
+                <StaggerChildren animation="fade-up" stagger={80} className="space-y-4 text-sm">
+                  {keyContacts.map((contact) => {
+                    const dept = departments.find(d => d.id === contact.department_id)
+                    return (
+                      <div key={contact.id}>
+                        <p className="font-bold text-[#1a1a2e]">{contact.name}</p>
+                        {(contact.role || dept?.name) && (
+                          <p className="text-[#1a1a2e]/65 text-xs mb-0.5">
+                            {contact.role ?? dept?.name}
+                          </p>
+                        )}
+                        {contact.phone_raw && contact.phone && (
+                          <>
+                            <a href={`tel:${contact.phone_raw}`} className="text-xs text-[#e7ab1c] hover:underline">
+                              {contact.phone}
+                            </a>
+                            {contact.email && (
+                              <span className="text-[#1a1a2e]/30 mx-1.5">·</span>
+                            )}
+                          </>
+                        )}
+                        {contact.email && (
+                          <a
+                            href={`mailto:${contact.email}`}
+                            className="text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c]"
+                          >
+                            {contact.email}
+                          </a>
+                        )}
+                      </div>
+                    )
+                  })}
+                </StaggerChildren>
               </div>
-              <StaggerChildren animation="fade-up" stagger={80} className="space-y-4 text-sm">
-                <div>
-                  <p className="font-bold text-[#1a1a2e]">Harshal Patel</p>
-                  <p className="text-[#1a1a2e]/65 text-xs mb-0.5">Sponsorship & Exhibitor Opportunities</p>
-                  <a href="tel:+917227993338" className="text-xs text-[#e7ab1c] hover:underline">+91 72279 93338</a>
-                  <span className="text-[#1a1a2e]/30 mx-1.5">·</span>
-                  <a href="mailto:Harshal@theleadershipfederation.com" className="text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c]">Harshal@theleadershipfederation.com</a>
-                </div>
-                <div>
-                  <p className="font-bold text-[#1a1a2e]">Ovais Kapadia</p>
-                  <p className="text-[#1a1a2e]/65 text-xs mb-0.5">Award Nomination & Speaker Opportunities</p>
-                  <a href="tel:+919106033979" className="text-xs text-[#e7ab1c] hover:underline">+91 91060 33979</a>
-                  <span className="text-[#1a1a2e]/30 mx-1.5">·</span>
-                  <a href="mailto:Ovais@theleadershipfederation.com" className="text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c]">Ovais@theleadershipfederation.com</a>
-                </div>
-                <div>
-                  <p className="font-bold text-[#1a1a2e]">Manan Desai</p>
-                  <p className="text-[#1a1a2e]/65 text-xs mb-0.5">Award Nomination & Speaker Opportunities</p>
-                  <a href="tel:+919978257508" className="text-xs text-[#e7ab1c] hover:underline">+91 99782 57508</a>
-                  <span className="text-[#1a1a2e]/30 mx-1.5">·</span>
-                  <a href="mailto:Manan@theleadershipfederation.com" className="text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c]">Manan@theleadershipfederation.com</a>
-                </div>
-                <div>
-                  <p className="font-bold text-[#1a1a2e]">Jessica Morgan</p>
-                  <p className="text-[#1a1a2e]/65 text-xs mb-0.5">VP Marketing</p>
-                  <a href="mailto:Hello@theleadershipfederation.com" className="text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c]">Hello@theleadershipfederation.com</a>
-                </div>
-              </StaggerChildren>
-            </div>
+            )}
           </AnimateOnScroll>
         </div>
       </section>
 
       {/* Reach the Right Team */}
-      <section className="max-w-6xl mx-auto px-6 pb-16">
-        <AnimateOnScroll animation="fade-up">
-          <div className="text-center mb-10">
-            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-4">
-              Direct Contacts
-            </span>
-            <h2
-              className="text-3xl md:text-4xl font-bold tracking-tight text-[#1a1a2e] mb-3"
-              style={sfFont}
-            >
-              Reach the Right Team
-            </h2>
-            <p className="text-base text-[#1a1a2e]/70 max-w-xl mx-auto leading-relaxed">
-              Connect directly with the department that can best assist you.
-            </p>
-          </div>
-        </AnimateOnScroll>
-
-        <StaggerChildren
-          animation="fade-up"
-          stagger={120}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          {DEPARTMENTS.map((dept) => {
-            const Icon = dept.icon
-            return (
-              <div
-                key={dept.department}
-                className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7 transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
-                    <Icon size={20} className="text-[#e7ab1c]" />
-                  </div>
-                  <h3 className="text-base font-bold text-[#1a1a2e]">
-                    {dept.department}
-                  </h3>
-                </div>
-                <p className="text-sm text-[#1a1a2e]/65 leading-relaxed mb-5">
-                  {dept.description}
-                </p>
-                <div className="space-y-4">
-                  {dept.contacts.map((contact) => (
-                    <div
-                      key={contact.email}
-                      className="border-t border-[#1a1a2e]/[0.06] pt-4 first:border-t-0 first:pt-0"
-                    >
-                      <p className="font-semibold text-sm text-[#1a1a2e]">
-                        {contact.name}
-                        {"role" in contact && contact.role && (
-                          <span className="font-normal text-[#1a1a2e]/55 ml-2 text-xs">
-                            {contact.role}
-                          </span>
-                        )}
-                        {"label" in contact && contact.label && (
-                          <span className="font-normal text-[#1a1a2e]/55 ml-2 text-xs">
-                            {contact.label}
-                          </span>
-                        )}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
-                        <a
-                          href={`mailto:${contact.email}`}
-                          className="inline-flex items-center gap-1.5 text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c] transition-colors"
-                        >
-                          <Mail size={13} className="shrink-0" />
-                          {contact.email}
-                        </a>
-                        {"phone" in contact && contact.phone && (
-                          <a
-                            href={`tel:${contact.phoneRaw}`}
-                            className="inline-flex items-center gap-1.5 text-xs text-[#e7ab1c] hover:underline"
-                          >
-                            <Phone size={13} className="shrink-0" />
-                            {contact.phone}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </StaggerChildren>
-      </section>
-
-      {/* Dubai Office Address */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <AnimateOnScroll animation="fade-up">
-          <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
-              <Building2 size={26} className="text-[#e7ab1c]" />
-            </div>
-            <div>
-              <h3
-                className="text-lg font-bold text-[#1a1a2e] mb-1"
+      {departments.length > 0 && (
+        <section className="max-w-6xl mx-auto px-6 pb-16">
+          <AnimateOnScroll animation="fade-up">
+            <div className="text-center mb-10">
+              <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-4">
+                Direct Contacts
+              </span>
+              <h2
+                className="text-3xl md:text-4xl font-bold tracking-tight text-[#1a1a2e] mb-3"
                 style={sfFont}
               >
-                Our Dubai Office
-              </h3>
-              <p className="text-sm text-[#1a1a2e]/70 leading-relaxed flex items-start gap-2">
-                <MapPin size={15} className="text-[#e7ab1c] shrink-0 mt-0.5" />
-                Office No. 44-43, Building of Dubai Municipality, Bur Dubai - Al Fahidi, Dubai, United Arab Emirates
+                Reach the Right Team
+              </h2>
+              <p className="text-base text-[#1a1a2e]/70 max-w-xl mx-auto leading-relaxed">
+                Connect directly with the department that can best assist you.
               </p>
             </div>
-          </div>
-        </AnimateOnScroll>
-      </section>
+          </AnimateOnScroll>
+
+          <StaggerChildren
+            animation="fade-up"
+            stagger={120}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            {departments.map((dept) => {
+              const Icon = resolveIcon(dept.icon)
+              const deptPersons = persons.filter(p => p.department_id === dept.id)
+              return (
+                <div
+                  key={dept.id}
+                  className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7 transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
+                      <Icon size={20} className="text-[#e7ab1c]" />
+                    </div>
+                    <h3 className="text-base font-bold text-[#1a1a2e]">
+                      {dept.name}
+                    </h3>
+                  </div>
+                  {dept.description && (
+                    <p className="text-sm text-[#1a1a2e]/65 leading-relaxed mb-5">
+                      {dept.description}
+                    </p>
+                  )}
+                  <div className="space-y-4">
+                    {deptPersons.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="border-t border-[#1a1a2e]/[0.06] pt-4 first:border-t-0 first:pt-0"
+                      >
+                        <p className="font-semibold text-sm text-[#1a1a2e]">
+                          {contact.name}
+                          {contact.role && (
+                            <span className="font-normal text-[#1a1a2e]/55 ml-2 text-xs">
+                              {contact.role}
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                          {contact.email && (
+                            <a
+                              href={`mailto:${contact.email}`}
+                              className="inline-flex items-center gap-1.5 text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c] transition-colors"
+                            >
+                              <Mail size={13} className="shrink-0" />
+                              {contact.email}
+                            </a>
+                          )}
+                          {contact.phone && contact.phone_raw && (
+                            <a
+                              href={`tel:${contact.phone_raw}`}
+                              className="inline-flex items-center gap-1.5 text-xs text-[#e7ab1c] hover:underline"
+                            >
+                              <Phone size={13} className="shrink-0" />
+                              {contact.phone}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </StaggerChildren>
+        </section>
+      )}
+
+      {/* Primary Office Address */}
+      {primaryOffice && (
+        <section className="max-w-6xl mx-auto px-6 pb-20">
+          <AnimateOnScroll animation="fade-up">
+            <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+              <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
+                <Building2 size={26} className="text-[#e7ab1c]" />
+              </div>
+              <div>
+                <h3
+                  className="text-lg font-bold text-[#1a1a2e] mb-1"
+                  style={sfFont}
+                >
+                  Our {primaryOffice.city} Office
+                </h3>
+                <p className="text-sm text-[#1a1a2e]/70 leading-relaxed flex items-start gap-2">
+                  <MapPin size={15} className="text-[#e7ab1c] shrink-0 mt-0.5" />
+                  {(primaryOffice.address_lines ?? []).join(", ")}
+                </p>
+              </div>
+            </div>
+          </AnimateOnScroll>
+        </section>
+      )}
     </main>
   )
 }

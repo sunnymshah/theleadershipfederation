@@ -8,9 +8,16 @@ import {
   ShieldCheck,
   Handshake,
   ArrowRight,
+  Users,
+  TrendingUp,
+  Award,
+  Sparkles,
+  Star,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { Linkedin } from "@/components/icons/SocialIcons"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
+import { getAboutSections } from "@/app/actions/cmsActions"
 
 export const revalidate = 86400
 
@@ -20,56 +27,96 @@ export const metadata = {
     "The Leadership Federation is a global platform connecting GCC leaders, CXOs, decision-makers, innovators, policymakers, and ecosystem builders.",
 }
 
-const WHY_TLF = [
-  {
-    icon: MessageSquare,
-    title: "Strategic Conversations",
-    description:
-      "High-value dialogues that shape industries. Curated discussions between C-suite executives, policymakers, and transformation leaders that drive real outcomes.",
-  },
-  {
-    icon: Globe,
-    title: "Global Connectivity",
-    description:
-      "A living network spanning 30+ countries, from Bengaluru to Dubai, Kuala Lumpur to London, connecting leaders who are redefining the global business landscape.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Curated Access",
-    description:
-      "An invite-only inner circle where senior leaders gain exclusive peer connections, private roundtables, and strategic access to the people who matter most.",
-  },
-  {
-    icon: Handshake,
-    title: "Ecosystem Building",
-    description:
-      "Cross-sector partnerships that bridge enterprises, GCCs, governments, startups, and industry pioneers, creating multiplier effects across the ecosystem.",
-  },
-]
+/* ── Icon resolver ────────────────────────────────────────────────────── */
 
-const STATS = [
-  { value: "50+", label: "Events" },
-  { value: "30+", label: "Countries" },
-  { value: "2,000+", label: "Leaders" },
-  { value: "500+", label: "Speakers" },
-]
+const ICON_MAP: Record<string, LucideIcon> = {
+  MessageSquare,
+  Globe,
+  ShieldCheck,
+  Handshake,
+  Users,
+  TrendingUp,
+  Award,
+  Sparkles,
+}
 
-const SUNNY_SHAH_LINKEDIN = "https://www.linkedin.com/in/sunnymshah/"
+function resolveIcon(name?: string | null): LucideIcon {
+  if (!name) return Star
+  return ICON_MAP[name] ?? Star
+}
+
+/* ── Fallbacks ────────────────────────────────────────────────────────── */
+
+type AboutRow = {
+  id: string
+  section_type: "pillar" | "stat" | "founder" | "vision"
+  title: string
+  subtitle: string | null
+  description: string | null
+  icon: string | null
+  image_url: string | null
+  metric_value: string | null
+  metric_label: string | null
+  link_url: string | null
+  sort_order: number
+}
+
+const FALLBACK_SECTIONS: AboutRow[] = [
+  { id: "p1", section_type: "pillar", title: "Strategic Conversations", subtitle: null, description: "High-value dialogues that shape industries. Curated discussions between C-suite executives, policymakers, and transformation leaders that drive real outcomes.", icon: "MessageSquare", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 1 },
+  { id: "p2", section_type: "pillar", title: "Global Connectivity",     subtitle: null, description: "A living network spanning 30+ countries, from Bengaluru to Dubai, Kuala Lumpur to London, connecting leaders who are redefining the global business landscape.", icon: "Globe", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 2 },
+  { id: "p3", section_type: "pillar", title: "Curated Access",          subtitle: null, description: "An invite-only inner circle where senior leaders gain exclusive peer connections, private roundtables, and strategic access to the people who matter most.", icon: "ShieldCheck", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 3 },
+  { id: "p4", section_type: "pillar", title: "Ecosystem Building",      subtitle: null, description: "Cross-sector partnerships that bridge enterprises, GCCs, governments, startups, and industry pioneers, creating multiplier effects across the ecosystem.", icon: "Handshake", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 4 },
+  { id: "s1", section_type: "stat",   title: "Events",    subtitle: null, description: null, icon: null, image_url: null, metric_value: "50+",    metric_label: "Events",    link_url: null, sort_order: 1 },
+  { id: "s2", section_type: "stat",   title: "Countries", subtitle: null, description: null, icon: null, image_url: null, metric_value: "30+",    metric_label: "Countries", link_url: null, sort_order: 2 },
+  { id: "s3", section_type: "stat",   title: "Leaders",   subtitle: null, description: null, icon: null, image_url: null, metric_value: "2,000+", metric_label: "Leaders",   link_url: null, sort_order: 3 },
+  { id: "s4", section_type: "stat",   title: "Speakers",  subtitle: null, description: null, icon: null, image_url: null, metric_value: "500+",   metric_label: "Speakers",  link_url: null, sort_order: 4 },
+  { id: "v1", section_type: "vision", title: "To build the world's most impactful leadership ecosystem", subtitle: null, description: "Where every conversation sparks action, every connection creates value, and every leader finds the platform to amplify their impact on the global stage.", icon: null, image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 1 },
+  { id: "f1", section_type: "founder", title: "Sunny Shah", subtitle: "Founder & CEO",
+    description: `As Founder & CEO of The Leadership Federation, Sunny Shah envisioned a platform that transcends traditional conferences and networking events. His vision centres on creating lasting bridges between enterprises, Global Capability Centres, governments, and emerging ecosystems.
+
+Under his leadership, TLF has grown into one of the most respected leadership platforms in the GCC and Asia-Pacific region, convening decision-makers from over 30 countries and facilitating the strategic conversations that shape industries.
+
+His approach is rooted in a singular belief: that the right conversation between the right leaders at the right time can transform enterprises, economies, and communities. This philosophy drives every event, every programme, and every partnership within the TLF ecosystem.`,
+    icon: null, image_url: "/sunny-shah.jpg", metric_value: null, metric_label: null, link_url: "https://www.linkedin.com/in/sunnymshah/", sort_order: 1 },
+]
 
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
-/** Check at build/render time whether the founder photo has been uploaded.
- *  Drop a file at `public/sunny-shah.jpg` and it'll start showing automatically. */
-function hasFounderPhoto(): boolean {
+/** Check at build/render time whether the founder photo has been uploaded. */
+function hasFounderPhoto(imageUrl?: string | null): boolean {
+  if (!imageUrl) return false
+  // If it's an external URL (http/https), assume it exists.
+  if (/^https?:\/\//.test(imageUrl)) return true
   try {
-    return existsSync(path.join(process.cwd(), "public", "sunny-shah.jpg"))
+    const rel = imageUrl.startsWith("/") ? imageUrl.slice(1) : imageUrl
+    return existsSync(path.join(process.cwd(), "public", rel))
   } catch {
     return false
   }
 }
 
-export default function AboutPage() {
-  const founderPhotoExists = hasFounderPhoto()
+export default async function AboutPage() {
+  let sections: AboutRow[] = FALLBACK_SECTIONS
+  try {
+    const res = await getAboutSections(true)
+    if (res.success && res.sections && res.sections.length > 0) {
+      sections = res.sections as AboutRow[]
+    }
+  } catch {
+    /* fall back */
+  }
+
+  const pillars = sections.filter(s => s.section_type === "pillar")
+  const stats   = sections.filter(s => s.section_type === "stat")
+  const vision  = sections.find(s => s.section_type === "vision")
+  const founder = sections.find(s => s.section_type === "founder")
+
+  const founderPhotoExists = hasFounderPhoto(founder?.image_url)
+  const founderParagraphs = (founder?.description ?? "")
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(Boolean)
+
   return (
     <main className="">
       {/* Hero */}
@@ -98,193 +145,196 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Vision — light card with gold accent */}
-      <section className="pb-16 px-6">
-        <div className="max-w-5xl mx-auto">
-          <AnimateOnScroll animation="scale">
-            <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-12 md:p-20 text-center relative overflow-hidden">
-              {/* Ambient gold glow */}
-              <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                style={{
-                  width: "700px",
-                  height: "400px",
-                  borderRadius: "50%",
-                  background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
-                }}
-                aria-hidden
-              />
-              <div className="relative z-10">
-                <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-                  Our Vision
-                </span>
-                <h2
-                  className="text-[#1a1a2e] leading-[1.12] font-bold max-w-3xl mx-auto"
-                  style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
-                >
-                  To build the world&rsquo;s most impactful leadership ecosystem
-                </h2>
-                <p className="mt-6 text-[#1a1a2e]/70 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
-                  Where every conversation sparks action, every connection creates
-                  value, and every leader finds the platform to amplify their impact
-                  on the global stage.
-                </p>
+      {/* Vision */}
+      {vision && (
+        <section className="pb-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <AnimateOnScroll animation="scale">
+              <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-12 md:p-20 text-center relative overflow-hidden">
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                  style={{
+                    width: "700px",
+                    height: "400px",
+                    borderRadius: "50%",
+                    background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
+                  }}
+                  aria-hidden
+                />
+                <div className="relative z-10">
+                  <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
+                    Our Vision
+                  </span>
+                  <h2
+                    className="text-[#1a1a2e] leading-[1.12] font-bold max-w-3xl mx-auto"
+                    style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
+                  >
+                    {vision.title}
+                  </h2>
+                  {vision.description && (
+                    <p className="mt-6 text-[#1a1a2e]/70 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+                      {vision.description}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          </AnimateOnScroll>
-        </div>
-      </section>
+            </AnimateOnScroll>
+          </div>
+        </section>
+      )}
 
       {/* Founder */}
-      <section className="pb-16 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-5 gap-12 md:gap-16 items-start">
-            <AnimateOnScroll animation="fade-right" className="md:col-span-2">
-              <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-[#1a1a2e]/[0.06] shadow-sm relative bg-gradient-to-br from-[#1a1a2e] via-[#2a2440] to-[#1a1a2e]">
-                {/*
-                  To show the real Sunny Shah photo here:
-                  1. Save the photo at: public/sunny-shah.jpg
-                     (Recommended size: 600x800 or any 3:4 ratio. JPG or PNG.)
-                  2. Refresh — it will replace this monogram automatically.
-                */}
-                {founderPhotoExists ? (
-                  <Image
-                    src="/sunny-shah.jpg"
-                    alt="Sunny Shah, Founder & CEO of The Leadership Federation"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 40vw"
-                    className="object-cover"
-                  />
-                ) : (
-                  <>
-                    {/* Stylized monogram fallback — looks intentional, not broken */}
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background:
-                          "radial-gradient(circle at 50% 35%, rgba(231,171,28,0.22) 0%, transparent 65%)",
-                      }}
-                      aria-hidden
+      {founder && (
+        <section className="pb-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-5 gap-12 md:gap-16 items-start">
+              <AnimateOnScroll animation="fade-right" className="md:col-span-2">
+                <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-[#1a1a2e]/[0.06] shadow-sm relative bg-gradient-to-br from-[#1a1a2e] via-[#2a2440] to-[#1a1a2e]">
+                  {founderPhotoExists && founder.image_url ? (
+                    <Image
+                      src={founder.image_url}
+                      alt={`${founder.title}, ${founder.subtitle ?? "Founder"} of The Leadership Federation`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 40vw"
+                      className="object-cover"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span
-                        className="text-[140px] font-bold text-[#e7ab1c]/80 leading-none tracking-tighter"
-                        style={sfFont}
-                      >
-                        SS
-                      </span>
-                    </div>
-                  </>
-                )}
-                {/* Bottom gradient + caption */}
-                <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-[#1a1a2e]/85 via-[#1a1a2e]/40 to-transparent">
-                  <p className="text-base font-bold text-white">Sunny Shah</p>
-                  <p className="text-xs text-white/85 mt-0.5">Founder & CEO</p>
+                  ) : (
+                    <>
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background:
+                            "radial-gradient(circle at 50% 35%, rgba(231,171,28,0.22) 0%, transparent 65%)",
+                        }}
+                        aria-hidden
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span
+                          className="text-[140px] font-bold text-[#e7ab1c]/80 leading-none tracking-tighter"
+                          style={sfFont}
+                        >
+                          {founder.title
+                            .split(/\s+/)
+                            .map(w => w[0] ?? "")
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-[#1a1a2e]/85 via-[#1a1a2e]/40 to-transparent">
+                    <p className="text-base font-bold text-white">{founder.title}</p>
+                    {founder.subtitle && (
+                      <p className="text-xs text-white/85 mt-0.5">{founder.subtitle}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </AnimateOnScroll>
+              </AnimateOnScroll>
 
-            <AnimateOnScroll animation="fade-left" delay={200} className="md:col-span-3">
+              <AnimateOnScroll animation="fade-left" delay={200} className="md:col-span-3">
+                <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
+                  The Founder
+                </span>
+                <h2
+                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-6"
+                  style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
+                >
+                  {founder.title}
+                </h2>
+                {founderParagraphs.map((p, i) => (
+                  <p
+                    key={i}
+                    className={`text-[15px] text-[#1a1a2e]/75 leading-[1.8] ${
+                      i === founderParagraphs.length - 1 ? "mb-7" : "mb-5"
+                    }`}
+                  >
+                    {p}
+                  </p>
+                ))}
+                {founder.link_url && (
+                  <Link
+                    href={founder.link_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0A66C2] text-white text-sm font-semibold transition-opacity duration-200 hover:opacity-90 shadow-sm"
+                  >
+                    <Linkedin size={15} /> Connect on LinkedIn
+                  </Link>
+                )}
+              </AnimateOnScroll>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Why TLF Exists (pillars) */}
+      {pillars.length > 0 && (
+        <section className="pb-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16">
               <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
-                The Founder
+                Our Pillars
               </span>
               <h2
-                className="text-[#1a1a2e] leading-[1.12] font-bold mb-6"
-                style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
+                className="text-[#1a1a2e] leading-[1.12] font-bold"
+                style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
               >
-                Sunny Shah
+                Why TLF Exists
               </h2>
-              <p className="text-[15px] text-[#1a1a2e]/75 leading-[1.8] mb-5">
-                As Founder & CEO of The Leadership Federation, Sunny Shah
-                envisioned a platform that transcends traditional conferences
-                and networking events. His vision centres on creating lasting
-                bridges between enterprises, Global Capability Centres,
-                governments, and emerging ecosystems.
-              </p>
-              <p className="text-[15px] text-[#1a1a2e]/75 leading-[1.8] mb-5">
-                Under his leadership, TLF has grown into one of the most
-                respected leadership platforms in the GCC and Asia-Pacific
-                region, convening decision-makers from over 30 countries and
-                facilitating the strategic conversations that shape industries.
-              </p>
-              <p className="text-[15px] text-[#1a1a2e]/75 leading-[1.8] mb-7">
-                His approach is rooted in a singular belief: that the right
-                conversation between the right leaders at the right time can
-                transform enterprises, economies, and communities. This
-                philosophy drives every event, every programme, and every
-                partnership within the TLF ecosystem.
-              </p>
-              <Link
-                href={SUNNY_SHAH_LINKEDIN}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0A66C2] text-white text-sm font-semibold transition-opacity duration-200 hover:opacity-90 shadow-sm"
-              >
-                <Linkedin size={15} /> Connect on LinkedIn
-              </Link>
-            </AnimateOnScroll>
-          </div>
-        </div>
-      </section>
+            </div>
 
-      {/* Why TLF Exists */}
-      <section className="pb-16 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
-              Our Pillars
-            </span>
-            <h2
-              className="text-[#1a1a2e] leading-[1.12] font-bold"
-              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
-            >
-              Why TLF Exists
-            </h2>
-          </div>
-
-          <StaggerChildren animation="fade-up" stagger={100} className="grid sm:grid-cols-2 gap-5">
-            {WHY_TLF.map(({ icon: Icon, title, description }) => (
-              <div
-                key={title}
-                className="rounded-2xl bg-white p-8 md:p-10 border border-[#1a1a2e]/[0.06] shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
-              >
-                <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mb-5">
-                  <Icon size={22} strokeWidth={1.6} className="text-[#e7ab1c]" />
-                </div>
-                <h3 className="text-[17px] font-bold text-[#1a1a2e] mb-3">
-                  {title}
-                </h3>
-                <p className="text-[14px] text-[#1a1a2e]/70 leading-[1.7]">
-                  {description}
-                </p>
-              </div>
-            ))}
-          </StaggerChildren>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="pb-16 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16">
-            <StaggerChildren animation="scale" stagger={80} className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-              {STATS.map(({ value, label }) => (
-                <div key={label}>
-                  <p
-                    className="text-[#e7ab1c] leading-none font-bold mb-2"
-                    style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", ...sfFont }}
+            <StaggerChildren animation="fade-up" stagger={100} className="grid sm:grid-cols-2 gap-5">
+              {pillars.map((p) => {
+                const Icon = resolveIcon(p.icon)
+                return (
+                  <div
+                    key={p.id}
+                    className="rounded-2xl bg-white p-8 md:p-10 border border-[#1a1a2e]/[0.06] shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
                   >
-                    {value}
-                  </p>
-                  <p className="text-[13px] font-semibold text-[#1a1a2e]/65 uppercase tracking-[0.15em]">
-                    {label}
-                  </p>
-                </div>
-              ))}
+                    <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mb-5">
+                      <Icon size={22} strokeWidth={1.6} className="text-[#e7ab1c]" />
+                    </div>
+                    <h3 className="text-[17px] font-bold text-[#1a1a2e] mb-3">
+                      {p.title}
+                    </h3>
+                    {p.description && (
+                      <p className="text-[14px] text-[#1a1a2e]/70 leading-[1.7]">
+                        {p.description}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
             </StaggerChildren>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Stats */}
+      {stats.length > 0 && (
+        <section className="pb-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16">
+              <StaggerChildren animation="scale" stagger={80} className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+                {stats.map((s) => (
+                  <div key={s.id}>
+                    <p
+                      className="text-[#e7ab1c] leading-none font-bold mb-2"
+                      style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", ...sfFont }}
+                    >
+                      {s.metric_value ?? ""}
+                    </p>
+                    <p className="text-[13px] font-semibold text-[#1a1a2e]/65 uppercase tracking-[0.15em]">
+                      {s.metric_label ?? s.title}
+                    </p>
+                  </div>
+                ))}
+              </StaggerChildren>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="pb-20 px-6">

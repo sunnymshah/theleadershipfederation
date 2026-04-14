@@ -57,6 +57,12 @@ import {
   Plug,
   Inbox,
   ChevronDown,
+  Handshake,
+  Layers,
+  Info,
+  HelpCircle,
+  Newspaper,
+  BadgeCheck,
 } from "lucide-react"
 
 /* ─── Section definitions ─────────────────────────────────────────────── */
@@ -163,6 +169,13 @@ const sections: NavSection[] = [
     icon: Building2,
     items: [
       { label: "Sponsors", href: "/admin/sponsors", icon: Building2 },
+      { label: "Partners", href: "/admin/partners", icon: Handshake },
+      { label: "Platforms", href: "/admin/platforms", icon: Layers },
+      { label: "About Page", href: "/admin/about", icon: Info },
+      { label: "Contact Page", href: "/admin/contact", icon: Inbox },
+      { label: "Media / Press", href: "/admin/media", icon: Newspaper },
+      { label: "Inner Circle", href: "/admin/inner-circle", icon: BadgeCheck },
+      { label: "FAQs", href: "/admin/faqs", icon: HelpCircle },
       { label: "Testimonials", href: "/admin/testimonials", icon: Quote },
       { label: "Badges", href: "/admin/badges", icon: IdCard },
     ],

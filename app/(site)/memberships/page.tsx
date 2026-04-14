@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 import { getMembershipTiers } from "@/app/actions/membershipActions"
+import { getMembershipComparisonRows, getFaqs } from "@/app/actions/cmsActions"
 
 export const revalidate = 3600
 
@@ -175,7 +176,18 @@ interface ComparisonRow {
   titanium: string | boolean
 }
 
-const COMPARISON: ComparisonRow[] = [
+/** Convert a string DB value to display-typed value (boolean/string). */
+function parseCellValue(raw: string | null | undefined): string | boolean {
+  if (raw === null || raw === undefined) return false
+  const v = raw.trim()
+  if (v === "") return false
+  const lower = v.toLowerCase()
+  if (lower === "true") return true
+  if (lower === "false") return false
+  return v
+}
+
+const FALLBACK_COMPARISON: ComparisonRow[] = [
   { feature: "Member Directory Access", silver: true, gold: true, platinum: true, titanium: true },
   { feature: "Event Discount", silver: "5%", gold: "10%", platinum: "15%", titanium: "20%" },
   { feature: "Event Credits", silver: "₹25,000", gold: "₹50,000", platinum: "₹75,000", titanium: "₹1,00,000" },
@@ -191,7 +203,9 @@ const COMPARISON: ComparisonRow[] = [
 
 /* ── FAQ ──────────────────────────────────────────────────────────── */
 
-const FAQ = [
+interface FaqItem { q: string; a: string }
+
+const FALLBACK_FAQ: FaqItem[] = [
   {
     q: "How long is the membership valid?",
     a: "All memberships are valid for one year from the date of activation. Renewals are offered at preferential rates to existing members.",
@@ -270,6 +284,30 @@ export default async function MembershipsPage() {
   } catch {
     // DB unavailable — use fallback tiers
   }
+
+  /* Fetch comparison rows */
+  let COMPARISON: ComparisonRow[] = FALLBACK_COMPARISON
+  try {
+    const result = await getMembershipComparisonRows(true)
+    if (result.success && result.rows && result.rows.length > 0) {
+      COMPARISON = result.rows.map((r) => ({
+        feature:  r.feature,
+        silver:   parseCellValue(r.silver_value),
+        gold:     parseCellValue(r.gold_value),
+        platinum: parseCellValue(r.platinum_value),
+        titanium: parseCellValue(r.titanium_value),
+      }))
+    }
+  } catch {/* fall back */}
+
+  /* Fetch FAQs */
+  let FAQ: FaqItem[] = FALLBACK_FAQ
+  try {
+    const result = await getFaqs("memberships", true)
+    if (result.success && result.faqs && result.faqs.length > 0) {
+      FAQ = result.faqs.map((f) => ({ q: f.question, a: f.answer }))
+    }
+  } catch {/* fall back */}
 
   return (
     <main className="">
