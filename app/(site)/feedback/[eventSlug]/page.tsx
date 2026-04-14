@@ -36,7 +36,7 @@ export default async function FeedbackPage({ params }: Props) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-20 bg-[#F4F8FF]"
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-20"
       style={{
         fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
       }}

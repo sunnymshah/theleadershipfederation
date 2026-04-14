@@ -84,7 +84,7 @@ export default async function EventsPage() {
   const otherUpcoming = upcoming.slice(1)
 
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen">
       {/* ── Hero ── */}
       <section className="relative pt-20 sm:pt-24 pb-10 sm:pb-14 px-4 sm:px-6 overflow-hidden">
         {/* Subtle geometric pattern */}

@@ -47,7 +47,7 @@ export default async function DelegateDirectoryPage({ params }: Props) {
   const delegateList = delegates ?? []
 
   return (
-    <div className="min-h-screen bg-[#F4F8FF]">
+    <div className="min-h-screen">
       {/* ── Hero Header ──────────────────────────────────────────── */}
       <section className="relative pt-32 pb-16 overflow-hidden">
         {/* Ambient glow */}

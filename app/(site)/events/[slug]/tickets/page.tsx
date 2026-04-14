@@ -80,7 +80,7 @@ export default async function EventTicketsPage({ params }: Props) {
     event.status === "completed" || new Date(event.end_date).getTime() < Date.now()
 
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen">
       {/* Header */}
       <section className="pt-24 pb-10 px-6 border-b border-[#1a1a2e]/[0.05]">
         <div className="max-w-5xl mx-auto">

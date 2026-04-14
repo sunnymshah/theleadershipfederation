@@ -66,7 +66,7 @@ export function EcosystemGrid() {
   }, [])
 
   return (
-    <section ref={ref} className="relative py-12 lg:py-16 bg-[#F4F8FF] overflow-hidden">
+    <section ref={ref} className="relative py-12 lg:py-16 overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section header */}
         <div

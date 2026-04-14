@@ -87,7 +87,7 @@ export default async function TicketsPage() {
     .filter((e) => e.tickets.length > 0)
 
   return (
-    <main className="min-h-screen bg-[#F4F8FF]" style={sfFont}>
+    <main className="min-h-screen" style={sfFont}>
       {/* ── Hero ── */}
       <section className="relative pt-20 sm:pt-24 pb-10 sm:pb-12 px-4 sm:px-6 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #1a1a2e 1px, transparent 0)", backgroundSize: "32px 32px" }} />

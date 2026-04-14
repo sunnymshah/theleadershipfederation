@@ -55,7 +55,7 @@ export function SpeakerMarquee({ speakers }: Props) {
   const doubled2 = [...row2, ...row2]
 
   return (
-    <section className="relative py-12 lg:py-16 bg-[#F4F8FF] overflow-hidden">
+    <section className="relative py-12 lg:py-16 overflow-hidden">
       {/* Top edge gold line */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#e7ab1c]/30 to-transparent" />
 

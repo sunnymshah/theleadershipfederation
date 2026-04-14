@@ -228,7 +228,7 @@ export default function InnerCirclePage() {
       </section>
 
       {/* ── Value proposition ── */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-[#F4F8FF]">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <AnimateOnScroll animation="fade-up">
             <div className="text-center mb-14">
@@ -357,7 +357,7 @@ export default function InnerCirclePage() {
       </section>
 
       {/* ── Social proof / Testimonials ── */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-[#F4F8FF]">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <AnimateOnScroll animation="fade-up">
             <div className="text-center mb-14">

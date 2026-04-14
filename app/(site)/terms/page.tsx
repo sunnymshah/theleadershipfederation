@@ -17,7 +17,7 @@ const sfFont = {
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#F4F8FF]">
+    <main className="min-h-screen">
       {/* Hero */}
       <section className="pt-24 pb-8 px-6">
         <div className="max-w-3xl mx-auto">

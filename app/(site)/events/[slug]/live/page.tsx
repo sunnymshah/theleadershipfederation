@@ -55,7 +55,7 @@ export default async function LiveEventPage({ params }: Props) {
     .order("start_time", { ascending: true })
 
   return (
-    <div className="min-h-screen bg-[#F4F8FF] text-[#1a1a2e]">
+    <div className="min-h-screen text-[#1a1a2e]">
       {/* ── Header ─────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-[#F4F8FF]/95 backdrop-blur-md border-b border-[#1a1a2e]/[0.06]">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
