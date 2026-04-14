@@ -95,7 +95,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#F4F8FF]"
+      className="relative overflow-hidden"
     >
       {/* Background patterns — behind everything */}
       <div className="absolute inset-0 z-0">
