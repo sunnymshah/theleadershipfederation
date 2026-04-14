@@ -196,8 +196,8 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                 <div className="grid grid-cols-3 gap-4 mb-8">
                   {[
                     { value: "30+", label: "Countries" },
-                    { value: `${speakerCount ?? 200}+`, label: "Speakers" },
-                    { value: `${eventCount ?? 50}+`, label: "Events" },
+                    { value: `${(speakerCount ?? 0) >= 500 ? speakerCount : 500}+`, label: "Speakers" },
+                    { value: `${(eventCount ?? 0) >= 50 ? eventCount : 50}+`, label: "Events" },
                   ].map((stat) => (
                     <div key={stat.label} className="text-center">
                       <div
