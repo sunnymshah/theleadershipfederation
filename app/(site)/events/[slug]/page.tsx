@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink, Camera } from "lucide-react"
+import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink, Camera, Trophy } from "lucide-react"
 import { getGalleryImages } from "@/app/actions/galleryActions"
 import { getEvent } from "@/lib/get-event"
 import { SpeakerGrid } from "@/components/site/SpeakerGrid"
@@ -109,7 +109,7 @@ export default async function EventDetailPage({ params }: Props) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  const [speakersRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes] = await Promise.all([
+  const [speakersRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes, winnersRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
     supabase.from("sponsors").select("*").eq("event_id", event.id).order("sort_order"),
@@ -118,12 +118,14 @@ export default async function EventDetailPage({ params }: Props) {
       (await supabase.from("sessions").select("id").eq("event_id", event.id)).data?.map((s: { id: string }) => s.id) ?? []
     ),
     getGalleryImages(event.id),
+    supabase.from("event_winners").select("*").eq("event_id", event.id).order("sort_order"),
   ])
 
   const speakers = speakersRes.data ?? []
   const sessions = sessionsRes.data ?? []
   const sponsors = sponsorsRes.data ?? []
   const galleryImages = galleryRes.images ?? []
+  const winners = winnersRes.data ?? []
   const sessionSpeakerLinks = sessionSpeakersRes.data ?? []
 
   // Build a map: sessionId -> speaker objects
@@ -170,6 +172,7 @@ export default async function EventDetailPage({ params }: Props) {
   if (speakers.length > 0) stats.push({ label: speakers.length === 1 ? "Speaker" : "Speakers", value: speakers.length, icon: "speakers" })
   if (sessions.length > 0) stats.push({ label: sessions.length === 1 ? "Session" : "Sessions", value: sessions.length, icon: "sessions" })
   if (sponsors.length > 0) stats.push({ label: sponsors.length === 1 ? "Sponsor" : "Sponsors", value: sponsors.length, icon: "sponsors" })
+  if (winners.length > 0) stats.push({ label: winners.length === 1 ? "Winner" : "Winners", value: winners.length, icon: "winners" })
 
   return (
     <div className="min-h-screen">
@@ -375,7 +378,8 @@ export default async function EventDetailPage({ params }: Props) {
                       {stat.icon === "speakers" && <Users size={16} className="text-[#e7ab1c]" />}
                       {stat.icon === "sessions" && <Clock size={16} className="text-[#e7ab1c]" />}
                       {stat.icon === "tickets" && <Ticket size={16} className="text-[#e7ab1c]" />}
-                      {stat.icon === "sponsors" && <Award size={16} className="text-[#e7ab1c]" />}
+                      {stat.icon === "sponsors" && <Building2 size={16} className="text-[#e7ab1c]" />}
+                      {stat.icon === "winners" && <Trophy size={16} className="text-[#e7ab1c]" />}
                       <span className="text-3xl font-bold text-[#1a1a2e] tabular-nums">{stat.value}</span>
                     </div>
                     <span className="text-xs text-[#1a1a2e]/55 uppercase tracking-wider font-medium">
@@ -723,6 +727,104 @@ export default async function EventDetailPage({ params }: Props) {
                 </div>
               )
             })}
+          </div>
+        </section>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────
+       *  6.25. AWARD WINNERS SECTION
+       * ──────────────────────────────────────────────────────────── */}
+      {winners.length > 0 && (
+        <section id="winners" className="py-20 border-t border-[#1a1a2e]/[0.05] relative overflow-hidden">
+          {/* Ambient gold glow */}
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={{
+              width: "800px",
+              height: "400px",
+              borderRadius: "50%",
+              background: "radial-gradient(ellipse at center, rgba(231,171,28,0.08) 0%, transparent 60%)",
+            }}
+            aria-hidden
+          />
+
+          <div className="relative z-10 max-w-6xl mx-auto px-6">
+            {/* Section header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-3 mb-4">
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
+                <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">
+                  Hall of Honour
+                </span>
+                <div className="h-px w-8 bg-[#e7ab1c]/40" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e] mb-3">
+                Award Winners
+              </h2>
+              <p className="text-sm text-[#1a1a2e]/60 max-w-xl mx-auto">
+                Celebrating the leaders honoured at {event.title}.
+              </p>
+            </div>
+
+            {/* Winners grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {winners.map((w) => (
+                <div
+                  key={w.id}
+                  className="group relative rounded-2xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm hover:shadow-md hover:border-[#e7ab1c]/40 transition-all duration-300 overflow-hidden"
+                >
+                  {/* Gold accent ribbon */}
+                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#e7ab1c]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  <div className="p-6">
+                    {/* Trophy + category */}
+                    {w.award_category && (
+                      <div className="flex items-center gap-2 mb-4">
+                        <Trophy size={13} className="text-[#e7ab1c] shrink-0" />
+                        <span className="text-[10px] font-bold text-[#e7ab1c] uppercase tracking-[0.15em] truncate">
+                          {w.award_category}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Image + Name + role */}
+                    <div className="flex items-start gap-4">
+                      {w.image_url ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={w.image_url}
+                          alt={w.name}
+                          className="w-16 h-16 rounded-full object-cover shrink-0 ring-2 ring-[#e7ab1c]/25"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-[#e7ab1c]/10 border border-[#e7ab1c]/25 flex items-center justify-center shrink-0">
+                          <Award size={22} className="text-[#e7ab1c]" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-[#1a1a2e] leading-tight">{w.name}</p>
+                        {(w.designation || w.company) && (
+                          <p className="text-[12px] text-[#1a1a2e]/60 mt-1 leading-snug">
+                            {[w.designation, w.company].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                        {w.linkedin_url && (
+                          <a
+                            href={w.linkedin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-[11px] text-[#1a1a2e]/50 hover:text-[#0a66c2] mt-2 transition-colors"
+                          >
+                            <ExternalLink size={11} />
+                            LinkedIn
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}

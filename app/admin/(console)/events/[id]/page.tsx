@@ -35,6 +35,7 @@ import {
   ExternalLink,
   Type,
   Image as ImageIcon,
+  Trophy,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import dynamic from "next/dynamic"
@@ -72,6 +73,10 @@ const GalleryManager = dynamic(
   () => import("@/components/admin/GalleryManager").then(mod => ({ default: mod.GalleryManager })),
   { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
 )
+const EventWinnerManager = dynamic(
+  () => import("@/components/admin/EventWinnerManager").then(mod => ({ default: mod.EventWinnerManager })),
+  { loading: () => <div className="p-8 text-center text-white/30">Loading...</div>, ssr: false }
+)
 
 // ── Types ─────────────────────────────────────────────────────────────
 interface EventDetail {
@@ -107,6 +112,7 @@ interface Counts {
   promoCodes: number
   customFields: number
   galleryImages: number
+  winners: number
   revenue: number
   checkedIn: number
 }
@@ -130,6 +136,7 @@ const TABS = [
   { key: "promo-codes",   label: "Promo Codes",   icon: Tag },
   { key: "form-fields",   label: "Form Fields",   icon: Type },
   { key: "gallery",       label: "Gallery",       icon: ImageIcon },
+  { key: "winners",       label: "Winners",       icon: Trophy },
   { key: "settings",      label: "Settings",      icon: Settings },
 ] as const
 
@@ -154,7 +161,7 @@ export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [event, setEvent]         = useState<EventDetail | null>(null)
-  const [counts, setCounts]       = useState<Counts>({ tickets: 0, speakers: 0, attendees: 0, sponsors: 0, sessions: 0, promoCodes: 0, customFields: 0, galleryImages: 0, revenue: 0, checkedIn: 0 })
+  const [counts, setCounts]       = useState<Counts>({ tickets: 0, speakers: 0, attendees: 0, sponsors: 0, sessions: 0, promoCodes: 0, customFields: 0, galleryImages: 0, winners: 0, revenue: 0, checkedIn: 0 })
   const [loading, setLoading]     = useState(true)
   const [activeTab, setActiveTab] = useState<TabKey>("overview")
 
@@ -162,7 +169,7 @@ export default function EventDetailPage() {
 
   const fetchEvent = useCallback(async () => {
     setLoading(true)
-    const [eventRes, ticketCount, speakerCount, attendeeCount, sponsorCount, sessionCount, promoCount, customFieldCount, galleryCount, revenueRes, checkedInCount] = await Promise.all([
+    const [eventRes, ticketCount, speakerCount, attendeeCount, sponsorCount, sessionCount, promoCount, customFieldCount, galleryCount, winnerCount, revenueRes, checkedInCount] = await Promise.all([
       supabase.from("events").select("*").eq("id", id).single(),
       supabase.from("tickets").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("speakers").select("id", { count: "exact", head: true }).eq("event_id", id),
@@ -172,6 +179,7 @@ export default function EventDetailPage() {
       supabase.from("promo_codes").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("custom_fields").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("event_gallery").select("id", { count: "exact", head: true }).eq("event_id", id),
+      supabase.from("event_winners").select("id", { count: "exact", head: true }).eq("event_id", id),
       supabase.from("tickets").select("price_inr, sold").eq("event_id", id),
       supabase.from("attendees").select("id", { count: "exact", head: true }).eq("event_id", id).eq("status", "checked_in"),
     ])
@@ -190,6 +198,7 @@ export default function EventDetailPage() {
       promoCodes: promoCount.count ?? 0,
       customFields: customFieldCount.count ?? 0,
       galleryImages: galleryCount.count ?? 0,
+      winners: winnerCount.count ?? 0,
       revenue,
       checkedIn: checkedInCount.count ?? 0,
     })
@@ -295,6 +304,7 @@ export default function EventDetailPage() {
                 : key === "promo-codes" ? counts.promoCodes
                 : key === "form-fields" ? counts.customFields
                 : key === "gallery" ? counts.galleryImages
+                : key === "winners" ? counts.winners
                 : null
 
               return (
@@ -337,6 +347,7 @@ export default function EventDetailPage() {
           {activeTab === "promo-codes"  && <PromoCodeManager eventId={event.id} />}
           {activeTab === "form-fields"  && <CustomFieldManager eventId={event.id} />}
           {activeTab === "gallery"      && <GalleryManager eventId={event.id} />}
+          {activeTab === "winners"      && <EventWinnerManager eventId={event.id} />}
           {activeTab === "settings"     && <SettingsTab event={event} onUpdate={fetchEvent} />}
         </div>
       </div>
@@ -388,6 +399,7 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           { label: "Sponsors",       value: String(counts.sponsors),  icon: Building2,      color: "text-[#c9a84c]",    bg: "bg-[#c9a84c]/10",   tab: "sponsors" as TabKey },
           { label: "Sessions",       value: String(counts.sessions),  icon: ClipboardList,  color: "text-cyan-400",     bg: "bg-cyan-500/10",    tab: "agenda" as TabKey },
           { label: "Promo Codes",    value: String(counts.promoCodes),icon: Tag,            color: "text-pink-400",     bg: "bg-pink-500/10",    tab: "promo-codes" as TabKey },
+          { label: "Winners",        value: String(counts.winners),   icon: Trophy,         color: "text-[#c9a84c]",    bg: "bg-[#c9a84c]/10",   tab: "winners" as TabKey },
           { label: "Revenue",        value: `₹${fmtPrice(counts.revenue)}`, icon: Ticket,  color: "text-emerald-400",  bg: "bg-emerald-500/10", tab: "tickets" as TabKey },
           { label: "Check-In Rate",  value: counts.attendees > 0 ? `${Math.round((counts.checkedIn / counts.attendees) * 100)}%` : "—", icon: CheckCircle2, color: "text-teal-400", bg: "bg-teal-500/10", tab: "crm" as TabKey },
         ].map(({ label, value, icon: Icon, color, bg, tab }) => (

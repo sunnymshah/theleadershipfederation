@@ -28,7 +28,6 @@ import {
   Clock,
   Users,
   UserRound,
-  Mic,
   Users2,
   UserCheck,
   Ticket,
@@ -38,7 +37,6 @@ import {
   Tag,
   RotateCcw,
   Crown,
-  Trophy,
   UserPlus,
   ShieldCheck,
   BarChartHorizontal,
@@ -110,7 +108,6 @@ const sections: NavSection[] = [
     icon: Users,
     items: [
       { label: "Attendees", href: "/admin/attendees", icon: Users },
-      { label: "Speakers", href: "/admin/speakers", icon: Mic },
       { label: "Advisory Board", href: "/admin/advisory-board", icon: Users2 },
       { label: "Team", href: "/admin/team", icon: UserRound },
     ],
@@ -132,7 +129,6 @@ const sections: NavSection[] = [
     icon: Crown,
     items: [
       { label: "Memberships", href: "/admin/memberships", icon: Crown },
-      { label: "Award Winners", href: "/admin/winners", icon: Trophy },
       { label: "Registrations", href: "/admin/registrations", icon: UserPlus },
       { label: "Approvals", href: "/admin/approvals", icon: ShieldCheck },
     ],
@@ -168,7 +164,6 @@ const sections: NavSection[] = [
     title: "Content",
     icon: Building2,
     items: [
-      { label: "Sponsors", href: "/admin/sponsors", icon: Building2 },
       { label: "Partners", href: "/admin/partners", icon: Handshake },
       { label: "Platforms", href: "/admin/platforms", icon: Layers },
       { label: "About Page", href: "/admin/about", icon: Info },

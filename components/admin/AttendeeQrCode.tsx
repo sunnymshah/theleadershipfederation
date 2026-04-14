@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { QrCode, Download, Loader2, X } from "lucide-react"
-import QRCode from "qrcode"
 
 interface Props {
   attendeeName: string
@@ -18,6 +17,7 @@ export function AttendeeQrCode({ attendeeName, qrToken }: Props) {
     setOpen(true)
     if (dataUrl) return
     setLoading(true)
+    const QRCode = (await import("qrcode")).default
     const url = await QRCode.toDataURL(qrToken, {
       width: 400,
       margin: 2,
