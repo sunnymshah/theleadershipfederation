@@ -69,7 +69,7 @@ export default async function EventsPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, speakers(id), tickets(id, price_inr)"
+      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, speakers(id), tickets(id)"
     )
     .eq("status", "published")
     .order("start_date", { ascending: true })
@@ -235,19 +235,8 @@ export default async function EventsPage() {
                   {/* CTA row */}
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold bg-[#e7ab1c] text-[#1a1a2e] group-hover:bg-[#d49c10] transition-all shadow-[0_4px_20px_rgba(231,171,28,0.3)]">
-                      Register Now <ArrowRight size={15} />
+                      Learn More <ArrowRight size={15} />
                     </span>
-                    {Array.isArray(featured.tickets) && featured.tickets.length > 0 && (() => {
-                      const prices = featured.tickets.map((t: { price_inr: number }) => t.price_inr).filter((p: number) => p > 0)
-                      const minPrice = prices.length > 0 ? Math.min(...prices) : 0
-                      return (
-                        <span className="text-white/50 text-sm font-medium">
-                          {minPrice > 0
-                            ? `Starting at ₹${minPrice.toLocaleString("en-IN")}`
-                            : "Free registration available"}
-                        </span>
-                      )
-                    })()}
                   </div>
                 </div>
               </div>

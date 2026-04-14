@@ -4,7 +4,6 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink, Camera } from "lucide-react"
-import { StickyBuyTicketsBar } from "@/components/site/StickyBuyTicketsBar"
 import { getGalleryImages } from "@/app/actions/galleryActions"
 import { getEvent } from "@/lib/get-event"
 import { SpeakerGrid } from "@/components/site/SpeakerGrid"
@@ -110,9 +109,8 @@ export default async function EventDetailPage({ params }: Props) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  const [speakersRes, ticketsRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes] = await Promise.all([
+  const [speakersRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
-    supabase.from("tickets").select("id, price_inr").eq("event_id", event.id).eq("status", "published").order("price_inr"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
     supabase.from("sponsors").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("session_speakers").select("session_id, speaker_id").in(
@@ -123,31 +121,9 @@ export default async function EventDetailPage({ params }: Props) {
   ])
 
   const speakers = speakersRes.data ?? []
-  const tickets = ticketsRes.data ?? []
   const sessions = sessionsRes.data ?? []
   const sponsors = sponsorsRes.data ?? []
   const galleryImages = galleryRes.images ?? []
-
-  // "From" price is the minimum of currently-active tier prices if any, else base price.
-  // We only need the cheapest displayed price for the CTA copy, so fetch only that.
-  const now = new Date().toISOString()
-  const ticketIds = tickets.map((t: { id: string }) => t.id)
-  const { data: activePriceTiers } = ticketIds.length > 0
-    ? await supabase
-        .from("ticket_price_tiers")
-        .select("ticket_id, price_inr")
-        .in("ticket_id", ticketIds)
-        .eq("is_active", true)
-        .lte("starts_at", now)
-        .gte("ends_at", now)
-    : { data: [] as { ticket_id: string; price_inr: number }[] }
-
-  const priceTierMap: Record<string, { price: number }> = {}
-  for (const tier of activePriceTiers ?? []) {
-    if (!priceTierMap[tier.ticket_id]) {
-      priceTierMap[tier.ticket_id] = { price: tier.price_inr }
-    }
-  }
   const sessionSpeakerLinks = sessionSpeakersRes.data ?? []
 
   // Build a map: sessionId -> speaker objects
@@ -189,34 +165,15 @@ export default async function EventDetailPage({ params }: Props) {
   const sessionsByDate = groupSessionsByDate(sessions)
   const dayDates = Array.from(sessionsByDate.keys()).sort()
 
-  // Cheapest available ticket price (after applying any active tier discount)
-  const fromPrice: number | null = tickets.length > 0
-    ? Math.min(
-        ...tickets.map((t: { id: string; price_inr: number }) =>
-          priceTierMap[t.id]?.price ?? t.price_inr
-        )
-      )
-    : null
-
   // Stats for the key stats bar
   const stats: Array<{ label: string; value: number; icon: string }> = []
   if (speakers.length > 0) stats.push({ label: speakers.length === 1 ? "Speaker" : "Speakers", value: speakers.length, icon: "speakers" })
   if (sessions.length > 0) stats.push({ label: sessions.length === 1 ? "Session" : "Sessions", value: sessions.length, icon: "sessions" })
-  if (tickets.length > 0) stats.push({ label: tickets.length === 1 ? "Ticket Tier" : "Ticket Tiers", value: tickets.length, icon: "tickets" })
   if (sponsors.length > 0) stats.push({ label: sponsors.length === 1 ? "Sponsor" : "Sponsors", value: sponsors.length, icon: "sponsors" })
 
   return (
     <div className="min-h-screen bg-[#F4F8FF]">
-      {/* Sticky Buy Tickets bar — appears once user scrolls past the hero */}
-      {isUpcoming && tickets.length > 0 && (
-        <StickyBuyTicketsBar
-          eventTitle={event.title}
-          eventDate={event.start_date}
-          venue={event.venue}
-          fromPrice={fromPrice}
-          ticketsHref={`/events/${event.slug}/tickets`}
-        />
-      )}
+      {/* No pricing on event page — all registration happens via /tickets */}
 
       {/* ────────────────────────────────────────────────────────────
        *  1. HERO SECTION — Full-width, immersive
@@ -387,10 +344,10 @@ export default async function EventDetailPage({ params }: Props) {
             </div>
           )}
 
-          {/* CTA Button — only for published events with tickets */}
-          {isUpcoming && tickets.length > 0 && (
+          {/* CTA Button — links to /tickets for registration */}
+          {isUpcoming && (
             <Link
-              href={`/events/${event.slug}/tickets`}
+              href="/tickets"
               className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-white transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] bg-[#e7ab1c] hover:bg-[#d49c10] shadow-[0_8px_32px_rgba(231,171,28,0.35)]"
             >
               Register Now
@@ -636,9 +593,9 @@ export default async function EventDetailPage({ params }: Props) {
       )}
 
       {/* ────────────────────────────────────────────────────────────
-       *  5. TICKETS CTA — links to /events/[slug]/tickets
+       *  5. REGISTER CTA — links to /tickets
        * ──────────────────────────────────────────────────────────── */}
-      {tickets.length > 0 && isUpcoming && (
+      {isUpcoming && (
         <section className="py-16 border-t border-[#1a1a2e]/[0.05]">
           <div className="max-w-3xl mx-auto px-6 text-center">
             <div className="inline-flex items-center gap-3 mb-4">
@@ -652,14 +609,10 @@ export default async function EventDetailPage({ params }: Props) {
               Ready to Join?
             </h2>
             <p className="text-sm text-[#1a1a2e]/65 max-w-lg mx-auto mb-8">
-              {fromPrice != null && fromPrice > 0 ? (
-                <>Tickets start from &#8377;{new Intl.NumberFormat("en-IN").format(fromPrice)}. Limited seats available.</>
-              ) : (
-                <>Limited seats available. Reserve your spot now.</>
-              )}
+              Limited seats available. Reserve your spot now.
             </p>
             <Link
-              href={`/events/${event.slug}/tickets`}
+              href="/tickets"
               className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full text-base font-bold text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_24px_rgba(231,171,28,0.35)]"
             >
               <Ticket size={16} />
@@ -916,7 +869,7 @@ export default async function EventDetailPage({ params }: Props) {
       {/* ────────────────────────────────────────────────────────────
        *  8. BOTTOM CTA BAR
        * ──────────────────────────────────────────────────────────── */}
-      {isUpcoming && tickets.length > 0 && (
+      {isUpcoming && (
         <section className="relative overflow-hidden">
           <div
             className="py-16 md:py-20"
@@ -940,15 +893,15 @@ export default async function EventDetailPage({ params }: Props) {
               <p className="text-base text-[#1a1a2e]/55 mb-8 max-w-lg mx-auto">
                 Secure your place at {event.title}. Limited seats available.
               </p>
-              <a
-                href="#tickets"
+              <Link
+                href="/tickets"
                 className="inline-flex items-center gap-2.5 px-10 py-4 rounded-xl text-base font-bold text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
                 style={{
                   boxShadow: "0 8px 32px rgba(231,171,28,0.35)",
                 }}
               >
                 Register Now
-              </a>
+              </Link>
             </div>
           </div>
         </section>
