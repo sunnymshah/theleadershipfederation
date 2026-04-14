@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
+import { SiteBackground } from "@/components/ui/SiteBackground"
 import "./globals.css"
 
 const inter = Inter({
@@ -36,7 +37,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
-      <body className="min-h-full bg-[#F4F8FF] text-[#1a1a2e] font-sans">
+      <body className="min-h-full bg-[#F4F8FF] text-[#1a1a2e] font-sans relative">
+        <SiteBackground />
         {children}
       </body>
     </html>
