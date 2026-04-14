@@ -1,9 +1,7 @@
-"use client"
-
-import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, Loader2, Check, Globe, ExternalLink, AtSign, Play } from "lucide-react"
+import { Globe, ExternalLink, AtSign, Play } from "lucide-react"
+import { FooterNewsletterForm } from "./FooterNewsletterForm"
 
 const sfText = {
   fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
@@ -19,7 +17,7 @@ const footerLinks = {
   "Connect": [
     { label: "Partners", href: "/partners" },
     { label: "Media", href: "/media" },
-    { label: "Archive", href: "/archive" },
+    { label: "Register", href: "/register" },
     { label: "Contact", href: "/contact" },
   ],
   "Flagship Events": [
@@ -27,6 +25,12 @@ const footerLinks = {
     { label: "Asia Leadership Awards", href: "/events" },
     { label: "Bharat Leadership Summit", href: "/events" },
     { label: "Innovation Summit", href: "/events" },
+  ],
+  "Legal": [
+    { label: "Terms & Conditions", href: "/terms" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Refund Policy", href: "/refund-policy" },
+    { label: "Memberships", href: "/memberships" },
   ],
 }
 
@@ -38,21 +42,6 @@ const socials = [
 ]
 
 export function Footer() {
-  const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle")
-
-  function handleSubscribe(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email.trim()) return
-    setStatus("loading")
-    // Simulate subscribe (replace with real endpoint)
-    setTimeout(() => {
-      setStatus("success")
-      setEmail("")
-      setTimeout(() => setStatus("idle"), 3000)
-    }, 800)
-  }
-
   return (
     <footer className="bg-[#1a1a2e] relative overflow-hidden">
       {/* Gold accent line */}
@@ -81,31 +70,7 @@ export function Footer() {
             <p className="text-[13px] text-white/85 mb-5 leading-relaxed" style={sfText}>
               Exclusive updates on upcoming conclaves, speaker announcements, and leadership insights. No spam.
             </p>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                required
-                className="flex-1 min-w-0 px-4 py-2.5 rounded-full bg-white/[0.08] border border-white/[0.15] text-[13px] text-white placeholder-white/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-colors"
-                style={sfText}
-              />
-              <button
-                type="submit"
-                disabled={status !== "idle"}
-                className="shrink-0 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] disabled:opacity-60 transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.2)]"
-                style={sfText}
-              >
-                {status === "loading" ? (
-                  <Loader2 size={13} className="animate-spin" />
-                ) : status === "success" ? (
-                  <><Check size={13} /> Subscribed</>
-                ) : (
-                  <>Subscribe <ArrowRight size={12} /></>
-                )}
-              </button>
-            </form>
+            <FooterNewsletterForm />
           </div>
         </div>
 
@@ -145,7 +110,7 @@ export function Footer() {
 
           {/* Link columns */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title} className="md:col-span-2 md:first:col-start-6">
+            <div key={title} className="md:col-span-2">
               <h4
                 className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.15em] mb-4"
                 style={sfText}

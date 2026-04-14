@@ -6,6 +6,9 @@ import {
   MapPin,
   Mail,
   Phone,
+  Trophy,
+  Megaphone,
+  Building2,
 } from "lucide-react"
 import { ContactForm } from "@/components/site/ContactForm"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
@@ -42,6 +45,70 @@ const INQUIRY_TYPES = [
     label: "Inner Circle Membership",
     description:
       "Apply for our invitation-only leadership community of 500+ global CXOs.",
+  },
+]
+
+const DEPARTMENTS = [
+  {
+    icon: Handshake,
+    department: "Sponsorship & Exhibitor",
+    description: "Partner with us as a sponsor or exhibitor at our global leadership events.",
+    contacts: [
+      {
+        name: "Harshal Patel",
+        email: "Harshal@theleadershipfederation.com",
+        phone: "+91 72279 93338",
+        phoneRaw: "+917227993338",
+      },
+    ],
+  },
+  {
+    icon: Trophy,
+    department: "Award Nomination & Speaker Opportunity",
+    description: "Nominate for awards or explore speaking engagements at TLF events.",
+    contacts: [
+      {
+        name: "Ovais Kapadia",
+        email: "Ovais@theleadershipfederation.com",
+        phone: "+91 91060 33979",
+        phoneRaw: "+919106033979",
+      },
+      {
+        name: "Manan Desai",
+        email: "Manan@theleadershipfederation.com",
+        phone: "+91 99782 57508",
+        phoneRaw: "+919978257508",
+      },
+    ],
+  },
+  {
+    icon: Megaphone,
+    department: "Marketing & Support",
+    description: "Media inquiries, marketing collaborations, and general support.",
+    contacts: [
+      {
+        name: "Jessica Morgan",
+        role: "VP Marketing",
+        email: "Hello@theleadershipfederation.com",
+      },
+    ],
+  },
+  {
+    icon: Mail,
+    department: "General Inquiries",
+    description: "For general questions, event registration, and other inquiries.",
+    contacts: [
+      {
+        name: "General",
+        email: "hello@theleadershipfederation.com",
+        label: "General Inquiries",
+      },
+      {
+        name: "Registration",
+        email: "register@theleadershipfederation.com",
+        label: "Event Registration",
+      },
+    ],
   },
 ]
 
@@ -181,6 +248,117 @@ export default function ContactPage() {
             </div>
           </AnimateOnScroll>
         </div>
+      </section>
+
+      {/* Reach the Right Team */}
+      <section className="max-w-6xl mx-auto px-6 pb-16">
+        <AnimateOnScroll animation="fade-up">
+          <div className="text-center mb-10">
+            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-4">
+              Direct Contacts
+            </span>
+            <h2
+              className="text-3xl md:text-4xl font-bold tracking-tight text-[#1a1a2e] mb-3"
+              style={sfFont}
+            >
+              Reach the Right Team
+            </h2>
+            <p className="text-base text-[#1a1a2e]/70 max-w-xl mx-auto leading-relaxed">
+              Connect directly with the department that can best assist you.
+            </p>
+          </div>
+        </AnimateOnScroll>
+
+        <StaggerChildren
+          animation="fade-up"
+          stagger={120}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {DEPARTMENTS.map((dept) => {
+            const Icon = dept.icon
+            return (
+              <div
+                key={dept.department}
+                className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7 transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
+                    <Icon size={20} className="text-[#e7ab1c]" />
+                  </div>
+                  <h3 className="text-base font-bold text-[#1a1a2e]">
+                    {dept.department}
+                  </h3>
+                </div>
+                <p className="text-sm text-[#1a1a2e]/65 leading-relaxed mb-5">
+                  {dept.description}
+                </p>
+                <div className="space-y-4">
+                  {dept.contacts.map((contact) => (
+                    <div
+                      key={contact.email}
+                      className="border-t border-[#1a1a2e]/[0.06] pt-4 first:border-t-0 first:pt-0"
+                    >
+                      <p className="font-semibold text-sm text-[#1a1a2e]">
+                        {contact.name}
+                        {"role" in contact && contact.role && (
+                          <span className="font-normal text-[#1a1a2e]/55 ml-2 text-xs">
+                            {contact.role}
+                          </span>
+                        )}
+                        {"label" in contact && contact.label && (
+                          <span className="font-normal text-[#1a1a2e]/55 ml-2 text-xs">
+                            {contact.label}
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                        <a
+                          href={`mailto:${contact.email}`}
+                          className="inline-flex items-center gap-1.5 text-xs text-[#1a1a2e]/75 hover:text-[#e7ab1c] transition-colors"
+                        >
+                          <Mail size={13} className="shrink-0" />
+                          {contact.email}
+                        </a>
+                        {"phone" in contact && contact.phone && (
+                          <a
+                            href={`tel:${contact.phoneRaw}`}
+                            className="inline-flex items-center gap-1.5 text-xs text-[#e7ab1c] hover:underline"
+                          >
+                            <Phone size={13} className="shrink-0" />
+                            {contact.phone}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </StaggerChildren>
+      </section>
+
+      {/* Dubai Office Address */}
+      <section className="max-w-6xl mx-auto px-6 pb-20">
+        <AnimateOnScroll animation="fade-up">
+          <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
+              <Building2 size={26} className="text-[#e7ab1c]" />
+            </div>
+            <div>
+              <h3
+                className="text-lg font-bold text-[#1a1a2e] mb-1"
+                style={sfFont}
+              >
+                Our Dubai Office
+              </h3>
+              <p className="text-sm text-[#1a1a2e]/70 leading-relaxed flex items-start gap-2">
+                <MapPin size={15} className="text-[#e7ab1c] shrink-0 mt-0.5" />
+                Office No. 44-43, Building of Dubai Municipality, Bur Dubai - Al Fahidi, Dubai, United Arab Emirates
+              </p>
+            </div>
+          </div>
+        </AnimateOnScroll>
       </section>
     </main>
   )
