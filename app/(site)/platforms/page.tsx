@@ -59,23 +59,6 @@ type FeatureRow = {
   sort_order: number
 }
 
-/* ── Fallbacks if the DB table is empty or unreachable ──────────────────── */
-
-const FALLBACK_FEATURES: FeatureRow[] = [
-  { id: "c1", platform: "conclave",     title: "650+ CXOs and senior leaders per flagship event",              icon: "Crown",         sort_order: 1 },
-  { id: "c2", platform: "conclave",     title: "Delegates from 30+ countries across every edition",             icon: "Globe",         sort_order: 2 },
-  { id: "c3", platform: "conclave",     title: "Asia Leadership Awards honouring transformational leaders",      icon: "Award",         sort_order: 3 },
-  { id: "c4", platform: "conclave",     title: "Deep-dive tracks on AI, cybersecurity, talent, and sustainability", icon: "Lightbulb",   sort_order: 4 },
-  { id: "i1", platform: "inner_circle", title: "Invite-only membership for CXOs and senior leaders",             icon: "Lock",          sort_order: 1 },
-  { id: "i2", platform: "inner_circle", title: "Private roundtables with peers across industries",               icon: "MessageCircle", sort_order: 2 },
-  { id: "i3", platform: "inner_circle", title: "Curated peer connections matched by role and interest",          icon: "Users",         sort_order: 3 },
-  { id: "i4", platform: "inner_circle", title: "Strategic access to policymakers and thought leaders",           icon: "Sparkles",      sort_order: 4 },
-  { id: "s1", platform: "show",         title: "Long-form interviews with global C-suite executives",            icon: "Radio",         sort_order: 1 },
-  { id: "s2", platform: "show",         title: "Industry insights and emerging trend analysis",                  icon: "TrendingUp",    sort_order: 2 },
-  { id: "s3", platform: "show",         title: "Multi-format content: video, audio, and editorial",              icon: "Video",         sort_order: 3 },
-  { id: "s4", platform: "show",         title: "Behind-the-scenes perspectives on leadership decisions",         icon: "BookOpen",      sort_order: 4 },
-]
-
 const CONCLAVES_EVENTS = [
   "GCC Leadership Conclave",
   "Asia Leadership Awards",
@@ -85,14 +68,14 @@ const CONCLAVES_EVENTS = [
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
 export default async function PlatformsPage() {
-  let features: FeatureRow[] = FALLBACK_FEATURES
+  let features: FeatureRow[] = []
   try {
     const res = await getPlatformFeatures(true)
-    if (res.success && res.features && res.features.length > 0) {
+    if (res.success && res.features) {
       features = res.features as FeatureRow[]
     }
   } catch {
-    // fall back to seeds
+    /* empty state */
   }
 
   const conclavesFeatures    = features.filter(f => f.platform === "conclave")
@@ -174,20 +157,22 @@ export default async function PlatformsPage() {
                 </Link>
               </div>
 
-              <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
-                {conclavesFeatures.map((f) => {
-                  const Icon = resolveIcon(f.icon)
-                  return (
-                    <div
-                      key={f.id}
-                      className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
-                    >
-                      <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
-                      <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
-                    </div>
-                  )
-                })}
-              </StaggerChildren>
+              {conclavesFeatures.length > 0 && (
+                <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
+                  {conclavesFeatures.map((f) => {
+                    const Icon = resolveIcon(f.icon)
+                    return (
+                      <div
+                        key={f.id}
+                        className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
+                      >
+                        <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
+                        <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
+                      </div>
+                    )
+                  })}
+                </StaggerChildren>
+              )}
             </div>
           </div>
         </div>
@@ -224,20 +209,22 @@ export default async function PlatformsPage() {
                 </Link>
               </div>
 
-              <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
-                {innerCircleFeatures.map((f) => {
-                  const Icon = resolveIcon(f.icon)
-                  return (
-                    <div
-                      key={f.id}
-                      className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
-                    >
-                      <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
-                      <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
-                    </div>
-                  )
-                })}
-              </StaggerChildren>
+              {innerCircleFeatures.length > 0 && (
+                <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
+                  {innerCircleFeatures.map((f) => {
+                    const Icon = resolveIcon(f.icon)
+                    return (
+                      <div
+                        key={f.id}
+                        className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
+                      >
+                        <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
+                        <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
+                      </div>
+                    )
+                  })}
+                </StaggerChildren>
+              )}
             </div>
           </div>
         </div>
@@ -274,20 +261,22 @@ export default async function PlatformsPage() {
                 </Link>
               </div>
 
-              <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
-                {showFeatures.map((f) => {
-                  const Icon = resolveIcon(f.icon)
-                  return (
-                    <div
-                      key={f.id}
-                      className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
-                    >
-                      <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
-                      <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
-                    </div>
-                  )
-                })}
-              </StaggerChildren>
+              {showFeatures.length > 0 && (
+                <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
+                  {showFeatures.map((f) => {
+                    const Icon = resolveIcon(f.icon)
+                    return (
+                      <div
+                        key={f.id}
+                        className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
+                      >
+                        <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
+                        <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
+                      </div>
+                    )
+                  })}
+                </StaggerChildren>
+              )}
             </div>
           </div>
         </div>

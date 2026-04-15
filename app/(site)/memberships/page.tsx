@@ -96,89 +96,6 @@ const TIER_STYLE: Record<string, { icon: typeof Crown; accent: string; accentLig
 
 const DEFAULT_STYLE = { icon: Shield, accent: "#94a3b8", accentLight: "#94a3b8" }
 
-/* ── Hardcoded fallback tiers ────────────────────────────────────── */
-
-const FALLBACK_TIERS: Tier[] = [
-  {
-    name: "Silver",
-    slug: "silver",
-    priceINR: "25,000",
-    priceUSD: "275",
-    discount: 5,
-    isPopular: false,
-    accent: "#94a3b8",
-    accentLight: "#94a3b8",
-    icon: Shield,
-    benefits: [
-      "Exclusive member directory access",
-      "5% discount on all events",
-      "Event credits worth ₹25,000",
-      "Priority networking opportunities",
-      "Conference & workshop access",
-    ],
-  },
-  {
-    name: "Gold",
-    slug: "gold",
-    priceINR: "50,000",
-    priceUSD: "550",
-    discount: 10,
-    isPopular: false,
-    accent: "#e7ab1c",
-    accentLight: "#e7ab1c",
-    icon: Star,
-    benefits: [
-      "Exclusive member directory access",
-      "10% discount on all events",
-      "Event credits worth ₹50,000",
-      "Priority networking opportunities",
-      "Conference & workshop access",
-      "Dedicated relationship manager",
-    ],
-  },
-  {
-    name: "Platinum",
-    slug: "platinum",
-    priceINR: "75,000",
-    priceUSD: "825",
-    discount: 15,
-    isPopular: true,
-    accent: "#c9a84c",
-    accentLight: "#c9a84c",
-    icon: Crown,
-    benefits: [
-      "Exclusive member directory access",
-      "15% discount on all events",
-      "Event credits worth ₹75,000",
-      "Priority VIP networking",
-      "All conferences, workshops & masterclasses",
-      "Dedicated relationship manager",
-      "Speaker opportunity consideration",
-    ],
-  },
-  {
-    name: "Titanium",
-    slug: "titanium",
-    priceINR: "1,00,000",
-    priceUSD: "1,100",
-    discount: 20,
-    isPopular: false,
-    accent: "#1a1a2e",
-    accentLight: "#1a1a2e",
-    icon: Zap,
-    benefits: [
-      "Exclusive member directory access",
-      "20% discount on all events",
-      "Event credits worth ₹1,00,000",
-      "Priority VIP networking & Inner Circle access",
-      "All conferences, workshops & masterclasses",
-      "Dedicated senior relationship manager",
-      "Speaker & jury opportunity consideration",
-      "Brand visibility at events",
-    ],
-  },
-]
-
 /** Format an integer price with Indian comma grouping */
 function formatINR(amount: number): string {
   const s = amount.toString()
@@ -216,84 +133,18 @@ function parseCellValue(raw: string | null | undefined): string | boolean {
   return v
 }
 
-const FALLBACK_COMPARISON: ComparisonRow[] = [
-  { feature: "Member Directory Access", silver: true, gold: true, platinum: true, titanium: true },
-  { feature: "Event Discount", silver: "5%", gold: "10%", platinum: "15%", titanium: "20%" },
-  { feature: "Event Credits", silver: "₹25,000", gold: "₹50,000", platinum: "₹75,000", titanium: "₹1,00,000" },
-  { feature: "Priority Networking", silver: true, gold: true, platinum: "VIP", titanium: "VIP + Inner Circle" },
-  { feature: "Conference Access", silver: true, gold: true, platinum: true, titanium: true },
-  { feature: "Workshop Access", silver: true, gold: true, platinum: true, titanium: true },
-  { feature: "Masterclass Access", silver: false, gold: false, platinum: true, titanium: true },
-  { feature: "Relationship Manager", silver: false, gold: true, platinum: true, titanium: "Senior RM" },
-  { feature: "Speaker Opportunities", silver: false, gold: false, platinum: true, titanium: true },
-  { feature: "Jury Opportunities", silver: false, gold: false, platinum: false, titanium: true },
-  { feature: "Brand Visibility at Events", silver: false, gold: false, platinum: false, titanium: true },
-]
-
 /* ── FAQ ──────────────────────────────────────────────────────────── */
 
 interface FaqItem { q: string; a: string }
 
-const FALLBACK_FAQ: FaqItem[] = [
-  {
-    q: "How long is the membership valid?",
-    a: "All memberships are valid for one year from the date of activation. Renewals are offered at preferential rates to existing members.",
-  },
-  {
-    q: "What are event credits and how do I use them?",
-    a: "Event credits equal 100% of your membership fee. They can be applied towards registration at any Leadership Federation event during your membership period, effectively giving you full cashback on your membership investment.",
-  },
-  {
-    q: "Can I upgrade my membership tier?",
-    a: "Yes. You can upgrade at any time by paying the difference between your current tier and the desired tier. Your membership period remains the same from the original activation date.",
-  },
-  {
-    q: "Is GST included in the listed prices?",
-    a: "No. The listed prices are exclusive of GST (18%). GST will be added at checkout. For international members paying in USD, no GST applies.",
-  },
-  {
-    q: "How does the member directory work?",
-    a: "Our exclusive directory connects you with verified global leaders, CXOs, and decision-makers across 30+ countries. You can search by industry, geography, or role to find the right connections for collaboration.",
-  },
-  {
-    q: "What is the application process?",
-    a: "Submit your application through the registration form. Our team will review your profile within 48 hours and send you a confirmation along with payment details upon approval.",
-  },
-]
-
-/* ── Value props ──────────────────────────────────────────────────── */
-
-const VALUE_PROPS = [
-  {
-    icon: Users,
-    title: "Global Leader Network",
-    desc: "Connect with 2,000+ CXOs, founders, and policymakers across 30+ countries in our exclusive member directory.",
-  },
-  {
-    icon: Calendar,
-    title: "100% Event Credits",
-    desc: "Your entire membership fee is returned as event credits, usable at any Leadership Federation conference or workshop.",
-  },
-  {
-    icon: Sparkles,
-    title: "Career & Business Growth",
-    desc: "Unlock career advancement, investment connections, and business scaling through curated introductions and roundtables.",
-  },
-  {
-    icon: Globe,
-    title: "Year-Round Recognition",
-    desc: "Continuous visibility across our platforms, events, and publications. Be recognized as part of a global leadership community.",
-  },
-]
-
 /* ═══════════════════════════════════════════════════════════════════ */
 
 export default async function MembershipsPage() {
-  /* Fetch tiers from DB, fall back to hardcoded if empty or on error */
-  let TIERS: Tier[] = FALLBACK_TIERS
+  /* Fetch tiers from DB */
+  let TIERS: Tier[] = []
   try {
     const result = await getMembershipTiers()
-    if (result.success && result.tiers && result.tiers.length > 0) {
+    if (result.success && result.tiers) {
       TIERS = result.tiers.map((t) => {
         const style = TIER_STYLE[t.slug] ?? DEFAULT_STYLE
         return {
@@ -311,14 +162,14 @@ export default async function MembershipsPage() {
       })
     }
   } catch {
-    // DB unavailable — use fallback tiers
+    /* empty state */
   }
 
   /* Fetch comparison rows */
-  let COMPARISON: ComparisonRow[] = FALLBACK_COMPARISON
+  let COMPARISON: ComparisonRow[] = []
   try {
     const result = await getMembershipComparisonRows(true)
-    if (result.success && result.rows && result.rows.length > 0) {
+    if (result.success && result.rows) {
       COMPARISON = result.rows.map((r) => ({
         feature:  r.feature,
         silver:   parseCellValue(r.silver_value),
@@ -327,16 +178,16 @@ export default async function MembershipsPage() {
         titanium: parseCellValue(r.titanium_value),
       }))
     }
-  } catch {/* fall back */}
+  } catch {/* empty state */}
 
   /* Fetch FAQs */
-  let FAQ: FaqItem[] = FALLBACK_FAQ
+  let FAQ: FaqItem[] = []
   try {
     const result = await getFaqs("memberships", true)
-    if (result.success && result.faqs && result.faqs.length > 0) {
+    if (result.success && result.faqs) {
       FAQ = result.faqs.map((f) => ({ q: f.question, a: f.answer }))
     }
-  } catch {/* fall back */}
+  } catch {/* empty state */}
 
   /* Fetch editable page content */
   const { sections } = await getPageSections("memberships")
@@ -366,13 +217,11 @@ export default async function MembershipsPage() {
   }
 
   const valuePropsDb = pickList(sections.value_props)
-  const VP = valuePropsDb.length > 0
-    ? valuePropsDb.map((v) => ({
-        icon: VALUE_PROP_ICONS[(v.icon || "").toLowerCase()] ?? Users,
-        title: v.title ?? "",
-        desc: v.description ?? "",
-      }))
-    : VALUE_PROPS
+  const VP = valuePropsDb.map((v) => ({
+    icon: VALUE_PROP_ICONS[(v.icon || "").toLowerCase()] ?? Users,
+    title: v.title ?? "",
+    desc: v.description ?? "",
+  }))
 
   const comparisonHeader = {
     title: pickStr(sections.comparison_header, "title", "Compare Tiers"),
@@ -447,21 +296,24 @@ export default async function MembershipsPage() {
       </section>
 
       {/* ── Pricing Cards ─────────────────────────────────────────── */}
-      <section className="pb-20 px-6">
-        <div className="max-w-[1200px] mx-auto">
-          <StaggerChildren
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5"
-            animation="fade-up"
-            stagger={100}
-          >
-            {TIERS.map((tier) => (
-              <TierCard key={tier.slug} tier={tier} />
-            ))}
-          </StaggerChildren>
-        </div>
-      </section>
+      {TIERS.length > 0 && (
+        <section className="pb-20 px-6">
+          <div className="max-w-[1200px] mx-auto">
+            <StaggerChildren
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5"
+              animation="fade-up"
+              stagger={100}
+            >
+              {TIERS.map((tier) => (
+                <TierCard key={tier.slug} tier={tier} />
+              ))}
+            </StaggerChildren>
+          </div>
+        </section>
+      )}
 
       {/* ── Value Props ───────────────────────────────────────────── */}
+      {VP.length > 0 && (
       <section className="pb-20 px-6">
         <div className="max-w-[1200px] mx-auto">
           <AnimateOnScroll animation="fade-up">
@@ -511,8 +363,10 @@ export default async function MembershipsPage() {
           </StaggerChildren>
         </div>
       </section>
+      )}
 
       {/* ── Comparison Table ──────────────────────────────────────── */}
+      {COMPARISON.length > 0 && TIERS.length > 0 && (
       <section className="pb-20 px-6">
         <div className="max-w-[1200px] mx-auto">
           <AnimateOnScroll animation="fade-up">
@@ -604,8 +458,10 @@ export default async function MembershipsPage() {
           </AnimateOnScroll>
         </div>
       </section>
+      )}
 
       {/* ── FAQ ───────────────────────────────────────────────────── */}
+      {FAQ.length > 0 && (
       <section className="pb-24 px-6">
         <div className="max-w-3xl mx-auto">
           <AnimateOnScroll animation="fade-up">
@@ -661,6 +517,7 @@ export default async function MembershipsPage() {
           </StaggerChildren>
         </div>
       </section>
+      )}
 
       {/* ── Bottom CTA ────────────────────────────────────────────── */}
       <section className="pb-24 px-6">

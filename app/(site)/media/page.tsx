@@ -41,19 +41,6 @@ type MediaVideo = {
   sort_order: number
 }
 
-/* ── Fallbacks ────────────────────────────────────────────────────────── */
-
-const FALLBACK_OUTLETS: Outlet[] = [
-  { id: "o1", name: "Economic Times",    logo_url: null, article_url: null, sort_order: 1 },
-  { id: "o2", name: "Forbes India",      logo_url: null, article_url: null, sort_order: 2 },
-  { id: "o3", name: "Business Standard", logo_url: null, article_url: null, sort_order: 3 },
-  { id: "o4", name: "CNBC-TV18",         logo_url: null, article_url: null, sort_order: 4 },
-  { id: "o5", name: "YourStory",         logo_url: null, article_url: null, sort_order: 5 },
-  { id: "o6", name: "Gulf News",         logo_url: null, article_url: null, sort_order: 6 },
-]
-
-const FALLBACK_VIDEOS: MediaVideo[] = []
-
 // Real social URLs from the official Leadership Federation website
 const SOCIAL = {
   linkedin: "https://www.linkedin.com/company/leadership-federation/",
@@ -65,17 +52,17 @@ const SOCIAL = {
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
 export default async function MediaPage() {
-  let outlets: Outlet[] = FALLBACK_OUTLETS
-  let videos: MediaVideo[] = FALLBACK_VIDEOS
+  let outlets: Outlet[] = []
+  let videos: MediaVideo[] = []
 
   try {
     const res = await getMediaData(true)
     if (res.success) {
-      if (res.outlets && res.outlets.length > 0) outlets = res.outlets as Outlet[]
-      if (res.videos  && res.videos.length  > 0) videos  = res.videos  as MediaVideo[]
+      outlets = (res.outlets ?? []) as Outlet[]
+      videos  = (res.videos  ?? []) as MediaVideo[]
     }
   } catch {
-    /* fall back */
+    /* empty state */
   }
 
   const realVideos = videos.filter((v) => v.youtube_id)

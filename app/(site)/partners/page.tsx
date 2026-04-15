@@ -33,8 +33,6 @@ export const metadata = {
     "Our partners and ecosystem builders powering global leadership conversations across 30+ countries.",
 }
 
-/* ── Fallbacks: used if the DB table is empty or unreachable ──────── */
-
 type PartnerRow = {
   id: string
   name: string
@@ -44,51 +42,11 @@ type PartnerRow = {
   sort_order: number
 }
 
-const FALLBACK_PARTNERS: PartnerRow[] = [
-  { id: "t1",  name: "Tata",                   category: "title",      logo_url: "/partners/tata.jpg",                 sort_order: 1 },
-  { id: "t2",  name: "Reliance Jio",           category: "title",      logo_url: "/partners/reliance-jio.png",         sort_order: 2 },
-  { id: "t3",  name: "HCL Tech",               category: "title",      logo_url: "/partners/hcltech.png",              sort_order: 3 },
-  { id: "t4",  name: "EY",                     category: "title",      logo_url: "/partners/ey.png",                   sort_order: 4 },
-  { id: "p1",  name: "Axis Bank",              category: "powered_by", logo_url: "/partners/axis-bank.png",            sort_order: 10 },
-  { id: "p2",  name: "ICICI Bank",             category: "powered_by", logo_url: "/partners/icici-bank.png",           sort_order: 11 },
-  { id: "p3",  name: "SBI",                    category: "powered_by", logo_url: "/partners/sbi.png",                  sort_order: 12 },
-  { id: "p4",  name: "Barclays",               category: "powered_by", logo_url: "/partners/barclays.png",             sort_order: 13 },
-  { id: "p5",  name: "Atos",                   category: "powered_by", logo_url: "/partners/atos.png",                 sort_order: 14 },
-  { id: "a1",  name: "Apollo",                 category: "associate",  logo_url: "/partners/apollo.png",               sort_order: 20 },
-  { id: "a2",  name: "Cadila Pharmaceuticals", category: "associate",  logo_url: "/partners/cadila.png",               sort_order: 21 },
-  { id: "a3",  name: "Prabhudas Lilladher",    category: "associate",  logo_url: "/partners/prabhudas-lilladher.png",  sort_order: 22 },
-  { id: "a4",  name: "SIBAE",                  category: "associate",  logo_url: "/partners/sibae.png",                sort_order: 23 },
-  { id: "a5",  name: "Frost & Sullivan",       category: "associate",  logo_url: "/partners/frost-sullivan.png",       sort_order: 24 },
-  { id: "a6",  name: "H&M",                    category: "associate",  logo_url: "/partners/hm.png",                   sort_order: 25 },
-  { id: "m1",  name: "Gulf News",              category: "media",      logo_url: "/partners/gulf-news.png",            sort_order: 30 },
-]
-
 const CATEGORY_ORDER: { slug: PartnerRow["category"]; title: string }[] = [
   { slug: "title",      title: "Title Partners" },
   { slug: "powered_by", title: "Powered By Partners" },
   { slug: "associate",  title: "Associate Partners" },
   { slug: "media",      title: "Media Partners" },
-]
-
-const BENEFITS = [
-  {
-    icon: Globe,
-    title: "Global Visibility",
-    description:
-      "Position your brand alongside the most influential leaders in the GCC, APAC, and global enterprise ecosystem through our flagship conclaves and media platforms.",
-  },
-  {
-    icon: Handshake,
-    title: "Strategic Access",
-    description:
-      "Engage directly with 2,000+ CXOs, policymakers, and decision-makers in curated settings designed for high-value conversations and partnership development.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Ecosystem Impact",
-    description:
-      "Co-create thought leadership, sponsor innovation tracks, and contribute to shaping the dialogue around AI, digital transformation, and the future of work.",
-  },
 ]
 
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
@@ -126,14 +84,14 @@ function pickList(obj: Record<string, unknown> | undefined): StrObj[] {
 }
 
 export default async function PartnersPage() {
-  let partners: PartnerRow[] = FALLBACK_PARTNERS
+  let partners: PartnerRow[] = []
   try {
     const res = await getPartners(true)
-    if (res.success && res.partners && res.partners.length > 0) {
+    if (res.success && res.partners) {
       partners = res.partners as PartnerRow[]
     }
   } catch {
-    // fall back to seeds
+    /* empty state */
   }
 
   const { sections } = await getPageSections("partners")
@@ -148,13 +106,7 @@ export default async function PartnersPage() {
     ),
   }
 
-  const stats = pickList(sections.stats)
-  const statsList = stats.length > 0 ? stats : [
-    { value: "100+", label: "Partners" },
-    { value: "30+", label: "Countries" },
-    { value: "6", label: "Categories" },
-    { value: "50+", label: "Events" },
-  ]
+  const statsList = pickList(sections.stats)
 
   const categoryRows = pickList(sections.categories)
   const categoryMap: Record<string, string> = {}
@@ -171,13 +123,11 @@ export default async function PartnersPage() {
   }
 
   const benefitsDb = pickList(sections.benefits)
-  const benefits = benefitsDb.length > 0
-    ? benefitsDb.map((b) => ({
-        icon: ICONS[(b.icon || "").toLowerCase()] ?? Handshake,
-        title: b.title ?? "",
-        description: b.description ?? "",
-      }))
-    : BENEFITS
+  const benefits = benefitsDb.map((b) => ({
+    icon: ICONS[(b.icon || "").toLowerCase()] ?? Handshake,
+    title: b.title ?? "",
+    description: b.description ?? "",
+  }))
 
   const byCategory = CATEGORY_ORDER
     .map(({ slug, title }) => ({
@@ -213,20 +163,22 @@ export default async function PartnersPage() {
       </section>
 
       {/* Stats strip */}
-      <section className="pb-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="rounded-2xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-8 md:p-12">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {statsList.map(({ value, label }) => (
-                <div key={label}>
-                  <p className="text-[#e7ab1c] text-3xl md:text-4xl leading-none font-bold mb-1.5" style={sfFont}>{value}</p>
-                  <p className="text-[12px] font-semibold text-[#1a1a2e]/65 uppercase tracking-[0.15em]">{label}</p>
-                </div>
-              ))}
+      {statsList.length > 0 && (
+        <section className="pb-20 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="rounded-2xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-8 md:p-12">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                {statsList.map(({ value, label }) => (
+                  <div key={label}>
+                    <p className="text-[#e7ab1c] text-3xl md:text-4xl leading-none font-bold mb-1.5" style={sfFont}>{value}</p>
+                    <p className="text-[12px] font-semibold text-[#1a1a2e]/65 uppercase tracking-[0.15em]">{label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Partner categories */}
       {byCategory.map(({ title, partners }, catIdx) => (
@@ -269,24 +221,26 @@ export default async function PartnersPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-5 mb-14">
-            {benefits.map(({ icon: Icon, title, description }) => (
-              <div
-                key={title}
-                className="rounded-2xl bg-white p-8 md:p-10 border border-[#1a1a2e]/[0.06] shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
-              >
-                <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mb-5">
-                  <Icon size={22} strokeWidth={1.4} className="text-[#e7ab1c]" />
+          {benefits.length > 0 && (
+            <div className="grid sm:grid-cols-3 gap-5 mb-14">
+              {benefits.map(({ icon: Icon, title, description }) => (
+                <div
+                  key={title}
+                  className="rounded-2xl bg-white p-8 md:p-10 border border-[#1a1a2e]/[0.06] shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mb-5">
+                    <Icon size={22} strokeWidth={1.4} className="text-[#e7ab1c]" />
+                  </div>
+                  <h3 className="text-[17px] font-bold text-[#1a1a2e] mb-3">
+                    {title}
+                  </h3>
+                  <p className="text-[14px] text-[#1a1a2e]/75 leading-[1.7]">
+                    {description}
+                  </p>
                 </div>
-                <h3 className="text-[17px] font-bold text-[#1a1a2e] mb-3">
-                  {title}
-                </h3>
-                <p className="text-[14px] text-[#1a1a2e]/75 leading-[1.7]">
-                  {description}
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="text-center">
             <Link
