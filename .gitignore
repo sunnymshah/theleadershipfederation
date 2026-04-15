@@ -42,3 +42,7 @@ next-env.d.ts
 
 # local env
 .env.local
+
+# claude code — personal workflow config and hook logs
+.claude/settings.local.json
+.claude/auto-deploy.log
