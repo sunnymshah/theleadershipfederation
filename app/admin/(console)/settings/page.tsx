@@ -66,23 +66,90 @@ const PRESET_COLORS = [
 const PERMISSION_MODULES: {
   key: string
   label: string
+  description?: string
   columns: string[]
+  /** Category grouping in the UI. */
+  group: "content" | "people" | "operations" | "finance" | "admin"
 }[] = [
-  { key: "events", label: "Events", columns: ["view", "create", "edit", "delete"] },
-  { key: "tickets", label: "Tickets", columns: ["view", "create", "edit", "delete"] },
-  { key: "attendees", label: "Attendees", columns: ["view", "create", "edit", "delete", "export"] },
-  { key: "speakers", label: "Speakers", columns: ["view", "create", "edit", "delete"] },
-  { key: "sessions", label: "Sessions", columns: ["view", "create", "edit", "delete"] },
-  { key: "sponsors", label: "Sponsors", columns: ["view", "create", "edit", "delete"] },
-  { key: "promo_codes", label: "Promo Codes", columns: ["view", "create", "edit", "delete"] },
-  { key: "analytics", label: "Analytics", columns: ["view"] },
-  { key: "certificates", label: "Certificates", columns: ["view", "generate", "email"] },
-  { key: "invoices", label: "Invoices", columns: ["view", "generate", "email"] },
-  { key: "check_in", label: "Check-In", columns: ["perform"] },
-  { key: "settings", label: "Settings", columns: ["view", "edit"] },
-  { key: "team", label: "Team", columns: ["view", "manage"] },
-  { key: "payments", label: "Payments", columns: ["view", "refund"] },
+  { key: "events",       label: "Events",       group: "content",    description: "The event calendar and listings.",                columns: ["view", "create", "edit", "delete"] },
+  { key: "sessions",     label: "Sessions",     group: "content",    description: "Agenda, tracks, session details.",                  columns: ["view", "create", "edit", "delete"] },
+  { key: "speakers",     label: "Speakers",     group: "content",    description: "Speaker bios and photos.",                          columns: ["view", "create", "edit", "delete"] },
+  { key: "sponsors",     label: "Sponsors",     group: "content",    description: "Sponsor logos, tiers, placements.",                 columns: ["view", "create", "edit", "delete"] },
+
+  { key: "tickets",      label: "Tickets",      group: "operations", description: "Ticket tiers, inventory, and pricing.",             columns: ["view", "create", "edit", "delete"] },
+  { key: "promo_codes",  label: "Promo Codes",  group: "operations", description: "Discount codes and coupon campaigns.",              columns: ["view", "create", "edit", "delete"] },
+  { key: "check_in",     label: "Check-In",     group: "operations", description: "Scan tickets at the door / event entry.",           columns: ["perform"] },
+  { key: "certificates", label: "Certificates", group: "operations", description: "Generate and email attendance certificates.",       columns: ["view", "generate", "email"] },
+
+  { key: "attendees",    label: "Attendees",    group: "people",     description: "People registered for events (PII).",               columns: ["view", "create", "edit", "delete", "export"] },
+  { key: "analytics",    label: "Analytics",    group: "people",     description: "Aggregate engagement and attendance trends.",       columns: ["view"] },
+
+  { key: "invoices",     label: "Invoices",     group: "finance",    description: "Issue, send, and archive invoices.",                columns: ["view", "generate", "email"] },
+  { key: "payments",     label: "Payments",     group: "finance",    description: "Individual transactions and refund initiations.",   columns: ["view", "refund"] },
+  { key: "revenue",      label: "Revenue",      group: "finance",    description: "Totals, fees, payouts, net revenue dashboards.",    columns: ["view", "export"] },
+
+  { key: "settings",     label: "Settings",     group: "admin",      description: "Org-wide configuration and defaults.",              columns: ["view", "edit"] },
+  { key: "team",         label: "Team",         group: "admin",      description: "Add/remove team members and change roles.",         columns: ["view", "manage"] },
 ]
+
+const PERMISSION_GROUPS: { key: "content" | "people" | "operations" | "finance" | "admin"; label: string; caption: string }[] = [
+  { key: "content",    label: "Content",              caption: "Public-facing event content on the website." },
+  { key: "operations", label: "Event Operations",     caption: "Day-of tools — ticketing, check-in, certificates." },
+  { key: "people",     label: "People & Analytics",   caption: "Attendee data (contains PII) and engagement metrics." },
+  { key: "finance",    label: "Finance",              caption: "Money: transactions, invoices, revenue, refunds." },
+  { key: "admin",      label: "Admin",                caption: "Team management and organization-wide settings." },
+]
+
+/**
+ * Permissions that reveal sensitive information or enable destructive /
+ * financial actions. Toggling ANY of these ON pops a confirmation warning
+ * so the super admin has to acknowledge what they're granting.
+ */
+const SENSITIVE_PERMISSIONS: Record<
+  string, // `${moduleKey}.${column}`
+  { title: string; body: string }
+> = {
+  "revenue.view": {
+    title: "Grant access to revenue totals?",
+    body:
+      "This member will be able to see exactly how much money the organization has earned — gross revenue, net revenue, refunds, fees, and payout amounts per event. This is the most sensitive financial figure on the platform. Only turn this on for people who genuinely need to see totals.",
+  },
+  "revenue.export": {
+    title: "Allow downloading revenue reports?",
+    body:
+      "This member will be able to download a CSV/Excel of revenue data — taking money figures offline and out of the platform. Recommended only for finance team leads.",
+  },
+  "payments.refund": {
+    title: "Allow initiating refunds?",
+    body:
+      "This member will be able to refund payments to attendees, which MOVES MONEY out of your account. Refunds are irreversible from Razorpay's side. Grant with care.",
+  },
+  "payments.view": {
+    title: "Grant access to individual payment records?",
+    body:
+      "This member will see every transaction — attendee name, amount, payment method (card type last-4, UPI handle where stored), and timestamp.",
+  },
+  "attendees.export": {
+    title: "Allow exporting attendee PII?",
+    body:
+      "This member will be able to download a CSV of attendees including names, emails, and phone numbers. That's personal data protected under privacy law — once exported, it lives on their device.",
+  },
+  "attendees.delete": {
+    title: "Allow deleting attendee records?",
+    body:
+      "This member will be able to permanently delete attendee rows. This may affect event capacity counts, reporting, and cannot be undone.",
+  },
+  "team.manage": {
+    title: "Allow managing team members?",
+    body:
+      "This member will be able to invite, remove, and change roles of other team members — effectively granting them super-admin-level control over access. Only grant to co-owners you trust completely.",
+  },
+  "settings.edit": {
+    title: "Allow editing organization settings?",
+    body:
+      "This member will be able to change organization-wide configuration — timezone, currency, tax rates, notification templates, and payment gateway settings.",
+  },
+}
 
 /** All unique permission column names (union of all modules) */
 const ALL_COLUMNS = Array.from(
@@ -336,6 +403,13 @@ export default function AdminSettingsPage() {
   const [formMemberRole, setFormMemberRole] = useState<"super_admin" | "admin" | "member">("admin")
   const [showPassword, setShowPassword] = useState(false)
 
+  // Permission matrix UX state
+  const [permissionSearch, setPermissionSearch] = useState("")
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
+  const [pendingSensitive, setPendingSensitive] = useState<
+    { moduleKey: string; column: string; title: string; body: string } | null
+  >(null)
+
   /* ── Load settings from localStorage ──────────────────────────────── */
 
   useEffect(() => {
@@ -440,14 +514,59 @@ export default function AdminSettingsPage() {
     setProfileDrawerOpen(true)
   }
 
-  function togglePermission(moduleKey: string, column: string) {
+  function setPermission(moduleKey: string, column: string, value: boolean) {
     setFormPermissions((prev) => ({
       ...prev,
-      [moduleKey]: {
-        ...prev[moduleKey],
-        [column]: !prev[moduleKey]?.[column],
-      },
+      [moduleKey]: { ...prev[moduleKey], [column]: value },
     }))
+  }
+
+  function togglePermission(moduleKey: string, column: string) {
+    const current = formPermissions[moduleKey]?.[column] ?? false
+    const next = !current
+    const key = `${moduleKey}.${column}`
+
+    // Intercept sensitive GRANTS (not revokes) with a confirmation modal
+    if (next && SENSITIVE_PERMISSIONS[key]) {
+      const warn = SENSITIVE_PERMISSIONS[key]
+      setPendingSensitive({ moduleKey, column, title: warn.title, body: warn.body })
+      return
+    }
+
+    setPermission(moduleKey, column, next)
+  }
+
+  function confirmPendingSensitive() {
+    if (!pendingSensitive) return
+    setPermission(pendingSensitive.moduleKey, pendingSensitive.column, true)
+    setPendingSensitive(null)
+  }
+
+  function toggleRowAll(moduleKey: string) {
+    const mod = PERMISSION_MODULES.find((m) => m.key === moduleKey)
+    if (!mod) return
+    const allOn = mod.columns.every((c) => formPermissions[moduleKey]?.[c])
+    setFormPermissions((prev) => {
+      const next = { ...prev[moduleKey] }
+      for (const c of mod.columns) next[c] = !allOn
+      return { ...prev, [moduleKey]: next }
+    })
+  }
+
+  function toggleGroupAll(groupKey: string, turnOn: boolean) {
+    setFormPermissions((prev) => {
+      const next = { ...prev }
+      for (const mod of PERMISSION_MODULES.filter((m) => m.group === groupKey)) {
+        next[mod.key] = { ...next[mod.key] }
+        for (const c of mod.columns) {
+          // When turning ON, still force sensitive perms to stay OFF until
+          // the super admin explicitly toggles them (shows warning).
+          if (turnOn && SENSITIVE_PERMISSIONS[`${mod.key}.${c}`]) continue
+          next[mod.key][c] = turnOn
+        }
+      }
+      return next
+    })
   }
 
   function applyPreset(mode: "full" | "read" | "none") {
@@ -952,44 +1071,163 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                {/* Permissions matrix */}
+                {/* Permissions */}
                 <div>
-                  <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-2 font-medium">Permissions Matrix</label>
-                  <div className="border border-[#e0e0e0] rounded-xl overflow-hidden overflow-x-auto">
-                    {/* Column headers */}
-                    <div className="grid grid-cols-[160px_repeat(7,1fr)] min-w-[640px] bg-[#f9f9f9] border-b border-[#e0e0e0]">
-                      <div className="px-3 py-2.5 text-[10px] font-semibold text-[#888] uppercase tracking-wider">Module</div>
-                      {ALL_COLUMNS.map((col) => (
-                        <div key={col} className="px-2 py-2.5 text-[10px] font-semibold text-[#888] uppercase tracking-wider text-center">
-                          {col}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Rows */}
-                    {PERMISSION_MODULES.map((mod, idx) => (
-                      <div
-                        key={mod.key}
-                        className={`grid grid-cols-[160px_repeat(7,1fr)] min-w-[640px] border-b border-[#eee] last:border-0 ${
-                          idx % 2 === 0 ? "bg-white" : "bg-[#fafbfc]"
-                        }`}
-                      >
-                        <div className="px-3 py-2.5 text-sm text-[#444] font-medium flex items-center">{mod.label}</div>
-                        {ALL_COLUMNS.map((col) => (
-                          <div key={col} className="flex items-center justify-center py-2.5">
-                            {mod.columns.includes(col) ? (
-                              <Toggle
-                                checked={formPermissions[mod.key]?.[col] ?? false}
-                                onChange={() => togglePermission(mod.key, col)}
-                              />
-                            ) : (
-                              <span className="text-[#ddd] text-xs">--</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mb-2 gap-3">
+                    <label className="text-[11px] text-[#777] uppercase tracking-wider font-medium">Permissions</label>
+                    <input
+                      type="text"
+                      value={permissionSearch}
+                      onChange={(e) => setPermissionSearch(e.target.value)}
+                      placeholder="Search (e.g. revenue, refund)…"
+                      className="flex-1 max-w-[260px] px-3 py-1.5 text-[12px] bg-white border border-[#e0e0e0] rounded-md text-[#333] placeholder-[#bbb] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
                   </div>
+
+                  <div className="space-y-3">
+                    {PERMISSION_GROUPS.map((group) => {
+                      const groupModules = PERMISSION_MODULES.filter((m) => m.group === group.key)
+                      const filtered = permissionSearch.trim()
+                        ? groupModules.filter((m) =>
+                            (m.label + " " + (m.description ?? "") + " " + m.columns.join(" "))
+                              .toLowerCase()
+                              .includes(permissionSearch.trim().toLowerCase())
+                          )
+                        : groupModules
+                      if (filtered.length === 0) return null
+
+                      const collapsed = collapsedGroups[group.key] ?? false
+                      const grantedInGroup = groupModules.reduce(
+                        (n, m) => n + m.columns.filter((c) => formPermissions[m.key]?.[c]).length,
+                        0
+                      )
+                      const totalInGroup = groupModules.reduce((n, m) => n + m.columns.length, 0)
+
+                      return (
+                        <div
+                          key={group.key}
+                          className="rounded-xl border border-[#e0e0e0] bg-white overflow-hidden"
+                        >
+                          {/* Group header */}
+                          <div className="flex items-center justify-between px-4 py-3 bg-[#fafbfc] border-b border-[#eee]">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCollapsedGroups((prev) => ({ ...prev, [group.key]: !collapsed }))
+                              }
+                              className="flex items-center gap-2 text-left flex-1 min-w-0"
+                            >
+                              {collapsed ? (
+                                <ChevronRight size={15} className="text-[#888] shrink-0" />
+                              ) : (
+                                <ChevronRight size={15} className="text-[#888] shrink-0 rotate-90 transition-transform" />
+                              )}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-semibold text-[#333]">{group.label}</span>
+                                  <span className="text-[11px] text-[#999]">
+                                    {grantedInGroup}/{totalInGroup} granted
+                                  </span>
+                                  {group.key === "finance" && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded bg-amber-50 text-amber-700 border border-amber-200">
+                                      Sensitive
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-[#888] mt-0.5 truncate">{group.caption}</p>
+                              </div>
+                            </button>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => toggleGroupAll(group.key, true)}
+                                className="px-2 py-1 text-[11px] font-medium rounded border border-[#e0e0e0] text-[#555] hover:bg-[#f4f6fb] transition-colors"
+                                title="Allow all in this group (sensitive perms must still be toggled individually)"
+                              >
+                                Allow all
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleGroupAll(group.key, false)}
+                                className="px-2 py-1 text-[11px] font-medium rounded border border-[#e0e0e0] text-[#555] hover:bg-[#f4f6fb] transition-colors"
+                              >
+                                Deny all
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Group body */}
+                          {!collapsed && (
+                            <div className="divide-y divide-[#f0f0f0]">
+                              {filtered.map((mod) => {
+                                const allOn = mod.columns.every((c) => formPermissions[mod.key]?.[c])
+                                const anyOn = mod.columns.some((c) => formPermissions[mod.key]?.[c])
+                                return (
+                                  <div
+                                    key={mod.key}
+                                    className="px-4 py-3 flex items-start gap-4 hover:bg-[#fcfdff] transition-colors"
+                                  >
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-sm font-medium text-[#333]">{mod.label}</span>
+                                        {mod.key === "revenue" && (
+                                          <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded bg-amber-50 text-amber-700 border border-amber-200">
+                                            Shows money
+                                          </span>
+                                        )}
+                                      </div>
+                                      {mod.description && (
+                                        <p className="text-[11px] text-[#888] mt-0.5">{mod.description}</p>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap justify-end shrink-0">
+                                      {mod.columns.map((col) => {
+                                        const on = formPermissions[mod.key]?.[col] ?? false
+                                        const sensitive = !!SENSITIVE_PERMISSIONS[`${mod.key}.${col}`]
+                                        return (
+                                          <button
+                                            key={col}
+                                            type="button"
+                                            onClick={() => togglePermission(mod.key, col)}
+                                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider border transition-colors ${
+                                              on
+                                                ? sensitive
+                                                  ? "bg-amber-500 text-white border-amber-500 hover:bg-amber-600"
+                                                  : "bg-[#1a73e8] text-white border-[#1a73e8] hover:bg-[#1557b0]"
+                                                : "bg-white text-[#777] border-[#e0e0e0] hover:border-[#999]"
+                                            }`}
+                                            title={
+                                              sensitive
+                                                ? "Sensitive — shows a warning before granting"
+                                                : undefined
+                                            }
+                                          >
+                                            {col}
+                                          </button>
+                                        )
+                                      })}
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleRowAll(mod.key)}
+                                        className="px-2 py-1 text-[10px] font-semibold rounded border border-dashed border-[#d0d0d0] text-[#888] hover:text-[#444] hover:border-[#999] transition-colors"
+                                        title={allOn ? "Clear all in this row" : "Grant all in this row"}
+                                      >
+                                        {allOn ? "Clear" : anyOn ? "All" : "All"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <p className="text-[11px] text-[#aaa] mt-2">
+                    Tip: orange buttons = sensitive (money or PII). Tapping one pops a warning before it turns on.
+                  </p>
                 </div>
 
                 {/* Error */}
@@ -1019,6 +1257,51 @@ export default function AdminSettingsPage() {
                     ) : (
                       "Save & Generate SQL"
                     )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Sensitive permission warning ────────────────────────── */}
+        {pendingSensitive && (
+          <>
+            <div
+              className="fixed inset-0 bg-[#1a1a2e]/70 z-[60]"
+              onClick={() => setPendingSensitive(null)}
+            />
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[92vw] max-w-md">
+              <div className="bg-white rounded-2xl shadow-2xl border border-amber-200 overflow-hidden">
+                <div className="px-5 py-4 border-b border-amber-100 bg-amber-50 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 font-bold">!</div>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900">{pendingSensitive.title}</p>
+                    <p className="text-[11px] text-amber-700 mt-0.5 uppercase tracking-wider font-semibold">
+                      Sensitive permission
+                    </p>
+                  </div>
+                </div>
+                <div className="px-5 py-4">
+                  <p className="text-sm text-[#444] leading-relaxed">{pendingSensitive.body}</p>
+                  <p className="text-[12px] text-[#888] mt-3">
+                    You (super admin) will remain able to revoke this later from the same screen.
+                  </p>
+                </div>
+                <div className="px-5 py-3 bg-[#fafbfc] border-t border-[#eee] flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setPendingSensitive(null)}
+                    className="px-4 py-2 text-sm font-medium rounded-lg border border-[#e0e0e0] text-[#555] hover:bg-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmPendingSensitive}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                  >
+                    Yes, grant access
                   </button>
                 </div>
               </div>
