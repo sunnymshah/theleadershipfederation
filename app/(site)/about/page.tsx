@@ -45,8 +45,6 @@ function resolveIcon(name?: string | null): LucideIcon {
   return ICON_MAP[name] ?? Star
 }
 
-/* ── Fallbacks ────────────────────────────────────────────────────────── */
-
 type AboutRow = {
   id: string
   section_type: "pillar" | "stat" | "founder" | "vision"
@@ -60,25 +58,6 @@ type AboutRow = {
   link_url: string | null
   sort_order: number
 }
-
-const FALLBACK_SECTIONS: AboutRow[] = [
-  { id: "p1", section_type: "pillar", title: "Strategic Conversations", subtitle: null, description: "High-value dialogues that shape industries. Curated discussions between C-suite executives, policymakers, and transformation leaders that drive real outcomes.", icon: "MessageSquare", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 1 },
-  { id: "p2", section_type: "pillar", title: "Global Connectivity",     subtitle: null, description: "A living network spanning 30+ countries, from Bengaluru to Dubai, Kuala Lumpur to London, connecting leaders who are redefining the global business landscape.", icon: "Globe", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 2 },
-  { id: "p3", section_type: "pillar", title: "Curated Access",          subtitle: null, description: "An invite-only inner circle where senior leaders gain exclusive peer connections, private roundtables, and strategic access to the people who matter most.", icon: "ShieldCheck", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 3 },
-  { id: "p4", section_type: "pillar", title: "Ecosystem Building",      subtitle: null, description: "Cross-sector partnerships that bridge enterprises, GCCs, governments, startups, and industry pioneers, creating multiplier effects across the ecosystem.", icon: "Handshake", image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 4 },
-  { id: "s1", section_type: "stat",   title: "Events",    subtitle: null, description: null, icon: null, image_url: null, metric_value: "50+",    metric_label: "Events",    link_url: null, sort_order: 1 },
-  { id: "s2", section_type: "stat",   title: "Countries", subtitle: null, description: null, icon: null, image_url: null, metric_value: "30+",    metric_label: "Countries", link_url: null, sort_order: 2 },
-  { id: "s3", section_type: "stat",   title: "Leaders",   subtitle: null, description: null, icon: null, image_url: null, metric_value: "2,000+", metric_label: "Leaders",   link_url: null, sort_order: 3 },
-  { id: "s4", section_type: "stat",   title: "Speakers",  subtitle: null, description: null, icon: null, image_url: null, metric_value: "500+",   metric_label: "Speakers",  link_url: null, sort_order: 4 },
-  { id: "v1", section_type: "vision", title: "To build the world's most impactful leadership ecosystem", subtitle: null, description: "Where every conversation sparks action, every connection creates value, and every leader finds the platform to amplify their impact on the global stage.", icon: null, image_url: null, metric_value: null, metric_label: null, link_url: null, sort_order: 1 },
-  { id: "f1", section_type: "founder", title: "Sunny Shah", subtitle: "Founder & CEO",
-    description: `As Founder & CEO of The Leadership Federation, Sunny Shah envisioned a platform that transcends traditional conferences and networking events. His vision centres on creating lasting bridges between enterprises, Global Capability Centres, governments, and emerging ecosystems.
-
-Under his leadership, TLF has grown into one of the most respected leadership platforms in the GCC and Asia-Pacific region, convening decision-makers from over 30 countries and facilitating the strategic conversations that shape industries.
-
-His approach is rooted in a singular belief: that the right conversation between the right leaders at the right time can transform enterprises, economies, and communities. This philosophy drives every event, every programme, and every partnership within the TLF ecosystem.`,
-    icon: null, image_url: "/sunny-shah.jpg", metric_value: null, metric_label: null, link_url: "https://www.linkedin.com/in/sunnymshah/", sort_order: 1 },
-]
 
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
@@ -96,14 +75,14 @@ function hasFounderPhoto(imageUrl?: string | null): boolean {
 }
 
 export default async function AboutPage() {
-  let sections: AboutRow[] = FALLBACK_SECTIONS
+  let sections: AboutRow[] = []
   try {
     const res = await getAboutSections(true)
-    if (res.success && res.sections && res.sections.length > 0) {
+    if (res.success && res.sections) {
       sections = res.sections as AboutRow[]
     }
   } catch {
-    /* fall back */
+    /* empty state */
   }
 
   const pillars = sections.filter(s => s.section_type === "pillar")

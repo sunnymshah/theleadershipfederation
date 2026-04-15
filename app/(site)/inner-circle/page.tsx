@@ -74,68 +74,23 @@ type FaqRow = {
   sort_order: number
 }
 
-/* ── Fallbacks ────────────────────────────────────────────────────────── */
-
-const FALLBACK_ITEMS: ICRow[] = [
-  { id: "v1", content_type: "value_prop", title: "GCC Leaders Network",
-    description: "Connect with leaders from Global Capability Centres and enterprise hubs worldwide. Forge strategic alliances with peers driving digital transformation across industries.",
-    subtitle: null, icon: "Globe", accent: "from-blue-500/20 to-blue-600/10", image_url: null, sort_order: 1 },
-  { id: "v2", content_type: "value_prop", title: "CXO Leaders Network",
-    description: "Peer-to-peer C-suite networking with vetted senior executives. Join curated roundtables, private forums, and strategic conversations that shape your leadership trajectory.",
-    subtitle: null, icon: "Users", accent: "from-[#e7ab1c]/20 to-[#d49c10]/10", image_url: null, sort_order: 2 },
-  { id: "v3", content_type: "value_prop", title: "Exclusive Content",
-    description: "Access members-only insights, research reports, leadership playbooks, and curated discussions. Stay ahead with content crafted for senior decision-makers.",
-    subtitle: null, icon: "BookOpen", accent: "from-purple-500/20 to-purple-600/10", image_url: null, sort_order: 3 },
-  { id: "h1", content_type: "how_it_works", title: "Apply",
-    description: "Submit your application with your leadership profile. We review every application to ensure the community maintains its high standard of membership.",
-    subtitle: "01", icon: "CheckCircle2", accent: null, image_url: null, sort_order: 1 },
-  { id: "h2", content_type: "how_it_works", title: "Get Approved",
-    description: "Our team reviews your profile and background. Approved members receive an invitation to join the exclusive community platform on Circle.so.",
-    subtitle: "02", icon: "Shield", accent: null, image_url: null, sort_order: 2 },
-  { id: "h3", content_type: "how_it_works", title: "Join the Community",
-    description: "Access the full Inner Circle — peer networking, discussion groups, exclusive events, private roundtables, and members-only content.",
-    subtitle: "03", icon: "Sparkles", accent: null, image_url: null, sort_order: 3 },
-  { id: "t1", content_type: "testimonial", title: "Senior GCC Leader",
-    description: "The Inner Circle has been transformative for my leadership journey. The quality of conversations and connections here is unmatched.",
-    subtitle: "Global Capability Centre", icon: null, accent: null, image_url: null, sort_order: 1 },
-  { id: "t2", content_type: "testimonial", title: "Enterprise CXO",
-    description: "Access to peer CXOs across industries has opened strategic partnerships I never would have found through traditional networking.",
-    subtitle: "Fortune 500 Company", icon: null, accent: null, image_url: null, sort_order: 2 },
-  { id: "t3", content_type: "testimonial", title: "Chief Technology Officer",
-    description: "The curated content and private roundtables provide insights that directly impact my decision-making as a leader.",
-    subtitle: "Leading Tech Enterprise", icon: null, accent: null, image_url: null, sort_order: 3 },
-]
-
-const FALLBACK_FAQS: FaqRow[] = [
-  { id: "f1", page: "inner_circle", question: "Who is The Inner Circle for?",
-    answer: "The Inner Circle is designed for senior leaders — CXOs, GCC heads, VPs, Directors, and enterprise decision-makers. We maintain a curated membership to ensure every member benefits from high-quality peer connections.", sort_order: 1 },
-  { id: "f2", page: "inner_circle", question: "How is this different from LinkedIn or other networks?",
-    answer: "Unlike open platforms, The Inner Circle is invite-only and curated. Every member is vetted, conversations are private, and the community is focused on strategic leadership rather than broad social networking.", sort_order: 2 },
-  { id: "f3", page: "inner_circle", question: "What platform does The Inner Circle use?",
-    answer: "We host The Inner Circle on Circle.so, a premium community platform that enables discussion spaces, direct messaging, events, and resource libraries — all in a private, secure environment.", sort_order: 3 },
-  { id: "f4", page: "inner_circle", question: "Is there a membership fee?",
-    answer: "Please visit our Inner Circle page or contact us for the latest membership details. We offer different tiers to accommodate various levels of engagement and access.", sort_order: 4 },
-  { id: "f5", page: "inner_circle", question: "Can I attend TLF events through The Inner Circle?",
-    answer: "Yes. Inner Circle members receive priority access, exclusive discounts, and VIP experiences at all TLF events including the GCC Leadership Conclave, Asia Leadership Awards, and regional summits.", sort_order: 5 },
-]
-
 export default async function InnerCirclePage() {
-  let items: ICRow[] = FALLBACK_ITEMS
-  let faqs: FaqRow[] = FALLBACK_FAQS
+  let items: ICRow[] = []
+  let faqs: FaqRow[] = []
 
   try {
     const res = await getInnerCircleContent(true)
-    if (res.success && res.items && res.items.length > 0) {
+    if (res.success && res.items) {
       items = res.items as ICRow[]
     }
-  } catch {/* fall back */}
+  } catch {/* empty state */}
 
   try {
     const res = await getFaqs("inner_circle", true)
-    if (res.success && res.faqs && res.faqs.length > 0) {
+    if (res.success && res.faqs) {
       faqs = res.faqs as FaqRow[]
     }
-  } catch {/* fall back */}
+  } catch {/* empty state */}
 
   const valueProps   = items.filter(i => i.content_type === "value_prop")
   const howItWorks   = items.filter(i => i.content_type === "how_it_works")

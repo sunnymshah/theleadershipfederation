@@ -34,252 +34,6 @@ function fmtDate(d: string) {
   })
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
- *  HARDCODED PAST EVENTS — all editions with their original website links
- * ══════════════════════════════════════════════════════════════════════════ */
-
-interface PastEvent {
-  id: string
-  title: string
-  date: string          // display date string
-  sortDate: string      // ISO for sorting (YYYY-MM-DD)
-  venue: string
-  city: string
-  series: string        // event series name
-  edition: string       // e.g. "1st", "5th"
-  url: string           // original external link
-  description: string
-  coverImage?: string
-}
-
-const PAST_EVENTS: PastEvent[] = [
-  // ── GCC Leadership Conclave ──────────────────────────────────────────
-  {
-    id: "gcc-5",
-    title: "5th GCC Leadership Conclave — Pune",
-    date: "21–22 January 2026",
-    sortDate: "2026-01-21",
-    venue: "Hyatt Pune",
-    city: "Pune, India",
-    series: "GCC Leadership Conclave",
-    edition: "5th",
-    url: "https://gcc.theleadershipfederation.com/pune",
-    description: "1,000+ CXOs gathered in Pune for two days of leadership discourse, innovation showcases, and cross-industry networking.",
-  },
-  {
-    id: "gcc-ai",
-    title: "Global AI Leadership Summit — India Edition",
-    date: "12 March 2026",
-    sortDate: "2026-03-12",
-    venue: "Hyderabad",
-    city: "Hyderabad, India",
-    series: "GCC Leadership Conclave",
-    edition: "Special",
-    url: "https://gcc.theleadershipfederation.com/ai",
-    description: "A focused summit on AI-driven leadership, bringing together technology leaders and enterprise CXOs to shape the future of AI adoption.",
-  },
-  {
-    id: "gcc-4",
-    title: "4th GCC Leadership Conclave — Hyderabad",
-    date: "13–14 November 2025",
-    sortDate: "2025-11-13",
-    venue: "ITC Kohenur",
-    city: "Hyderabad, India",
-    series: "GCC Leadership Conclave",
-    edition: "4th",
-    url: "https://gcc.theleadershipfederation.com/",
-    description: "1,000+ attendees over two days at ITC Kohenur, featuring keynotes, panel discussions, and the GCC Excellence Awards.",
-  },
-  {
-    id: "gcc-3",
-    title: "3rd GCC Leadership Conclave — Bengaluru",
-    date: "3 September 2025",
-    sortDate: "2025-09-03",
-    venue: "Bengaluru",
-    city: "Bengaluru, India",
-    series: "GCC Leadership Conclave",
-    edition: "3rd",
-    url: "https://theleadershipfederation.com/gccleadershipconclavebengaluru3rdseptember",
-    description: "300+ CXOs convened in Bengaluru to discuss innovation, leadership excellence, and global capability center strategies.",
-  },
-  {
-    id: "gcc-2",
-    title: "2nd GCC Leadership Conclave — Hyderabad",
-    date: "30 July 2025",
-    sortDate: "2025-07-30",
-    venue: "Hyderabad",
-    city: "Hyderabad, India",
-    series: "GCC Leadership Conclave",
-    edition: "2nd",
-    url: "https://gcc2.theleadershipfederation.com/",
-    description: "The second edition brought GCC leaders from across India to Hyderabad for a day of strategic insights and networking.",
-  },
-  {
-    id: "gcc-1",
-    title: "1st GCC Leadership Conclave — Bengaluru",
-    date: "14 May 2025",
-    sortDate: "2025-05-14",
-    venue: "Novotel Bengaluru Outer Ring Road",
-    city: "Bengaluru, India",
-    series: "GCC Leadership Conclave",
-    edition: "1st",
-    url: "https://gcc1.theleadershipfederation.com/",
-    description: "The inaugural GCC Leadership Conclave — a landmark gathering of global capability center leaders in India's tech capital.",
-  },
-
-  // ── Asia Leadership Awards ───────────────────────────────────────────
-  {
-    id: "ala-7",
-    title: "7th Asia Leadership Awards — Kuala Lumpur",
-    date: "4 July 2025",
-    sortDate: "2025-07-04",
-    venue: "Aloft KL Sentral",
-    city: "Kuala Lumpur, Malaysia",
-    series: "Asia Leadership Awards",
-    edition: "7th",
-    url: "https://www.theleadershipfederation.com/7th-asia-leadership-awards-kuala-lumpur-malaysia",
-    description: "Recognising outstanding leaders across Asia at the prestigious Aloft KL Sentral in Malaysia's capital.",
-  },
-  {
-    id: "ala-6",
-    title: "6th Asia Leadership Awards — Bangkok",
-    date: "12 April 2025",
-    sortDate: "2025-04-12",
-    venue: "Pullman Bangkok Hotel G",
-    city: "Bangkok, Thailand",
-    series: "Asia Leadership Awards",
-    edition: "6th",
-    url: "https://theleadershipfederation.com/6thasialeadershipawardsbangkok",
-    description: "The 6th edition returned to Bangkok to honour visionary leaders shaping Asia's business landscape.",
-  },
-  {
-    id: "ala-5",
-    title: "5th Asia Leadership Awards — Mumbai",
-    date: "5 December 2024",
-    sortDate: "2024-12-05",
-    venue: "Radisson Blu International Airport Hotel",
-    city: "Mumbai, India",
-    series: "Asia Leadership Awards",
-    edition: "5th",
-    url: "https://www.theleadershipfederation.com/5th-asia-leadership-awards-mumbai",
-    description: "Celebrating leadership excellence in India's financial capital with 200+ CXOs and industry trailblazers.",
-  },
-  {
-    id: "ala-4",
-    title: "4th Asia Leadership Awards — Bangkok",
-    date: "26 July 2024",
-    sortDate: "2024-07-26",
-    venue: "Pullman G Hotel Bangkok",
-    city: "Bangkok, Thailand",
-    series: "Asia Leadership Awards",
-    edition: "4th",
-    url: "https://theleadershipfederation.com/winners-4th-asia-leadership-awards-bangkok",
-    description: "A grand ceremony at Pullman G Hotel honouring Asia's most impactful leaders across industries.",
-  },
-  {
-    id: "ala-3",
-    title: "3rd Asia Leadership Awards — Mumbai",
-    date: "30 May 2024",
-    sortDate: "2024-05-30",
-    venue: "Radisson Blu Mumbai International Airport Hotel",
-    city: "Mumbai, India",
-    series: "Asia Leadership Awards",
-    edition: "3rd",
-    url: "https://theleadershipfederation.com/pastwinners-asia-leadership-3rd-edition-mumbai",
-    description: "The 3rd edition brought together senior executives and entrepreneurs for an evening of recognition and networking.",
-  },
-  {
-    id: "ala-2",
-    title: "2nd Asia Leadership Awards — Mumbai",
-    date: "27 November 2019",
-    sortDate: "2019-11-27",
-    venue: "Taj Lands End",
-    city: "Mumbai, India",
-    series: "Asia Leadership Awards",
-    edition: "2nd",
-    url: "https://theleadershipfederation.com/winners-2nd-edition-asia-leadership-awards-2019-mumbai",
-    description: "The second edition at the iconic Taj Lands End, recognising Asia's finest leaders before the global pandemic pause.",
-  },
-
-  // ── Middle East Asia Leadership Awards ───────────────────────────────
-  {
-    id: "meala-3",
-    title: "3rd Middle East Asia Leadership Awards — Dubai",
-    date: "5 October 2024",
-    sortDate: "2024-10-05",
-    venue: "Marriott Hotel",
-    city: "Dubai, UAE",
-    series: "Middle East Asia Leadership Awards",
-    edition: "3rd",
-    url: "https://theleadershipfederation.com/winners-3rd-edition-middleeastasiaawards-dubai",
-    description: "200+ leaders from the Middle East and Asia gathered in Dubai to celebrate excellence in leadership and innovation.",
-  },
-  {
-    id: "meala-2",
-    title: "2nd Middle East Asia Leadership Awards — Dubai",
-    date: "20 January 2024",
-    sortDate: "2024-01-20",
-    venue: "Dubai",
-    city: "Dubai, UAE",
-    series: "Middle East Asia Leadership Awards",
-    edition: "2nd",
-    url: "https://theleadershipfederation.com/winner-2nd-edition-middle-east-asia-leadership",
-    description: "The second edition recognising exceptional leadership across the Middle East and Asia regions.",
-  },
-
-  // ── Bharat Leadership Excellence Awards ──────────────────────────────
-  {
-    id: "blea-2",
-    title: "2nd Bharat Leadership Excellence Awards — Delhi",
-    date: "1 February 2025",
-    sortDate: "2025-02-01",
-    venue: "Aloft by Marriott",
-    city: "New Delhi, India",
-    series: "Bharat Leadership Excellence Awards",
-    edition: "2nd",
-    url: "https://theleadershipfederation.com/2ndbharatleadershipawards",
-    description: "Honouring India's most impactful leaders across government, business, and social sectors at the national capital.",
-  },
-  {
-    id: "blea-1",
-    title: "1st Bharat Leadership Excellence Awards — Delhi",
-    date: "30 August 2024",
-    sortDate: "2024-08-30",
-    venue: "Roseate House Hotel, Aerocity",
-    city: "New Delhi, India",
-    series: "Bharat Leadership Excellence Awards",
-    edition: "1st",
-    url: "https://theleadershipfederation.com/bharatleadershipexcellenceawards",
-    description: "The inaugural Bharat Leadership Excellence Awards — 200+ attendees celebrating India's leadership legacy.",
-  },
-
-  // ── Innovation & Startup Summit & Awards ─────────────────────────────
-  {
-    id: "issa-2",
-    title: "2nd Innovation & Startup Summit & Awards — Mumbai",
-    date: "17 April 2025",
-    sortDate: "2025-04-17",
-    venue: "Radisson Blu Mumbai International Airport",
-    city: "Mumbai, India",
-    series: "Innovation & Startup Summit",
-    edition: "2nd",
-    url: "https://theleadershipfederation.com/2ndinnovationandstartupsummitandawardsmumbai",
-    description: "Startups, investors, and innovation leaders came together for a day of showcases, pitches, and awards.",
-  },
-  {
-    id: "issa-1",
-    title: "1st Innovation & Startup Summit & Awards — Dubai",
-    date: "18 April 2024",
-    sortDate: "2024-04-18",
-    venue: "DoubleTree by Hilton — Al Jadaf",
-    city: "Dubai, UAE",
-    series: "Innovation & Startup Summit",
-    edition: "1st",
-    url: "https://theleadershipfederation.com/innovationandstartupsummitandawards",
-    description: "The first-ever Innovation & Startup Summit bringing together entrepreneurs and investors in Dubai.",
-  },
-]
-
 /* ── Series color accents ─────────────────────────────────────────── */
 const seriesColors: Record<string, { bg: string; text: string; border: string }> = {
   "GCC Leadership Conclave": { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
@@ -288,15 +42,6 @@ const seriesColors: Record<string, { bg: string; text: string; border: string }>
   "Bharat Leadership Excellence Awards": { bg: "bg-orange-500/10", text: "text-orange-400", border: "border-orange-500/20" },
   "Innovation & Startup Summit": { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20" },
 }
-
-/* ── Series badge for the dark stat bar ──────────────────────────── */
-const seriesNames = [
-  "GCC Leadership Conclave",
-  "Asia Leadership Awards",
-  "Middle East Asia Leadership Awards",
-  "Bharat Leadership Excellence Awards",
-  "Innovation & Startup Summit",
-]
 
 /* ── Unified card type for rendering ──────────────────────────────── */
 interface ArchiveCard {
@@ -357,17 +102,13 @@ export default async function ArchivePage() {
     slug: e.slug,
   }))
 
-  /* Convert hardcoded old events to ArchiveCard format — these get external links */
-  const legacyCards: ArchiveCard[] = PAST_EVENTS.map((e) => ({
-    ...e,
-    externalUrl: e.url,
-    coverImage: e.coverImage,
-  }))
-
-  /* Merge and sort by date descending (DB events appear alongside legacy) */
-  const allCards = [...dbCards, ...legacyCards].sort(
+  /* Sort DB events by date descending */
+  const allCards = [...dbCards].sort(
     (a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime()
   )
+
+  /* Derive unique series names from DB events for filter pills */
+  const seriesNames = Array.from(new Set(allCards.map(c => c.series).filter(Boolean)))
 
   /* Count unique cities */
   const uniqueCities = new Set(allCards.map((e) => e.city).filter(Boolean))
@@ -455,25 +196,28 @@ export default async function ArchivePage() {
       )}
 
       {/* ── Series Filter Pills ── */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-6">
-        <div className="flex flex-wrap gap-2">
-          {seriesNames.map((series) => {
-            const count = PAST_EVENTS.filter((e) => e.series === series).length
-            const colors = seriesColors[series] ?? { bg: "bg-[#1a1a2e]/5", text: "text-[#1a1a2e]/40", border: "border-[#1a1a2e]/10" }
-            return (
-              <span
-                key={series}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold ${colors.bg} ${colors.text} border ${colors.border}`}
-              >
-                {series}
-                <span className="opacity-60">({count})</span>
-              </span>
-            )
-          })}
-        </div>
-      </section>
+      {seriesNames.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-6">
+          <div className="flex flex-wrap gap-2">
+            {seriesNames.map((series) => {
+              const count = allCards.filter((e) => e.series === series).length
+              const colors = seriesColors[series] ?? { bg: "bg-[#1a1a2e]/5", text: "text-[#1a1a2e]/40", border: "border-[#1a1a2e]/10" }
+              return (
+                <span
+                  key={series}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold ${colors.bg} ${colors.text} border ${colors.border}`}
+                >
+                  {series}
+                  <span className="opacity-60">({count})</span>
+                </span>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ── Archive Grid ── */}
+      {allCards.length > 0 && (
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-10 sm:pb-16">
         <div className="flex items-center justify-between mb-6 sm:mb-10">
           <h2 className="text-xs font-bold text-[#1a1a2e]/65 uppercase tracking-[0.2em]">
@@ -605,6 +349,7 @@ export default async function ArchivePage() {
           })}
         </StaggerChildren>
       </section>
+      )}
 
       {/* ── Stats Summary Bar ── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">

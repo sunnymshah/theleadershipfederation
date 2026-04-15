@@ -80,37 +80,6 @@ type Office = {
   sort_order: number
 }
 
-/* ── Fallbacks ────────────────────────────────────────────────────────── */
-
-const FALLBACK_DEPARTMENTS: Department[] = [
-  { id: "d1", name: "Sponsorship & Exhibitor",               description: "Partner with us as a sponsor or exhibitor at our global leadership events.", icon: "Handshake", sort_order: 1 },
-  { id: "d2", name: "Award Nomination & Speaker Opportunity", description: "Nominate for awards or explore speaking engagements at TLF events.",         icon: "Trophy",    sort_order: 2 },
-  { id: "d3", name: "Marketing & Support",                    description: "Media inquiries, marketing collaborations, and general support.",             icon: "Megaphone", sort_order: 3 },
-  { id: "d4", name: "General Inquiries",                      description: "For general questions, event registration, and other inquiries.",             icon: "Mail",      sort_order: 4 },
-]
-
-const FALLBACK_PERSONS: Person[] = [
-  { id: "p1", department_id: "d1", name: "Harshal Patel",   role: null,              email: "Harshal@theleadershipfederation.com", phone: "+91 72279 93338", phone_raw: "+917227993338", sort_order: 1 },
-  { id: "p2", department_id: "d2", name: "Ovais Kapadia",   role: null,              email: "Ovais@theleadershipfederation.com",   phone: "+91 91060 33979", phone_raw: "+919106033979", sort_order: 1 },
-  { id: "p3", department_id: "d2", name: "Manan Desai",     role: null,              email: "Manan@theleadershipfederation.com",   phone: "+91 99782 57508", phone_raw: "+919978257508", sort_order: 2 },
-  { id: "p4", department_id: "d3", name: "Jessica Morgan",  role: "VP Marketing",     email: "Hello@theleadershipfederation.com",   phone: null,              phone_raw: null,            sort_order: 1 },
-  { id: "p5", department_id: "d4", name: "General",         role: "General Inquiries", email: "hello@theleadershipfederation.com",  phone: null,              phone_raw: null,            sort_order: 1 },
-  { id: "p6", department_id: "d4", name: "Registration",    role: "Event Registration", email: "register@theleadershipfederation.com", phone: null,           phone_raw: null,            sort_order: 2 },
-]
-
-const FALLBACK_OFFICES: Office[] = [
-  {
-    id: "o1", city: "Dubai",
-    address_lines: [
-      "The Leadership Federation",
-      "Office No. 44-43, Building of Dubai Municipality",
-      "Bur Dubai - Al Fahidi",
-      "Dubai, United Arab Emirates",
-    ],
-    timezone: null, phone: null, email: null, is_primary: true, sort_order: 1,
-  },
-]
-
 const INQUIRY_TYPES = [
   {
     icon: CalendarCheck,
@@ -141,29 +110,26 @@ const INQUIRY_TYPES = [
 const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
 
 export default async function ContactPage() {
-  let departments: Department[] = FALLBACK_DEPARTMENTS
-  let persons: Person[] = FALLBACK_PERSONS
-  let offices: Office[] = FALLBACK_OFFICES
+  let departments: Department[] = []
+  let persons: Person[] = []
+  let offices: Office[] = []
 
   try {
     const res = await getContactData(true)
     if (res.success) {
-      if (res.departments && res.departments.length > 0) {
-        departments = res.departments as Department[]
-      }
-      if (res.persons && res.persons.length > 0) {
-        persons = res.persons as Person[]
-      }
-      if (res.offices && res.offices.length > 0) {
-        offices = res.offices as Office[]
-      }
+      departments = (res.departments ?? []) as Department[]
+      persons = (res.persons ?? []) as Person[]
+      offices = (res.offices ?? []) as Office[]
     }
   } catch {
-    /* fall back */
+    /* empty state */
   }
 
   const primaryOffice = offices.find(o => o.is_primary) ?? offices[0]
   const keyContacts = persons.filter(p => p.phone && p.phone_raw).slice(0, 4)
+  const emailOnlyContacts = Array.from(
+    new Set(persons.filter(p => p.email && !p.phone).map(p => p.email as string))
+  )
 
   return (
     <main className="min-h-screen">
@@ -246,31 +212,27 @@ export default async function ContactPage() {
             )}
 
             {/* Email */}
-            <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
-                  <Mail size={18} className="text-[#e7ab1c]" />
+            {emailOnlyContacts.length > 0 && (
+              <div className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center shrink-0">
+                    <Mail size={18} className="text-[#e7ab1c]" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#1a1a2e]">Email</h3>
                 </div>
-                <h3 className="text-sm font-bold text-[#1a1a2e]">Email</h3>
+                <div className="space-y-1.5">
+                  {emailOnlyContacts.map((email) => (
+                    <a
+                      key={email}
+                      href={`mailto:${email}`}
+                      className="text-sm text-[#1a1a2e]/80 hover:text-[#e7ab1c] transition-colors block"
+                    >
+                      {email}
+                    </a>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-1.5">
-                {Array.from(
-                  new Set(
-                    persons
-                      .filter(p => p.email && !p.phone)
-                      .map(p => p.email as string)
-                  )
-                ).map((email) => (
-                  <a
-                    key={email}
-                    href={`mailto:${email}`}
-                    className="text-sm text-[#1a1a2e]/80 hover:text-[#e7ab1c] transition-colors block"
-                  >
-                    {email}
-                  </a>
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* Key Contacts */}
             {keyContacts.length > 0 && (
