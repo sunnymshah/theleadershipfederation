@@ -23,6 +23,8 @@ export interface ProfilePermissions {
   settings: { view: boolean; edit: boolean }
   team: { view: boolean; manage: boolean }
   payments: { view: boolean; refund: boolean }
+  /** Revenue & financial totals — gross, net, refund volume, fees, payout reports. SENSITIVE. */
+  revenue: { view: boolean; export: boolean }
 }
 
 export interface AccessProfile {
@@ -63,6 +65,7 @@ export const DEFAULT_PERMISSIONS: ProfilePermissions = {
   settings: { view: false, edit: false },
   team: { view: false, manage: false },
   payments: { view: false, refund: false },
+  revenue: { view: false, export: false },
 }
 
 export const PROFILE_COLORS = [
