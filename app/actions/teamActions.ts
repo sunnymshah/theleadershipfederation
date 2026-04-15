@@ -23,10 +23,10 @@ async function requireSuperAdmin() {
     .from("team_members")
     .select("role")
     .eq("user_id", user.id)
-    .single()
+    .maybeSingle()
 
   if (!member || member.role !== "super_admin") {
-    throw new Error("Only super admins can perform this action")
+    throw new Error("Access not allowed. Please contact the super admin (Sunny Shah) to request permissions.")
   }
   return { supabase, user }
 }
@@ -44,11 +44,11 @@ export async function getCurrentUserRole(): Promise<{
       .from("team_members")
       .select("role, email, name")
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
 
     if (!member) {
-      // If no team_members row exists, treat as super_admin (first user / legacy)
-      return { role: "super_admin", email: user.email ?? null, name: null }
+      // No team_members row → no role. User must be added by super admin (Sunny Shah).
+      return { role: null, email: user.email ?? null, name: null }
     }
 
     return {

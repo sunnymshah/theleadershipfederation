@@ -329,6 +329,13 @@ export default function AdminSettingsPage() {
     Record<string, Record<string, boolean>>
   >({})
 
+  // New-member credentials (only shown on Create, not Edit)
+  const [formMemberName, setFormMemberName] = useState("")
+  const [formMemberEmail, setFormMemberEmail] = useState("")
+  const [formMemberPassword, setFormMemberPassword] = useState("")
+  const [formMemberRole, setFormMemberRole] = useState<"super_admin" | "admin" | "member">("admin")
+  const [showPassword, setShowPassword] = useState(false)
+
   /* ── Load settings from localStorage ──────────────────────────────── */
 
   useEffect(() => {
@@ -407,6 +414,11 @@ export default function AdminSettingsPage() {
     setFormDescription("")
     setFormColor("#2563EB")
     setFormPermissions(initPermissions())
+    setFormMemberName("")
+    setFormMemberEmail("")
+    setFormMemberPassword("")
+    setFormMemberRole("admin")
+    setShowPassword(false)
     setProfileError(null)
     setProfileDrawerOpen(true)
   }
@@ -455,6 +467,23 @@ export default function AdminSettingsPage() {
       setProfileError("Profile name is required.")
       return
     }
+
+    // When creating a profile, also validate the linked-member credentials.
+    if (!editingProfile) {
+      if (!formMemberName.trim()) {
+        setProfileError("Member name is required.")
+        return
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formMemberEmail.trim())) {
+        setProfileError("A valid email is required.")
+        return
+      }
+      if (formMemberPassword.length < 8) {
+        setProfileError("Password must be at least 8 characters.")
+        return
+      }
+    }
+
     setProfileSubmitting(true)
     setProfileError(null)
 
@@ -465,10 +494,25 @@ export default function AdminSettingsPage() {
       permissions: formPermissions as Record<string, Record<string, boolean>>,
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = editingProfile
-      ? await updateProfile(editingProfile.id, profileData as any)
-      : await createProfile(profileData as any)
+    let result:
+      | Awaited<ReturnType<typeof updateProfile>>
+      | Awaited<ReturnType<typeof createProfile>>
+
+    if (editingProfile) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result = await updateProfile(editingProfile.id, profileData as any)
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result = await createProfile({
+        ...(profileData as any),
+        member: {
+          name: formMemberName.trim(),
+          email: formMemberEmail.trim(),
+          password: formMemberPassword,
+          role: formMemberRole,
+        },
+      })
+    }
 
     if (result.success) {
       setProfileDrawerOpen(false)
@@ -477,6 +521,7 @@ export default function AdminSettingsPage() {
         name: profileData.name,
         description: profileData.description,
         color: profileData.color,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         permissions: profileData.permissions as any,
       })
       setGeneratedSQL(sql)
@@ -694,6 +739,21 @@ export default function AdminSettingsPage() {
                       )}
                     </div>
                     <p className="text-xs text-[#999] truncate">{p.description ?? "No description"}</p>
+                    {p.members && p.members.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {p.members.map((m) => (
+                          <span
+                            key={m.id}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-[#f4f6fb] text-[#556] border border-[#e4e7ee]"
+                            title={`${m.email} · ${m.role}`}
+                          >
+                            <span className="font-medium text-[#334]">{m.name ?? m.email.split("@")[0]}</span>
+                            <span className="text-[#8b94a7]">·</span>
+                            <span className="text-[#6b7280]">{m.email}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -774,6 +834,87 @@ export default function AdminSettingsPage() {
                     />
                   </div>
                 </div>
+
+                {/* Member credentials — only on Create */}
+                {!editingProfile && (
+                  <div className="rounded-xl border border-[#e0e0e0] bg-[#fafbfc] p-4 space-y-4">
+                    <div>
+                      <p className="text-sm font-semibold text-[#333]">Assign this profile to a team member</p>
+                      <p className="text-xs text-[#888] mt-0.5">
+                        We&apos;ll create a login for them with the permissions you pick below. Share the email + password with them privately — only the super admin can view this list.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
+                          Member Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={formMemberName}
+                          onChange={(e) => setFormMemberName(e.target.value)}
+                          placeholder="e.g. Priya Kapoor"
+                          className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
+                          Role
+                        </label>
+                        <select
+                          value={formMemberRole}
+                          onChange={(e) => setFormMemberRole(e.target.value as "super_admin" | "admin" | "member")}
+                          className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="member">Member</option>
+                          <option value="super_admin">Super Admin</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        autoComplete="off"
+                        value={formMemberEmail}
+                        onChange={(e) => setFormMemberEmail(e.target.value)}
+                        placeholder="name@example.com"
+                        className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
+                        Password * <span className="text-[#bbb] normal-case tracking-normal">(min 8 characters)</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          autoComplete="new-password"
+                          value={formMemberPassword}
+                          onChange={(e) => setFormMemberPassword(e.target.value)}
+                          placeholder="Temporary password to share privately"
+                          className="w-full px-3 py-2.5 pr-20 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-[#1a73e8] hover:text-[#1557b0] transition-colors"
+                        >
+                          {showPassword ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-[#999] mt-1">
+                        The member can change this after first login under Settings.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Color picker */}
                 <div>

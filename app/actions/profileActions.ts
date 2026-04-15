@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
+import { createStaticClient } from "@/utils/supabase/static"
 
 /* ── Types ────────────────────────────────────────────────────────────── */
 
@@ -34,6 +36,14 @@ export interface AccessProfile {
   created_at: string
   updated_at: string
   member_count?: number
+  /** Team members linked to this profile — only returned to super admins. */
+  members?: Array<{
+    id: string
+    user_id: string
+    email: string
+    name: string | null
+    role: string
+  }>
 }
 
 /* ── Constants ────────────────────────────────────────────────────────── */
@@ -80,10 +90,10 @@ async function requireSuperAdmin() {
     .from("team_members")
     .select("role")
     .eq("user_id", user.id)
-    .single()
+    .maybeSingle()
 
   if (!member || member.role !== "super_admin") {
-    throw new Error("Only super admins can manage profiles")
+    throw new Error("Access not allowed. Please contact the super admin (Sunny Shah) to request permissions.")
   }
   return { supabase, user }
 }
@@ -107,23 +117,34 @@ export async function getProfiles(): Promise<{
 
     if (error) return { success: false, error: error.message, profiles: [] }
 
-    // Get member counts per profile
+    // Get members per profile so super admins can see email/name
     const { data: members } = await supabase
       .from("team_members")
-      .select("profile_id")
+      .select("id, user_id, email, name, role, profile_id")
 
-    const countMap: Record<string, number> = {}
+    const membersByProfile: Record<
+      string,
+      Array<{ id: string; user_id: string; email: string; name: string | null; role: string }>
+    > = {}
     if (members) {
       for (const m of members) {
         if (m.profile_id) {
-          countMap[m.profile_id] = (countMap[m.profile_id] || 0) + 1
+          if (!membersByProfile[m.profile_id]) membersByProfile[m.profile_id] = []
+          membersByProfile[m.profile_id].push({
+            id: m.id,
+            user_id: m.user_id,
+            email: m.email,
+            name: m.name,
+            role: m.role,
+          })
         }
       }
     }
 
     const enriched = (profiles ?? []).map((p) => ({
       ...p,
-      member_count: countMap[p.id] || 0,
+      members: membersByProfile[p.id] ?? [],
+      member_count: (membersByProfile[p.id] ?? []).length,
     }))
 
     return { success: true, profiles: enriched }
@@ -229,11 +250,20 @@ export async function createProfile(data: {
   description: string
   color: string
   permissions: ProfilePermissions
+  /** Optional: create a login user and link them to this profile in one step. */
+  member?: {
+    name: string
+    email: string
+    password: string
+    /** Team role for the new member. Defaults to "admin". */
+    role?: "super_admin" | "admin" | "member"
+  }
 }): Promise<{
   success: boolean
   error?: string
   profile?: AccessProfile
   sql?: string
+  createdMember?: { user_id: string; email: string; name: string; role: string }
 }> {
   try {
     const { supabase, user } = await requireSuperAdmin()
@@ -248,6 +278,31 @@ export async function createProfile(data: {
       return { success: false, error: "Maximum 20 profiles allowed." }
     }
 
+    /* ── Validate member credentials up-front (before any writes) ─────── */
+    if (data.member) {
+      const { email, password, name } = data.member
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { success: false, error: "A valid email is required for the team member." }
+      }
+      if (!password || password.length < 8) {
+        return { success: false, error: "Password must be at least 8 characters." }
+      }
+      if (!name || !name.trim()) {
+        return { success: false, error: "Member name is required." }
+      }
+
+      // Check for pre-existing team_members row with this email
+      const { data: existingMember } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle()
+      if (existingMember) {
+        return { success: false, error: `A team member with email ${email} already exists.` }
+      }
+    }
+
+    /* ── 1. Insert access_profile ─────────────────────────────────────── */
     const { data: profile, error } = await supabase
       .from("access_profiles")
       .insert({
@@ -264,6 +319,84 @@ export async function createProfile(data: {
 
     if (error) return { success: false, error: error.message }
 
+    /* ── 2. Optionally create auth user + team_members row ────────────── */
+    let createdMember: { user_id: string; email: string; name: string; role: string } | undefined
+    if (data.member) {
+      const role = data.member.role ?? "admin"
+      const hasServiceRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY
+
+      let userId: string | undefined
+
+      if (hasServiceRole) {
+        /* Path A — service role: fastest, auto-confirms email */
+        const admin = createAdminClient()
+        const { data: created, error: authErr } = await admin.auth.admin.createUser({
+          email: data.member.email,
+          password: data.member.password,
+          email_confirm: true,
+          user_metadata: { name: data.member.name },
+        })
+
+        userId = created?.user?.id
+        if (authErr) {
+          if (/already.*registered|already been registered|already exists/i.test(authErr.message)) {
+            const { data: list } = await admin.auth.admin.listUsers()
+            userId = list?.users?.find((u) => u.email === data.member!.email)?.id
+          }
+          if (!userId) {
+            await supabase.from("access_profiles").delete().eq("id", profile.id)
+            return { success: false, error: `Failed to create auth user: ${authErr.message}` }
+          }
+        }
+      } else {
+        /* Path B — anon signUp (no service role required).
+         *
+         * Uses a cookieless client so the current super-admin's session is
+         * untouched. The new user is created; if Supabase has "Confirm email"
+         * enabled, they must click the confirmation link before logging in.
+         * Disable confirmation at Supabase Dashboard → Authentication →
+         * Providers → Email → "Confirm email" OFF for instant login. */
+        const anon = createStaticClient()
+        const { data: signUpData, error: signUpErr } = await anon.auth.signUp({
+          email: data.member.email,
+          password: data.member.password,
+          options: { data: { name: data.member.name } },
+        })
+
+        userId = signUpData?.user?.id
+        if (signUpErr || !userId) {
+          await supabase.from("access_profiles").delete().eq("id", profile.id)
+          return {
+            success: false,
+            error:
+              signUpErr?.message ??
+              "Could not create auth user. If this email already exists in Supabase, delete it from Auth → Users and retry.",
+          }
+        }
+      }
+
+      if (!userId) {
+        await supabase.from("access_profiles").delete().eq("id", profile.id)
+        return { success: false, error: "Could not create auth user." }
+      }
+
+      // Insert team_members row linking user → profile. Uses the current
+      // (super-admin) cookie-backed client so RLS sees a super_admin actor.
+      const { error: insertErr } = await supabase.from("team_members").insert({
+        user_id: userId,
+        email: data.member.email,
+        name: data.member.name,
+        role,
+        profile_id: profile.id,
+      })
+      if (insertErr) {
+        await supabase.from("access_profiles").delete().eq("id", profile.id)
+        return { success: false, error: `Failed to link team member: ${insertErr.message}` }
+      }
+
+      createdMember = { user_id: userId, email: data.member.email, name: data.member.name, role }
+    }
+
     // Generate the SQL code for the user
     const sql = await generateProfileSQL({
       name: data.name,
@@ -274,7 +407,7 @@ export async function createProfile(data: {
 
     revalidatePath("/admin/settings", "page")
     revalidatePath("/admin/team", "page")
-    return { success: true, profile, sql }
+    return { success: true, profile, sql, createdMember }
   } catch (err) {
     return { success: false, error: (err as Error).message }
   }
