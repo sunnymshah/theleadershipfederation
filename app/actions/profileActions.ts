@@ -108,8 +108,16 @@ async function getAuthenticatedClient() {
 
 async function requireSuperAdmin() {
   const { supabase, user } = await getAuthenticatedClient()
+
+  // Use the service-role admin client for this lookup so we bypass
+  // team_members RLS entirely. The table has self-referential policies
+  // (EXISTS (SELECT FROM team_members ...)) which cause Postgres to raise
+  // "infinite recursion detected in policy for relation team_members".
+  // We've already verified auth via the cookie client above — the admin
+  // client is only used to dodge the broken policy, not to bypass auth.
+  const adminForRoleCheck = createAdminClient()
   const { data: member } = await withTimeout(
-    supabase
+    adminForRoleCheck
       .from("team_members")
       .select("role")
       .eq("user_id", user.id)
@@ -330,9 +338,11 @@ export async function createProfile(data: {
         return { success: false, error: "Member name is required." }
       }
 
-      // Check for pre-existing team_members row with this email
+      // Check for pre-existing team_members row with this email. Use admin
+      // client to bypass the recursive RLS policies on team_members.
+      const adminForLookup = createAdminClient()
       const { data: existingMember } = await withTimeout(
-        supabase
+        adminForLookup
           .from("team_members")
           .select("id")
           .eq("email", email)
