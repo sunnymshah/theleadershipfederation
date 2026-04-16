@@ -448,8 +448,12 @@ export async function createProfile(data: {
       permissions: data.permissions,
     })
 
-    revalidatePath("/admin/settings", "page")
-    revalidatePath("/admin/team", "page")
+    // Next 16: revalidatePath triggers an immediate server re-render. Wrap in
+    // try/catch so a render error in the revalidated page doesn't fail the
+    // whole action (the client refetches via fetchProfiles anyway). Omit the
+    // "page" type arg — Next 16 docs: literal paths should omit it.
+    try { revalidatePath("/admin/settings") } catch {}
+    try { revalidatePath("/admin/team") } catch {}
     console.log("[createProfile] success", stamp())
     return { success: true, profile, sql, createdMember }
   } catch (err) {
@@ -498,8 +502,12 @@ export async function updateProfile(
 
     if (error) return { success: false, error: error.message }
 
-    revalidatePath("/admin/settings", "page")
-    revalidatePath("/admin/team", "page")
+    // Next 16: revalidatePath triggers an immediate server re-render. Wrap in
+    // try/catch so a render error in the revalidated page doesn't fail the
+    // whole action (the client refetches via fetchProfiles anyway). Omit the
+    // "page" type arg — Next 16 docs: literal paths should omit it.
+    try { revalidatePath("/admin/settings") } catch {}
+    try { revalidatePath("/admin/team") } catch {}
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -545,8 +553,12 @@ export async function deleteProfile(
 
     if (error) return { success: false, error: error.message }
 
-    revalidatePath("/admin/settings", "page")
-    revalidatePath("/admin/team", "page")
+    // Next 16: revalidatePath triggers an immediate server re-render. Wrap in
+    // try/catch so a render error in the revalidated page doesn't fail the
+    // whole action (the client refetches via fetchProfiles anyway). Omit the
+    // "page" type arg — Next 16 docs: literal paths should omit it.
+    try { revalidatePath("/admin/settings") } catch {}
+    try { revalidatePath("/admin/team") } catch {}
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -589,8 +601,8 @@ export async function assignProfileToMember(
 
     if (error) return { success: false, error: error.message }
 
-    revalidatePath("/admin/team", "page")
-    revalidatePath("/admin/settings", "page")
+    try { revalidatePath("/admin/team") } catch {}
+    try { revalidatePath("/admin/settings") } catch {}
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
