@@ -26,7 +26,6 @@ import {
   createProfile,
   updateProfile,
   deleteProfile,
-  generateProfileSQL,
   type AccessProfile,
 } from "@/app/actions/profileActions"
 
@@ -384,9 +383,6 @@ export default function AdminSettingsPage() {
   const [editingProfile, setEditingProfile] = useState<AccessProfile | null>(null)
   const [profileSubmitting, setProfileSubmitting] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
-  const [sqlModalOpen, setSqlModalOpen] = useState(false)
-  const [generatedSQL, setGeneratedSQL] = useState("")
-  const [sqlCopied, setSqlCopied] = useState(false)
 
   // Profile form state
   const [formName, setFormName] = useState("")
@@ -395,13 +391,6 @@ export default function AdminSettingsPage() {
   const [formPermissions, setFormPermissions] = useState<
     Record<string, Record<string, boolean>>
   >({})
-
-  // New-member credentials (only shown on Create, not Edit)
-  const [formMemberName, setFormMemberName] = useState("")
-  const [formMemberEmail, setFormMemberEmail] = useState("")
-  const [formMemberPassword, setFormMemberPassword] = useState("")
-  const [formMemberRole, setFormMemberRole] = useState<"super_admin" | "admin" | "member">("admin")
-  const [showPassword, setShowPassword] = useState(false)
 
   // Permission matrix UX state
   const [permissionSearch, setPermissionSearch] = useState("")
@@ -488,11 +477,6 @@ export default function AdminSettingsPage() {
     setFormDescription("")
     setFormColor("#2563EB")
     setFormPermissions(initPermissions())
-    setFormMemberName("")
-    setFormMemberEmail("")
-    setFormMemberPassword("")
-    setFormMemberRole("admin")
-    setShowPassword(false)
     setProfileError(null)
     setProfileDrawerOpen(true)
   }
@@ -587,22 +571,6 @@ export default function AdminSettingsPage() {
       return
     }
 
-    // When creating a profile, also validate the linked-member credentials.
-    if (!editingProfile) {
-      if (!formMemberName.trim()) {
-        setProfileError("Member name is required.")
-        return
-      }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formMemberEmail.trim())) {
-        setProfileError("A valid email is required.")
-        return
-      }
-      if (formMemberPassword.length < 8) {
-        setProfileError("Password must be at least 8 characters.")
-        return
-      }
-    }
-
     setProfileSubmitting(true)
     setProfileError(null)
 
@@ -621,30 +589,14 @@ export default function AdminSettingsPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result = await updateProfile(editingProfile.id, profileData as any)
     } else {
+      // Create permission template only — linking a team member is a separate
+      // flow under Admin → Team to avoid SMTP / email-confirmation hangs.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = await createProfile({
-        ...(profileData as any),
-        member: {
-          name: formMemberName.trim(),
-          email: formMemberEmail.trim(),
-          password: formMemberPassword,
-          role: formMemberRole,
-        },
-      })
+      result = await createProfile(profileData as any)
     }
 
     if (result.success) {
       setProfileDrawerOpen(false)
-      // Generate SQL
-      const sql = await generateProfileSQL({
-        name: profileData.name,
-        description: profileData.description,
-        color: profileData.color,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        permissions: profileData.permissions as any,
-      })
-      setGeneratedSQL(sql)
-      setSqlModalOpen(true)
       await fetchProfiles()
     } else {
       setProfileError(result.error ?? "Operation failed")
@@ -660,12 +612,6 @@ export default function AdminSettingsPage() {
     } else {
       setProfileError(result.error ?? "Failed to delete")
     }
-  }
-
-  function copySql() {
-    navigator.clipboard.writeText(generatedSQL)
-    setSqlCopied(true)
-    setTimeout(() => setSqlCopied(false), 2000)
   }
 
   /* ═══════════════════════════════════════════════════════════════════════
@@ -954,86 +900,9 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                {/* Member credentials — only on Create */}
-                {!editingProfile && (
-                  <div className="rounded-xl border border-[#e0e0e0] bg-[#fafbfc] p-4 space-y-4">
-                    <div>
-                      <p className="text-sm font-semibold text-[#333]">Assign this profile to a team member</p>
-                      <p className="text-xs text-[#888] mt-0.5">
-                        We&apos;ll create a login for them with the permissions you pick below. Share the email + password with them privately — only the super admin can view this list.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
-                          Member Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={formMemberName}
-                          onChange={(e) => setFormMemberName(e.target.value)}
-                          placeholder="e.g. Priya Kapoor"
-                          className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
-                          Role
-                        </label>
-                        <select
-                          value={formMemberRole}
-                          onChange={(e) => setFormMemberRole(e.target.value as "super_admin" | "admin" | "member")}
-                          className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        >
-                          <option value="admin">Admin</option>
-                          <option value="member">Member</option>
-                          <option value="super_admin">Super Admin</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        autoComplete="off"
-                        value={formMemberEmail}
-                        onChange={(e) => setFormMemberEmail(e.target.value)}
-                        placeholder="name@example.com"
-                        className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5 font-medium">
-                        Password * <span className="text-[#bbb] normal-case tracking-normal">(min 8 characters)</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          autoComplete="new-password"
-                          value={formMemberPassword}
-                          onChange={(e) => setFormMemberPassword(e.target.value)}
-                          placeholder="Temporary password to share privately"
-                          className="w-full px-3 py-2.5 pr-20 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((v) => !v)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-[#1a73e8] hover:text-[#1557b0] transition-colors"
-                        >
-                          {showPassword ? "Hide" : "Show"}
-                        </button>
-                      </div>
-                      <p className="text-[11px] text-[#999] mt-1">
-                        The member can change this after first login under Settings.
-                      </p>
-                    </div>
-                  </div>
-                )}
+                {/* Assigning a team member is a separate flow under
+                    Admin → Team so profile creation stays instant (no SMTP,
+                    no email confirmation round-trip). */}
 
                 {/* Color picker */}
                 <div>
@@ -1309,67 +1178,6 @@ export default function AdminSettingsPage() {
           </>
         )}
 
-        {/* ── SQL Modal ──────────────────────────────────────────── */}
-        {sqlModalOpen && (
-          <>
-            <div className="fixed inset-0 bg-[#1a1a2e]/60 z-[60]" onClick={() => setSqlModalOpen(false)} />
-            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-                {/* Modal header */}
-                <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between shrink-0">
-                  <h3 className="text-lg font-semibold text-[#333]">Run this SQL in Supabase</h3>
-                  <button
-                    onClick={() => setSqlModalOpen(false)}
-                    className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-
-                {/* Modal body */}
-                <div className="p-6 overflow-y-auto flex-1 space-y-4">
-                  <div className="bg-[#f8f9fa] border border-[#e0e0e0] rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[11px] font-semibold text-[#888] uppercase tracking-wider">Generated SQL</span>
-                      <button
-                        onClick={copySql}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-white border border-[#e0e0e0] text-[#555] hover:bg-[#f0f0f0] transition-colors"
-                      >
-                        {sqlCopied ? (
-                          <><Check size={12} /> Copied!</>
-                        ) : (
-                          <><Copy size={12} /> Copy to Clipboard</>
-                        )}
-                      </button>
-                    </div>
-                    <pre className="text-xs text-[#333] font-mono whitespace-pre-wrap overflow-x-auto leading-relaxed">
-                      {generatedSQL}
-                    </pre>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-                    <p className="font-medium mb-1">Instructions:</p>
-                    <ol className="list-decimal list-inside space-y-1 text-blue-700">
-                      <li>Go to <span className="font-medium">Supabase Dashboard</span></li>
-                      <li>Open the <span className="font-medium">SQL Editor</span></li>
-                      <li>Paste the SQL above and click Run</li>
-                    </ol>
-                  </div>
-                </div>
-
-                {/* Modal footer */}
-                <div className="px-6 py-4 border-t border-[#e0e0e0] flex justify-end shrink-0">
-                  <button
-                    onClick={() => setSqlModalOpen(false)}
-                    className="px-6 py-2.5 rounded-lg bg-[#1a73e8] text-white text-sm font-semibold hover:bg-[#1557b0] transition-colors"
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
       </div>
     )
   }
