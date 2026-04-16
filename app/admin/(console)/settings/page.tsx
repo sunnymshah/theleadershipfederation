@@ -490,6 +490,7 @@ export default function AdminSettingsPage() {
     setFormMemberRole("admin")
     setShowPassword(false)
     setProfileError(null)
+    setProfileSubmitting(false) // clear any leftover "Saving..." from a prior stuck attempt
     setProfileDrawerOpen(true)
   }
 
@@ -507,6 +508,7 @@ export default function AdminSettingsPage() {
     }
     setFormPermissions(merged)
     setProfileError(null)
+    setProfileSubmitting(false) // clear any leftover "Saving..." from a prior stuck attempt
     setProfileDrawerOpen(true)
   }
 
