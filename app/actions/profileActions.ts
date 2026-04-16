@@ -294,7 +294,8 @@ export async function createProfile(data: {
     email: string
     password: string
     /** Team role for the new member. Defaults to "admin". */
-    role?: "super_admin" | "admin" | "member"
+    /** Must match team_members role CHECK constraint. */
+    role?: "super_admin" | "admin" | "manager" | "check_in_staff" | "viewer"
   }
 }): Promise<{
   success: boolean
