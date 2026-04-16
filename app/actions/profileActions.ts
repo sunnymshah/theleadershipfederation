@@ -118,7 +118,11 @@ async function requireSuperAdmin() {
     "roleCheck",
   )
 
-  if (!member || member.role !== "super_admin") {
+  // Bootstrap semantics — matches app/admin/(console)/layout.tsx which does
+  // `const userRole = teamMember?.role ?? "super_admin"`. If this authenticated
+  // user has NO team_members row yet, they are the bootstrap super_admin (the
+  // first person in). A row MUST exist with a different role for us to block.
+  if (member && member.role !== "super_admin") {
     throw new Error("Access not allowed. Please contact the super admin (Sunny Shah) to request permissions.")
   }
   return { supabase, user }
