@@ -396,7 +396,7 @@ export default function AdminSettingsPage() {
   const [formMemberName, setFormMemberName] = useState("")
   const [formMemberEmail, setFormMemberEmail] = useState("")
   const [formMemberPassword, setFormMemberPassword] = useState("")
-  const [formMemberRole, setFormMemberRole] = useState<"super_admin" | "admin" | "member">("admin")
+  const [formMemberRole, setFormMemberRole] = useState<"super_admin" | "admin" | "manager" | "check_in_staff" | "viewer">("admin")
   const [showPassword, setShowPassword] = useState(false)
 
   // Permission matrix UX state
@@ -979,12 +979,14 @@ export default function AdminSettingsPage() {
                         </label>
                         <select
                           value={formMemberRole}
-                          onChange={(e) => setFormMemberRole(e.target.value as "super_admin" | "admin" | "member")}
+                          onChange={(e) => setFormMemberRole(e.target.value as "super_admin" | "admin" | "manager" | "check_in_staff" | "viewer")}
                           className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         >
-                          <option value="admin">Admin</option>
-                          <option value="member">Member</option>
                           <option value="super_admin">Super Admin</option>
+                          <option value="admin">Admin</option>
+                          <option value="manager">Manager</option>
+                          <option value="check_in_staff">Check-in Staff</option>
+                          <option value="viewer">Viewer</option>
                         </select>
                       </div>
                     </div>
