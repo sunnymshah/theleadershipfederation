@@ -1234,8 +1234,10 @@ export default function AdminSettingsPage() {
                   >
                     {profileSubmitting ? (
                       <><Loader2 size={14} className="animate-spin" /> Saving...</>
+                    ) : editingProfile ? (
+                      "Save Changes"
                     ) : (
-                      "Save & Generate SQL"
+                      "Create Profile"
                     )}
                   </button>
                 </div>

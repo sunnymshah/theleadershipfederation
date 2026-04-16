@@ -5,10 +5,12 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
 
-/* Hard timeout so auth calls can never hang the admin UI. */
-async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+/* Hard timeout so auth / DB calls can never hang the admin UI. Accepts
+ * PromiseLike because Supabase query builders are thenable but not strict
+ * Promise instances. */
+async function withTimeout<T>(p: PromiseLike<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
-    p,
+    Promise.resolve(p),
     new Promise<T>((_, reject) =>
       setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms),
     ),
@@ -91,18 +93,22 @@ async function getAuthenticatedClient() {
   const supabase = createClient(cookieStore)
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await withTimeout(supabase.auth.getUser(), 8_000, "auth.getUser")
   if (!user) throw new Error("Unauthorized")
   return { supabase, user }
 }
 
 async function requireSuperAdmin() {
   const { supabase, user } = await getAuthenticatedClient()
-  const { data: member } = await supabase
-    .from("team_members")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle()
+  const { data: member } = await withTimeout(
+    supabase
+      .from("team_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    8_000,
+    "roleCheck",
+  )
 
   if (!member || member.role !== "super_admin") {
     throw new Error("Access not allowed. Please contact the super admin (Sunny Shah) to request permissions.")
@@ -277,14 +283,23 @@ export async function createProfile(data: {
   sql?: string
   createdMember?: { user_id: string; email: string; name: string; role: string }
 }> {
+  const t0 = Date.now()
+  const stamp = () => `+${Date.now() - t0}ms`
   try {
+    console.log("[createProfile] start", stamp())
     const { supabase, user } = await requireSuperAdmin()
+    console.log("[createProfile] authed as super_admin", stamp())
 
     // Check profile count
-    const { count } = await supabase
-      .from("access_profiles")
-      .select("*", { count: "exact", head: true })
-      .eq("is_active", true)
+    const { count } = await withTimeout(
+      supabase
+        .from("access_profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true),
+      8_000,
+      "countProfiles",
+    )
+    console.log("[createProfile] count check done", stamp(), "count=", count)
 
     if ((count ?? 0) >= 20) {
       return { success: false, error: "Maximum 20 profiles allowed." }
@@ -304,30 +319,40 @@ export async function createProfile(data: {
       }
 
       // Check for pre-existing team_members row with this email
-      const { data: existingMember } = await supabase
-        .from("team_members")
-        .select("id")
-        .eq("email", email)
-        .maybeSingle()
+      const { data: existingMember } = await withTimeout(
+        supabase
+          .from("team_members")
+          .select("id")
+          .eq("email", email)
+          .maybeSingle(),
+        8_000,
+        "existingMemberCheck",
+      )
       if (existingMember) {
         return { success: false, error: `A team member with email ${email} already exists.` }
       }
+      console.log("[createProfile] member validated", stamp())
     }
 
     /* ── 1. Insert access_profile ─────────────────────────────────────── */
-    const { data: profile, error } = await supabase
-      .from("access_profiles")
-      .insert({
-        name: data.name,
-        description: data.description,
-        color: data.color,
-        permissions: data.permissions,
-        is_system: false,
-        is_active: true,
-        created_by: user.id,
-      })
-      .select()
-      .single()
+    const { data: profile, error } = await withTimeout(
+      supabase
+        .from("access_profiles")
+        .insert({
+          name: data.name,
+          description: data.description,
+          color: data.color,
+          permissions: data.permissions,
+          is_system: false,
+          is_active: true,
+          created_by: user.id,
+        })
+        .select()
+        .single(),
+      8_000,
+      "insertProfile",
+    )
+    console.log("[createProfile] profile inserted", stamp(), "id=", profile?.id)
 
     if (error) return { success: false, error: error.message }
 
@@ -343,6 +368,7 @@ export async function createProfile(data: {
         /* Path A — service role: fastest, auto-confirms email. Wrapped in a
          * 10s timeout so a misconfigured key or a network blip can't hang
          * the admin UI forever. */
+        console.log("[createProfile] calling admin.createUser", stamp())
         const admin = createAdminClient()
         const { data: created, error: authErr } = await withTimeout(
           admin.auth.admin.createUser({
@@ -354,6 +380,7 @@ export async function createProfile(data: {
           10_000,
           "createUser",
         )
+        console.log("[createProfile] admin.createUser returned", stamp(), "err=", authErr?.message)
 
         userId = created?.user?.id
         if (authErr) {
@@ -388,15 +415,23 @@ export async function createProfile(data: {
         return { success: false, error: "Could not create auth user." }
       }
 
-      // Insert team_members row linking user → profile. Uses the current
-      // (super-admin) cookie-backed client so RLS sees a super_admin actor.
-      const { error: insertErr } = await supabase.from("team_members").insert({
-        user_id: userId,
-        email: data.member.email,
-        name: data.member.name,
-        role,
-        profile_id: profile.id,
-      })
+      // Insert team_members row linking user → profile via the service-role
+      // admin client so RLS can never silently block / hang the insert. We
+      // already verified the caller is super_admin at the top of the action.
+      console.log("[createProfile] inserting team_members", stamp())
+      const adminForInsert = createAdminClient()
+      const { error: insertErr } = await withTimeout(
+        adminForInsert.from("team_members").insert({
+          user_id: userId,
+          email: data.member.email,
+          name: data.member.name,
+          role,
+          profile_id: profile.id,
+        }),
+        8_000,
+        "insertTeamMember",
+      )
+      console.log("[createProfile] team_members insert done", stamp(), "err=", insertErr?.message)
       if (insertErr) {
         await supabase.from("access_profiles").delete().eq("id", profile.id)
         return { success: false, error: `Failed to link team member: ${insertErr.message}` }
@@ -415,8 +450,10 @@ export async function createProfile(data: {
 
     revalidatePath("/admin/settings", "page")
     revalidatePath("/admin/team", "page")
+    console.log("[createProfile] success", stamp())
     return { success: true, profile, sql, createdMember }
   } catch (err) {
+    console.error("[createProfile] failed", stamp(), (err as Error).message)
     return { success: false, error: (err as Error).message }
   }
 }
