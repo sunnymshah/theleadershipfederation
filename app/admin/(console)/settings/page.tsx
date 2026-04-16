@@ -609,33 +609,47 @@ export default function AdminSettingsPage() {
       permissions: formPermissions as Record<string, Record<string, boolean>>,
     }
 
-    let result:
-      | Awaited<ReturnType<typeof updateProfile>>
-      | Awaited<ReturnType<typeof createProfile>>
+    // Hard client-side timeout so the button physically cannot stay in
+    // "Saving..." forever, even if the server action never returns.
+    const TIMEOUT_MS = 30_000
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error("Request timed out after 30s — check Vercel Function logs for [createProfile] breadcrumbs.")),
+        TIMEOUT_MS,
+      ),
+    )
 
-    if (editingProfile) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = await updateProfile(editingProfile.id, profileData as any)
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = await createProfile({
-        ...(profileData as any),
-        member: {
-          name: formMemberName.trim(),
-          email: formMemberEmail.trim(),
-          password: formMemberPassword,
-          role: formMemberRole,
-        },
-      })
-    }
+    try {
+      const action = editingProfile
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? updateProfile(editingProfile.id, profileData as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        : createProfile({
+            ...(profileData as any),
+            member: {
+              name: formMemberName.trim(),
+              email: formMemberEmail.trim(),
+              password: formMemberPassword,
+              role: formMemberRole,
+            },
+          })
 
-    if (result.success) {
-      setProfileDrawerOpen(false)
-      await fetchProfiles()
-    } else {
-      setProfileError(result.error ?? "Operation failed")
+      const result = (await Promise.race([action, timeoutPromise])) as
+        | Awaited<ReturnType<typeof updateProfile>>
+        | Awaited<ReturnType<typeof createProfile>>
+
+      if (result.success) {
+        setProfileDrawerOpen(false)
+        await fetchProfiles()
+      } else {
+        setProfileError(result.error ?? "Operation failed")
+      }
+    } catch (err) {
+      setProfileError((err as Error).message ?? "Unexpected error")
+    } finally {
+      // GUARANTEED to run — button can never stay stuck in "Saving..."
+      setProfileSubmitting(false)
     }
-    setProfileSubmitting(false)
   }
 
   async function handleDeleteProfile(id: string) {
