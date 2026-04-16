@@ -59,9 +59,14 @@ export interface AccessProfile {
   }>
 }
 
-/* ── Constants ────────────────────────────────────────────────────────── */
+/* ── Constants ────────────────────────────────────────────────────────────
+ * Next.js 16 requires "use server" files to export ONLY async functions.
+ * These constants are module-internal (no other file imports them); they
+ * must NOT be exported from this file or the whole module fails to load
+ * with: 'A "use server" file can only export async functions, found object.'
+ * ───────────────────────────────────────────────────────────────────────── */
 
-export const DEFAULT_PERMISSIONS: ProfilePermissions = {
+const DEFAULT_PERMISSIONS: ProfilePermissions = {
   events: { view: false, create: false, edit: false, delete: false },
   tickets: { view: false, create: false, edit: false, delete: false },
   attendees: { view: false, create: false, edit: false, delete: false, export: false },
@@ -79,12 +84,15 @@ export const DEFAULT_PERMISSIONS: ProfilePermissions = {
   revenue: { view: false, export: false },
 }
 
-export const PROFILE_COLORS = [
+const PROFILE_COLORS = [
   '#DC2626', '#EA580C', '#D97706', '#CA8A04', '#65A30D',
   '#16A34A', '#059669', '#0D9488', '#0891B2', '#0284C7',
   '#2563EB', '#4F46E5', '#7C3AED', '#9333EA', '#C026D3',
   '#DB2777', '#E11D48', '#6B7280', '#475569', '#1E293B'
 ]
+// Reference the constants so TypeScript doesn't flag them as unused.
+void DEFAULT_PERMISSIONS
+void PROFILE_COLORS
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
