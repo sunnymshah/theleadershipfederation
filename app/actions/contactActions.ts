@@ -1,9 +1,10 @@
 "use server"
 
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/utils/supabase/server"
 import { Resend } from "resend"
+import { rateLimit } from "@/lib/rate-limit"
 
 /**
  * Server Action: submitContactInquiry
@@ -278,6 +279,23 @@ function renderReplyHtml(ctx: {
 }
 
 export async function submitContactInquiry(formData: FormData) {
+  // ── Rate limit: 5 submissions per IP per 10 minutes.
+  // Stops contact-form bots hammering the endpoint + the Resend inbox.
+  try {
+    const hdrs = await headers()
+    const ip =
+      hdrs.get("x-real-ip") ||
+      hdrs.get("x-forwarded-for")?.split(",")[0].trim() ||
+      "unknown"
+    const rl = rateLimit({ key: `contact:${ip}`, limit: 5, windowMs: 10 * 60 * 1000 })
+    if (!rl.allowed) {
+      return {
+        success: false,
+        error: `Too many submissions. Please try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.`,
+      }
+    }
+  } catch { /* rate limit errors never block the request */ }
+
   const payload: InquiryPayload = {
     full_name: formData.get("full_name") as string,
     email: formData.get("email") as string,
@@ -289,9 +307,21 @@ export async function submitContactInquiry(formData: FormData) {
     source_page: (formData.get("source_page") as string) || "contact",
   }
 
+  // Length validation (defeats jumbo-payload abuse)
+  if (payload.message && payload.message.length > 5000) {
+    return { success: false, error: "Message is too long (max 5,000 characters)." }
+  }
+  if (payload.full_name && payload.full_name.length > 200) {
+    return { success: false, error: "Name is too long." }
+  }
+
   // Basic validation
   if (!payload.full_name || !payload.email || !payload.inquiry_type || !payload.message) {
     return { success: false, error: "Please fill in all required fields." }
+  }
+  // Email format check — stops "name@ " kind of abuse
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+    return { success: false, error: "Please enter a valid email address." }
   }
 
   try {

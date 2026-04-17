@@ -2,21 +2,48 @@ import type { NextConfig } from "next";
 
 /**
  * Security headers applied to every response.
- * - HSTS forces HTTPS for 2 years (Vercel handles TLS).
- * - X-Frame-Options blocks clickjacking (the admin console must never render in an iframe).
- * - X-Content-Type-Options stops MIME sniffing attacks.
- * - Referrer-Policy trims the referrer on cross-origin navigations so admin URLs don't leak.
- * - Permissions-Policy disables powerful browser APIs we don't use.
- * - Cross-Origin-Opener-Policy isolates admin tabs from attacker-controlled windows.
+ *
+ * - Strict-Transport-Security: forces HTTPS for 2 years (Vercel handles TLS).
+ * - X-Frame-Options: blocks clickjacking (admin must never render in an iframe).
+ * - X-Content-Type-Options: stops MIME sniffing attacks.
+ * - Referrer-Policy: trims referrer on cross-origin navigations so admin URLs don't leak.
+ * - Permissions-Policy: disables powerful browser APIs we don't use.
+ * - Cross-Origin-Opener-Policy: isolates admin tabs from attacker-controlled windows.
+ * - Content-Security-Policy: whitelists allowed sources for scripts, styles, images,
+ *   fonts, frames, and connections. This is the big hammer against XSS — even if
+ *   an attacker gets HTML injected somewhere, inline <script> without a nonce and
+ *   cross-origin connections to unlisted domains will be blocked by the browser.
+ *
+ * If you add a new 3rd-party service (analytics, Razorpay widget, etc.) you'll
+ * need to add its origin to the relevant directive here.
  */
+const CSP_DIRECTIVES = [
+  "default-src 'self'",
+  // 'unsafe-inline' + 'unsafe-eval' are unfortunately still needed for Next.js's
+  // inline bootstrap scripts and RSC JSON payloads. Can tighten later with nonces.
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.vercel-insights.com",
+  "style-src 'self' 'unsafe-inline'",
+  // user-uploaded images / external news outlet logos are at arbitrary https URLs
+  "img-src 'self' https: data: blob:",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com",
+  "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com",
+  "object-src 'none'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  "upgrade-insecure-requests",
+  "base-uri 'self'",
+].join("; ")
+
 const SECURITY_HEADERS = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-  { key: "X-Frame-Options", value: "SAMEORIGIN" },
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+  { key: "X-Frame-Options",            value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options",     value: "nosniff" },
+  { key: "Referrer-Policy",            value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy",         value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  { key: "X-DNS-Prefetch-Control", value: "on" },
+  { key: "X-DNS-Prefetch-Control",     value: "on" },
+  { key: "Content-Security-Policy",    value: CSP_DIRECTIVES },
 ];
 
 const nextConfig: NextConfig = {

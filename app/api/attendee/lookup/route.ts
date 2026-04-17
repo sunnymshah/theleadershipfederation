@@ -10,15 +10,35 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
+import { rateLimit, clientIp } from "@/lib/rate-limit"
 
 export async function POST(request: Request) {
   try {
+    // Prevent email enumeration: 10 lookups per IP per minute.
+    const ip = clientIp(request)
+    const rl = rateLimit({ key: `lookup:${ip}`, limit: 10, windowMs: 60 * 1000 })
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many lookups. Please try again shortly." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(rl.retryAfterMs / 1000)) },
+        },
+      )
+    }
+
     const body = await request.json()
     const { email, eventSlug } = body as { email?: string; eventSlug?: string }
 
     if (!email || typeof email !== "string") {
       return NextResponse.json(
         { error: "Email is required" },
+        { status: 400 }
+      )
+    }
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
         { status: 400 }
       )
     }

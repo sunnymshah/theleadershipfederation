@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 
 /**
  * Razorpay Webhook Handler
@@ -44,7 +44,17 @@ function verifyWebhookSignature(body: string, signature: string): boolean {
     .update(body)
     .digest("hex")
 
-  return expectedSignature === signature
+  // Constant-time comparison — prevents timing attacks that could
+  // let a remote attacker learn the signature byte-by-byte by measuring
+  // how long the string comparison takes.
+  try {
+    const a = Buffer.from(expectedSignature, "hex")
+    const b = Buffer.from(signature, "hex")
+    if (a.length !== b.length) return false
+    return timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
 }
 
 export async function POST(request: NextRequest) {
