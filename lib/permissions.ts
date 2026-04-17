@@ -158,6 +158,9 @@ export function canAccessNavItem(
   // Dashboard visible to everyone
   if (href === "/admin") return true
 
+  // Super admins ALWAYS see everything — their profile (if any) doesn't gate.
+  if (role === "super_admin") return true
+
   // If profile permissions are available, use them
   if (profilePermissions) {
     const resource = NAV_RESOURCE_MAP[href]

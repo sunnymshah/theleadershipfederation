@@ -8,7 +8,9 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { AdminLayoutShell } from "@/components/admin/AdminLayoutShell"
+import type { ProfilePermissions } from "@/app/actions/profileActions"
 
 export default async function ConsoleLayout({
   children,
@@ -24,17 +26,38 @@ export default async function ConsoleLayout({
     redirect("/admin/login")
   }
 
-  /* ── Fetch user role from team_members ──────────────────────────── */
-  const { data: teamMember } = await supabase
+  /* ── Fetch role + assigned profile permissions ──────────────────── *
+   * Uses the service-role admin client to dodge the recursive RLS
+   * policies on team_members (see fix-team-members-recursion.sql).   */
+  const admin = createAdminClient()
+  const { data: teamMember } = await admin
     .from("team_members")
-    .select("role")
+    .select("role, profile_id")
     .eq("user_id", user.id)
-    .single()
+    .maybeSingle()
 
   const userRole = teamMember?.role ?? "super_admin"
 
+  // Super admins always see the full console — their profile (if any) does
+  // NOT restrict them. For every other role, if they have a profile_id we
+  // fetch the permissions JSON so the sidebar can gate nav items.
+  let profilePermissions: ProfilePermissions | null = null
+  if (userRole !== "super_admin" && teamMember?.profile_id) {
+    const { data: profile } = await admin
+      .from("access_profiles")
+      .select("permissions")
+      .eq("id", teamMember.profile_id)
+      .eq("is_active", true)
+      .maybeSingle()
+    profilePermissions = (profile?.permissions as ProfilePermissions) ?? null
+  }
+
   return (
-    <AdminLayoutShell userEmail={user.email ?? "admin"} userRole={userRole}>
+    <AdminLayoutShell
+      userEmail={user.email ?? "admin"}
+      userRole={userRole}
+      profilePermissions={profilePermissions}
+    >
       {children}
     </AdminLayoutShell>
   )
