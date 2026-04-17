@@ -5,6 +5,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { sendConfirmationEmail } from "@/app/actions/emailActions"
 import { autoPromoteNext } from "@/app/actions/waitlistActions"
+import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -35,6 +36,7 @@ async function invalidateCaches(supabase: ReturnType<typeof createClient>, event
 
 export async function createAttendee(formData: FormData) {
   try {
+    await requirePermission("attendees", "create")
     const { supabase } = await getAuthenticatedClient()
 
     const eventId           = formData.get("eventId") as string
@@ -94,6 +96,7 @@ export async function createAttendee(formData: FormData) {
 
 export async function updateAttendee(attendeeId: string, formData: FormData) {
   try {
+    await requirePermission("attendees", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -179,6 +182,7 @@ export async function updateAttendee(attendeeId: string, formData: FormData) {
 
 export async function checkInAttendee(attendeeId: string) {
   try {
+    await requirePermission("check_in", "perform")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -204,6 +208,7 @@ export async function checkInAttendee(attendeeId: string) {
 
 export async function deleteAttendee(attendeeId: string) {
   try {
+    await requirePermission("attendees", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -253,6 +258,7 @@ export async function deleteAttendee(attendeeId: string) {
 
 export async function sendAttendeeConfirmation(attendeeId: string) {
   try {
+    await requirePermission("attendees", "edit")
     const result = await sendConfirmationEmail(attendeeId)
 
     if (result.success) {
@@ -271,6 +277,7 @@ export async function sendAttendeeConfirmation(attendeeId: string) {
 
 export async function bulkCheckIn(attendeeIds: string[]) {
   try {
+    await requirePermission("check_in", "perform")
     const { supabase } = await getAuthenticatedClient()
 
     const now = new Date().toISOString()
@@ -291,6 +298,7 @@ export async function bulkCheckIn(attendeeIds: string[]) {
 
 export async function bulkSendEmail(attendeeIds: string[]) {
   try {
+    await requirePermission("attendees", "edit")
     let sent = 0
     let failed = 0
     const errors: string[] = []
@@ -319,6 +327,7 @@ export async function bulkSendEmail(attendeeIds: string[]) {
 
 export async function bulkDelete(attendeeIds: string[]) {
   try {
+    await requirePermission("attendees", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     // Fetch attendees to decrement ticket counts
@@ -377,6 +386,7 @@ export async function bulkDelete(attendeeIds: string[]) {
 
 export async function bulkUpdateStatus(attendeeIds: string[], status: string) {
   try {
+    await requirePermission("attendees", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { error } = await supabase
@@ -396,6 +406,7 @@ export async function bulkUpdateStatus(attendeeIds: string[], status: string) {
 
 export async function exportAttendeesCSV(eventId?: string) {
   try {
+    await requirePermission("attendees", "export")
     const { supabase } = await getAuthenticatedClient()
 
     let query = supabase

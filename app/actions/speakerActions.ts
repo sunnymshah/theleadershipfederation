@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -65,6 +66,7 @@ async function uploadSpeakerHeadshot(
 
 export async function createSpeaker(formData: FormData) {
   try {
+    await requirePermission("speakers", "create")
     const { supabase } = await getAuthenticatedClient()
 
     const eventId     = formData.get("eventId") as string
@@ -112,6 +114,7 @@ export async function createSpeaker(formData: FormData) {
 
 export async function updateSpeaker(speakerId: string, formData: FormData) {
   try {
+    await requirePermission("speakers", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -166,6 +169,7 @@ export async function bulkCreateSpeakers(
   rows: { name: string; designation?: string; company?: string; bio?: string; image_url?: string }[]
 ) {
   try {
+    await requirePermission("speakers", "create")
     const { supabase } = await getAuthenticatedClient()
     if (!eventId || !rows.length) return { success: false, error: "No data provided." }
 
@@ -196,6 +200,7 @@ export async function bulkCreateSpeakers(
 
 export async function deleteSpeaker(speakerId: string) {
   try {
+    await requirePermission("speakers", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase

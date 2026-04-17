@@ -10,6 +10,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { generateInvoicePdf } from "@/lib/generateInvoice"
 import { Resend } from "resend"
+import { requirePermission } from "@/lib/server-permissions"
 
 /* ── Auth helper ─────────────────────────────────────────────────────── */
 
@@ -74,6 +75,7 @@ export async function generateInvoice(attendeeId: string): Promise<{
   error?: string
 }> {
   try {
+    await requirePermission("invoices", "generate")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: attendee, error: attendeeError } = await supabase
@@ -157,6 +159,7 @@ export async function emailInvoice(attendeeId: string): Promise<{
   error?: string
 }> {
   try {
+    await requirePermission("invoices", "email")
     const { supabase } = await getAuthenticatedClient()
 
     // First generate (or re-use) the invoice
@@ -244,6 +247,7 @@ export async function emailBulkInvoices(eventId: string): Promise<{
   errors: string[]
 }> {
   try {
+    await requirePermission("invoices", "email")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: attendees, error } = await supabase

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -60,6 +61,7 @@ async function uploadSponsorLogo(
 
 export async function createSponsor(formData: FormData) {
   try {
+    await requirePermission("sponsors", "create")
     const { supabase } = await getAuthenticatedClient()
 
     const eventId     = formData.get("eventId") as string
@@ -106,6 +108,7 @@ export async function createSponsor(formData: FormData) {
 
 export async function updateSponsor(sponsorId: string, formData: FormData) {
   try {
+    await requirePermission("sponsors", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -156,6 +159,7 @@ export async function updateSponsor(sponsorId: string, formData: FormData) {
 
 export async function deleteSponsor(sponsorId: string) {
   try {
+    await requirePermission("sponsors", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
