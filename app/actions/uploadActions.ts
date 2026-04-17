@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -11,62 +12,108 @@ async function getAuthenticatedClient() {
   return { supabase, user }
 }
 
+const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
+const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
+
+function makeSafePath(folder: string, originalName: string, ext: string) {
+  const safeName = originalName
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[^a-zA-Z0-9-_]/g, "-")
+    .toLowerCase()
+    .slice(0, 50) || "image"
+  return `${folder}/${safeName}-${Date.now()}.${ext}`
+}
+
 /**
- * Upload an image file to Supabase Storage (public_images bucket).
- * Returns the public URL on success.
- *
- * @param file     - The File object from a form input
- * @param folder   - Storage subfolder: "speakers", "events", "sponsors"
- * @param filename - Optional custom filename (defaults to timestamp + original name)
+ * Upload a raw File (e.g. from <input type="file">) to Supabase Storage.
+ * Uses the service-role admin client so storage RLS can't silently block.
  */
 export async function uploadImage(
   file: File,
-  folder: "speakers" | "events" | "sponsors"
+  folder: "speakers" | "events" | "sponsors" | "sections" | "general"
 ): Promise<{ success: true; url: string } | { success: false; error: string }> {
   try {
-    const { supabase } = await getAuthenticatedClient()
+    // Auth gate (don't let anonymous callers burn bucket quota)
+    await getAuthenticatedClient()
 
-    // Validate file
-    if (!file || file.size === 0) {
-      return { success: false, error: "No file provided." }
+    if (!file || file.size === 0) return { success: false, error: "No file provided." }
+    if (file.size > MAX_BYTES) {
+      return { success: false, error: `File is ${(file.size / 1024 / 1024).toFixed(1)} MB — max 5 MB.` }
+    }
+    if (!ALLOWED_MIME.includes(file.type)) {
+      return { success: false, error: "Only JPEG, PNG, WebP, GIF, SVG are allowed." }
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return { success: false, error: "File must be under 5MB." }
-    }
-
-    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
-    if (!allowed.includes(file.type)) {
-      return { success: false, error: "Only JPEG, PNG, WebP, GIF, and SVG files are allowed." }
-    }
-
-    // Generate unique filename
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
-    const safeName = file.name
-      .replace(/\.[^/.]+$/, "")
-      .replace(/[^a-zA-Z0-9-_]/g, "-")
-      .toLowerCase()
-      .slice(0, 50)
-    const timestamp = Date.now()
-    const path = `${folder}/${safeName}-${timestamp}.${ext}`
+    const path = makeSafePath(folder, file.name, ext)
 
-    // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from("public_images")
-      .upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
-      })
+    const admin = createAdminClient()
+    const timeoutP = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Upload timed out after 30s.")), 30_000),
+    )
+    const uploadP = admin.storage.from("public_images").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type,
+    })
+    const result = await Promise.race([uploadP, timeoutP])
+    if (result.error) {
+      const m = result.error.message || "upload failed"
+      if (/bucket/i.test(m) && /not.*found|does.*not.*exist/i.test(m)) {
+        return {
+          success: false,
+          error: "Storage bucket 'public_images' does not exist. Run setup-public-images-bucket.sql in Supabase.",
+        }
+      }
+      return { success: false, error: m }
+    }
+    const { data: { publicUrl } } = admin.storage.from("public_images").getPublicUrl(path)
+    return { success: true, url: publicUrl }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
 
-    if (uploadError) {
-      return { success: false, error: uploadError.message }
+/**
+ * Upload a Base64 dataURL (e.g. the output of a client-side cropper).
+ * Decodes the payload, writes it as a proper image blob, returns URL.
+ */
+export async function uploadImageDataUrl(
+  dataUrl: string,
+  folder: "speakers" | "events" | "sponsors" | "sections" | "general",
+  originalName = "cropped",
+): Promise<{ success: true; url: string } | { success: false; error: string }> {
+  try {
+    await getAuthenticatedClient()
+
+    const m = dataUrl.match(/^data:(image\/[a-z+]+);base64,(.+)$/i)
+    if (!m) return { success: false, error: "Invalid data URL." }
+    const mime = m[1]
+    if (!ALLOWED_MIME.includes(mime)) {
+      return { success: false, error: `MIME type ${mime} not allowed.` }
+    }
+    const bytes = Buffer.from(m[2], "base64")
+    if (bytes.byteLength > MAX_BYTES) {
+      return { success: false, error: `Image is ${(bytes.byteLength / 1024 / 1024).toFixed(1)} MB — max 5 MB.` }
     }
 
-    // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from("public_images")
-      .getPublicUrl(path)
+    const ext = mime.split("/")[1].replace("jpeg", "jpg").replace("svg+xml", "svg")
+    const path = makeSafePath(folder, originalName, ext)
 
+    const admin = createAdminClient()
+    const timeoutP = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Upload timed out after 30s.")), 30_000),
+    )
+    const uploadP = admin.storage.from("public_images").upload(path, bytes, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: mime,
+    })
+    const result = await Promise.race([uploadP, timeoutP])
+    if (result.error) {
+      return { success: false, error: result.error.message || "upload failed" }
+    }
+    const { data: { publicUrl } } = admin.storage.from("public_images").getPublicUrl(path)
     return { success: true, url: publicUrl }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -78,18 +125,11 @@ export async function uploadImage(
  */
 export async function deleteImage(publicUrl: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const { supabase } = await getAuthenticatedClient()
-
-    // Extract the path from the public URL
-    // URL format: https://xxx.supabase.co/storage/v1/object/public/public_images/speakers/file.jpg
+    await getAuthenticatedClient()
     const match = publicUrl.match(/\/public_images\/(.+)$/)
-    if (!match) {
-      return { success: false, error: "Could not parse image path from URL." }
-    }
-
-    const path = match[1]
-    const { error } = await supabase.storage.from("public_images").remove([path])
-
+    if (!match) return { success: false, error: "Could not parse image path from URL." }
+    const admin = createAdminClient()
+    const { error } = await admin.storage.from("public_images").remove([match[1]])
     if (error) return { success: false, error: error.message }
     return { success: true }
   } catch (err) {
