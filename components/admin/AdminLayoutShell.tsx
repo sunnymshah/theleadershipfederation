@@ -5,14 +5,17 @@ import { usePathname } from "next/navigation"
 import { AdminSidebar } from "./AdminSidebar"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { ProfilePermissions } from "@/app/actions/profileActions"
 
 export function AdminLayoutShell({
   userEmail,
   userRole,
+  profilePermissions,
   children,
 }: {
   userEmail: string
   userRole: string
+  profilePermissions?: ProfilePermissions | null
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -39,7 +42,11 @@ export function AdminLayoutShell({
     <div className="flex min-h-screen admin-scrollbar relative">
       {/* Desktop sidebar — always visible on lg+ */}
       <div className="hidden lg:block shrink-0">
-        <AdminSidebar userEmail={userEmail} userRole={userRole} />
+        <AdminSidebar
+          userEmail={userEmail}
+          userRole={userRole}
+          profilePermissions={profilePermissions}
+        />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -63,7 +70,11 @@ export function AdminLayoutShell({
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <AdminSidebar userEmail={userEmail} userRole={userRole} />
+          <AdminSidebar
+          userEmail={userEmail}
+          userRole={userRole}
+          profilePermissions={profilePermissions}
+        />
         </div>
       </div>
 

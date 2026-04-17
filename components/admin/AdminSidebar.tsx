@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { canAccessNavItem } from "@/lib/permissions"
+import type { ProfilePermissions } from "@/app/actions/profileActions"
 import { AdminLogoutButton } from "./AdminLogoutButton"
 import {
   LayoutDashboard,
@@ -195,9 +196,14 @@ const LS_KEY = "tlf-admin-sidebar-open"
 export function AdminSidebar({
   userEmail,
   userRole = "super_admin",
+  profilePermissions,
 }: {
   userEmail: string
   userRole?: string
+  /** Granular per-module permissions from the user's assigned access_profile.
+   *  When present, used to filter nav items; when null, role-based fallback.
+   *  super_admin always sees everything regardless (handled in canAccessNavItem). */
+  profilePermissions?: ProfilePermissions | null
 }) {
   const pathname = usePathname()
 
@@ -207,13 +213,13 @@ export function AdminSidebar({
     return pathname.startsWith(base)
   }
 
-  // Filter sections and items based on role
+  // Filter sections and items based on role + profile permissions
   const visibleSections = sections
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
         const basePath = item.href.split("?")[0]
-        return canAccessNavItem(userRole, basePath)
+        return canAccessNavItem(userRole, basePath, profilePermissions)
       }),
     }))
     .filter((section) => section.items.length > 0)
