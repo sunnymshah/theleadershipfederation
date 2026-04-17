@@ -277,6 +277,12 @@ export default function EventDetailPage() {
                     <ExternalLink size={10} />
                   </Link>
                 )}
+                <Link
+                  href={`/admin/events/${event.id}/builder`}
+                  className="flex items-center gap-1 text-[#c9a84c] hover:text-[#d4b85c] transition-colors font-semibold"
+                >
+                  🧱 Page Builder
+                </Link>
               </div>
             </div>
 

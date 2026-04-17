@@ -7,6 +7,8 @@ import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, Ex
 import { getGalleryImages } from "@/app/actions/galleryActions"
 import { getEvent } from "@/lib/get-event"
 import { SpeakerGrid } from "@/components/site/SpeakerGrid"
+import { getEventSections } from "@/app/actions/eventSectionActions"
+import { EventSectionsRenderer } from "@/components/site/EventSections"
 
 export const revalidate = 60
 
@@ -109,7 +111,7 @@ export default async function EventDetailPage({ params }: Props) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  const [speakersRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes, winnersRes] = await Promise.all([
+  const [speakersRes, sessionsRes, sponsorsRes, sessionSpeakersRes, galleryRes, winnersRes, ticketsRes, sectionsRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
     supabase.from("sponsors").select("*").eq("event_id", event.id).order("sort_order"),
@@ -119,6 +121,8 @@ export default async function EventDetailPage({ params }: Props) {
     ),
     getGalleryImages(event.id),
     supabase.from("event_winners").select("*").eq("event_id", event.id).order("sort_order"),
+    supabase.from("tickets").select("id, name, description, price_inr, sold, inventory_limit").eq("event_id", event.id).order("sort_order"),
+    getEventSections(event.id),
   ])
 
   const speakers = speakersRes.data ?? []
@@ -127,6 +131,60 @@ export default async function EventDetailPage({ params }: Props) {
   const galleryImages = galleryRes.images ?? []
   const winners = winnersRes.data ?? []
   const sessionSpeakerLinks = sessionSpeakersRes.data ?? []
+  const tickets = ticketsRes.data ?? []
+  const sections = sectionsRes.sections ?? []
+
+  // ── Page-builder renderer ──────────────────────────────────────────
+  // If the admin has added sections in /admin/events/<id>/builder, render
+  // from them (zoho-style). Otherwise fall back to the legacy layout
+  // below so existing events keep working.
+  if (sections.length > 0) {
+    return (
+      <EventSectionsRenderer
+        sections={sections}
+        event={{
+          id: event.id,
+          slug: event.slug,
+          title: event.title,
+          start_date: event.start_date,
+          end_date: event.end_date,
+          venue: event.venue,
+          description: event.description,
+          cover_image_url: event.cover_image_url,
+        }}
+        speakers={speakers.map((s) => ({
+          id: s.id,
+          name: s.name,
+          designation: s.designation ?? null,
+          company: s.company ?? null,
+          image_url: s.image_url ?? null,
+        }))}
+        sessions={sessions.map((s) => ({
+          id: s.id,
+          title: s.title,
+          starts_at: s.start_time,
+          ends_at: s.end_time ?? null,
+          speaker_names: null,
+          track: s.track ?? null,
+        }))}
+        sponsors={sponsors.map((s) => ({
+          id: s.id,
+          name: s.name,
+          logo_url: s.logo_url ?? null,
+          tier: s.tier ?? null,
+          website: s.website_url ?? null,
+        }))}
+        tickets={tickets.map((t) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description ?? null,
+          price_inr: t.price_inr,
+          sold: t.sold ?? 0,
+          inventory_limit: t.inventory_limit ?? null,
+        }))}
+      />
+    )
+  }
 
   // Build a map: sessionId -> speaker objects
   const speakerMap = new Map(speakers.map((s: { id: string }) => [s.id, s]))
