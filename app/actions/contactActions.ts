@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/utils/supabase/server"
 import { Resend } from "resend"
 import { rateLimit } from "@/lib/rate-limit"
+import { getCurrentUserContext } from "@/lib/server-permissions"
 
 /**
  * Server Action: submitContactInquiry
@@ -128,12 +129,17 @@ export async function replyToContactInquiry(
   body: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Authorization: the old check was `if (!user) Unauthorized`, which
+    // accepts ANY authenticated Supabase user — including rows created
+    // outside the team. getCurrentUserContext() additionally requires a
+    // team_members row (or super_admin) via the service-role lookup, so
+    // rogue auth users can't impersonate staff via this endpoint.
+    const ctx = await getCurrentUserContext()
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: "Unauthorized" }
+
+    // Strip CRLF so an attacker-controlled subject can't inject headers.
+    const safeSubject = String(subject).replace(/[\r\n]+/g, " ").slice(0, 200)
 
     // Load the inquiry
     const { data: inquiry, error: inqErr } = await supabase
@@ -178,7 +184,7 @@ export async function replyToContactInquiry(
       inquirerMessage: inquiry.message as string,
       inquiryType: inquiry.inquiry_type as string,
       bodyText: body,
-      replyFromEmail: user.email ?? "",
+      replyFromEmail: ctx.email ?? "",
       office: primaryOffice
         ? {
             city: primaryOffice.city as string,
@@ -198,8 +204,8 @@ export async function replyToContactInquiry(
     const { error: sendErr } = await resend.emails.send({
       from: RESEND_FROM,
       to: [inquiry.email as string],
-      replyTo: user.email || CONTACT_NOTIFY_EMAIL,
-      subject,
+      replyTo: ctx.email || CONTACT_NOTIFY_EMAIL,
+      subject: safeSubject,
       html,
     })
     if (sendErr) {

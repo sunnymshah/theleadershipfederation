@@ -2,6 +2,9 @@
 
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission } from "@/lib/server-permissions"
+import { rateLimit } from "@/lib/rate-limit"
+import { headers } from "next/headers"
 
 const SPONSOR_COOKIE = "sponsor_session"
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
@@ -13,22 +16,51 @@ export async function sponsorLogin(
   password: string
 ): Promise<{ success: boolean; error?: string; sponsorId?: string }> {
   try {
-    if (!email || !password) {
+    if (!email || typeof email !== "string" || !password || typeof password !== "string") {
       return { success: false, error: "Email and password are required." }
+    }
+    if (email.length > 254 || password.length > 500) {
+      return { success: false, error: "Invalid email or password." }
+    }
+
+    // Rate-limit to stop credential-stuffing. The `sponsors` table stores
+    // plaintext portal passwords (legacy) so we need an external gate.
+    const hdrs = await headers()
+    const ip =
+      hdrs.get("x-real-ip") ||
+      hdrs.get("x-forwarded-for")?.split(",")[0].trim() ||
+      "unknown"
+    const rl = rateLimit({ key: `sponsorlogin:${ip}`, limit: 8, windowMs: 15 * 60 * 1000 })
+    if (!rl.allowed) {
+      return { success: false, error: "Too many login attempts. Try again later." }
     }
 
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
 
-    // Look up sponsor by contact_email and portal_password
-    const { data: sponsor, error } = await supabase
+    // Look up sponsor by email, then compare password in constant time.
+    // Doing a single equality query with both fields leaks existence of
+    // the email via response-time differences and returns 0 rows for
+    // either a wrong email OR a wrong password, making enumeration
+    // easier.
+    const { data: sponsor } = await supabase
       .from("sponsors")
       .select("id, name, contact_email, portal_password")
       .eq("contact_email", email.toLowerCase().trim())
-      .eq("portal_password", password)
-      .single()
+      .maybeSingle()
 
-    if (error || !sponsor) {
+    if (!sponsor || !sponsor.portal_password) {
+      return { success: false, error: "Invalid email or password." }
+    }
+    const stored = String(sponsor.portal_password)
+    if (stored.length !== password.length) {
+      return { success: false, error: "Invalid email or password." }
+    }
+    let diff = 0
+    for (let i = 0; i < stored.length; i++) {
+      diff |= stored.charCodeAt(i) ^ password.charCodeAt(i)
+    }
+    if (diff !== 0) {
       return { success: false, error: "Invalid email or password." }
     }
 
@@ -200,17 +232,22 @@ export async function setSponsorPortalAccess(
   portalPassword: string
 ) {
   try {
+    // Admin mutation — must be gated by explicit permission, otherwise
+    // any logged-in team member could take over a sponsor's portal.
+    await requirePermission("sponsors", "update")
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) throw new Error("Unauthorized")
 
     if (!contactEmail || !portalPassword) {
       return {
         success: false,
         error: "Contact email and portal password are required.",
+      }
+    }
+    if (portalPassword.length < 10) {
+      return {
+        success: false,
+        error: "Portal password must be at least 10 characters.",
       }
     }
 

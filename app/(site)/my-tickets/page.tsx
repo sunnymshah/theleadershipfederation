@@ -65,6 +65,7 @@ interface Attendee {
   status: string
   registration_date: string | null
   check_in_at: string | null
+  qr_token: string | null
   events: EventInfo
 }
 
@@ -550,11 +551,16 @@ export default function MyTicketsPage() {
           {/* Tab content */}
           <div className="min-h-[400px]">
             {activeTab === "agenda" && (
-              <AgendaTab attendeeId={currentAttendee.id} eventSlug={evt?.slug ?? ""} />
+              <AgendaTab
+                attendeeId={currentAttendee.id}
+                attendeeQrToken={currentAttendee.qr_token ?? ""}
+                eventSlug={evt?.slug ?? ""}
+              />
             )}
             {activeTab === "networking" && (
               <NetworkingTab
                 attendeeId={currentAttendee.id}
+                attendeeQrToken={currentAttendee.qr_token ?? ""}
                 eventId={evt?.id ?? ""}
               />
             )}
@@ -562,7 +568,10 @@ export default function MyTicketsPage() {
               <ProfileTab attendee={currentAttendee} />
             )}
             {activeTab === "materials" && (
-              <MaterialsTab attendeeId={currentAttendee.id} />
+              <MaterialsTab
+                attendeeId={currentAttendee.id}
+                attendeeQrToken={currentAttendee.qr_token ?? ""}
+              />
             )}
           </div>
         </div>
@@ -599,7 +608,7 @@ function QRDisplay({ value }: { value: string }) {
 
 /* ── Agenda Tab ───────────────────────────────────────────────────── */
 
-function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: string }) {
+function AgendaTab({ attendeeId, attendeeQrToken, eventSlug }: { attendeeId: string; attendeeQrToken: string; eventSlug: string }) {
   const [sessions, setSessions] = useState<AgendaSession[]>([])
   const [loading, setLoading] = useState(true)
   const [removing, setRemoving] = useState<string | null>(null)
@@ -607,7 +616,7 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
   const fetchAgenda = useCallback(async () => {
     setLoading(true)
     try {
-      const result = await getAttendeeAgenda(attendeeId)
+      const result = await getAttendeeAgenda(attendeeId, attendeeQrToken)
       if (result.success) {
         const sorted = [...(result.sessions as AgendaSession[])].sort(
           (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
@@ -617,7 +626,7 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
     } finally {
       setLoading(false)
     }
-  }, [attendeeId])
+  }, [attendeeId, attendeeQrToken])
 
   useEffect(() => {
     fetchAgenda()
@@ -626,7 +635,7 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
   async function handleRemove(sessionId: string) {
     setRemoving(sessionId)
     try {
-      const result = await removeBookmark(attendeeId, sessionId)
+      const result = await removeBookmark(attendeeId, sessionId, attendeeQrToken)
       if (result.success) {
         setSessions((prev) => prev.filter((s) => s.id !== sessionId))
       }
@@ -739,9 +748,11 @@ function AgendaTab({ attendeeId, eventSlug }: { attendeeId: string; eventSlug: s
 
 function NetworkingTab({
   attendeeId,
+  attendeeQrToken,
   eventId,
 }: {
   attendeeId: string
+  attendeeQrToken: string
   eventId: string
 }) {
   const [incoming, setIncoming] = useState<NetworkingRequest[]>([])
@@ -758,7 +769,7 @@ function NetworkingTab({
     setLoading(true)
     try {
       const [netResult, dirResult] = await Promise.all([
-        getNetworkingRequests(attendeeId),
+        getNetworkingRequests(attendeeId, attendeeQrToken),
         getEventDirectory(eventId),
       ])
       if (netResult.success) {
@@ -771,7 +782,7 @@ function NetworkingTab({
     } finally {
       setLoading(false)
     }
-  }, [attendeeId, eventId])
+  }, [attendeeId, attendeeQrToken, eventId])
 
   useEffect(() => {
     fetchAll()
@@ -780,7 +791,7 @@ function NetworkingTab({
   async function handleRespond(requestId: string, response: "accepted" | "declined") {
     setRespondingTo(requestId)
     try {
-      const result = await respondToNetworkingRequest(requestId, response)
+      const result = await respondToNetworkingRequest(requestId, attendeeId, attendeeQrToken, response)
       if (result.success) {
         setIncoming((prev) =>
           prev.map((r) =>
@@ -800,6 +811,7 @@ function NetworkingTab({
       const result = await sendNetworkingRequest({
         eventId,
         fromAttendeeId: attendeeId,
+        fromQrToken: attendeeQrToken,
         toAttendeeId: connectModal.id,
         message: connectMessage || undefined,
       })
@@ -1111,7 +1123,7 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
   async function handleSave() {
     setSaving(true)
     try {
-      const result = await updateAttendeeProfile(attendee.id, form)
+      const result = await updateAttendeeProfile(attendee.id, attendee.qr_token ?? "", form)
       if (result.success) {
         setSaved(true)
       } else {
@@ -1263,7 +1275,7 @@ function ProfileTab({ attendee }: { attendee: Attendee }) {
 
 /* ── Materials Tab ────────────────────────────────────────────────── */
 
-function MaterialsTab({ attendeeId }: { attendeeId: string }) {
+function MaterialsTab({ attendeeId, attendeeQrToken }: { attendeeId: string; attendeeQrToken: string }) {
   const [sessions, setSessions] = useState<
     Array<{
       id: string
@@ -1280,7 +1292,7 @@ function MaterialsTab({ attendeeId }: { attendeeId: string }) {
       setLoading(true)
       try {
         // First get agenda to know which sessions are bookmarked
-        const agendaResult = await getAttendeeAgenda(attendeeId)
+        const agendaResult = await getAttendeeAgenda(attendeeId, attendeeQrToken)
         if (!agendaResult.success || agendaResult.sessions.length === 0) {
           setSessions([])
           return

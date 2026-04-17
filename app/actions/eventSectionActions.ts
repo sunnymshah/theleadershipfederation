@@ -241,6 +241,43 @@ export async function moveEventSection(
   }
 }
 
+/* ── Admin: batch reorder (drag-and-drop) ───────────────────────────── */
+
+export async function reorderEventSections(
+  eventId: string,
+  orderedIds: string[],
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+
+    // Confirm every id belongs to this event before we write anything.
+    const { data: existing } = await admin
+      .from("event_sections")
+      .select("id")
+      .eq("event_id", eventId)
+    const validIds = new Set((existing ?? []).map((r) => r.id as string))
+    for (const id of orderedIds) {
+      if (!validIds.has(id)) return { success: false, error: "Unknown section id in reorder" }
+    }
+
+    // Write new sort_order per id. Keep it simple — one update per row; the
+    // event section count is bounded (usually < 30), and this avoids the
+    // need for a Postgres function.
+    for (let i = 0; i < orderedIds.length; i++) {
+      await admin
+        .from("event_sections")
+        .update({ sort_order: i })
+        .eq("id", orderedIds[i])
+    }
+
+    revalidatePath(`/admin/events/${eventId}/builder`, "page")
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
 /* ── Admin: duplicate ───────────────────────────────────────────────── */
 
 export async function duplicateEventSection(

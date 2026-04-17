@@ -12,6 +12,7 @@ interface Props {
 export function BookmarkButton({ sessionId, sessionTitle }: Props) {
   const [email, setEmail] = useState("")
   const [attendeeId, setAttendeeId] = useState<string | null>(null)
+  const [qrToken, setQrToken] = useState<string | null>(null)
   const [showInput, setShowInput] = useState(false)
   const [loading, setLoading] = useState(false)
   const [bookmarked, setBookmarked] = useState(false)
@@ -21,8 +22,10 @@ export function BookmarkButton({ sessionId, sessionTitle }: Props) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("lf_attendee_id")
+      const savedToken = localStorage.getItem("lf_attendee_qr_token")
       const savedEmail = localStorage.getItem("lf_attendee_email")
       if (saved) setAttendeeId(saved)
+      if (savedToken) setQrToken(savedToken)
       if (savedEmail) setEmail(savedEmail)
 
       // Check if this session is already bookmarked
@@ -67,18 +70,21 @@ export function BookmarkButton({ sessionId, sessionTitle }: Props) {
         }
 
         const id = result.attendee.id as string
+        const token = (result.attendee.qr_token as string | null) ?? ""
         setAttendeeId(id)
+        setQrToken(token)
 
         // Save to localStorage
         try {
           localStorage.setItem("lf_attendee_id", id)
+          if (token) localStorage.setItem("lf_attendee_qr_token", token)
           localStorage.setItem("lf_attendee_email", email.trim())
         } catch {
           // ignore
         }
 
         // Now bookmark
-        await doBookmark(id)
+        await doBookmark(id, token)
       } catch {
         setError("Failed to look up your registration.")
       } finally {
@@ -89,13 +95,13 @@ export function BookmarkButton({ sessionId, sessionTitle }: Props) {
 
     // Already have attendee ID, just bookmark
     setLoading(true)
-    await doBookmark(attendeeId)
+    await doBookmark(attendeeId, qrToken ?? "")
     setLoading(false)
   }
 
-  async function doBookmark(attId: string) {
+  async function doBookmark(attId: string, token: string) {
     try {
-      const result = await bookmarkSession(attId, sessionId)
+      const result = await bookmarkSession(attId, sessionId, token)
       if (result.success) {
         setBookmarked(true)
         setShowInput(false)
