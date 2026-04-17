@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
@@ -37,31 +38,61 @@ async function invalidateCaches(supabase: ReturnType<typeof createClient>, event
  * Accepts FormData with a "headshot" file field.
  * Returns the public URL.
  */
+/**
+ * Upload a speaker headshot. Uses the service-role admin client so
+ * storage.objects RLS can't silently block, wraps the call in a 30s
+ * timeout so it can't hang the admin UI, and returns the real error
+ * message to the caller so it surfaces in the form.
+ */
 async function uploadSpeakerHeadshot(
-  supabase: ReturnType<typeof createClient>,
-  file: File
-): Promise<string | null> {
-  if (!file || file.size === 0) return null
+  file: File,
+): Promise<{ url: string | null; error: string | null }> {
+  if (!file || file.size === 0) return { url: null, error: null }
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
   const safeName = file.name
     .replace(/\.[^/.]+$/, "")
     .replace(/[^a-zA-Z0-9-_]/g, "-")
     .toLowerCase()
-    .slice(0, 50)
+    .slice(0, 50) || "speaker"
   const path = `speakers/${safeName}-${Date.now()}.${ext}`
 
-  const { error } = await supabase.storage
-    .from("public_images")
-    .upload(path, file, { cacheControl: "3600", upsert: false })
-
-  if (error) return null
-
-  const { data: { publicUrl } } = supabase.storage
-    .from("public_images")
-    .getPublicUrl(path)
-
-  return publicUrl
+  try {
+    const admin = createAdminClient()
+    const uploadPromise = admin.storage
+      .from("public_images")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "image/jpeg",
+      })
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error("Upload timed out after 30s. Try a smaller image.")),
+        30_000,
+      ),
+    )
+    const result = await Promise.race([uploadPromise, timeoutPromise])
+    const error = result.error
+    if (error) {
+      console.error("[uploadSpeakerHeadshot] storage.upload failed:", error)
+      const msg = error.message || "Unknown storage error"
+      if (/bucket/i.test(msg) && /not.*found|does.*not.*exist/i.test(msg)) {
+        return {
+          url: null,
+          error: "Storage bucket 'public_images' does not exist. Create it in Supabase → Storage (see setup-public-images-bucket.sql).",
+        }
+      }
+      return { url: null, error: `Headshot upload failed: ${msg}` }
+    }
+    const { data: { publicUrl } } = admin.storage
+      .from("public_images")
+      .getPublicUrl(path)
+    return { url: publicUrl, error: null }
+  } catch (err) {
+    console.error("[uploadSpeakerHeadshot] exception:", err)
+    return { url: null, error: (err as Error).message }
+  }
 }
 
 export async function createSpeaker(formData: FormData) {
@@ -82,8 +113,9 @@ export async function createSpeaker(formData: FormData) {
     let finalImageUrl = imageUrl || null
 
     if (headshot && headshot.size > 0) {
-      const uploadedUrl = await uploadSpeakerHeadshot(supabase, headshot)
-      if (uploadedUrl) finalImageUrl = uploadedUrl
+      const { url, error: uploadErr } = await uploadSpeakerHeadshot(headshot)
+      if (uploadErr) return { success: false, error: uploadErr }
+      if (url) finalImageUrl = url
     }
 
     if (!eventId || !name) {
@@ -135,8 +167,9 @@ export async function updateSpeaker(speakerId: string, formData: FormData) {
     let finalImageUrl = imageUrl || existing?.image_url || null
 
     if (headshot && headshot.size > 0) {
-      const uploadedUrl = await uploadSpeakerHeadshot(supabase, headshot)
-      if (uploadedUrl) finalImageUrl = uploadedUrl
+      const { url, error: uploadErr } = await uploadSpeakerHeadshot(headshot)
+      if (uploadErr) return { success: false, error: uploadErr }
+      if (url) finalImageUrl = url
     }
 
     if (!name) return { success: false, error: "Speaker name is required." }
