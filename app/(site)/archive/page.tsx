@@ -80,14 +80,23 @@ export default async function ArchivePage() {
     .limit(1)
     .single()
 
-  /* Fetch completed events from database (new events created via admin) */
+  /* Fetch completed events from database (new events created via admin
+   * PLUS the 20 legacy rows seeded by seed-legacy-past-events.sql). */
   const { data: dbEvents } = await supabase
     .from("events")
-    .select("id, title, slug, start_date, end_date, venue, description, cover_image_url, status")
+    .select("id, title, slug, start_date, end_date, venue, description, cover_image_url, status, series, external_url")
     .eq("status", "completed")
     .order("start_date", { ascending: false })
 
-  /* Convert DB events to ArchiveCard format — these get internal pages */
+  /* Live stat counts — honest empty state when tables have no rows yet */
+  const [{ count: partnerCount }, { count: attendeeCount }] = await Promise.all([
+    supabase.from("partners").select("*", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("attendees").select("*", { count: "exact", head: true }),
+  ])
+
+  /* Convert DB events to ArchiveCard format. Each event may be either:
+   *   - a legacy event (external_url set) → card links to old TLF site
+   *   - a native event (external_url null) → card links to /events/[slug] */
   const dbCards: ArchiveCard[] = (dbEvents ?? []).map((e) => ({
     id: e.id,
     title: e.title,
@@ -95,11 +104,12 @@ export default async function ArchivePage() {
     sortDate: e.start_date,
     venue: e.venue || "",
     city: e.venue || "",
-    series: "The Leadership Federation",
+    series: (e.series as string | null) ?? "The Leadership Federation",
     edition: extractEdition(e.title) ?? "",
     description: e.description || "",
     coverImage: e.cover_image_url || undefined,
     slug: e.slug,
+    externalUrl: (e.external_url as string | null) ?? undefined,
   }))
 
   /* Sort DB events by date descending */
@@ -359,15 +369,12 @@ export default async function ArchivePage() {
 
           <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 p-8 sm:p-10 md:p-12">
             {[
-              {
-                icon: Calendar,
-                value: `${allCards.length}+`,
-                label: "Past Events",
-              },
-              { icon: Globe, value: `${uniqueCities.size}+`, label: "Cities" },
-              { icon: Users, value: "700+", label: "CXOs" },
-              { icon: Handshake, value: "50+", label: "Global Partners" },
-            ].map((stat) => {
+              { icon: Calendar,  count: allCards.length,       label: "Past Events" },
+              { icon: Globe,     count: uniqueCities.size,     label: "Cities" },
+              { icon: Users,     count: attendeeCount ?? 0,    label: "CXOs" },
+              { icon: Handshake, count: partnerCount ?? 0,     label: "Global Partners" },
+            ].filter((s) => s.count > 0).map((stat) => {
+              const value = `${stat.count}+`
               const Icon = stat.icon
               return (
                 <div key={stat.label} className="text-center">
@@ -381,7 +388,7 @@ export default async function ArchivePage() {
                     className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1"
                     style={sfFont}
                   >
-                    {stat.value}
+                    {value}
                   </div>
                   <div className="text-[10px] sm:text-xs font-bold text-white/85 uppercase tracking-[0.15em]">
                     {stat.label}

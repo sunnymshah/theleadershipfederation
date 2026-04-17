@@ -31,6 +31,7 @@ import {
   ExternalLink,
   Copy,
   ImagePlus,
+  CheckCircle2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -70,6 +71,11 @@ export default function AdminEventsPage() {
   const [cloneTitle, setCloneTitle]         = useState("")
   const [cloneSlug, setCloneSlug]           = useState("")
   const [cloning, setCloning]               = useState(false)
+  // Cover image upload state — validates client-side before reaching the
+  // server action (< 5 MB, image/*) and shows visible confirmation.
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+  const [coverFile, setCoverFile]       = useState<File | null>(null)
+  const [coverError, setCoverError]     = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -96,6 +102,11 @@ export default function AdminEventsPage() {
   // ── Handle create / edit ────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    // Client-side guard: if the user had a bad file still queued, block.
+    if (coverError) {
+      setActionError(coverError)
+      return
+    }
     setSubmitting(true)
     setActionError(null)
 
@@ -107,6 +118,8 @@ export default function AdminEventsPage() {
     if (result.success) {
       setDrawerOpen(false)
       setEditingEvent(null)
+      setCoverFile(null)
+      setCoverError(null)
       await fetchEvents()
     } else {
       setActionError(result.error ?? "Operation failed")
@@ -119,12 +132,43 @@ export default function AdminEventsPage() {
     setEditingEvent(event)
     setDrawerOpen(true)
     setActionError(null)
+    setCoverFile(null)
+    setCoverError(null)
   }
 
   function openCreate() {
     setEditingEvent(null)
     setDrawerOpen(true)
     setActionError(null)
+    setCoverFile(null)
+    setCoverError(null)
+  }
+
+  // ── Cover image picker — validate 5 MB + image/* on the client ──────
+  function onCoverSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null
+    if (!file) {
+      setCoverFile(null)
+      setCoverError(null)
+      return
+    }
+    if (!file.type.startsWith("image/")) {
+      setCoverFile(null)
+      setCoverError("Only image files are allowed (JPG, PNG, WebP).")
+      e.target.value = "" // clear the input so user can re-pick
+      return
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1)
+      setCoverFile(null)
+      setCoverError(
+        `File is ${sizeMb} MB — maximum allowed is 5 MB. Please compress or pick a smaller image.`,
+      )
+      e.target.value = ""
+      return
+    }
+    setCoverFile(file)
+    setCoverError(null)
   }
 
   // ── Handle delete ──────────────────────────────────────────────────
@@ -455,18 +499,55 @@ export default function AdminEventsPage() {
                 <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">
                   Cover Image
                 </label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e0e0e0] rounded-lg cursor-pointer hover:border-[#c9a84c]/50 hover:bg-[#c9a84c]/5 transition-colors">
-                  <ImagePlus size={24} className="text-[#bbb] mb-2" />
-                  <span className="text-xs text-[#999]">Click to upload event cover photo</span>
-                  <span className="text-[10px] text-[#ccc] mt-1">JPG, PNG up to 5MB</span>
-                  <input
-                    type="file"
-                    name="coverImage"
-                    accept="image/*"
-                    className="hidden"
-                  />
-                </label>
-                <p className="text-[10px] text-[#bbb] mt-1.5">This image appears as the event banner on your website</p>
+
+                {coverFile ? (
+                  /* CONFIRMATION — file picked and passed validation */
+                  <div className="flex items-center justify-between w-full px-4 py-3 border-2 border-emerald-300 rounded-lg bg-emerald-50">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-emerald-900 truncate">
+                          {coverFile.name}
+                        </p>
+                        <p className="text-[11px] text-emerald-700">
+                          Image added · {(coverFile.size / (1024 * 1024)).toFixed(2)} MB · will be uploaded on save
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setCoverFile(null); setCoverError(null) }}
+                      className="text-xs text-emerald-700 hover:text-emerald-900 font-medium shrink-0 ml-2"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  /* PICKER — empty state */
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e0e0e0] rounded-lg cursor-pointer hover:border-[#c9a84c]/50 hover:bg-[#c9a84c]/5 transition-colors">
+                    <ImagePlus size={24} className="text-[#bbb] mb-2" />
+                    <span className="text-xs text-[#999]">Click to upload event cover photo</span>
+                    <span className="text-[10px] text-[#ccc] mt-1">JPG, PNG, WebP — max 5 MB</span>
+                    <input
+                      type="file"
+                      name="coverImage"
+                      accept="image/*"
+                      onChange={onCoverSelected}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+
+                {coverError && (
+                  <div className="mt-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2">
+                    <X size={14} className="text-red-500 mt-0.5 shrink-0" />
+                    <p className="text-xs text-red-700">{coverError}</p>
+                  </div>
+                )}
+
+                <p className="text-[10px] text-[#bbb] mt-1.5">
+                  This image appears as the event banner on your website. Files above 5 MB are not accepted.
+                </p>
               </div>
 
               {/* Status */}
