@@ -217,18 +217,29 @@ export default async function AdminDashboard() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  // ─── Permission checks (drive tile/chart visibility) ───────────────────
-  // Each tile is gated against the relevant module.view permission. Super
-  // admin + admin-without-profile always pass; restricted profiles get a
+  // ─── Permission checks (drive tile/chart/quick-action visibility) ─────
+  // Each tile and quick-action is gated against the relevant module
+  // permission. Super admin always passes; restricted profiles get a
   // tailored dashboard that hides what they can't see.
-  const [canSeeRevenue, canSeeTickets, canSeeAttendees, canSeeCheckIn, canSeeAnalytics] =
-    await Promise.all([
-      canCurrentUser("revenue", "view"),
-      canCurrentUser("tickets", "view"),
-      canCurrentUser("attendees", "view"),
-      canCurrentUser("check_in", "perform"),
-      canCurrentUser("analytics", "view"),
-    ])
+  const [
+    canSeeRevenue,
+    canSeeTickets,
+    canSeeAttendees,
+    canSeeCheckIn,
+    canSeeAnalytics,
+    canSeeEvents,
+    canSeeSpeakers,
+    canSeeInvoices,
+  ] = await Promise.all([
+    canCurrentUser("revenue", "view"),
+    canCurrentUser("tickets", "view"),
+    canCurrentUser("attendees", "view"),
+    canCurrentUser("check_in", "perform"),
+    canCurrentUser("analytics", "view"),
+    canCurrentUser("events", "view"),
+    canCurrentUser("speakers", "view"),
+    canCurrentUser("invoices", "view"),
+  ])
 
   // Fetch analytics
   const [overallResult, eventStatsResult] = await Promise.all([
@@ -754,59 +765,67 @@ export default async function AdminDashboard() {
         )}
       </div>
 
-      {/* ═══ Quick Actions ════════════════════════════════════════════════ */}
+      {/* ═══ Quick Actions — each tile gated on the permission it leads to ═══ */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link
-          href="/admin/events"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
-            <PlusIcon />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[#1a1a2e]">Create Event</p>
-            <p className="text-[11px] text-gray-400">New event</p>
-          </div>
-        </Link>
+        {canSeeEvents && (
+          <Link
+            href="/admin/events"
+            className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+              <PlusIcon />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#1a1a2e]">Create Event</p>
+              <p className="text-[11px] text-gray-400">New event</p>
+            </div>
+          </Link>
+        )}
 
-        <Link
-          href="/admin/speakers"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
-            <MicIcon />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[#1a1a2e]">Add Speaker</p>
-            <p className="text-[11px] text-gray-400">Manage speakers</p>
-          </div>
-        </Link>
+        {canSeeSpeakers && (
+          <Link
+            href="/admin/advisory-board"
+            className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+              <MicIcon />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#1a1a2e]">Add Speaker</p>
+              <p className="text-[11px] text-gray-400">Manage speakers</p>
+            </div>
+          </Link>
+        )}
 
-        <Link
-          href="/admin/check-in"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-100 transition-colors">
-            <ScanIcon />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[#1a1a2e]">View Check-ins</p>
-            <p className="text-[11px] text-gray-400">QR scanner</p>
-          </div>
-        </Link>
+        {canSeeCheckIn && (
+          <Link
+            href="/admin/check-in"
+            className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-100 transition-colors">
+              <ScanIcon />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#1a1a2e]">View Check-ins</p>
+              <p className="text-[11px] text-gray-400">QR scanner</p>
+            </div>
+          </Link>
+        )}
 
-        <Link
-          href="/admin/invoices"
-          className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center text-[#b8941a] group-hover:bg-[#e7ab1c]/20 transition-colors">
-            <FileIcon />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[#1a1a2e]">Generate Report</p>
-            <p className="text-[11px] text-gray-400">Invoices & certs</p>
-          </div>
-        </Link>
+        {canSeeInvoices && (
+          <Link
+            href="/admin/invoices"
+            className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] hover:border-[#1a73e8] hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center text-[#b8941a] group-hover:bg-[#e7ab1c]/20 transition-colors">
+              <FileIcon />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#1a1a2e]">Generate Report</p>
+              <p className="text-[11px] text-gray-400">Invoices & certs</p>
+            </div>
+          </Link>
+        )}
       </div>
     </div>
   )
