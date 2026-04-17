@@ -15,17 +15,19 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { createClient } from "@/utils/supabase/client"
+import { adminSignIn } from "@/app/actions/authActions"
 
 function LoginForm() {
   const [email, setEmail]       = useState("")
   const [password, setPassword] = useState("")
+  // Honeypot — bots fill every field they see. We hide this via CSS and
+  // reject the submission if it's non-empty.
+  const [hp, setHp]             = useState("")
   const [error, setError]       = useState<string | null>(null)
   const [loading, setLoading]   = useState(false)
 
   const router   = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
 
   // Surface ?error=... reasons sent from the console gate
   useEffect(() => {
@@ -42,13 +44,18 @@ function LoginForm() {
     setError(null)
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    // Honeypot triggered → silently pretend everything's fine, log
+    // nothing. Real users never see this field.
+    if (hp) {
+      setLoading(false)
+      setError("Invalid credentials.")
+      return
+    }
 
-    if (error) {
-      // Don't leak which emails exist — use a generic message for
-      // credential failures. Reality: Supabase returns "Invalid login
-      // credentials" for both wrong password and wrong email.
-      setError("Invalid credentials. Check your email and password.")
+    const res = await adminSignIn({ email, password })
+
+    if (!res.success) {
+      setError(res.error ?? "Invalid credentials.")
       setLoading(false)
     } else {
       router.push("/admin")
@@ -73,6 +80,19 @@ function LoginForm() {
 
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-5 bg-white p-7 rounded-2xl shadow-sm border border-[#1a1a2e]/[0.06]">
+          {/* Honeypot — hidden to real users, bots fill it. Positioned
+              off-screen + aria-hidden + tabIndex -1 so assistive tech
+              also skips it. */}
+          <input
+            type="text"
+            name="company_website"
+            autoComplete="off"
+            tabIndex={-1}
+            aria-hidden="true"
+            value={hp}
+            onChange={(e) => setHp(e.target.value)}
+            style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+          />
           <div>
             <label
               htmlFor="email"

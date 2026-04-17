@@ -10,6 +10,7 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
 import { generateBadgePDF, DEFAULT_DESIGN, type BadgeData, type BadgeDesign } from "@/lib/generateBadge"
+import { isValidUUID } from "@/lib/security"
 
 export async function GET(
   request: Request,
@@ -17,6 +18,9 @@ export async function GET(
 ) {
   try {
     const { eventId } = await params
+    if (!isValidUUID(eventId)) {
+      return new Response(JSON.stringify({ error: "Invalid ID" }), { status: 400, headers: { "content-type": "application/json" } })
+    }
     const { searchParams } = new URL(request.url)
     const filter = (searchParams.get("filter") ?? "all") as "all" | "vip" | "checked_in"
     const designParam = searchParams.get("design")

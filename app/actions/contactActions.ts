@@ -279,6 +279,15 @@ function renderReplyHtml(ctx: {
 }
 
 export async function submitContactInquiry(formData: FormData) {
+  // ── Honeypot: if the hidden "company_website" field was filled, this
+  // is almost certainly a bot. Return a fake success so the bot moves
+  // on without retrying. Never DB-insert, never email.
+  const honeypot = formData.get("company_website")
+  if (honeypot && typeof honeypot === "string" && honeypot.length > 0) {
+    console.warn("[Contact Inquiry] Honeypot triggered — bot detected, silently dropped.")
+    return { success: true }
+  }
+
   // ── Rate limit: 5 submissions per IP per 10 minutes.
   // Stops contact-form bots hammering the endpoint + the Resend inbox.
   try {

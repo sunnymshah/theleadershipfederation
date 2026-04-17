@@ -9,6 +9,7 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
 import { generateReportPdf, type ReportData } from "@/lib/generateReport"
+import { isValidUUID } from "@/lib/security"
 
 export async function GET(
   _request: Request,
@@ -16,6 +17,9 @@ export async function GET(
 ) {
   try {
     const { eventId } = await params
+    if (!isValidUUID(eventId)) {
+      return new Response(JSON.stringify({ error: "Invalid ID" }), { status: 400, headers: { "content-type": "application/json" } })
+    }
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
 
