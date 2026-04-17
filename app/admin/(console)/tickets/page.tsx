@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { createTicket, updateTicket, deleteTicket } from "@/app/actions/ticketActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import { Plus, Pencil, Trash2, Search, X, Ticket, Loader2, IndianRupee } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -30,6 +31,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
 }
 
 export default function AdminTicketsPage() {
+  const { can } = useAdminPermissions()
   const [tickets, setTickets]       = useState<TicketRow[]>([])
   const [events, setEvents]         = useState<EventOption[]>([])
   const [loading, setLoading]       = useState(true)
@@ -110,9 +112,11 @@ export default function AdminTicketsPage() {
           <h2 className="text-2xl font-bold text-[#333] mb-1">Tickets</h2>
           <p className="text-sm text-[#888]">Manage ticket tiers and pricing for all events</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
-          <Plus size={16} /> New Ticket
-        </button>
+        {can("tickets", "create") && (
+          <button onClick={openCreate} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
+            <Plus size={16} /> New Ticket
+          </button>
+        )}
       </div>
 
       <div className="relative mb-6">

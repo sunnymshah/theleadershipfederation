@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { Plus, Pencil, Trash2, Search, X, Loader2, Tag } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 interface PromoRow {
   id: string
@@ -22,6 +23,7 @@ interface PromoRow {
 interface EventOption { id: string; title: string }
 
 export default function AdminPromoCodesPage() {
+  const { can } = useAdminPermissions()
   const [promos, setPromos]             = useState<PromoRow[]>([])
   const [events, setEvents]             = useState<EventOption[]>([])
   const [loading, setLoading]           = useState(true)
@@ -96,9 +98,11 @@ export default function AdminPromoCodesPage() {
           <h2 className="text-2xl font-bold text-[#333] mb-1">Promo Codes</h2>
           <p className="text-sm text-[#888]">Create discount codes for ticket purchases</p>
         </div>
-        <button onClick={() => { setEditing(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
-          <Plus size={16} /> New Code
-        </button>
+        {can("promo_codes", "create") && (
+          <button onClick={() => { setEditing(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
+            <Plus size={16} /> New Code
+          </button>
+        )}
       </div>
 
       <div className="relative mb-6">
