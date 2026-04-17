@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { GoldStarburst } from "@/components/ui/GoldPattern"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
+import { ArchiveFilteredGrid } from "@/components/site/ArchiveYearFilter"
 
 export const revalidate = 3600
 
@@ -226,7 +227,7 @@ export default async function ArchivePage() {
         </section>
       )}
 
-      {/* ── Archive Grid ── */}
+      {/* ── Archive Grid with Year Filter ── */}
       {allCards.length > 0 && (
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-10 sm:pb-16">
         <div className="flex items-center justify-between mb-6 sm:mb-10">
@@ -235,6 +236,28 @@ export default async function ArchivePage() {
           </h2>
         </div>
 
+        <ArchiveFilteredGrid
+          cards={allCards.map((c) => ({
+            id: c.id,
+            title: c.title,
+            date: c.date,
+            sortDate: c.sortDate,
+            year: new Date(c.sortDate).getFullYear(),
+            venue: c.venue,
+            city: c.city,
+            series: c.series,
+            edition: c.edition,
+            description: c.description,
+            coverImage: c.coverImage,
+            externalUrl: c.externalUrl,
+            slug: c.slug,
+          }))}
+        />
+      </section>
+      )}
+
+      {/* Legacy unused: kept as dead code below for reference */}
+      {false && (
         <StaggerChildren className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6" animation="fade-up" stagger={80}>
           {allCards.map((event) => {
             const colors = seriesColors[event.series] ?? { bg: "bg-[#1a1a2e]/5", text: "text-[#1a1a2e]/40", border: "border-[#1a1a2e]/10" }
@@ -358,7 +381,6 @@ export default async function ArchivePage() {
             )
           })}
         </StaggerChildren>
-      </section>
       )}
 
       {/* ── Stats Summary Bar ── */}

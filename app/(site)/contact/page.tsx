@@ -158,31 +158,6 @@ export default async function ContactPage() {
         </div>
       </section>
 
-      {/* Inquiry Type Cards — static */}
-      <section className="max-w-6xl mx-auto px-6 pb-16">
-        <StaggerChildren animation="fade-up" stagger={100} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {INQUIRY_TYPES.map((item) => {
-            const Icon = item.icon
-            return (
-              <div
-                key={item.label}
-                className="bg-white border border-[#1a1a2e]/[0.06] shadow-sm rounded-2xl p-6 flex flex-col items-start transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
-              >
-                <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mb-4">
-                  <Icon size={20} className="text-[#e7ab1c]" />
-                </div>
-                <h3 className="text-base font-bold text-[#1a1a2e] mb-1.5">
-                  {item.label}
-                </h3>
-                <p className="text-sm text-[#1a1a2e]/75 leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
-            )
-          })}
-        </StaggerChildren>
-      </section>
-
       {/* Form + Office Info */}
       <section className="max-w-6xl mx-auto px-6 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -16,12 +16,10 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Platforms", href: "/platforms" },
-  { label: "Memberships", href: "/memberships" },
-  { label: "Events", href: "/events" },
-  { label: "Speakers", href: "/speakers" },
+  { label: "Membership", href: "/memberships" },
+  { label: "Event", href: "/events" },
   { label: "Past Events", href: "/archive" },
-  { label: "Partners", href: "/partners" },
-  { label: "Advisory", href: "/advisory-board" },
+  { label: "Advisory Board & Jury", href: "/advisory-board" },
   { label: "Media", href: "/media" },
   { label: "Inner Circle", href: "/inner-circle" },
   { label: "Contact", href: "/contact" },
@@ -62,12 +60,12 @@ export function Navbar() {
         mobileOpen
           ? "bg-[#F4F8FF]"
           : scrolled
-            ? "bg-white/85 backdrop-blur-2xl backdrop-saturate-[1.8] border-b border-[#1a1a2e]/[0.06] shadow-[0_1px_3px_rgba(26,26,46,0.04)]"
-            : "bg-transparent"
+            ? "bg-white/70 backdrop-blur-2xl backdrop-saturate-[1.8] border-b border-[#1a1a2e]/[0.05]"
+            : "bg-white/40 backdrop-blur-xl backdrop-saturate-[1.4]"
       )}
     >
-      <nav className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-[54px] lg:h-[58px] gap-3">
+      <nav className="max-w-[1280px] mx-auto px-5 sm:px-7 lg:px-10">
+        <div className="flex items-center h-[62px] lg:h-[68px] gap-4">
           {/* Logo — left */}
           <Link href="/" className="shrink-0">
             <Image
@@ -80,9 +78,10 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Desktop nav — minimalistic text-only, centered */}
+          {/* Desktop nav — Apple-clean text-only, centered.
+              Larger type, underline on active, no pills. */}
           <div className="hidden lg:flex items-center justify-center flex-1">
-            <div className="flex items-center gap-0">
+            <div className="flex items-center gap-1">
               {navLinks.map(({ label, href }) => {
                 const active = isActive(href)
                 return (
@@ -90,16 +89,16 @@ export function Navbar() {
                     key={href}
                     href={href}
                     className={cn(
-                      "relative px-2.5 py-1 text-[11.5px] tracking-[-0.005em] whitespace-nowrap transition-colors duration-200",
+                      "relative px-3 py-1.5 text-[14px] tracking-[-0.01em] whitespace-nowrap transition-colors duration-200",
                       active
                         ? "text-[#1a1a2e] font-semibold"
-                        : "text-[#1a1a2e]/60 hover:text-[#1a1a2e] font-medium"
+                        : "text-[#1a1a2e]/70 hover:text-[#1a1a2e] font-normal"
                     )}
                     style={sfText}
                   >
                     {label}
                     {active && (
-                      <span className="absolute left-2.5 right-2.5 -bottom-[1px] h-[1.5px] rounded-full bg-[#e7ab1c]" />
+                      <span className="absolute left-3 right-3 -bottom-0.5 h-[2px] rounded-full bg-[#e7ab1c]" />
                     )}
                   </Link>
                 )
@@ -112,8 +111,8 @@ export function Navbar() {
             <Link
               href="/register"
               className={cn(
-                "hidden lg:inline-flex items-center gap-1.5 px-3.5 py-[6px]",
-                "text-[11.5px] font-semibold tracking-[-0.005em] rounded-full",
+                "hidden lg:inline-flex items-center gap-1.5 px-5 py-2",
+                "text-[13.5px] font-semibold tracking-[-0.01em] rounded-[10px]",
                 "bg-[#1a1a2e] text-white",
                 "hover:bg-[#2a2a4e] transition-all duration-200",
                 "active:scale-[0.97]"
@@ -121,7 +120,7 @@ export function Navbar() {
               style={sfText}
             >
               Register
-              <ArrowRight size={11} strokeWidth={2.2} />
+              <ArrowRight size={13} strokeWidth={2.2} />
             </Link>
 
             <button
