@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
@@ -21,31 +22,76 @@ function invalidateEventCaches(slug?: string) {
   if (slug) revalidatePath(`/events/${slug}`, "page")
 }
 
-async function uploadCoverImage(
-  supabase: ReturnType<typeof createClient>,
-  file: File
-): Promise<string | null> {
-  if (!file || file.size === 0) return null
+/**
+ * Upload a cover image to Supabase Storage.
+ *
+ * Returns { url, error }. On failure `url` is null and `error` is set
+ * to something actionable (bucket missing, RLS block, size-too-big,
+ * timeout, etc.) so the caller can surface it to the UI instead of
+ * silently saving the event with no image.
+ *
+ * Uses the service-role admin client to bypass storage.objects RLS —
+ * the caller has already been gated by requirePermission on the events
+ * module, so we don't lose any auth here.
+ *
+ * Wrapped in a 30s timeout so a slow upload can't hang the server
+ * action indefinitely (Vercel function timeout is 10s on Hobby, 60s on
+ * Pro — we error earlier with a clearer message).
+ */
+async function uploadCoverImage(file: File): Promise<{ url: string | null; error: string | null }> {
+  if (!file || file.size === 0) return { url: null, error: null }
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
   const safeName = file.name
     .replace(/\.[^/.]+$/, "")
     .replace(/[^a-zA-Z0-9-_]/g, "-")
     .toLowerCase()
-    .slice(0, 50)
+    .slice(0, 50) || "cover"
   const path = `events/${safeName}-${Date.now()}.${ext}`
 
-  const { error } = await supabase.storage
-    .from("public_images")
-    .upload(path, file, { cacheControl: "3600", upsert: false })
+  try {
+    const admin = createAdminClient()
+    const uploadPromise = admin.storage
+      .from("public_images")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "image/jpeg",
+      })
 
-  if (error) return null
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error("Image upload timed out after 30s. Try a smaller file.")),
+        30_000,
+      ),
+    )
 
-  const { data: { publicUrl } } = supabase.storage
-    .from("public_images")
-    .getPublicUrl(path)
+    const result = await Promise.race([uploadPromise, timeoutPromise])
+    const error = result.error
 
-  return publicUrl
+    if (error) {
+      console.error("[uploadCoverImage] storage.upload failed:", error)
+      // Surface the real Supabase error so the admin can fix it (bucket
+      // missing, invalid MIME, RLS block, etc.)
+      const msg = error.message || "Unknown storage error"
+      if (/bucket/i.test(msg) && /not.*found|does.*not.*exist/i.test(msg)) {
+        return {
+          url: null,
+          error: "Storage bucket 'public_images' does not exist. Create it in Supabase → Storage → New bucket (public).",
+        }
+      }
+      return { url: null, error: `Image upload failed: ${msg}` }
+    }
+
+    const { data: { publicUrl } } = admin.storage
+      .from("public_images")
+      .getPublicUrl(path)
+
+    return { url: publicUrl, error: null }
+  } catch (err) {
+    console.error("[uploadCoverImage] exception:", err)
+    return { url: null, error: (err as Error).message }
+  }
 }
 
 export async function createEvent(formData: FormData) {
@@ -86,8 +132,14 @@ export async function createEvent(formData: FormData) {
     let finalCoverUrl = coverUrl || null
 
     if (coverFile && coverFile.size > 0) {
-      const uploadedUrl = await uploadCoverImage(supabase, coverFile)
-      if (uploadedUrl) finalCoverUrl = uploadedUrl
+      const { url, error: uploadErr } = await uploadCoverImage(coverFile)
+      if (uploadErr) {
+        // Bail early — don't silently save the event with no image when
+        // the upload failed. Otherwise the user wonders why the cover
+        // never appears on the site.
+        return { success: false, error: uploadErr }
+      }
+      if (url) finalCoverUrl = url
     }
 
     const statusValue = (formData.get("status") as string) || "published"
@@ -170,8 +222,11 @@ export async function updateEvent(eventId: string, formData: FormData) {
     let finalCoverUrl = coverUrl || current?.cover_image_url || null
 
     if (coverFile && coverFile.size > 0) {
-      const uploadedUrl = await uploadCoverImage(supabase, coverFile)
-      if (uploadedUrl) finalCoverUrl = uploadedUrl
+      const { url, error: uploadErr } = await uploadCoverImage(coverFile)
+      if (uploadErr) {
+        return { success: false, error: uploadErr }
+      }
+      if (url) finalCoverUrl = url
     }
 
     const { data, error } = await supabase
