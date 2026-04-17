@@ -6,20 +6,36 @@
  * Clean, dark-mode login screen using Supabase email/password auth.
  * Lives in the (auth) route group so it does NOT inherit the
  * console sidebar or auth gate.
+ *
+ * Authorization (not just auth) is enforced in app/admin/(console)/layout.tsx
+ * — a valid Supabase account alone is NOT enough; the email must be in
+ * team_members or match ADMIN_BOOTSTRAP_EMAIL. If the gate rejects a user,
+ * they're sent here with ?error=access-denied.
  */
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const [email, setEmail]       = useState("")
   const [password, setPassword] = useState("")
   const [error, setError]       = useState<string | null>(null)
   const [loading, setLoading]   = useState(false)
 
   const router   = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  // Surface ?error=... reasons sent from the console gate
+  useEffect(() => {
+    const e = searchParams.get("error")
+    if (e === "access-denied") {
+      setError(
+        "This account is not authorized for the admin console. Contact your super admin to be added to the team.",
+      )
+    }
+  }, [searchParams])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +45,10 @@ export default function AdminLoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError(error.message)
+      // Don't leak which emails exist — use a generic message for
+      // credential failures. Reality: Supabase returns "Invalid login
+      // credentials" for both wrong password and wrong email.
+      setError("Invalid credentials. Check your email and password.")
       setLoading(false)
     } else {
       router.push("/admin")
@@ -106,5 +125,13 @@ export default function AdminLoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }
