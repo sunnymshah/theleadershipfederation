@@ -1,6 +1,5 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
-import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Calendar, MapPin, Clock, Users, Building2, ArrowLeft, Ticket, Award, ExternalLink, Camera, Trophy } from "lucide-react"
@@ -106,7 +105,46 @@ export default async function EventDetailPage({ params }: Props) {
 
   // Uses React cache() — shared with generateMetadata so only one DB call
   const event = await getEvent(slug)
-  if (!event) notFound()
+  if (!event) {
+    // Render a diagnostic page instead of a blind 404. Helps you see
+    // exactly which slug failed and what to check. Server-side this
+    // logs the full trail in Vercel Function logs.
+    return (
+      <main className="min-h-screen flex items-center justify-center px-6 py-24">
+        <div className="max-w-lg w-full text-center">
+          <div className="inline-flex items-center gap-2 text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-4 px-3 py-1 rounded-full bg-[#e7ab1c]/10 border border-[#e7ab1c]/20">
+            Event not found
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#1a1a2e] mb-4 tracking-tight">
+            We couldn&apos;t find that event
+          </h1>
+          <p className="text-[#1a1a2e]/70 leading-relaxed mb-6">
+            The slug <code className="px-1.5 py-0.5 rounded bg-[#1a1a2e]/8 text-[13px] font-mono">{slug}</code> isn&apos;t in our events table.
+            This usually means one of three things:
+          </p>
+          <ul className="text-left text-sm text-[#1a1a2e]/75 space-y-2 mb-8 bg-[#F4F8FF] rounded-xl p-5 border border-[#1a1a2e]/[0.06]">
+            <li><strong>1.</strong> The event slug was renamed after the card was shared — check Admin → Events for the current slug.</li>
+            <li><strong>2.</strong> The event was deleted. Past editions live on the Past Events page.</li>
+            <li><strong>3.</strong> The slug was typed by hand with a typo — double-check the URL.</li>
+          </ul>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="/events"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-[#1a1a2e] text-white text-sm font-semibold hover:bg-[#2a2a4e] transition-colors"
+            >
+              ← All upcoming events
+            </a>
+            <a
+              href="/archive"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-white border border-[#1a1a2e]/10 text-[#1a1a2e] text-sm font-semibold hover:bg-[#F4F8FF] transition-colors"
+            >
+              Past events →
+            </a>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
