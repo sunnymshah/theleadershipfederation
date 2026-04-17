@@ -13,7 +13,10 @@ import { createAdminClient } from "@/utils/supabase/admin"
  *   2. Service-role admin client (bypasses events RLS) exact match.
  *   3. Admin client case-insensitive ILIKE match (slug punctuation
  *      drift, trailing slash, etc.).
- *   4. Return null — caller renders a helpful "event not found"
+ *   4. Admin substring ILIKE (`%slug%`) — catches short/hand-typed
+ *      slugs like `mumbai` → `gcc-leadership-conclave-mumbai-7th-edition`.
+ *      Picks the most recent matching event.
+ *   5. Return null — caller renders a helpful "event not found"
  *      page that shows the attempted slug.
  */
 export const getEvent = cache(async (slug: string) => {
@@ -67,6 +70,53 @@ export const getEvent = cache(async (slug: string) => {
     }
   } catch (err) {
     console.error("[getEvent] admin ILIKE threw:", err)
+  }
+
+  // 4. Admin substring ILIKE — catches short hand-typed slugs
+  //    (e.g. "mumbai" → "gcc-leadership-conclave-mumbai-7th-edition").
+  //    Guard: require ≥ 3 chars so we don't match indiscriminately.
+  if (slug.length >= 3) {
+    try {
+      const admin = createAdminClient()
+      const safe = slug.replace(/[%_]/g, "")
+      const { data } = await admin
+        .from("events")
+        .select("*")
+        .ilike("slug", `%${safe}%`)
+        .order("start_date", { ascending: false, nullsFirst: false })
+        .limit(1)
+      const match = data && data[0]
+      if (match) {
+        console.warn(
+          `[getEvent] slug matched via substring: requested="${slug}" matched="${match.slug}"`,
+        )
+        return match
+      }
+    } catch (err) {
+      console.error("[getEvent] admin substring ILIKE threw:", err)
+    }
+
+    // 4b. Also try matching against the event title (e.g. "mumbai" in
+    //     "GCC Leadership Conclave - Mumbai - 7th Edition").
+    try {
+      const admin = createAdminClient()
+      const safe = slug.replace(/[%_]/g, " ")
+      const { data } = await admin
+        .from("events")
+        .select("*")
+        .ilike("title", `%${safe}%`)
+        .order("start_date", { ascending: false, nullsFirst: false })
+        .limit(1)
+      const match = data && data[0]
+      if (match) {
+        console.warn(
+          `[getEvent] slug matched via title substring: requested="${slug}" matched="${match.slug}" title="${match.title}"`,
+        )
+        return match
+      }
+    } catch (err) {
+      console.error("[getEvent] admin title ILIKE threw:", err)
+    }
   }
 
   console.warn(`[getEvent] slug "${slug}" not found in events table at all.`)

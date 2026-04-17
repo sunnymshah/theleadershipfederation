@@ -37,13 +37,12 @@ import {
   reorderEventSections,
 } from "@/app/actions/eventSectionActions"
 import { SECTION_KINDS, type EventSection, type SectionKind } from "@/lib/event-sections"
-import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
 import {
   ArrowLeft, ArrowUp, ArrowDown, Copy, Trash2, Plus, Eye, EyeOff, Loader2,
   ChevronDown, LayoutPanelTop, Type, BarChart3,
   Users, Clock, Ticket, Building2, PlayCircle, ImageIcon,
   MousePointerClick, HelpCircle, Layers, Palette, Search, Plug,
-  Settings, X, Pencil, Undo, Redo, Globe, Monitor, Tablet, Smartphone,
+  Settings, X, Undo, Redo, Globe, Monitor, Tablet, Smartphone,
   FileText, History, Bell, Languages, Link2, Check, GripVertical, Sparkles, Keyboard,
 } from "lucide-react"
 
@@ -127,9 +126,11 @@ interface ThemeTokens {
   accent: string
   background: string
   text: string
-  heading_font: "SF Pro" | "Inter" | "Playfair" | "Manrope"
-  body_font: "SF Pro" | "Inter" | "Manrope"
+  heading_font: "SF Pro" | "Inter" | "Playfair" | "Manrope" | "DM Serif"
+  body_font: "SF Pro" | "Inter" | "Manrope" | "DM Sans"
   button_shape: "square" | "rounded" | "pill"
+  scale: "compact" | "normal" | "large"
+  radius: "sharp" | "soft" | "round"
 }
 const DEFAULT_THEME: ThemeTokens = {
   primary: "#e7ab1c",
@@ -139,7 +140,21 @@ const DEFAULT_THEME: ThemeTokens = {
   heading_font: "SF Pro",
   body_font: "SF Pro",
   button_shape: "rounded",
+  scale: "normal",
+  radius: "soft",
 }
+
+const FONT_STACKS: Record<ThemeTokens["heading_font"] | ThemeTokens["body_font"], string> = {
+  "SF Pro":   "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
+  "Inter":    "'Inter', system-ui, sans-serif",
+  "Playfair": "'Playfair Display', Georgia, serif",
+  "Manrope":  "'Manrope', system-ui, sans-serif",
+  "DM Serif": "'DM Serif Display', Georgia, serif",
+  "DM Sans":  "'DM Sans', system-ui, sans-serif",
+}
+
+const SCALE_MULT: Record<ThemeTokens["scale"], number> = { compact: 0.9, normal: 1, large: 1.15 }
+const RADIUS_PX:  Record<ThemeTokens["radius"], string> = { sharp: "0px", soft: "12px", round: "24px" }
 
 type EventMeta = {
   title: string
@@ -186,9 +201,25 @@ export default function EventBuilderPage() {
   const [editing, setEditing] = useState<EventSection | null>(null)
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
   const [publishPulse, setPublishPulse] = useState(false)
+  const [publishState, setPublishState] = useState<"idle" | "publishing" | "done" | "error">("idle")
+  const [inlineSaveState, setInlineSaveState] = useState<"idle" | "saving" | "saved">("idle")
   const [templating, setTemplating] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
   const [dropAt, setDropAt] = useState<number | null>(null)
+
+  /* ── Undo/redo history (content + order, local-only) ──────────────── */
+  const pastRef   = useRef<EventSection[][]>([])
+  const futureRef = useRef<EventSection[][]>([])
+  const [canUndo, setCanUndo] = useState(false)
+  const [canRedo, setCanRedo] = useState(false)
+  const snapshot = useCallback((next: EventSection[]) => {
+    pastRef.current = [...pastRef.current, sections].slice(-50) // cap stack
+    futureRef.current = []
+    setSections(next)
+    setCanUndo(true)
+    setCanRedo(false)
+  }, [sections])
+  const inlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /* ── Initial load (metadata + children in parallel) ──────────────── */
   useEffect(() => {
@@ -243,22 +274,6 @@ export default function EventBuilderPage() {
     return () => { cancelled = true }
   }, [eventId, supabase])
 
-  /* ── Keyboard shortcuts ──────────────────────────────────────────── */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (addOpenAt !== null) { setAddOpenAt(null); return }
-        if (editing) setEditing(null)
-      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
-        e.preventDefault()
-        setPublishPulse(true)
-        setTimeout(() => setPublishPulse(false), 1800)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [addOpenAt, editing])
-
   /* ── Mutations: optimistic local updates + background server call ─ */
 
   const markPending = useCallback((sid: string, on: boolean) => {
@@ -287,7 +302,6 @@ export default function EventBuilderPage() {
     })
     if (res.success && res.section) {
       setSections((prev) => [...prev, res.section as EventSection])
-      setEditing(res.section as EventSection)
     } else {
       setError(res.error ?? "Failed to add section")
     }
@@ -337,18 +351,135 @@ export default function EventBuilderPage() {
     }
   }, [eventId, markPending])
 
-  /** Called by the drawer after every autosave. Patches local state only —
-   *  no refetch, no re-render cascade to other cards. */
-  const applyLocalSectionUpdate = useCallback((updated: EventSection) => {
-    setSections((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
-    setEditing((cur) => (cur && cur.id === updated.id ? updated : cur))
+  /* ── Inline WYSIWYG edits from the preview ────────────────────────── */
+  /* Debounced server save per-section. Local state updates immediately
+   * so typing feels native, then 750 ms after the last keystroke we
+   * flush to Supabase. */
+  const pendingPatchesRef = useRef<Map<string, Partial<EventSection>>>(new Map())
+  const flushInlineSaves = useCallback(async () => {
+    const patches = pendingPatchesRef.current
+    if (patches.size === 0) return
+    setInlineSaveState("saving")
+    const entries = Array.from(patches.entries())
+    pendingPatchesRef.current = new Map()
+    await Promise.all(entries.map(([id, patch]) =>
+      updateEventSection(id, {
+        ...(patch.title     !== undefined ? { title:     patch.title     ?? "" } : {}),
+        ...(patch.subtitle  !== undefined ? { subtitle:  patch.subtitle  ?? "" } : {}),
+        ...(patch.body      !== undefined ? { body:      patch.body      ?? "" } : {}),
+        ...(patch.cta_label !== undefined ? { ctaLabel:  patch.cta_label ?? "" } : {}),
+        ...(patch.image_url !== undefined ? { imageUrl:  patch.image_url ?? "" } : {}),
+        ...((patch as { data?: Record<string, unknown> }).data !== undefined
+          ? { data: (patch as { data?: Record<string, unknown> }).data }
+          : {}),
+      }),
+    ))
+    setInlineSaveState("saved")
+    setTimeout(() => setInlineSaveState("idle"), 1200)
+  }, [])
+  const handleInlineEdit = useCallback((sectionId: string, patch: Partial<EventSection>) => {
+    // 1. Snapshot current state for undo (before local mutation)
+    pastRef.current = [...pastRef.current, sections].slice(-50)
+    futureRef.current = []
+    setCanUndo(true); setCanRedo(false)
+    // 2. Apply local patch immediately
+    setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, ...patch } : s)))
+    // 3. Merge into pending server patches
+    const existing = pendingPatchesRef.current.get(sectionId) ?? {}
+    pendingPatchesRef.current.set(sectionId, { ...existing, ...patch })
+    // 4. Debounced flush
+    if (inlineTimerRef.current) clearTimeout(inlineTimerRef.current)
+    inlineTimerRef.current = setTimeout(() => { void flushInlineSaves() }, 750)
+  }, [sections, flushInlineSaves])
+
+  /* ── Hide/show toggle (hover toolbar) ─────────────────────────────── */
+  const handleToggleVisibility = useCallback(async (sectionId: string) => {
+    let wasActive = true
+    setSections((prev) => prev.map((s) => {
+      if (s.id !== sectionId) return s
+      wasActive = s.is_active !== false
+      return { ...s, is_active: !wasActive } as EventSection
+    }))
+    const res = await updateEventSection(sectionId, { isActive: !wasActive })
+    if (!res.success) {
+      setError(res.error ?? "Hide failed")
+      setSections((prev) => prev.map((s) => (s.id === sectionId ? { ...s, is_active: wasActive } as EventSection : s)))
+    }
   }, [])
 
+  /* ── Undo / redo ──────────────────────────────────────────────────── */
+  const handleUndo = useCallback(() => {
+    const prev = pastRef.current.pop()
+    if (!prev) return
+    futureRef.current = [sections, ...futureRef.current].slice(0, 50)
+    setSections(prev)
+    setCanUndo(pastRef.current.length > 0)
+    setCanRedo(true)
+    // Best-effort server resync for content changes
+    void Promise.all(prev.map((s) => updateEventSection(s.id, {
+      title: s.title ?? "", subtitle: s.subtitle ?? "", body: s.body ?? "",
+      ctaLabel: s.cta_label ?? "", imageUrl: s.image_url ?? "",
+    })))
+    void reorderEventSections(eventId, prev.map((s) => s.id))
+  }, [sections, eventId])
+  const handleRedo = useCallback(() => {
+    const next = futureRef.current.shift()
+    if (!next) return
+    pastRef.current = [...pastRef.current, sections].slice(-50)
+    setSections(next)
+    setCanUndo(true)
+    setCanRedo(futureRef.current.length > 0)
+    void Promise.all(next.map((s) => updateEventSection(s.id, {
+      title: s.title ?? "", subtitle: s.subtitle ?? "", body: s.body ?? "",
+      ctaLabel: s.cta_label ?? "", imageUrl: s.image_url ?? "",
+    })))
+    void reorderEventSections(eventId, next.map((s) => s.id))
+  }, [sections, eventId])
+
   const handlePublish = useCallback(async () => {
+    setPublishState("publishing")
     setPublishPulse(true)
-    setTimeout(() => setPublishPulse(false), 1800)
-    try { await fetch(`/events/${eventMeta.slug}`, { cache: "no-store" }) } catch { /* ignore */ }
-  }, [eventMeta.slug])
+    try {
+      // Flush pending inline edits first
+      if (inlineTimerRef.current) { clearTimeout(inlineTimerRef.current); inlineTimerRef.current = null }
+      await flushInlineSaves()
+      // Hit the public page to trigger Next.js ISR revalidation
+      await fetch(`/events/${eventMeta.slug}?_refresh=${Date.now()}`, { cache: "no-store" })
+      setPublishState("done")
+    } catch {
+      setPublishState("error")
+    }
+    setTimeout(() => { setPublishPulse(false); setPublishState("idle") }, 2200)
+  }, [eventMeta.slug, flushInlineSaves])
+
+  /* ── Keyboard shortcuts (defined after handlers) ──────────────────── */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey
+      const target = e.target as HTMLElement | null
+      const inField =
+        target &&
+        (target.tagName === "INPUT" ||
+         target.tagName === "TEXTAREA" ||
+         target.isContentEditable)
+      if (e.key === "Escape") {
+        if (addOpenAt !== null) { setAddOpenAt(null); return }
+        if (editing) setEditing(null)
+        if (inField && target) (target as HTMLElement).blur()
+      } else if (mod && !e.shiftKey && e.key.toLowerCase() === "z") {
+        e.preventDefault()
+        handleUndo()
+      } else if (mod && (e.shiftKey && e.key.toLowerCase() === "z" || e.key.toLowerCase() === "y")) {
+        e.preventDefault()
+        handleRedo()
+      } else if (mod && e.key.toLowerCase() === "s") {
+        e.preventDefault()
+        void handlePublish()
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [addOpenAt, editing, handleUndo, handleRedo, handlePublish])
 
   const applyTemplate = useCallback(async (tpl: (typeof TEMPLATES)[number]) => {
     setTemplating(true)
@@ -443,6 +574,11 @@ export default function EventBuilderPage() {
     ["--lf-accent" as string]: theme.accent,
     ["--lf-background" as string]: theme.background,
     ["--lf-text" as string]: theme.text,
+    ["--lf-heading-font" as string]: FONT_STACKS[theme.heading_font],
+    ["--lf-body-font" as string]: FONT_STACKS[theme.body_font],
+    ["--lf-scale" as string]: String(SCALE_MULT[theme.scale]),
+    ["--lf-radius" as string]: RADIUS_PX[theme.radius],
+    ["--lf-btn-radius" as string]: theme.button_shape === "square" ? "0px" : theme.button_shape === "pill" ? "999px" : "8px",
   }), [theme])
 
   return (
@@ -507,8 +643,23 @@ export default function EventBuilderPage() {
 
         <div className="w-px h-5 bg-white/10 mx-1" />
 
-        <button disabled className="p-1.5 rounded text-white/30" title="Undo (coming soon)"><Undo size={14} /></button>
-        <button disabled className="p-1.5 rounded text-white/30" title="Redo (coming soon)"><Redo size={14} /></button>
+        <button
+          disabled={!canUndo}
+          onClick={handleUndo}
+          title="Undo (⌘Z)"
+          className="p-1.5 rounded text-white/70 hover:text-white hover:bg-white/10 disabled:text-white/20 disabled:hover:bg-transparent"
+        ><Undo size={14} /></button>
+        <button
+          disabled={!canRedo}
+          onClick={handleRedo}
+          title="Redo (⌘⇧Z)"
+          className="p-1.5 rounded text-white/70 hover:text-white hover:bg-white/10 disabled:text-white/20 disabled:hover:bg-transparent"
+        ><Redo size={14} /></button>
+        {inlineSaveState !== "idle" && (
+          <span className={`ml-1 text-[10px] font-semibold ${inlineSaveState === "saved" ? "text-emerald-400" : "text-white/50"}`}>
+            {inlineSaveState === "saving" ? "Saving…" : "✓ Saved"}
+          </span>
+        )}
 
         <div className="w-px h-5 bg-white/10 mx-1" />
 
@@ -520,11 +671,18 @@ export default function EventBuilderPage() {
         )}
         <button
           onClick={handlePublish}
+          disabled={publishState === "publishing"}
           className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-bold transition-all ${
-            publishPulse ? "bg-emerald-500 text-white" : "bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10]"
+            publishState === "done"  ? "bg-emerald-500 text-white" :
+            publishState === "error" ? "bg-red-500 text-white" :
+            publishPulse             ? "bg-emerald-500 text-white" :
+                                        "bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10]"
           }`}
         >
-          {publishPulse ? "✓ Published" : "Publish"}
+          {publishState === "publishing" && <Loader2 size={12} className="animate-spin" />}
+          {publishState === "publishing" ? "Publishing…" :
+           publishState === "done"       ? "✓ Published" :
+           publishState === "error"      ? "Retry" : "Publish"}
         </button>
       </header>
 
@@ -577,11 +735,19 @@ export default function EventBuilderPage() {
           ) : (
             <div
               className="mx-auto py-8 px-4 space-y-0 transition-[max-width] duration-200"
-              style={{ maxWidth: DEVICE_WIDTHS[device] }}
+              style={{
+                maxWidth: DEVICE_WIDTHS[device],
+                // subtle tint of the theme background so page-bg changes are visible between cards
+                ["--canvas-tint" as string]: "color-mix(in srgb, var(--lf-background, #F4F8FF) 18%, #0a0a0a)",
+                background: "var(--canvas-tint)",
+                borderRadius: 10,
+              }}
             >
               <div className="mb-3 px-1 text-[11px] text-white/50 uppercase tracking-wider flex items-center justify-between">
                 <span>
-                  {livePreview ? "Live preview — what visitors see" : "Fast mode — click a card to edit · hover between to insert"}
+                  {livePreview
+                    ? "Live preview — what visitors see"
+                    : "Click any text to edit · hover between cards to insert · theme panel on the left"}
                 </span>
                 <span className="text-white/30 font-mono">{sections.length} section{sections.length === 1 ? "" : "s"}</span>
               </div>
@@ -616,6 +782,8 @@ export default function EventBuilderPage() {
                     onMove={handleMove}
                     onDelete={handleDelete}
                     onDuplicate={handleDuplicate}
+                    onToggleVisibility={handleToggleVisibility}
+                    onInlineEdit={handleInlineEdit}
                     onDragStart={onDragStart}
                     onDragOver={onDragOver}
                     onDrop={onDrop}
@@ -631,16 +799,6 @@ export default function EventBuilderPage() {
         </main>
       </div>
 
-      {/* ══════════════ EDIT DRAWER ════════════════════════════════════ */}
-      {editing && (
-        <SectionEditDrawer
-          key={editing.id}
-          section={editing}
-          onClose={() => setEditing(null)}
-          onUpdate={applyLocalSectionUpdate}
-          onDelete={handleDelete}
-        />
-      )}
     </div>
   )
 }
@@ -667,6 +825,8 @@ const SectionRow = memo(function SectionRow(props: {
   onMove: (id: string, dir: "up" | "down") => void
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
+  onToggleVisibility: (id: string) => void
+  onInlineEdit: (id: string, patch: Partial<EventSection>) => void
   onDragStart: (e: React.DragEvent, id: string) => void
   onDragOver: (e: React.DragEvent, index: number) => void
   onDrop: (e: React.DragEvent, index: number) => void
@@ -678,7 +838,7 @@ const SectionRow = memo(function SectionRow(props: {
   const {
     section, index, total, busy, livePreview, eventData,
     speakers, sessions, sponsors, tickets, editing, dragging, dropOver,
-    onEdit, onMove, onDelete, onDuplicate,
+    onEdit, onMove, onDelete, onDuplicate, onToggleVisibility, onInlineEdit,
     onDragStart, onDragOver, onDrop, onDragEnd,
     addOpen, onAddToggle, onAddPick,
   } = props
@@ -701,6 +861,8 @@ const SectionRow = memo(function SectionRow(props: {
         onMove={onMove}
         onDelete={onDelete}
         onDuplicate={onDuplicate}
+        onToggleVisibility={onToggleVisibility}
+        onInlineEdit={onInlineEdit}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       />
@@ -754,25 +916,28 @@ const SectionCard = memo(function SectionCard(props: {
   onMove: (id: string, dir: "up" | "down") => void
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
+  onToggleVisibility: (id: string) => void
+  onInlineEdit: (id: string, patch: Partial<EventSection>) => void
   onDragStart: (e: React.DragEvent, id: string) => void
   onDragEnd: () => void
 }) {
   const {
     section: s, index, total, busy, livePreview, editing, dragging, eventData,
     speakers, sessions, sponsors, tickets,
-    onEdit, onMove, onDelete, onDuplicate,
+    onEdit, onMove, onDelete, onDuplicate, onToggleVisibility, onInlineEdit,
     onDragStart, onDragEnd,
   } = props
   const meta = KIND_META[s.kind]
   const Icon = meta.icon
   const onlineSections = useMemo(() => [s], [s])
+  const hidden = s.is_active === false
 
   return (
     <div
-      className={`group relative rounded-xl overflow-hidden bg-white border-2 transition-colors cursor-pointer shadow-[0_0_0_1px_rgba(255,255,255,0.05)] ${
+      className={`group relative rounded-xl overflow-hidden border-2 transition-colors shadow-[0_0_0_1px_rgba(255,255,255,0.05)] ${
         editing ? "border-[#e7ab1c]" : "border-transparent hover:border-[#e7ab1c]/60"
-      } ${dragging ? "opacity-50" : ""}`}
-      onClick={() => onEdit(s)}
+      } ${dragging ? "opacity-50" : ""} ${hidden ? "opacity-50" : ""}`}
+      style={{ background: "var(--lf-background, #ffffff)" }}
     >
       {livePreview ? (
         <div className="pointer-events-none">
@@ -788,25 +953,23 @@ const SectionCard = memo(function SectionCard(props: {
           </Suspense>
         </div>
       ) : (
-        <MiniPreview section={s} />
+        <MiniPreview section={s} onInlineEdit={(patch) => onInlineEdit(s.id, patch)} />
       )}
 
-      <div className="absolute inset-0 bg-[#0a0a0a]/0 group-hover:bg-[#0a0a0a]/20 transition-colors pointer-events-none" />
-
-      {/* Drag handle (top-left, next to label) */}
+      {/* Drag handle (left edge, vertical center) */}
       <div
         draggable
         onDragStart={(e) => onDragStart(e, s.id)}
         onDragEnd={onDragEnd}
         onClick={(e) => e.stopPropagation()}
         title="Drag to reorder"
-        className="absolute top-2 right-[240px] opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/70 hover:text-white hover:bg-[#2a2a2a] flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="absolute top-2 left-[160px] opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/70 hover:text-white hover:bg-[#2a2a2a] flex items-center justify-center cursor-grab active:cursor-grabbing z-20"
       >
         <GripVertical size={12} />
       </div>
 
       {/* Controls (top-right) */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20" onClick={(e) => e.stopPropagation()}>
         <button disabled={busy || index === 0} onClick={() => onMove(s.id, "up")} title="Move up"
           className="w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
           <ArrowUp size={12} />
@@ -819,9 +982,9 @@ const SectionCard = memo(function SectionCard(props: {
           className="w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
           <Copy size={12} />
         </button>
-        <button onClick={() => onEdit(s)} title="Edit"
-          className="w-7 h-7 rounded-md bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] flex items-center justify-center">
-          <Pencil size={12} />
+        <button disabled={busy} onClick={() => onToggleVisibility(s.id)} title={hidden ? "Show" : "Hide"}
+          className={`w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center ${hidden ? "text-amber-300" : "text-white/80 hover:text-white"}`}>
+          {hidden ? <EyeOff size={12} /> : <Eye size={12} />}
         </button>
         <button disabled={busy} onClick={() => onDelete(s.id)} title="Delete"
           className="w-7 h-7 rounded-md bg-red-500/15 backdrop-blur border border-red-500/30 text-red-300 hover:bg-red-500/25 disabled:opacity-30 flex items-center justify-center">
@@ -848,60 +1011,201 @@ const SectionCard = memo(function SectionCard(props: {
 /* MINI PREVIEW (lightweight)                                            */
 /* ═════════════════════════════════════════════════════════════════════ */
 
-const MiniPreview = memo(function MiniPreview({ section: s }: { section: EventSection }) {
+/* ── Editable text helper: click-to-edit in the preview, blur to save ──
+ *
+ * multiline=true → block element, Enter inserts a newline, commit uses
+ * innerText (preserves line breaks). Otherwise Enter blurs.
+ */
+function Editable({
+  value, onCommit, placeholder, as: Tag = "span", className, style, multiline = false,
+}: {
+  value: string
+  onCommit: (v: string) => void
+  placeholder?: string
+  as?: "span" | "h1" | "h2" | "h3" | "p" | "div"
+  className?: string
+  style?: React.CSSProperties
+  multiline?: boolean
+}) {
+  const ref = useRef<HTMLElement | null>(null)
+  const lastCommitted = useRef(value)
+  const readOut = () =>
+    multiline
+      ? ((ref.current as HTMLElement | null)?.innerText ?? "")
+      : ((ref.current as HTMLElement | null)?.textContent ?? "")
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const cur = multiline ? el.innerText : el.textContent
+    if (cur !== value) {
+      if (multiline) el.innerText = value
+      else el.textContent = value
+    }
+    lastCommitted.current = value
+  }, [value, multiline])
+  const commit = () => {
+    const next = readOut().replace(/\s+$/g, "")
+    if (next !== lastCommitted.current) {
+      lastCommitted.current = next
+      onCommit(next)
+    }
+  }
+  return (
+    <Tag
+      ref={ref as React.Ref<never>}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      data-placeholder={placeholder}
+      onFocus={(e: React.FocusEvent) => e.stopPropagation()}
+      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
+      onBlur={commit}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === "Enter" && !e.shiftKey && !multiline) {
+          e.preventDefault()
+          ;(e.target as HTMLElement).blur()
+        }
+        if (e.key === "Escape") {
+          if (ref.current) {
+            if (multiline) (ref.current as HTMLElement).innerText = lastCommitted.current
+            else ref.current.textContent = lastCommitted.current
+          }
+          ;(e.target as HTMLElement).blur()
+        }
+      }}
+      className={`outline-none focus:ring-2 focus:ring-[#e7ab1c]/60 focus:bg-white/20 rounded px-1 -mx-1 cursor-text [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:opacity-40 ${className ?? ""}`}
+      style={style}
+    />
+  )
+}
+
+const MiniPreview = memo(function MiniPreview({
+  section: s, onInlineEdit,
+}: { section: EventSection; onInlineEdit: (patch: Partial<EventSection>) => void }) {
   switch (s.kind) {
     case "hero":
       return (
         <div
-          className="relative min-h-[180px] p-8 flex flex-col justify-end overflow-hidden"
+          className="relative min-h-[220px] p-8 flex flex-col justify-end overflow-hidden"
           style={{
             background: s.image_url
               ? undefined
               : "linear-gradient(135deg, var(--lf-accent, #1a1a2e), color-mix(in srgb, var(--lf-accent, #1a1a2e) 80%, black))",
+            fontFamily: "var(--lf-body-font, inherit)",
           }}
         >
           {s.image_url && <Image src={s.image_url} alt="" fill sizes="(max-width: 1100px) 100vw, 1100px" className="object-cover opacity-60" />}
           <div className="relative z-10">
-            <h3 className="text-2xl font-bold text-white">{s.title || "Untitled hero"}</h3>
-            {s.subtitle && <p className="text-sm text-white/80 mt-1 max-w-lg">{s.subtitle}</p>}
-            {s.cta_label && (
-              <span
-                className="inline-block mt-3 px-4 py-1.5 rounded-md text-xs font-bold"
-                style={{ background: "var(--lf-primary, #e7ab1c)", color: "var(--lf-accent, #1a1a2e)" }}
-              >
-                {s.cta_label}
-              </span>
-            )}
+            <Editable
+              as="h3"
+              value={s.title ?? ""}
+              onCommit={(v) => onInlineEdit({ title: v })}
+              placeholder="Event title"
+              className="text-white font-bold block"
+              style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1.75rem * var(--lf-scale, 1))", lineHeight: 1.15 }}
+            />
+            <Editable
+              as="p"
+              value={s.subtitle ?? ""}
+              onCommit={(v) => onInlineEdit({ subtitle: v })}
+              placeholder="Subtitle · date · venue"
+              className="text-white/80 mt-1 max-w-lg block"
+              style={{ fontSize: "calc(0.9rem * var(--lf-scale, 1))" }}
+            />
+            <Editable
+              as="span"
+              value={s.cta_label ?? ""}
+              onCommit={(v) => onInlineEdit({ cta_label: v })}
+              placeholder="+ button label"
+              className="inline-block mt-3 px-4 py-1.5 text-xs font-bold"
+              style={{ background: "var(--lf-primary, #e7ab1c)", color: "var(--lf-accent, #1a1a2e)", borderRadius: "var(--lf-btn-radius, 8px)" }}
+            />
           </div>
         </div>
       )
     case "rich_text":
       return (
-        <div className="p-6 bg-white text-[#1a1a2e]">
-          <h3 className="text-xl font-bold">{s.title || "Rich text"}</h3>
-          {s.subtitle && (
-            <p
-              className="text-xs font-semibold uppercase tracking-wider mt-1"
-              style={{ color: "var(--lf-primary, #e7ab1c)" }}
-            >
-              {s.subtitle}
-            </p>
-          )}
-          {s.body && <p className="text-sm text-[#1a1a2e]/70 mt-2 whitespace-pre-wrap line-clamp-4">{s.body}</p>}
+        <div
+          className="p-6"
+          style={{
+            background: "var(--lf-background, #ffffff)",
+            color: "var(--lf-text, #1a1a2e)",
+            fontFamily: "var(--lf-body-font, inherit)",
+          }}
+        >
+          <Editable
+            as="h3"
+            value={s.title ?? ""}
+            onCommit={(v) => onInlineEdit({ title: v })}
+            placeholder="Section heading"
+            className="font-bold block"
+            style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1.25rem * var(--lf-scale, 1))", color: "var(--lf-text, #1a1a2e)" }}
+          />
+          <Editable
+            as="p"
+            value={s.subtitle ?? ""}
+            onCommit={(v) => onInlineEdit({ subtitle: v })}
+            placeholder="EYEBROW / KICKER"
+            className="text-xs font-semibold uppercase tracking-wider mt-1 block"
+            style={{ color: "var(--lf-primary, #e7ab1c)" }}
+          />
+          <Editable
+            as="div"
+            multiline
+            value={s.body ?? ""}
+            onCommit={(v) => onInlineEdit({ body: v })}
+            placeholder="Body paragraph — click to edit. Enter for new line."
+            className="text-sm mt-2 whitespace-pre-wrap block leading-relaxed"
+            style={{
+              fontSize: "calc(0.875rem * var(--lf-scale, 1))",
+              color: "color-mix(in srgb, var(--lf-text, #1a1a2e) 75%, transparent)",
+            }}
+          />
         </div>
       )
     case "stats_row": {
       const stats = ((s.data as Record<string, unknown>)?.stats as Array<{ value: string; label: string }>) ?? []
+      const updateStat = (idx: number, key: "value" | "label", v: string) => {
+        const next = stats.slice()
+        next[idx] = { ...next[idx], [key]: v }
+        onInlineEdit({ data: { ...(s.data as Record<string, unknown> ?? {}), stats: next } as never })
+      }
+      const addStat = () => {
+        const next = [...stats, { value: "0", label: "New" }]
+        onInlineEdit({ data: { ...(s.data as Record<string, unknown> ?? {}), stats: next } as never })
+      }
       return (
-        <div className="p-6 text-[#1a1a2e]" style={{ background: "var(--lf-background, #F4F8FF)" }}>
-          <h3 className="text-base font-bold text-center">{s.title || "Stats"}</h3>
+        <div
+          className="p-6"
+          style={{
+            background: "var(--lf-background, #F4F8FF)",
+            color: "var(--lf-text, #1a1a2e)",
+            fontFamily: "var(--lf-body-font, inherit)",
+          }}
+        >
+          <Editable as="h3" value={s.title ?? ""} onCommit={(v) => onInlineEdit({ title: v })}
+            placeholder="By the numbers" className="font-bold text-center block"
+            style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1rem * var(--lf-scale, 1))", color: "var(--lf-text, #1a1a2e)" }} />
           <div className="grid grid-cols-4 gap-4 mt-4">
             {stats.slice(0, 4).map((st, i) => (
               <div key={i} className="text-center">
-                <div className="text-2xl font-bold" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{st.value}</div>
-                <div className="text-[10px] uppercase tracking-wider text-[#1a1a2e]/60">{st.label}</div>
+                <Editable as="div" value={st.value} onCommit={(v) => updateStat(i, "value", v)}
+                  placeholder="42+" className="text-2xl font-bold"
+                  style={{ color: "var(--lf-primary, #e7ab1c)" }} />
+                <Editable as="div" value={st.label} onCommit={(v) => updateStat(i, "label", v)}
+                  placeholder="label" className="text-[10px] uppercase tracking-wider"
+                  style={{ color: "color-mix(in srgb, var(--lf-text, #1a1a2e) 60%, transparent)" }} />
               </div>
             ))}
+            {stats.length < 4 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); addStat() }}
+                className="col-span-1 aspect-square min-h-[60px] rounded border-2 border-dashed border-[#e7ab1c]/50 text-[#e7ab1c] text-xs font-semibold hover:bg-[#e7ab1c]/5 transition-colors flex items-center justify-center gap-1"
+              >
+                <Plus size={12} /> Stat
+              </button>
+            )}
           </div>
         </div>
       )
@@ -912,9 +1216,20 @@ const MiniPreview = memo(function MiniPreview({ section: s }: { section: EventSe
     case "tickets_cta":
     case "faqs":
       return (
-        <div className="p-8 bg-[#f6f6f7]">
-          <h3 className="text-base font-bold text-center text-[#1a1a2e]">{s.title || KIND_META[s.kind].label}</h3>
-          {s.subtitle && <p className="text-xs text-[#1a1a2e]/60 text-center mt-1">{s.subtitle}</p>}
+        <div
+          className="p-8"
+          style={{
+            background: "color-mix(in srgb, var(--lf-background, #ffffff) 96%, black)",
+            color: "var(--lf-text, #1a1a2e)",
+            fontFamily: "var(--lf-body-font, inherit)",
+          }}
+        >
+          <Editable as="h3" value={s.title ?? ""} onCommit={(v) => onInlineEdit({ title: v })}
+            placeholder={KIND_META[s.kind].label} className="font-bold text-center block"
+            style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1rem * var(--lf-scale, 1))", color: "var(--lf-text, #1a1a2e)" }} />
+          <Editable as="p" value={s.subtitle ?? ""} onCommit={(v) => onInlineEdit({ subtitle: v })}
+            placeholder="Optional subtitle" className="text-xs text-center mt-1 block"
+            style={{ color: "color-mix(in srgb, var(--lf-text, #1a1a2e) 60%, transparent)" }} />
           <div className="mt-4 flex items-center justify-center gap-2">
             <span className="text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-100 font-medium">
               Auto-populated from event data
@@ -924,8 +1239,10 @@ const MiniPreview = memo(function MiniPreview({ section: s }: { section: EventSe
       )
     case "video":
       return (
-        <div className="p-8 bg-[#0a0a0a] text-white">
-          <h3 className="text-base font-bold text-center">{s.title || "Video"}</h3>
+        <div className="p-8 bg-[#0a0a0a] text-white" style={{ fontFamily: "var(--lf-body-font, inherit)" }}>
+          <Editable as="h3" value={s.title ?? ""} onCommit={(v) => onInlineEdit({ title: v })}
+            placeholder="Video" className="font-bold text-center block"
+            style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1rem * var(--lf-scale, 1))" }} />
           <div className="mt-4 aspect-video max-w-xs mx-auto rounded-lg bg-white/5 flex items-center justify-center">
             <PlayCircle size={32} className="text-[#e7ab1c]" />
           </div>
@@ -935,8 +1252,17 @@ const MiniPreview = memo(function MiniPreview({ section: s }: { section: EventSe
     case "gallery": {
       const images = ((s.data as Record<string, unknown>)?.images as string[]) ?? []
       return (
-        <div className="p-6 bg-white">
-          <h3 className="text-base font-bold text-center text-[#1a1a2e]">{s.title || "Gallery"}</h3>
+        <div
+          className="p-6"
+          style={{
+            background: "var(--lf-background, #ffffff)",
+            color: "var(--lf-text, #1a1a2e)",
+            fontFamily: "var(--lf-body-font, inherit)",
+          }}
+        >
+          <Editable as="h3" value={s.title ?? ""} onCommit={(v) => onInlineEdit({ title: v })}
+            placeholder="Gallery" className="font-bold text-center block"
+            style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1rem * var(--lf-scale, 1))", color: "var(--lf-text, #1a1a2e)" }} />
           <div className="grid grid-cols-4 gap-2 mt-4 max-w-xs mx-auto">
             {(images.length ? images.slice(0, 4) : [null, null, null, null]).map((img, i) => (
               <div key={i} className="aspect-square rounded bg-[#F4F8FF] overflow-hidden relative">
@@ -949,17 +1275,24 @@ const MiniPreview = memo(function MiniPreview({ section: s }: { section: EventSe
     }
     case "cta_button":
       return (
-        <div className="p-10 bg-white text-center">
-          <h3 className="text-xl font-bold text-[#1a1a2e]">{s.title || "Call to action"}</h3>
-          {s.subtitle && <p className="text-sm text-[#1a1a2e]/60 mt-1">{s.subtitle}</p>}
-          {s.cta_label && (
-            <span
-              className="inline-block mt-4 px-6 py-2 rounded-md text-sm font-bold"
-              style={{ background: "var(--lf-primary, #e7ab1c)", color: "var(--lf-accent, #1a1a2e)" }}
-            >
-              {s.cta_label}
-            </span>
-          )}
+        <div
+          className="p-10 text-center"
+          style={{
+            background: "var(--lf-background, #ffffff)",
+            color: "var(--lf-text, #1a1a2e)",
+            fontFamily: "var(--lf-body-font, inherit)",
+          }}
+        >
+          <Editable as="h3" value={s.title ?? ""} onCommit={(v) => onInlineEdit({ title: v })}
+            placeholder="Call to action" className="font-bold block"
+            style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1.25rem * var(--lf-scale, 1))", color: "var(--lf-text, #1a1a2e)" }} />
+          <Editable as="p" value={s.subtitle ?? ""} onCommit={(v) => onInlineEdit({ subtitle: v })}
+            placeholder="Supporting line" className="text-sm mt-1 block"
+            style={{ color: "color-mix(in srgb, var(--lf-text, #1a1a2e) 60%, transparent)" }} />
+          <Editable as="span" value={s.cta_label ?? ""} onCommit={(v) => onInlineEdit({ cta_label: v })}
+            placeholder="+ button label"
+            className="inline-block mt-4 px-6 py-2 text-sm font-bold"
+            style={{ background: "var(--lf-primary, #e7ab1c)", color: "var(--lf-accent, #1a1a2e)", borderRadius: "var(--lf-btn-radius, 8px)" }} />
         </div>
       )
     default:
@@ -1090,26 +1423,52 @@ function RailPanel({
 /* ─── THEME ─────────────────────────────────────────────────────────── */
 function ThemePanel({ theme, onChange }: { theme: ThemeTokens; onChange: (t: ThemeTokens) => void }) {
   const set = <K extends keyof ThemeTokens>(k: K, v: ThemeTokens[K]) => onChange({ ...theme, [k]: v })
-  const COLORS: Array<keyof ThemeTokens> = ["primary", "accent", "background", "text"]
+  const COLOR_KEYS: Array<"primary" | "accent" | "background" | "text"> = ["primary", "accent", "background", "text"]
+  const PRESETS: Array<{ id: string; label: string; theme: Partial<ThemeTokens> }> = [
+    { id: "gold",     label: "Gold & Indigo", theme: { primary: "#e7ab1c", accent: "#1a1a2e", background: "#F4F8FF", text: "#1a1a2e" } },
+    { id: "emerald",  label: "Emerald",       theme: { primary: "#10b981", accent: "#064e3b", background: "#ecfdf5", text: "#0b3b2e" } },
+    { id: "rose",     label: "Rose",          theme: { primary: "#f43f5e", accent: "#881337", background: "#fff1f2", text: "#4c0519" } },
+    { id: "mono",     label: "Monochrome",    theme: { primary: "#111111", accent: "#000000", background: "#ffffff", text: "#111111" } },
+    { id: "azure",    label: "Azure",         theme: { primary: "#2563eb", accent: "#1e3a8a", background: "#eff6ff", text: "#0f172a" } },
+  ]
   return (
     <div className="p-4 space-y-5">
-      <PanelHeader icon={Palette} title="Theme" subtitle="Global design tokens — cascade through every section unless overridden." />
+      <PanelHeader icon={Palette} title="Theme" subtitle="Tokens cascade into every section via CSS vars. Edits preview instantly." />
+
+      <div className="space-y-2">
+        <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Preset</h4>
+        <div className="grid grid-cols-5 gap-1.5">
+          {PRESETS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => onChange({ ...theme, ...p.theme })}
+              title={p.label}
+              className="aspect-square rounded-md border border-white/10 hover:border-white/40 overflow-hidden relative"
+              style={{ background: p.theme.background }}
+            >
+              <div className="absolute inset-1 rounded" style={{ background: p.theme.accent }} />
+              <div className="absolute bottom-1.5 right-1.5 w-2.5 h-2.5 rounded-full" style={{ background: p.theme.primary }} />
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="space-y-3">
         <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Colors</h4>
-        {COLORS.map((key) => (
+        {COLOR_KEYS.map((key) => (
           <label key={key} className="flex items-center justify-between gap-3">
             <span className="text-[11px] text-white/70 capitalize">{key}</span>
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={theme[key] as string}
-                onChange={(e) => set(key, e.target.value as ThemeTokens[typeof key])}
+                value={theme[key]}
+                onChange={(e) => set(key, e.target.value)}
                 className="w-8 h-8 rounded border border-white/10 bg-transparent cursor-pointer"
               />
               <input
                 type="text"
-                value={theme[key] as string}
-                onChange={(e) => set(key, e.target.value as ThemeTokens[typeof key])}
+                value={theme[key]}
+                onChange={(e) => set(key, e.target.value)}
                 className="w-20 px-2 py-1 bg-[#0a0a0a] border border-white/10 rounded text-[11px] text-white/80 font-mono"
               />
             </div>
@@ -1119,34 +1478,80 @@ function ThemePanel({ theme, onChange }: { theme: ThemeTokens; onChange: (t: The
 
       <div className="space-y-3">
         <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Typography</h4>
-        <Select label="Heading" value={theme.heading_font} onChange={(v) => set("heading_font", v as ThemeTokens["heading_font"])}
-          options={["SF Pro", "Inter", "Playfair", "Manrope"]} />
-        <Select label="Body" value={theme.body_font} onChange={(v) => set("body_font", v as ThemeTokens["body_font"])}
-          options={["SF Pro", "Inter", "Manrope"]} />
-      </div>
-
-      <div className="space-y-3">
-        <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Buttons</h4>
-        <div className="grid grid-cols-3 gap-2">
-          {(["square", "rounded", "pill"] as const).map((shape) => (
-            <button
-              key={shape}
-              onClick={() => set("button_shape", shape)}
-              className={`py-2 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
-                theme.button_shape === shape
-                  ? "bg-[#e7ab1c] text-[#1a1a2e] border-[#e7ab1c]"
-                  : "bg-transparent text-white/60 border-white/10 hover:text-white"
-              } ${shape === "square" ? "rounded-none" : shape === "rounded" ? "rounded-md" : "rounded-full"}`}
-            >
-              {shape}
-            </button>
-          ))}
+        <Select label="Heading font" value={theme.heading_font}
+          onChange={(v) => set("heading_font", v as ThemeTokens["heading_font"])}
+          options={["SF Pro", "Inter", "Playfair", "Manrope", "DM Serif"]} />
+        <Select label="Body font" value={theme.body_font}
+          onChange={(v) => set("body_font", v as ThemeTokens["body_font"])}
+          options={["SF Pro", "Inter", "Manrope", "DM Sans"]} />
+        <div>
+          <span className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">Text scale</span>
+          <div className="grid grid-cols-3 gap-2">
+            {(["compact", "normal", "large"] as const).map((sc) => (
+              <button key={sc} onClick={() => set("scale", sc)}
+                className={`py-2 text-[10px] font-bold uppercase tracking-wider border rounded-md transition-colors ${
+                  theme.scale === sc ? "bg-[#e7ab1c] text-[#1a1a2e] border-[#e7ab1c]" : "bg-transparent text-white/60 border-white/10 hover:text-white"
+                }`}>{sc}</button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 p-3 bg-white/[0.02] text-[10px] text-white/50 leading-relaxed">
-        <strong className="text-white/70 block mb-1">Preview</strong>
-        Theme tokens are saved locally for now. Wiring them into the public event renderer (via a `&lt;ThemeProvider&gt;` + CSS vars) is the next step — content already flows.
+      <div className="space-y-3">
+        <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Buttons &amp; corners</h4>
+        <div>
+          <span className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">Button shape</span>
+          <div className="grid grid-cols-3 gap-2">
+            {(["square", "rounded", "pill"] as const).map((shape) => (
+              <button
+                key={shape}
+                onClick={() => set("button_shape", shape)}
+                className={`py-2 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                  theme.button_shape === shape
+                    ? "bg-[#e7ab1c] text-[#1a1a2e] border-[#e7ab1c]"
+                    : "bg-transparent text-white/60 border-white/10 hover:text-white"
+                } ${shape === "square" ? "rounded-none" : shape === "rounded" ? "rounded-md" : "rounded-full"}`}
+              >
+                {shape}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span className="block text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">Card corners</span>
+          <div className="grid grid-cols-3 gap-2">
+            {(["sharp", "soft", "round"] as const).map((r) => (
+              <button key={r} onClick={() => set("radius", r)}
+                className={`py-2 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                  theme.radius === r ? "bg-[#e7ab1c] text-[#1a1a2e] border-[#e7ab1c]" : "bg-transparent text-white/60 border-white/10 hover:text-white"
+                } ${r === "sharp" ? "rounded-none" : r === "soft" ? "rounded-md" : "rounded-full"}`}>{r}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Live preview card */}
+      <div className="rounded-lg p-3 border border-white/10"
+           style={{ background: theme.background }}>
+        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: theme.text, opacity: 0.45, fontFamily: FONT_STACKS[theme.body_font] }}>
+          Live preview
+        </p>
+        <h4 className="mt-1 font-bold"
+            style={{ color: theme.accent, fontFamily: FONT_STACKS[theme.heading_font], fontSize: `calc(1rem * ${SCALE_MULT[theme.scale]})` }}>
+          Your event title
+        </h4>
+        <p className="mt-1" style={{ color: theme.text, fontFamily: FONT_STACKS[theme.body_font], fontSize: `calc(0.8rem * ${SCALE_MULT[theme.scale]})`, opacity: 0.75 }}>
+          Body text preview with your fonts and scale.
+        </p>
+        <div className="mt-2 inline-block px-3 py-1.5 text-[11px] font-bold"
+             style={{
+               background: theme.primary,
+               color: theme.accent,
+               borderRadius: theme.button_shape === "square" ? "0px" : theme.button_shape === "pill" ? "999px" : "8px",
+               fontFamily: FONT_STACKS[theme.body_font],
+             }}>
+          Register Now
+        </div>
       </div>
     </div>
   )
@@ -1313,293 +1718,3 @@ function Info({ label, children }: { label: string; children: React.ReactNode })
   )
 }
 
-/* ═════════════════════════════════════════════════════════════════════ */
-/* EDIT DRAWER (autosave)                                                */
-/* ═════════════════════════════════════════════════════════════════════ */
-
-type DrawerTab = "content" | "design"
-
-function SectionEditDrawer({
-  section, onClose, onUpdate, onDelete,
-}: {
-  section: EventSection
-  onClose: () => void
-  onUpdate: (s: EventSection) => void
-  onDelete: (id: string) => Promise<void>
-}) {
-  const meta = KIND_META[section.kind]
-  const Icon = meta.icon
-
-  const [title, setTitle]       = useState(section.title ?? "")
-  const [subtitle, setSubtitle] = useState(section.subtitle ?? "")
-  const [body, setBody]         = useState(section.body ?? "")
-  const [imageUrl, setImageUrl] = useState<string | null>(section.image_url)
-  const [videoUrl, setVideoUrl] = useState(section.video_url ?? "")
-  const [ctaLabel, setCtaLabel] = useState(section.cta_label ?? "")
-  const [ctaUrl,   setCtaUrl]   = useState(section.cta_url ?? "")
-  const [dataJson, setDataJson] = useState(JSON.stringify(section.data ?? {}, null, 2))
-  const [dataErr, setDataErr]   = useState<string | null>(null)
-
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
-  const [saveErr, setSaveErr] = useState<string | null>(null)
-  const [drawerTab, setDrawerTab] = useState<DrawerTab>("content")
-
-  const dirtyRef = useRef(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const lastSaved = useRef({ title, subtitle, body, imageUrl, videoUrl, ctaLabel, ctaUrl, dataJson })
-
-  /* ── Debounced autosave (700 ms after last edit) ──────────────────── */
-  useEffect(() => {
-    const snap = { title, subtitle, body, imageUrl, videoUrl, ctaLabel, ctaUrl, dataJson }
-    const prev = lastSaved.current
-    const changed =
-      snap.title    !== prev.title    ||
-      snap.subtitle !== prev.subtitle ||
-      snap.body     !== prev.body     ||
-      snap.imageUrl !== prev.imageUrl ||
-      snap.videoUrl !== prev.videoUrl ||
-      snap.ctaLabel !== prev.ctaLabel ||
-      snap.ctaUrl   !== prev.ctaUrl   ||
-      snap.dataJson !== prev.dataJson
-    if (!changed) return
-    dirtyRef.current = true
-
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(async () => {
-      let parsed: Record<string, unknown> = {}
-      try {
-        parsed = JSON.parse(dataJson || "{}")
-        setDataErr(null)
-      } catch {
-        setDataErr("Advanced data is not valid JSON")
-        return
-      }
-      setSaveState("saving")
-      const res = await updateEventSection(section.id, {
-        title, subtitle, body,
-        imageUrl: imageUrl ?? "",
-        videoUrl, ctaLabel, ctaUrl,
-        data: parsed,
-      })
-      if (res.success) {
-        lastSaved.current = snap
-        dirtyRef.current = false
-        setSaveState("saved")
-        setSaveErr(null)
-        onUpdate({
-          ...section,
-          title, subtitle, body,
-          image_url: imageUrl,
-          video_url: videoUrl || null,
-          cta_label: ctaLabel || null,
-          cta_url: ctaUrl || null,
-          data: parsed,
-        })
-        setTimeout(() => setSaveState((s) => (s === "saved" ? "idle" : s)), 1400)
-      } else {
-        setSaveState("error")
-        setSaveErr(res.error ?? "Save failed")
-      }
-    }, 700)
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [title, subtitle, body, imageUrl, videoUrl, ctaLabel, ctaUrl, dataJson, section, onUpdate])
-
-  const usesBody     = ["rich_text", "hero"].includes(section.kind)
-  const usesImage    = ["hero", "gallery"].includes(section.kind)
-  const usesVideo    = section.kind === "video"
-  const usesCta      = ["hero", "cta_button", "tickets_cta"].includes(section.kind)
-  const usesAdvanced = ["stats_row", "faqs", "gallery"].includes(section.kind)
-
-  return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
-      <aside className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[480px] bg-white text-[#1a1a2e] shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="shrink-0 px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/15 flex items-center justify-center text-[#a37410] shrink-0"><Icon size={16} /></div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#888]">Editing</p>
-              <h3 className="text-sm font-semibold truncate">{meta.label}</h3>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <SaveIndicator state={saveState} />
-            <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X size={18} /></button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="shrink-0 px-5 pt-3 pb-0 border-b border-gray-100 flex gap-4 text-[11px] font-bold uppercase tracking-wider">
-          {(["content", "design"] as DrawerTab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setDrawerTab(t)}
-              className={`pb-3 border-b-2 transition-colors ${
-                drawerTab === t ? "text-[#1a1a2e] border-[#e7ab1c]" : "text-gray-400 border-transparent hover:text-[#1a1a2e]"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {/* Fields */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {drawerTab === "content" ? (
-            <>
-              <Field label="Title">
-                <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder={meta.label} />
-              </Field>
-
-              <Field label="Subtitle">
-                <input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className={inputCls} placeholder="Optional — shown below title" />
-              </Field>
-
-              {usesBody && (
-                <Field label="Body">
-                  <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={6}
-                    className={`${inputCls} font-mono text-[13px] leading-relaxed resize-y`}
-                    placeholder="Paragraphs — blank lines for breaks." />
-                </Field>
-              )}
-
-              {usesImage && (
-                <ImageUploadCrop
-                  value={imageUrl}
-                  onChange={setImageUrl}
-                  aspectRatio={meta.imageAspect}
-                  folder="sections"
-                  label="Background image"
-                  help={`Best ratio: ${meta.imageAspect.toFixed(2)} · 5 MB max`}
-                />
-              )}
-
-              {usesVideo && (
-                <Field label="YouTube URL">
-                  <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className={inputCls}
-                    placeholder="https://www.youtube.com/watch?v=..." />
-                </Field>
-              )}
-
-              {usesCta && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Button label">
-                    <input value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} className={inputCls} placeholder="Register Now" />
-                  </Field>
-                  <Field label="Button URL">
-                    <input value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} className={inputCls} placeholder="/register" />
-                  </Field>
-                </div>
-              )}
-
-              {usesAdvanced && (
-                <Field
-                  label={section.kind === "stats_row" ? "Stats (JSON)" : section.kind === "faqs" ? "FAQs (JSON)" : "Images (JSON)"}
-                  hint={
-                    section.kind === "stats_row"
-                      ? `{ "stats": [{ "value": "30+", "label": "Countries" }] }`
-                      : section.kind === "faqs"
-                        ? `{ "faqs": [{ "q": "When?", "a": "15 March" }] }`
-                        : `{ "images": ["https://..."] }`
-                  }
-                >
-                  <textarea value={dataJson} onChange={(e) => setDataJson(e.target.value)} rows={6}
-                    className={`${inputCls} font-mono text-[12px] resize-y bg-gray-50`} />
-                </Field>
-              )}
-
-              {["speakers_grid", "agenda", "sponsors_grid"].includes(section.kind) && (
-                <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 text-[12px] text-blue-800">
-                  <strong>Auto-populated.</strong>
-                  {section.kind === "speakers_grid" && " Speakers live in Admin → Events → this event → Speakers tab."}
-                  {section.kind === "agenda"        && " Sessions live in Admin → Events → this event → Sessions tab."}
-                  {section.kind === "sponsors_grid" && " Sponsors live in Admin → Events → this event → Sponsors tab."}
-                </div>
-              )}
-
-              {(dataErr || saveErr) && (
-                <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">{dataErr || saveErr}</div>
-              )}
-            </>
-          ) : (
-            <DesignTab />
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="shrink-0 px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-white">
-          <button
-            onClick={() => onDelete(section.id)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50"
-          >
-            <Trash2 size={12} /> Delete
-          </button>
-          <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-100">
-            Close
-          </button>
-        </div>
-      </aside>
-    </>
-  )
-}
-
-function SaveIndicator({ state }: { state: "idle" | "saving" | "saved" | "error" }) {
-  if (state === "idle") return null
-  if (state === "saving") return <span className="flex items-center gap-1 text-[11px] text-gray-500"><Loader2 size={11} className="animate-spin" /> Saving…</span>
-  if (state === "saved")  return <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold"><Check size={11} /> Saved</span>
-  return <span className="text-[11px] text-red-600 font-semibold">Save failed</span>
-}
-
-function DesignTab() {
-  return (
-    <div className="space-y-4">
-      <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[#888] mb-2">Background</p>
-        <div className="grid grid-cols-3 gap-2 text-[11px]">
-          <button className="py-2 rounded border border-gray-300 hover:bg-white">Solid</button>
-          <button className="py-2 rounded border border-gray-300 hover:bg-white">Gradient</button>
-          <button className="py-2 rounded border border-gray-300 hover:bg-white">Image</button>
-        </div>
-      </div>
-      <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[#888] mb-2">Spacing</p>
-        <div className="grid grid-cols-4 gap-2 text-[11px]">
-          {["SM", "MD", "LG", "XL"].map((s) => (
-            <button key={s} className="py-2 rounded border border-gray-300 hover:bg-white">{s}</button>
-          ))}
-        </div>
-      </div>
-      <div className="p-3 rounded-lg border border-gray-200 bg-gray-50">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-[#888] mb-2">Visibility</p>
-        <div className="flex items-center gap-3 text-[11px]">
-          {(["Desktop", "Tablet", "Mobile"]).map((d) => (
-            <label key={d} className="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" defaultChecked className="accent-[#e7ab1c]" />
-              {d}
-            </label>
-          ))}
-        </div>
-      </div>
-      <div className="px-3 py-2 rounded-lg bg-blue-50 border border-blue-100 text-[11px] text-blue-800">
-        Design controls are coming online. Content edits on the other tab save automatically.
-      </div>
-    </div>
-  )
-}
-
-const inputCls =
-  "w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-[#e7ab1c]/30 focus:border-[#e7ab1c]/50 transition-colors"
-
-function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
-  return (
-    <label className="block">
-      <span className="block text-[11px] font-semibold text-[#888] uppercase tracking-wider mb-1.5">{label}</span>
-      {children}
-      {hint && <span className="block text-[11px] text-[#aaa] mt-1 font-mono">{hint}</span>}
-    </label>
-  )
-}
