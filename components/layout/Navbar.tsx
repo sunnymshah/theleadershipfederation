@@ -18,11 +18,11 @@ const navLinks = [
   { label: "Platforms", href: "/platforms" },
   { label: "Memberships", href: "/memberships" },
   { label: "Events", href: "/events" },
-  { label: "Tickets", href: "/tickets" },
+  { label: "Speakers", href: "/speakers" },
+  { label: "Past Events", href: "/archive" },
   { label: "Partners", href: "/partners" },
   { label: "Advisory", href: "/advisory-board" },
   { label: "Media", href: "/media" },
-  { label: "Archive", href: "/archive" },
   { label: "Inner Circle", href: "/inner-circle" },
   { label: "Contact", href: "/contact" },
 ]
