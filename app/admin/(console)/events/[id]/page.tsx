@@ -279,9 +279,9 @@ export default function EventDetailPage() {
                 )}
                 <Link
                   href={`/admin/events/${event.id}/builder`}
-                  className="flex items-center gap-1 text-[#c9a84c] hover:text-[#d4b85c] transition-colors font-semibold"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#e7ab1c] text-[#1a1a2e] text-[12px] font-bold hover:bg-[#d49c10] transition-colors shadow-[0_2px_8px_rgba(231,171,28,0.25)]"
                 >
-                  🧱 Page Builder
+                  🧱 Open Page Builder
                 </Link>
               </div>
             </div>
