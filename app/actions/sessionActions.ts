@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -31,6 +32,7 @@ async function invalidateCaches(supabase: ReturnType<typeof createClient>, event
 
 export async function createSession(formData: FormData) {
   try {
+    await requirePermission("sessions", "create")
     const { supabase } = await getAuthenticatedClient()
 
     const eventId     = formData.get("eventId") as string
@@ -75,6 +77,7 @@ export async function createSession(formData: FormData) {
 
 export async function updateSession(sessionId: string, formData: FormData) {
   try {
+    await requirePermission("sessions", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -125,6 +128,7 @@ export async function updateSession(sessionId: string, formData: FormData) {
 
 export async function deleteSession(sessionId: string) {
   try {
+    await requirePermission("sessions", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -147,6 +151,7 @@ export async function deleteSession(sessionId: string) {
  */
 export async function linkSpeakersToSession(sessionId: string, speakerIds: string[]) {
   try {
+    await requirePermission("sessions", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     // Get event_id for cache invalidation

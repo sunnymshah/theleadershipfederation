@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { AdminSidebar } from "./AdminSidebar"
+import { AdminPermissionsProvider } from "./AdminPermissionsContext"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ProfilePermissions } from "@/app/actions/profileActions"
@@ -39,6 +40,7 @@ export function AdminLayoutShell({
   }, [sidebarOpen])
 
   return (
+    <AdminPermissionsProvider role={userRole} permissions={profilePermissions}>
     <div className="flex min-h-screen admin-scrollbar relative">
       {/* Desktop sidebar — always visible on lg+ */}
       <div className="hidden lg:block shrink-0">
@@ -115,5 +117,6 @@ export function AdminLayoutShell({
         </main>
       </div>
     </div>
+    </AdminPermissionsProvider>
   )
 }

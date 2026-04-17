@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -49,6 +50,7 @@ async function uploadCoverImage(
 
 export async function createEvent(formData: FormData) {
   try {
+    await requirePermission("events", "create")
     const { supabase, user } = await getAuthenticatedClient()
 
     const title       = formData.get("title") as string
@@ -123,6 +125,7 @@ export async function createEvent(formData: FormData) {
 
 export async function updateEvent(eventId: string, formData: FormData) {
   try {
+    await requirePermission("events", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: current } = await supabase
@@ -213,6 +216,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
 
 export async function deleteEvent(eventId: string) {
   try {
+    await requirePermission("events", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: event } = await supabase
@@ -241,6 +245,7 @@ export async function deleteEvent(eventId: string) {
  */
 export async function cloneEvent(eventId: string, newTitle: string, newSlug: string) {
   try {
+    await requirePermission("events", "create")
     const { supabase, user } = await getAuthenticatedClient()
 
     if (!newTitle || !newSlug) {

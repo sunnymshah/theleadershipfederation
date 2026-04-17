@@ -10,6 +10,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { generateCertificatePdf } from "@/lib/generateCertificate"
 import { Resend } from "resend"
+import { requirePermission } from "@/lib/server-permissions"
 
 /* ── Auth helper ─────────────────────────────────────────────────────── */
 
@@ -46,6 +47,7 @@ export async function generateCertificate(attendeeId: string): Promise<{
   error?: string
 }> {
   try {
+    await requirePermission("certificates", "generate")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: attendee, error: attendeeError } = await supabase
@@ -105,6 +107,7 @@ export async function generateBulkCertificates(eventId: string): Promise<{
   error?: string
 }> {
   try {
+    await requirePermission("certificates", "generate")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: attendees, error } = await supabase
@@ -163,6 +166,7 @@ export async function emailCertificate(attendeeId: string): Promise<{
   error?: string
 }> {
   try {
+    await requirePermission("certificates", "email")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: attendee, error: attendeeError } = await supabase
@@ -268,6 +272,7 @@ export async function emailBulkCertificates(eventId: string): Promise<{
   errors: string[]
 }> {
   try {
+    await requirePermission("certificates", "email")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: attendees, error } = await supabase

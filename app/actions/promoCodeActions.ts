@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -20,6 +21,7 @@ function invalidateCaches(eventId: string) {
 
 export async function createPromoCode(formData: FormData) {
   try {
+    await requirePermission("promo_codes", "create")
     const { supabase } = await getAuthenticatedClient()
 
     const eventId       = formData.get("eventId") as string
@@ -59,6 +61,7 @@ export async function createPromoCode(formData: FormData) {
 
 export async function updatePromoCode(promoCodeId: string, formData: FormData) {
   try {
+    await requirePermission("promo_codes", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
@@ -104,6 +107,7 @@ export async function updatePromoCode(promoCodeId: string, formData: FormData) {
 
 export async function deletePromoCode(promoCodeId: string) {
   try {
+    await requirePermission("promo_codes", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase
