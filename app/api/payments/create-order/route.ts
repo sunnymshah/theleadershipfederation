@@ -144,7 +144,11 @@ export async function POST(request: NextRequest) {
       promoUsedCount = promo.used_count || 0
     }
 
-    /** Helper: increment the promo code used_count after a successful registration */
+    /** Helper: increment the promo code used_count after a successful
+     *  registration. Used for the free-ticket path where registration
+     *  completes synchronously. For paid tickets the increment is
+     *  deferred to /api/payments/verify so an abandoned checkout does
+     *  not consume a seat of the discount pool. */
     async function incrementPromoUsedCount() {
       if (!validatedPromoId) return
       await supabase
@@ -274,8 +278,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Increment promo code used_count for paid orders too
-    await incrementPromoUsedCount()
+    // NOTE: promo code used_count is intentionally NOT incremented here
+    // for paid orders. If the user abandons the Razorpay modal the
+    // counter would otherwise be inflated, letting an attacker burn a
+    // "max_uses" promo without paying. /api/payments/verify performs
+    // the increment after the attendee row is successfully created.
 
     return NextResponse.json({
       free: false,

@@ -42,13 +42,24 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+    // Reject ILIKE wildcard chars. The old code used `.ilike(..., email)`
+    // with the raw input, so `%@%.com` would match every registered
+    // attendee and expose the full PII list.
+    if (/[%_\\]/.test(email)) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
+        { status: 400 }
+      )
+    }
 
     const normalizedEmail = email.trim().toLowerCase()
 
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
 
-    // Build query: attendees joined with events and tickets
+    // Build query: attendees joined with events and tickets. Use strict
+    // equality — case is already normalised and we don't want the ILIKE
+    // wildcard semantics on attacker-supplied input.
     let query = supabase
       .from("attendees")
       .select(`
@@ -56,7 +67,7 @@ export async function POST(request: Request) {
         tickets ( id, name ),
         events ( id, title, slug )
       `)
-      .ilike("email", normalizedEmail)
+      .eq("email", normalizedEmail)
       .in("status", ["registered", "confirmed", "checked_in"])
 
     // If eventSlug provided, filter by that event
@@ -68,7 +79,7 @@ export async function POST(request: Request) {
           tickets ( id, name ),
           events!inner ( id, title, slug )
         `)
-        .ilike("email", normalizedEmail)
+        .eq("email", normalizedEmail)
         .in("status", ["registered", "confirmed", "checked_in"])
         .eq("events.slug", eventSlug)
     }

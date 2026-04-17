@@ -169,7 +169,10 @@ export async function POST(request: NextRequest) {
     } catch { sigOk = false }
 
     if (!sigOk) {
-      console.error("[verify] Signature mismatch on order", razorpay_order_id)
+      // Do not log the order id: forgery attempts reveal which orders
+      // an attacker is probing, and Vercel Function logs are not the
+      // right place to maintain that list.
+      console.error("[verify] Signature verification failed")
       return NextResponse.json(
         { error: "Payment verification failed. Invalid signature." },
         { status: 400 }
@@ -293,6 +296,30 @@ export async function POST(request: NextRequest) {
       .from("tickets")
       .update({ sold: ticket.sold + 1 })
       .eq("id", ticketId)
+
+    // Increment promo_codes.used_count now that the attendee exists.
+    // We read the promo id out of the Razorpay order notes (set at
+    // create-order time) so the verify path is the single point of
+    // increment and abandoned checkouts don't burn promo seats.
+    try {
+      const orderNotes = body?.orderNotes as { promo_code_id?: string } | undefined
+      const promoId = orderNotes?.promo_code_id
+      if (promoId && typeof promoId === "string") {
+        const { data: promoRow } = await supabase
+          .from("promo_codes")
+          .select("used_count")
+          .eq("id", promoId)
+          .maybeSingle()
+        if (promoRow) {
+          await supabase
+            .from("promo_codes")
+            .update({ used_count: (promoRow.used_count ?? 0) + 1 })
+            .eq("id", promoId)
+        }
+      }
+    } catch (e) {
+      console.error("[verify] promo increment failed:", (e as Error).message)
+    }
 
     // Revalidate relevant paths
     revalidatePath("/events", "page")

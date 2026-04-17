@@ -2,15 +2,46 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 
+/**
+ * Allow-list of hosts we're willing to redirect to. The `url` query param
+ * comes from the email template and is attacker-controllable (anyone with
+ * the tracking URL can substitute a different `?url=` value). Without this
+ * list the endpoint would be an open redirect that can be pasted into
+ * phishing emails while appearing to originate from our domain.
+ */
+const REDIRECT_HOST_ALLOWLIST = new Set([
+  "theleadershipfederation.com",
+  "www.theleadershipfederation.com",
+  "theleadershipfederation.vercel.app",
+  "leadershipfederation.com",
+  "www.leadershipfederation.com",
+])
+
+function safeRedirectTarget(raw: string | null, requestOrigin: string): string {
+  if (!raw) return "/"
+  // Same-origin relative path
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw
+  try {
+    const parsed = new URL(raw, requestOrigin)
+    if (parsed.origin === requestOrigin) return parsed.toString()
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "/"
+    if (REDIRECT_HOST_ALLOWLIST.has(parsed.hostname.toLowerCase())) {
+      return parsed.toString()
+    }
+  } catch { /* fall through */ }
+  return "/"
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ campaignId: string; recipientId: string }> }
 ) {
   const { campaignId, recipientId } = await params
-  const url = request.nextUrl.searchParams.get("url")
+  const rawUrl = request.nextUrl.searchParams.get("url")
 
-  // Default redirect destination
-  const destination = url || "/"
+  // Validate redirect target against allow-list to prevent using this
+  // endpoint as an open redirect in phishing campaigns.
+  const destination = safeRedirectTarget(rawUrl, request.nextUrl.origin)
 
   try {
     const cookieStore = await cookies()

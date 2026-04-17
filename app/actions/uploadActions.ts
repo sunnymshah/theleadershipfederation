@@ -13,7 +13,13 @@ async function getAuthenticatedClient() {
 }
 
 const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
-const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
+// NOTE: SVG is intentionally excluded. SVG files can contain inline
+// <script> / event handlers that execute when the image is opened
+// directly in a browser tab — and the public_images bucket serves
+// content under the Supabase origin listed in our connect-src CSP, so
+// a stored-XSS payload could fire against a same-origin iframe or a
+// newly-opened tab. Rasterise before upload if SVG support is needed.
+const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 
 function makeSafePath(folder: string, originalName: string, ext: string) {
   const safeName = originalName

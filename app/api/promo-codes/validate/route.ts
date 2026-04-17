@@ -1,9 +1,27 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { rateLimit, clientIp } from "@/lib/rate-limit"
+import { isValidUUID } from "@/lib/security"
 
 export async function POST(request: NextRequest) {
   try {
+    // Promo codes are short strings (often 6–10 chars) and this endpoint
+    // answers true/false on existence without auth. Without a rate limit
+    // an attacker can brute-force every event's promo codes and harvest
+    // their discount values.
+    const ip = clientIp(request)
+    const rl = rateLimit({ key: `promo:${ip}`, limit: 15, windowMs: 60 * 1000 })
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { valid: false, error: "Too many attempts. Try again shortly." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(rl.retryAfterMs / 1000)) },
+        },
+      )
+    }
+
     const body = await request.json()
     const { code, eventId, ticketId } = body as {
       code: string
@@ -15,6 +33,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { valid: false, error: "Code, event ID, and ticket ID are required." },
         { status: 400 }
+      )
+    }
+    if (!isValidUUID(eventId) || !isValidUUID(ticketId)) {
+      return NextResponse.json(
+        { valid: false, error: "Invalid event or ticket ID." },
+        { status: 400 }
+      )
+    }
+    // Codes are short alphanumeric tokens in our schema.
+    if (typeof code !== "string" || code.length > 64 || !/^[A-Z0-9_\-]+$/i.test(code)) {
+      return NextResponse.json(
+        { valid: false, error: "Invalid promo code." },
+        { status: 200 }
       )
     }
 
