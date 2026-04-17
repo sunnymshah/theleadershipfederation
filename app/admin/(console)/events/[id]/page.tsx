@@ -15,6 +15,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
 import { updateEvent } from "@/app/actions/eventActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import {
   ArrowLeft,
   Calendar,
@@ -160,6 +161,8 @@ function fmtPrice(n: number) {
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const { can } = useAdminPermissions()
+  const canSeeRevenue = can("revenue", "view")
   const [event, setEvent]         = useState<EventDetail | null>(null)
   const [counts, setCounts]       = useState<Counts>({ tickets: 0, speakers: 0, attendees: 0, sponsors: 0, sessions: 0, promoCodes: 0, customFields: 0, galleryImages: 0, winners: 0, revenue: 0, checkedIn: 0 })
   const [loading, setLoading]     = useState(true)
@@ -281,7 +284,8 @@ export default function EventDetailPage() {
             <div className="flex gap-3 shrink-0 ml-6">
               {[
                 { label: "Registrations", value: counts.attendees, color: "text-blue-400", bg: "bg-blue-500/10" },
-                { label: "Revenue", value: `₹${fmtPrice(counts.revenue)}`, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+                // Revenue hidden from profiles without revenue.view
+                ...(canSeeRevenue ? [{ label: "Revenue", value: `₹${fmtPrice(counts.revenue)}`, color: "text-emerald-400", bg: "bg-emerald-500/10" }] : []),
                 { label: "Checked In", value: `${counts.checkedIn}/${counts.attendees}`, color: "text-[#c9a84c]", bg: "bg-[#c9a84c]/10" },
               ].map((s) => (
                 <div key={s.label} className={cn("px-4 py-2.5 rounded-xl border border-[#e0e0e0]", s.bg)}>
@@ -360,6 +364,8 @@ export default function EventDetailPage() {
 // ═══════════════════════════════════════════════════════════════════════
 
 function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; counts: Counts; onTabSwitch: (tab: TabKey) => void }) {
+  const { can } = useAdminPermissions()
+  const canSeeRevenue = can("revenue", "view")
   const daysUntil = Math.ceil((new Date(event.start_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
   const isUpcoming = daysUntil > 0
   const isPast = new Date(event.end_date) < new Date()
@@ -400,7 +406,8 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           { label: "Sessions",       value: String(counts.sessions),  icon: ClipboardList,  color: "text-cyan-400",     bg: "bg-cyan-500/10",    tab: "agenda" as TabKey },
           { label: "Promo Codes",    value: String(counts.promoCodes),icon: Tag,            color: "text-pink-400",     bg: "bg-pink-500/10",    tab: "promo-codes" as TabKey },
           { label: "Winners",        value: String(counts.winners),   icon: Trophy,         color: "text-[#c9a84c]",    bg: "bg-[#c9a84c]/10",   tab: "winners" as TabKey },
-          { label: "Revenue",        value: `₹${fmtPrice(counts.revenue)}`, icon: Ticket,  color: "text-emerald-400",  bg: "bg-emerald-500/10", tab: "tickets" as TabKey },
+          // Revenue tile omitted from the grid when profile lacks revenue.view
+          ...(canSeeRevenue ? [{ label: "Revenue" as const, value: `₹${fmtPrice(counts.revenue)}`, icon: Ticket, color: "text-emerald-400", bg: "bg-emerald-500/10", tab: "tickets" as TabKey }] : []),
           { label: "Check-In Rate",  value: counts.attendees > 0 ? `${Math.round((counts.checkedIn / counts.attendees) * 100)}%` : "—", icon: CheckCircle2, color: "text-teal-400", bg: "bg-teal-500/10", tab: "crm" as TabKey },
         ].map(({ label, value, icon: Icon, color, bg, tab }) => (
           <button

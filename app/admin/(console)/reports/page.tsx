@@ -13,6 +13,7 @@ import {
   exportEventReportCSV,
   exportRevenueReportCSV,
 } from "@/app/actions/reportActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 interface EventOption {
   id: string
@@ -32,6 +33,8 @@ function fmtCurrency(amount: number) {
 }
 
 export default function AdminReportsPage() {
+  const { can } = useAdminPermissions()
+  const canSeeRevenue = can("revenue", "view")
   const [events, setEvents] = useState<EventOption[]>([])
   const [selectedEventId, setSelectedEventId] = useState("")
   const [loading, setLoading] = useState(true)
@@ -215,7 +218,8 @@ export default function AdminReportsPage() {
             {[
               { label: "Registrations", value: stats?.registrations },
               { label: "Checked In", value: stats?.checkedIn },
-              { label: "Revenue", value: stats ? fmtCurrency(stats.revenue) : null },
+              // Revenue card hidden from profiles without revenue.view
+              ...(canSeeRevenue ? [{ label: "Revenue", value: stats ? fmtCurrency(stats.revenue) : null }] : []),
               { label: "Speakers", value: stats?.speakers },
               { label: "Sponsors", value: stats?.sponsors },
             ].map((stat) => (
@@ -249,7 +253,7 @@ export default function AdminReportsPage() {
                   [
                     { value: "full", label: "Full Report" },
                     { value: "attendees", label: "Attendee List" },
-                    { value: "revenue", label: "Revenue Report" },
+                    ...(canSeeRevenue ? [{ value: "revenue" as const, label: "Revenue Report" }] : []),
                     { value: "sponsors", label: "Sponsor Report" },
                   ] as const
                 ).map((opt) => (

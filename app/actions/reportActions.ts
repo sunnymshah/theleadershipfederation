@@ -8,6 +8,7 @@
 
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission, canCurrentUser } from "@/lib/server-permissions"
 import type { ReportData } from "@/lib/generateReport"
 
 /* ── Auth helper ─────────────────────────────────────────────────────── */
@@ -146,6 +147,10 @@ export async function generateEventReport(eventId: string): Promise<{
       }
     })
 
+    // Redact revenue fields for callers without revenue.view. UI hides the
+    // Revenue Report button but anyone could hit this action directly.
+    const canSeeRevenue = await canCurrentUser("revenue", "view")
+
     const reportData: ReportData = {
       event: {
         title: event.title,
@@ -157,9 +162,11 @@ export async function generateEventReport(eventId: string): Promise<{
       totalRegistrations,
       totalCheckedIn,
       checkInRate,
-      totalRevenue,
-      ticketBreakdown,
-      revenueByDay,
+      totalRevenue: canSeeRevenue ? totalRevenue : 0,
+      ticketBreakdown: canSeeRevenue
+        ? ticketBreakdown
+        : ticketBreakdown.map((t) => ({ ...t, revenue: 0 })),
+      revenueByDay: canSeeRevenue ? revenueByDay : [],
       attendees: reportAttendees,
       sponsors: sponsorList.map((s) => ({ name: s.name, tier: s.tier, website: s.website })),
       speakers: speakerList.map((s) => ({ name: s.name, title: s.title, company: s.company })),
@@ -260,6 +267,7 @@ export async function exportRevenueReportCSV(eventId: string): Promise<{
   error?: string
 }> {
   try {
+    await requirePermission("revenue", "export")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: attendees, error } = await supabase
