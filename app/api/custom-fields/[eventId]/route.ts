@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { isValidUUID } from "@/lib/security"
 
 export async function GET(
   _request: NextRequest,
@@ -8,6 +9,9 @@ export async function GET(
 ) {
   try {
     const { eventId } = await params
+    if (!isValidUUID(eventId)) {
+      return new Response(JSON.stringify({ error: "Invalid ID" }), { status: 400, headers: { "content-type": "application/json" } })
+    }
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
 

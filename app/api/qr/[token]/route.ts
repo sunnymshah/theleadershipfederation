@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import QRCode from "qrcode"
+import { isValidUUID } from "@/lib/security"
 
 /**
  * GET /api/qr/[token]
@@ -13,6 +14,9 @@ export async function GET(
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params
+  if (!token || token.length < 8 || token.length > 128 || !/^[a-zA-Z0-9_-]+$/.test(token)) {
+    return new Response("Invalid token", { status: 400 })
+  }
 
   if (!token || token.length < 8) {
     return NextResponse.json({ error: "Invalid token" }, { status: 400 })

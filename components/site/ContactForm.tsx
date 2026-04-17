@@ -157,6 +157,16 @@ export function ContactForm({
       />
 
       <input type="hidden" name="source_page" value={sourcePage} />
+      {/* Honeypot: hidden to real users, bots fill it. Server rejects
+          any submission with a non-empty "company_website" field. */}
+      <input
+        type="text"
+        name="company_website"
+        autoComplete="off"
+        tabIndex={-1}
+        aria-hidden="true"
+        style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+      />
 
       {error && (
         <p className="text-red-600 text-sm font-medium">{error}</p>

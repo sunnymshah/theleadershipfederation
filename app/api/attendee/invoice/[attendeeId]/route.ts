@@ -10,6 +10,7 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
 import { generateInvoicePdf } from "@/lib/generateInvoice"
+import { isValidUUID } from "@/lib/security"
 
 export async function GET(
   request: Request,
@@ -17,6 +18,9 @@ export async function GET(
 ) {
   try {
     const { attendeeId } = await params
+    if (!isValidUUID(attendeeId)) {
+      return new Response(JSON.stringify({ error: "Invalid ID" }), { status: 400, headers: { "content-type": "application/json" } })
+    }
     const { searchParams } = new URL(request.url)
     const token = searchParams.get("token")
 

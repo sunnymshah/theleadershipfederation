@@ -1,9 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
+import { writeAuditEvent } from "@/lib/security"
 
 /* Hard timeout so auth / DB calls can never hang the admin UI. Accepts
  * PromiseLike because Supabase query builders are thenable but not strict
@@ -477,6 +478,25 @@ export async function createProfile(data: {
     // "page" type arg — Next 16 docs: literal paths should omit it.
     try { revalidatePath("/admin/settings") } catch {}
     try { revalidatePath("/admin/team") } catch {}
+
+    // Audit: profile created (bumped-rights mutation — always log)
+    try {
+      const hdrs = await headers()
+      writeAuditEvent({
+        actorId: user.id,
+        actorEmail: user.email ?? null,
+        action: "profile.create",
+        targetType: "access_profile",
+        targetId: (profile as { id?: string })?.id ?? null,
+        ip: hdrs.get("x-real-ip") || hdrs.get("x-forwarded-for")?.split(",")[0].trim() || null,
+        userAgent: hdrs.get("user-agent"),
+        metadata: {
+          name: data.name,
+          createdMember: createdMember ? { email: createdMember.email, role: createdMember.role } : null,
+        },
+      })
+    } catch {}
+
     console.log("[createProfile] success", stamp())
     return { success: true, profile, sql, createdMember }
   } catch (err) {

@@ -36,17 +36,34 @@ const CSP_DIRECTIVES = [
 ].join("; ")
 
 const SECURITY_HEADERS = [
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-  { key: "X-Frame-Options",            value: "SAMEORIGIN" },
-  { key: "X-Content-Type-Options",     value: "nosniff" },
-  { key: "Referrer-Policy",            value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy",         value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  { key: "X-DNS-Prefetch-Control",     value: "on" },
-  { key: "Content-Security-Policy",    value: CSP_DIRECTIVES },
+  { key: "Strict-Transport-Security",          value: "max-age=63072000; includeSubDomains; preload" },
+  { key: "X-Frame-Options",                    value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options",             value: "nosniff" },
+  { key: "Referrer-Policy",                    value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy",                 value: "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()" },
+  { key: "Cross-Origin-Opener-Policy",         value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy",       value: "same-site" },
+  { key: "Origin-Agent-Cluster",               value: "?1" },
+  { key: "X-Permitted-Cross-Domain-Policies",  value: "none" },
+  { key: "X-DNS-Prefetch-Control",             value: "on" },
+  { key: "Content-Security-Policy",            value: CSP_DIRECTIVES },
+  // Strip server identification — an attacker who knows we're on
+  // Next.js 16 can look up matching CVEs. We can't remove the
+  // `server` header (Vercel sets that edge-side) but we can stop
+  // advertising our framework version.
+  { key: "X-Powered-By",                       value: "" },
 ];
 
 const nextConfig: NextConfig = {
+  // Strip Next.js's default x-powered-by header so we don't advertise
+  // our framework version to casual scanners.
+  poweredByHeader: false,
+  // Cap server-action payloads at 2 MB. Defeats jumbo-body DoS.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
