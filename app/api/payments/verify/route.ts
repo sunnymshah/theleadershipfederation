@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
-import { createHmac, randomBytes } from "crypto"
+import { createHmac, randomBytes, timingSafeEqual } from "crypto"
 import { revalidatePath } from "next/cache"
 import { Resend } from "resend"
 import { confirmationEmailHtml } from "@/lib/email-templates"
+import { rateLimit, clientIp } from "@/lib/rate-limit"
 
 /**
  * Send a confirmation email to the newly registered attendee.
@@ -90,6 +91,21 @@ async function sendRegistrationConfirmationEmail(params: {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 20 verify attempts per IP per minute. A legitimate
+    // payment triggers exactly one; anything more is suspicious
+    // (replay, forgery attempt, misbehaving client).
+    const ip = clientIp(request)
+    const rl = rateLimit({ key: `payverify:${ip}`, limit: 20, windowMs: 60 * 1000 })
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many verification attempts. Try again shortly." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(rl.retryAfterMs / 1000)) },
+        },
+      )
+    }
+
     const body = await request.json()
     const {
       razorpay_order_id,
@@ -142,11 +158,18 @@ export async function POST(request: NextRequest) {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex")
 
-    if (expectedSignature !== razorpay_signature) {
-      console.error("[verify] Signature mismatch", {
-        expected: expectedSignature,
-        received: razorpay_signature,
-      })
+    // Constant-time comparison — blocks byte-by-byte timing leaks of
+    // the expected signature. Also: never log the expected signature
+    // in production — that's a direct leak if error logs end up visible.
+    let sigOk = false
+    try {
+      const a = Buffer.from(expectedSignature, "hex")
+      const b = Buffer.from(razorpay_signature, "hex")
+      sigOk = a.length === b.length && timingSafeEqual(a, b)
+    } catch { sigOk = false }
+
+    if (!sigOk) {
+      console.error("[verify] Signature mismatch on order", razorpay_order_id)
       return NextResponse.json(
         { error: "Payment verification failed. Invalid signature." },
         { status: 400 }
