@@ -13,6 +13,7 @@ import {
   BarChart3, Users, TrendingUp, PieChart, Target, Award,
   ChevronDown, RefreshCw, Download, ArrowUp, ArrowDown,
 } from "lucide-react"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 interface Event {
   id: string
@@ -134,6 +135,10 @@ function FunnelChart({ steps }: { steps: FunnelStep[] }) {
 }
 
 export default function AnalyticsPage() {
+  const { can } = useAdminPermissions()
+  // Revenue is SENSITIVE — only profiles that explicitly grant revenue.view
+  // (or super admins, handled inside `can`) see any revenue cards / charts.
+  const canSeeRevenue = can("revenue", "view")
   const [events, setEvents] = useState<Event[]>([])
   const [selectedEventId, setSelectedEventId] = useState("")
   const [loading, setLoading] = useState(true)
@@ -286,12 +291,12 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Overview cards */}
+      {/* Overview cards — Revenue hidden from profiles without revenue.view */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Registered", value: overview.totalRegistered.toLocaleString(), icon: Users, change: `+${overview.registeredChange}%`, up: true },
           { label: "Checked In", value: overview.totalCheckedIn.toLocaleString(), icon: Target, change: `${overview.checkedInChange}% rate`, up: overview.checkedInChange > 50 },
-          { label: "Revenue", value: `₹${(overview.totalRevenue / 1000).toFixed(0)}K`, icon: TrendingUp, change: "", up: true },
+          ...(canSeeRevenue ? [{ label: "Revenue", value: `₹${(overview.totalRevenue / 1000).toFixed(0)}K`, icon: TrendingUp, change: "", up: true }] : []),
           { label: "Avg Engagement", value: `${overview.avgEngagement}`, icon: Award, change: "score", up: true },
         ].map((card) => (
           <div key={card.label} className="bg-white rounded-xl border border-[#e8e8e8] p-5">
