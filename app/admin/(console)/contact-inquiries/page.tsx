@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from "react"
 import {
   getContactInquiries,
   updateInquiryStatus,
+  replyToContactInquiry,
 } from "@/app/actions/contactActions"
 import {
   Inbox,
@@ -66,6 +67,46 @@ export default function AdminContactInquiriesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [selected, setSelected] = useState<Inquiry | null>(null)
+  // Reply-compose modal state
+  const [replyTo, setReplyTo] = useState<Inquiry | null>(null)
+  const [replySubject, setReplySubject] = useState("")
+  const [replyBody, setReplyBody] = useState("")
+  const [replySending, setReplySending] = useState(false)
+  const [replyError, setReplyError] = useState<string | null>(null)
+  const [replySent, setReplySent] = useState(false)
+
+  function openReply(inq: Inquiry) {
+    setReplyTo(inq)
+    setReplySubject(`Re: Your inquiry to The Leadership Federation — ${inq.inquiry_type}`)
+    setReplyBody(
+      `Hi ${inq.full_name.split(" ")[0] || inq.full_name},\n\nThank you for reaching out to us regarding ${inq.inquiry_type}. \n\n[Write your reply here]\n\nLooking forward to speaking with you.`,
+    )
+    setReplyError(null)
+    setReplySent(false)
+  }
+
+  async function sendReply() {
+    if (!replyTo) return
+    if (!replySubject.trim() || !replyBody.trim()) {
+      setReplyError("Subject and body are required.")
+      return
+    }
+    setReplySending(true)
+    setReplyError(null)
+    const res = await replyToContactInquiry(replyTo.id, replySubject.trim(), replyBody.trim())
+    setReplySending(false)
+    if (res.success) {
+      setReplySent(true)
+      await fetchData()
+      // Auto-close after a moment
+      setTimeout(() => {
+        setReplyTo(null)
+        setSelected(null)
+      }, 1200)
+    } else {
+      setReplyError(res.error ?? "Failed to send email")
+    }
+  }
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -240,6 +281,13 @@ export default function AdminContactInquiriesPage() {
                         <Loader2 size={16} className="animate-spin text-gray-400" />
                       ) : (
                         <>
+                          <button
+                            onClick={() => openReply(inq)}
+                            title="Reply via email (send through Resend)"
+                            className="p-1.5 rounded-lg text-[#1a1a2e] hover:bg-gray-100 transition-colors"
+                          >
+                            <Mail size={16} />
+                          </button>
                           {inq.status !== "contacted" && (
                             <button
                               onClick={() => handleStatusChange(inq.id, "contacted")}
@@ -355,11 +403,18 @@ export default function AdminContactInquiriesPage() {
               </p>
 
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                <a
-                  href={`mailto:${selected.email}?subject=Re: Your inquiry to The Leadership Federation`}
+                <button
+                  onClick={() => openReply(selected)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-[#1a1a2e] text-white hover:bg-[#2a2a4e] transition-colors"
                 >
                   <Mail size={14} /> Reply via Email
+                </button>
+                <a
+                  href={`mailto:${selected.email}?subject=Re: Your inquiry to The Leadership Federation`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  title="Open in your local mail client instead"
+                >
+                  Open in Mail app
                 </a>
                 {selected.status !== "resolved" && (
                   <button
@@ -374,6 +429,98 @@ export default function AdminContactInquiriesPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reply Compose Modal — real send via Resend (contactActions.ts) */}
+      {replyTo && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/40 flex items-end sm:items-center justify-center p-4"
+          onClick={() => !replySending && setReplyTo(null)}
+        >
+          <div
+            className="w-full max-w-xl bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Reply to {replyTo.full_name}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Sent via Resend to {replyTo.email}</p>
+              </div>
+              <button
+                onClick={() => !replySending && setReplyTo(null)}
+                className="p-1 rounded hover:bg-gray-100 text-gray-400"
+                disabled={replySending}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {replySent ? (
+              <div className="p-8 text-center">
+                <CheckCircle2 size={36} className="mx-auto text-emerald-500 mb-3" />
+                <p className="text-sm font-semibold text-gray-900">Email sent</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  The inquiry has been auto-moved to <span className="font-medium">Contacted</span>.
+                </p>
+              </div>
+            ) : (
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    value={replySubject}
+                    onChange={(e) => setReplySubject(e.target.value)}
+                    disabled={replySending}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 disabled:opacity-60"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+                    Message
+                  </label>
+                  <textarea
+                    rows={10}
+                    value={replyBody}
+                    onChange={(e) => setReplyBody(e.target.value)}
+                    disabled={replySending}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 disabled:opacity-60 font-mono leading-relaxed"
+                  />
+                  <p className="text-[11px] text-gray-500 mt-2">
+                    Office phone, email, and key contacts from <span className="font-medium">Contact CMS</span> are auto-appended to every reply — no hardcoded signature.
+                  </p>
+                </div>
+                {replyError && (
+                  <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                    {replyError}
+                  </div>
+                )}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => setReplyTo(null)}
+                    disabled={replySending}
+                    className="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={sendReply}
+                    disabled={replySending}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-[#1a1a2e] text-white hover:bg-[#2a2a4e] transition-colors disabled:opacity-60"
+                  >
+                    {replySending ? (
+                      <><Loader2 size={14} className="animate-spin" /> Sending…</>
+                    ) : (
+                      <><Mail size={14} /> Send Email</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

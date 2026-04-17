@@ -1,22 +1,39 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Loader2, CheckCircle2, Send } from "lucide-react"
-import { submitContactInquiry } from "@/app/actions/contactActions"
+import {
+  submitContactInquiry,
+  getContactInquiryTypes,
+} from "@/app/actions/contactActions"
 
-const INQUIRY_TYPES = [
-  "Event Registration",
-  "Partner With Us",
-  "Speaker Nomination",
-  "Inner Circle Membership",
-  "Media Inquiry",
-  "General",
-] as const
-
-export function ContactForm({ sourcePage = "contact" }: { sourcePage?: string }) {
+export function ContactForm({
+  sourcePage = "contact",
+  /** Optional override — pass in a list from the parent page (e.g. a
+   *  delegate flow) to lock the dropdown to specific categories.
+   *  When omitted, the dropdown loads from the DB (contact_departments). */
+  categories,
+  /** Optional category pre-selected + locked (single-purpose forms). */
+  lockedCategory,
+}: {
+  sourcePage?: string
+  categories?: string[]
+  lockedCategory?: string
+}) {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [inquiryTypes, setInquiryTypes] = useState<string[]>(categories ?? [])
+
+  useEffect(() => {
+    if (categories && categories.length) return
+    // Data-driven: load the available inquiry types from the DB. No
+    // hardcoded fallback list — if the admin has no departments yet,
+    // the action still returns ["General"] as a safe catch-all.
+    getContactInquiryTypes()
+      .then((types) => setInquiryTypes(types))
+      .catch(() => setInquiryTypes(["General"]))
+  }, [categories])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -105,21 +122,30 @@ export function ContactForm({ sourcePage = "contact" }: { sourcePage?: string })
           placeholder="Designation / Title"
           className={inputBase}
         />
-        <select
-          name="inquiry_type"
-          required
-          defaultValue=""
-          className={`${inputBase} appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23000000%22%20fill-opacity%3D%220.3%22%20d%3D%22M2%204l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10`}
-        >
-          <option value="" disabled>
-            Inquiry Type *
-          </option>
-          {INQUIRY_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {type}
+        {lockedCategory ? (
+          <>
+            <input type="hidden" name="inquiry_type" value={lockedCategory} />
+            <div className={`${inputBase} flex items-center text-[#1a1a2e]/70 cursor-not-allowed bg-[#F4F8FF]/60`}>
+              {lockedCategory}
+            </div>
+          </>
+        ) : (
+          <select
+            name="inquiry_type"
+            required
+            defaultValue=""
+            className={`${inputBase} appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23000000%22%20fill-opacity%3D%220.3%22%20d%3D%22M2%204l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10`}
+          >
+            <option value="" disabled>
+              Inquiry Type *
             </option>
-          ))}
-        </select>
+            {inquiryTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <textarea
