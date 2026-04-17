@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import Link from "next/link"
 import Image from "next/image"
@@ -144,6 +145,15 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
       </main>
     )
+  }
+
+  // If getEvent fell through to its substring/title fallback, the requested
+  // slug doesn't match the canonical one (e.g. /events/mumbai →
+  // /events/gcc-leadership-conclave-mumbai-7th-edition). Redirect so the URL
+  // bar + share links use the real slug. Case-only drift also redirects
+  // so there's a single canonical URL for SEO.
+  if (event.slug && event.slug !== slug) {
+    redirect(`/events/${event.slug}`)
   }
 
   const cookieStore = await cookies()

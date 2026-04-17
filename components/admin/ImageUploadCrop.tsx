@@ -269,11 +269,10 @@ export function ImageUploadCrop({
                 style={{
                   transform: `translate(-50%, -50%) translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
                   transformOrigin: "center",
-                  maxWidth: "none",
-                  height: "auto",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
                   width: "auto",
-                  minWidth: "100%",
-                  minHeight: "100%",
+                  height: "auto",
                 }}
               />
               {/* Rule-of-thirds overlay */}
@@ -286,20 +285,34 @@ export function ImageUploadCrop({
             </div>
           </div>
 
-          {/* Zoom slider */}
+          {/* Zoom slider — 0.5× shows whole image (contain), 4× deep crop */}
           <div className="flex items-center gap-3 max-w-[520px] mx-auto">
-            <ZoomOut size={14} className="text-white/60" />
+            <button type="button" onClick={() => setZoom((z) => Math.max(0.3, +(z - 0.1).toFixed(2)))}
+              className="p-1 text-white/60 hover:text-white" title="Zoom out">
+              <ZoomOut size={14} />
+            </button>
             <input
               type="range"
-              min={1}
-              max={3}
+              min={0.3}
+              max={4}
               step={0.01}
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
               className="flex-1 accent-[#e7ab1c]"
             />
-            <ZoomIn size={14} className="text-white/60" />
+            <button type="button" onClick={() => setZoom((z) => Math.min(4, +(z + 0.1).toFixed(2)))}
+              className="p-1 text-white/60 hover:text-white" title="Zoom in">
+              <ZoomIn size={14} />
+            </button>
             <span className="text-[11px] text-white/60 w-10 text-right tabular-nums">{zoom.toFixed(2)}×</span>
+            <button
+              type="button"
+              onClick={() => { setZoom(1); setOffset({ x: 0, y: 0 }) }}
+              className="px-2 py-1 rounded text-[10px] font-semibold text-white/70 hover:text-white hover:bg-white/10"
+              title="Reset zoom & pan"
+            >
+              Reset
+            </button>
           </div>
 
           {error && (

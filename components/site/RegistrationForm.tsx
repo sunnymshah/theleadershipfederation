@@ -236,21 +236,25 @@ export function RegistrationForm({ events }: RegistrationFormProps) {
             />
           </div>
 
-          {/* Designation + LinkedIn */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Designation */}
+          <div className="grid grid-cols-1 gap-4">
             <input
               type="text"
               name="designation"
               placeholder="Designation / Title"
               className={inputBase}
             />
-            <input
-              type="url"
-              name="linkedin_url"
-              placeholder="LinkedIn Profile URL"
-              className={inputBase}
-            />
           </div>
+
+          {/* Honeypot — hidden to humans, bots fill it */}
+          <input
+            type="text"
+            name="company_website"
+            tabIndex={-1}
+            autoComplete="off"
+            className="absolute left-[-9999px] w-px h-px opacity-0"
+            aria-hidden="true"
+          />
 
           {/* Event + Participation Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

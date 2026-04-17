@@ -22,7 +22,7 @@ const navLinks = [
   { label: "Advisory Board & Jury", href: "/advisory-board" },
   { label: "Media", href: "/media" },
   { label: "Inner Circle", href: "/inner-circle" },
-  { label: "Contact", href: "/contact" },
+  { label: "Register", href: "/register" },
 ]
 
 export function Navbar() {
@@ -109,7 +109,7 @@ export function Navbar() {
           {/* CTA + Mobile toggle — right */}
           <div className="flex items-center gap-2 shrink-0 ml-auto">
             <Link
-              href="/register"
+              href="/events"
               className={cn(
                 "hidden lg:inline-flex items-center gap-1.5 px-5 py-2",
                 "text-[13.5px] font-semibold tracking-[-0.01em] rounded-[10px]",
@@ -167,7 +167,7 @@ export function Navbar() {
             })}
             <div className="pt-3 px-1">
               <Link
-                href="/register"
+                href="/events"
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 text-[13px] font-semibold rounded-full bg-[#1a1a2e] text-white"
                 style={sfText}
               >
