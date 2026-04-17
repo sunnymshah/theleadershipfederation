@@ -17,6 +17,7 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { getOverallStats, getDashboardStats } from "@/app/actions/analyticsActions"
+import { canCurrentUser } from "@/lib/server-permissions"
 import Link from "next/link"
 import { DashboardClientParts } from "@/components/admin/DashboardClientParts"
 
@@ -216,6 +217,19 @@ export default async function AdminDashboard() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
+  // ─── Permission checks (drive tile/chart visibility) ───────────────────
+  // Each tile is gated against the relevant module.view permission. Super
+  // admin + admin-without-profile always pass; restricted profiles get a
+  // tailored dashboard that hides what they can't see.
+  const [canSeeRevenue, canSeeTickets, canSeeAttendees, canSeeCheckIn, canSeeAnalytics] =
+    await Promise.all([
+      canCurrentUser("revenue", "view"),
+      canCurrentUser("tickets", "view"),
+      canCurrentUser("attendees", "view"),
+      canCurrentUser("check_in", "perform"),
+      canCurrentUser("analytics", "view"),
+    ])
+
   // Fetch analytics
   const [overallResult, eventStatsResult] = await Promise.all([
     getOverallStats(),
@@ -380,64 +394,71 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        {/* Total Registrations */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Registrations</p>
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-              <UsersIcon />
+        {/* Total Registrations — gated on attendees.view */}
+        {canSeeAttendees && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Registrations</p>
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <UsersIcon />
+              </div>
             </div>
+            <div className="flex items-baseline gap-2 mb-2">
+              <p className="text-3xl font-bold text-[#1a1a2e]">{fmtNumber(totalRegistrations)}</p>
+              {totalRegistrations > 0 && (
+                <span className="flex items-center gap-0.5 text-emerald-600 text-xs font-medium">
+                  <TrendUpIcon /> Active
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">{fmtNumber(totalCheckedIn)} checked in</p>
           </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <p className="text-3xl font-bold text-[#1a1a2e]">{fmtNumber(totalRegistrations)}</p>
-            {totalRegistrations > 0 && (
-              <span className="flex items-center gap-0.5 text-emerald-600 text-xs font-medium">
-                <TrendUpIcon /> Active
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-gray-500">{fmtNumber(totalCheckedIn)} checked in</p>
-        </div>
+        )}
 
-        {/* Total Revenue */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Revenue</p>
-            <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center text-[#b8941a]">
-              <RupeeIcon />
+        {/* Total Revenue — gated on revenue.view (SENSITIVE) */}
+        {canSeeRevenue && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Revenue</p>
+              <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/10 flex items-center justify-center text-[#b8941a]">
+                <RupeeIcon />
+              </div>
             </div>
+            <p className="text-3xl font-bold text-[#1a1a2e] mb-2">
+              ₹{fmtCurrency(totalRevenue)}
+            </p>
+            <p className="text-xs text-gray-500">{fmtFullCurrency(totalRevenue)}</p>
           </div>
-          <p className="text-3xl font-bold text-[#1a1a2e] mb-2">
-            ₹{fmtCurrency(totalRevenue)}
-          </p>
-          <p className="text-xs text-gray-500">{fmtFullCurrency(totalRevenue)}</p>
-        </div>
+        )}
       </div>
 
       {/* ═══ ROW 2: Stat Cards (3 columns) ════════════════════════════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {/* Tickets Sold */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Tickets Sold</p>
-            <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
-              <TicketIcon />
+        {/* Tickets Sold — gated on tickets.view */}
+        {canSeeTickets && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Tickets Sold</p>
+              <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+                <TicketIcon />
+              </div>
             </div>
+            <p className="text-3xl font-bold text-[#1a1a2e] mb-2">
+              {fmtNumber(totalSold)}{" "}
+              <span className="text-sm font-normal text-gray-400">/ {fmtNumber(totalCapacity)}</span>
+            </p>
+            <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${soldPct >= 80 ? "bg-red-500" : soldPct >= 50 ? "bg-yellow-500" : "bg-emerald-500"}`}
+                style={{ width: `${Math.min(soldPct, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">{soldPct}% capacity filled</p>
           </div>
-          <p className="text-3xl font-bold text-[#1a1a2e] mb-2">
-            {fmtNumber(totalSold)}{" "}
-            <span className="text-sm font-normal text-gray-400">/ {fmtNumber(totalCapacity)}</span>
-          </p>
-          <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${soldPct >= 80 ? "bg-red-500" : soldPct >= 50 ? "bg-yellow-500" : "bg-emerald-500"}`}
-              style={{ width: `${Math.min(soldPct, 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-gray-500 mt-1.5">{soldPct}% capacity filled</p>
-        </div>
+        )}
 
-        {/* Check-in Rate */}
+        {/* Check-in Rate — gated on check_in.perform or attendees.view */}
+        {(canSeeCheckIn || canSeeAttendees) && (
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Check-in Rate</p>
@@ -476,6 +497,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Pending Actions */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
@@ -500,7 +522,10 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* ═══ Sales Summary — Revenue by Ticket Tier ═══════════════════════ */}
+      {/* ═══ Sales Summary — Revenue by Ticket Tier ═══════════════════════ *
+       * Gated: reveals per-tier revenue (SENSITIVE), so needs revenue.view.
+       * If user can't see revenue, whole section is hidden.                  */}
+      {canSeeRevenue && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)]">
           <h3 className="font-semibold text-[#1a1a2e] mb-1">Sales Summary</h3>
@@ -588,8 +613,11 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+      )}
 
-      {/* ═══ Revenue Trend — Last 30 Days Bar Chart ═══════════════════════ */}
+      {/* ═══ Revenue Trend — Last 30 Days Bar Chart ═══════════════════════ *
+       * SENSITIVE — gated on revenue.view.                                   */}
+      {canSeeRevenue && (
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] mb-8">
         <h3 className="font-semibold text-[#1a1a2e] mb-1">Revenue Trend</h3>
         <p className="text-sm text-gray-500 mb-5">Daily revenue from latest event registrations</p>
@@ -644,8 +672,12 @@ export default async function AdminDashboard() {
           </div>
         )}
       </div>
+      )}
 
-      {/* ═══ Event Performance Table ══════════════════════════════════════ */}
+      {/* ═══ Event Performance Table ══════════════════════════════════════ *
+       * Table includes a revenue column — if the user can't see revenue we
+       * strip revenue fields before passing to the client component so the
+       * cell renders "--" (see DashboardClientParts' fallback).              */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] mb-8 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="font-semibold text-[#1a1a2e]">Event Performance</h3>
@@ -658,8 +690,11 @@ export default async function AdminDashboard() {
           <DashboardClientParts
             eventBreakdowns={eventBreakdowns.map((e) => ({
               ...e,
+              // Zero out revenue for users without revenue.view — the
+              // client component formats 0 as "--" already.
+              revenue: canSeeRevenue ? e.revenue : 0,
               start_date_fmt: fmtDate(e.start_date),
-              revenue_fmt: e.revenue > 0 ? fmtFullCurrency(e.revenue) : "--",
+              revenue_fmt: canSeeRevenue && e.revenue > 0 ? fmtFullCurrency(e.revenue) : "--",
             }))}
             statusBadge={statusBadge}
           />

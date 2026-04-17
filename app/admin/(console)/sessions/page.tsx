@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { Plus, Pencil, Trash2, Search, X, Loader2, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 interface SessionRow {
   id: string
@@ -32,6 +33,7 @@ const TYPE_STYLES: Record<string, { bg: string; text: string }> = {
 }
 
 export default function AdminSessionsPage() {
+  const { can } = useAdminPermissions()
   const [sessions, setSessions]       = useState<SessionRow[]>([])
   const [events, setEvents]           = useState<EventOption[]>([])
   const [loading, setLoading]         = useState(true)
@@ -115,9 +117,11 @@ export default function AdminSessionsPage() {
           <h2 className="text-2xl font-bold text-[#333] mb-1">Agenda / Sessions</h2>
           <p className="text-sm text-[#888]">Build the event schedule with sessions, panels, and breaks</p>
         </div>
-        <button onClick={() => { setEditing(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
-          <Plus size={16} /> New Session
-        </button>
+        {can("sessions", "create") && (
+          <button onClick={() => { setEditing(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
+            <Plus size={16} /> New Session
+          </button>
+        )}
       </div>
 
       <div className="relative mb-6">

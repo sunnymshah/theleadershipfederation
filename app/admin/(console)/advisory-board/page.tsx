@@ -9,6 +9,7 @@ import {
 } from "@/app/actions/advisoryBoardActions"
 import { Plus, Pencil, Trash2, X, Loader2, Users, ExternalLink } from "lucide-react"
 import { PageContentEditor, type SectionDef } from "@/components/admin/PageContentEditor"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 const ADVISORY_PAGE_SECTIONS: SectionDef[] = [
   {
@@ -49,6 +50,7 @@ interface AdvisoryMember {
 }
 
 export default function AdvisoryBoardAdminPage() {
+  const { can } = useAdminPermissions()
   const [members, setMembers] = useState<AdvisoryMember[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -155,12 +157,14 @@ export default function AdvisoryBoardAdminPage() {
             Manage advisory board members shown on the public website
           </p>
         </div>
-        <button
-          onClick={openAddForm}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors shadow-[0_4px_16px_rgba(231,171,28,0.25)]"
-        >
-          <Plus size={16} /> Add Member
-        </button>
+        {can("speakers", "create") && (
+          <button
+            onClick={openAddForm}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors shadow-[0_4px_16px_rgba(231,171,28,0.25)]"
+          >
+            <Plus size={16} /> Add Member
+          </button>
+        )}
       </div>
 
       {/* Error banner */}

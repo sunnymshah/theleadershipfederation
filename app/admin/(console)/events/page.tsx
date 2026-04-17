@@ -19,6 +19,7 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
 import { createEvent, updateEvent, deleteEvent, cloneEvent } from "@/app/actions/eventActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import {
   Plus,
   Pencil,
@@ -55,6 +56,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
 
 // ── Component ────────────────────────────────────────────────────────────
 export default function AdminEventsPage() {
+  const { can } = useAdminPermissions()
   const [events, setEvents]               = useState<Event[]>([])
   const [loading, setLoading]             = useState(true)
   const [searchQuery, setSearchQuery]     = useState("")
@@ -187,13 +189,15 @@ export default function AdminEventsPage() {
             Create, edit, and manage all events
           </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
-        >
-          <Plus size={16} />
-          New Event
-        </button>
+        {can("events", "create") && (
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+          >
+            <Plus size={16} />
+            New Event
+          </button>
+        )}
       </div>
 
       {/* ── Search Bar ───────────────────────────────────────────── */}

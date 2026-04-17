@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import {
   getAllMembershipTiers,
   getMembershipApplications,
@@ -180,6 +181,7 @@ interface ComparisonRow {
 }
 
 export default function AdminMembershipsPage() {
+  const { can } = useAdminPermissions()
   const [tiers, setTiers] = useState<MembershipTier[]>([])
   const [applications, setApplications] = useState<MembershipApplication[]>([])
   const [comparisonRows, setComparisonRows] = useState<ComparisonRow[]>([])
@@ -664,10 +666,12 @@ export default function AdminMembershipsPage() {
         <>
           <div className="flex items-center justify-between mb-5">
             <p className="text-sm text-gray-500">{tiers.length} tier{tiers.length === 1 ? "" : "s"} configured</p>
-            <button onClick={openTierAdd}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors">
-              <Plus size={16} /> New Tier
-            </button>
+            {can("attendees", "create") && (
+              <button onClick={openTierAdd}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors">
+                <Plus size={16} /> New Tier
+              </button>
+            )}
           </div>
 
           {tierFormOpen && (
@@ -827,10 +831,12 @@ export default function AdminMembershipsPage() {
                 {comparisonRows.length} row{comparisonRows.length === 1 ? "" : "s"} · values can be "true", "false", or any label ("VIP", "5%", "₹25,000")
               </p>
             </div>
-            <button onClick={openRowAdd}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors">
-              <Plus size={16} /> New Row
-            </button>
+            {can("attendees", "create") && (
+              <button onClick={openRowAdd}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors">
+                <Plus size={16} /> New Row
+              </button>
+            )}
           </div>
 
           {rowFormOpen && (

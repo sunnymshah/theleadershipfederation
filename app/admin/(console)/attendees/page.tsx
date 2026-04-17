@@ -6,6 +6,7 @@ import {
   createAttendee, updateAttendee, checkInAttendee, deleteAttendee,
   bulkCheckIn, bulkSendEmail, bulkDelete, bulkUpdateStatus,
 } from "@/app/actions/attendeeActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import {
   Plus, Pencil, Trash2, Search, X, Users, Loader2, CheckCircle2, Download,
   Upload, Mail, Tag, ChevronDown,
@@ -70,6 +71,7 @@ const VIP_OPTIONS = [
 ]
 
 export default function AdminAttendeesPage() {
+  const { can } = useAdminPermissions()
   const [attendees, setAttendees]       = useState<AttendeeRow[]>([])
   const [events, setEvents]             = useState<EventOption[]>([])
   const [tickets, setTickets]           = useState<TicketOption[]>([])
@@ -243,9 +245,11 @@ export default function AdminAttendeesPage() {
           <button onClick={() => setImporterOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#444] hover:bg-[#fafafa] transition-colors">
             <Upload size={15} /> Import CSV
           </button>
-          <button onClick={() => { setEditingAttendee(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
-            <Plus size={16} /> Add Attendee
-          </button>
+          {can("attendees", "create") && (
+            <button onClick={() => { setEditingAttendee(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
+              <Plus size={16} /> Add Attendee
+            </button>
+          )}
         </div>
       </div>
 
