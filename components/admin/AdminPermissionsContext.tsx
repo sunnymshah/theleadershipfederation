@@ -52,9 +52,10 @@ export function AdminPermissionsProvider({
       role,
       permissions: perms,
       can(module, action) {
-        // Mirrors lib/server-permissions.ts requirePermission logic.
+        // Mirrors lib/server-permissions.ts STRICT model.
+        // Super admin: unconditional full access. Everyone else MUST have
+        // a profile that explicitly grants the action. No profile → deny.
         if (role === "super_admin") return true
-        if (role === "admin" && !perms) return true
         if (perms && canAccessWithProfile(perms, module, action)) return true
         return false
       },

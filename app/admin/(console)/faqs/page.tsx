@@ -14,6 +14,7 @@ import {
 } from "@/app/actions/cmsActions"
 import { Plus, Pencil, Trash2, Loader2, HelpCircle, Filter, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 interface Faq {
   id: string
@@ -35,6 +36,7 @@ const PAGE_LABEL: Record<string, string> = {
 }
 
 export default function AdminFaqsPage() {
+  const { can } = useAdminPermissions()
   const [items, setItems]           = useState<Faq[]>([])
   const [loading, setLoading]       = useState(true)
   const [showForm, setShowForm]     = useState(false)
@@ -100,12 +102,14 @@ export default function AdminFaqsPage() {
             Shared FAQs used across /memberships, /inner-circle, and other pages.
           </p>
         </div>
-        <button
+        {can("attendees", "create") && (
+          <button
           onClick={openAdd}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors"
         >
           <Plus size={16} /> New FAQ
         </button>
+        )}
       </div>
 
       {error && !showForm && (

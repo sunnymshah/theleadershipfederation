@@ -85,11 +85,16 @@ export async function getCurrentUserContext(): Promise<UserContext> {
 
 /**
  * Throw if the current user cannot perform `action` on `module`.
- * super_admin always passes. Users without a profile but with a
- * permissive role (admin/manager/etc) fall back to the role table in
- * lib/permissions.ts — for mutations we're strict: if they don't have
- * a profile granting the action explicitly, only super_admin/admin
- * pass. This is deliberately conservative for mutations.
+ *
+ * STRICT MODEL:
+ *  - super_admin role: unconditional full access (never blocked)
+ *  - Everyone else: MUST have an assigned profile that explicitly grants
+ *    this module+action. No profile → denied.
+ *
+ * There is intentionally NO "admin without profile = full access"
+ * fallback — that was a security bug. If you want someone to have
+ * broad access, either make them super_admin or assign them a profile
+ * with the permissions you want.
  */
 export async function requirePermission(
   module: keyof ProfilePermissions,
@@ -100,11 +105,7 @@ export async function requirePermission(
   // Super admin — never blocked.
   if (ctx.role === "super_admin") return ctx
 
-  // Admin without an explicit profile → full mutation access (matches
-  // legacy behaviour before profiles existed).
-  if (ctx.role === "admin" && !ctx.permissions) return ctx
-
-  // Profile present → check it.
+  // Everyone else must have a profile that grants this action.
   if (ctx.permissions && canAccessWithProfile(ctx.permissions, module, action)) {
     return ctx
   }
@@ -116,7 +117,8 @@ export async function requirePermission(
 
 /**
  * Non-throwing variant — returns a boolean. Useful for conditionally
- * rendering UI in Server Components without a try/catch.
+ * rendering UI in Server Components without a try/catch. Uses the
+ * same STRICT MODEL as requirePermission above.
  */
 export async function canCurrentUser(
   module: keyof ProfilePermissions,
@@ -125,7 +127,6 @@ export async function canCurrentUser(
   try {
     const ctx = await getCurrentUserContext()
     if (ctx.role === "super_admin") return true
-    if (ctx.role === "admin" && !ctx.permissions) return true
     if (ctx.permissions && canAccessWithProfile(ctx.permissions, module, action)) {
       return true
     }

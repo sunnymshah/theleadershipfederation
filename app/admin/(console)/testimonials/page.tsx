@@ -7,6 +7,7 @@ import {
   updateTestimonial,
   deleteTestimonial,
 } from "@/app/actions/testimonialActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 interface Testimonial {
   id: string
@@ -20,6 +21,7 @@ interface Testimonial {
 }
 
 export default function AdminTestimonialsPage() {
+  const { can } = useAdminPermissions()
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -129,12 +131,14 @@ export default function AdminTestimonialsPage() {
             Manage testimonials shown on the homepage
           </p>
         </div>
-        <button
+        {can("attendees", "create") && (
+          <button
           onClick={openAddForm}
           className="bg-[#c9a84c] text-[#1a1a2e] font-semibold rounded-lg px-4 py-2 hover:bg-[#d4b85c] transition-colors"
         >
           + Add Testimonial
         </button>
+        )}
       </div>
 
       {/* Error banner */}
