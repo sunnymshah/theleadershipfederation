@@ -33,6 +33,7 @@ import {
 } from "@/app/actions/eventSectionActions"
 import { SECTION_KINDS, type EventSection, type SectionKind } from "@/lib/event-sections"
 import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
+import { EventSectionsRenderer } from "@/components/site/EventSections"
 import {
   ArrowLeft, ArrowUp, ArrowDown, Copy, Trash2, Plus, Eye, Loader2,
   Save, ChevronDown, ExternalLink, LayoutPanelTop, Type, BarChart3,
@@ -83,6 +84,12 @@ export default function EventBuilderPage() {
     title: string; slug: string; status: string; start_date: string | null; venue: string | null
   }>({ title: "", slug: "", status: "", start_date: null, venue: null })
   const [sections, setSections] = useState<EventSection[]>([])
+  // Real child data — loaded once so the canvas can render the actual
+  // speakers grid / agenda / sponsors / tickets exactly like the public site.
+  const [speakers, setSpeakers] = useState<Array<{ id: string; name: string; designation: string | null; company: string | null; image_url: string | null }>>([])
+  const [sessions, setSessions] = useState<Array<{ id: string; title: string; starts_at: string; ends_at: string | null; speaker_names: string[] | null; track: string | null }>>([])
+  const [sponsors, setSponsors] = useState<Array<{ id: string; name: string; logo_url: string | null; tier: string | null; website: string | null }>>([])
+  const [tickets, setTickets] = useState<Array<{ id: string; name: string; description: string | null; price_inr: number; sold: number; inventory_limit: number | null }>>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [addOpenAt, setAddOpenAt] = useState<number | null>(null) // null = closed, number = insert position
@@ -99,6 +106,7 @@ export default function EventBuilderPage() {
 
   useEffect(() => {
     (async () => {
+      // Event metadata
       const { data } = await supabase
         .from("events")
         .select("title, slug, status, start_date, venue")
@@ -113,6 +121,38 @@ export default function EventBuilderPage() {
           venue: (data.venue as string) ?? null,
         })
       }
+
+      // Child data in parallel — feeds the live canvas so it looks like
+      // the real public site (speakers grid with photos, agenda with
+      // real sessions, sponsor logos, ticket tiers).
+      const [sp, se, sn, tk] = await Promise.all([
+        supabase.from("speakers").select("id, name, designation, company, image_url").eq("event_id", id).order("sort_order"),
+        supabase.from("sessions").select("id, title, start_time, end_time, track").eq("event_id", id).order("start_time"),
+        supabase.from("sponsors").select("id, name, logo_url, tier, website_url").eq("event_id", id).order("sort_order"),
+        supabase.from("tickets").select("id, name, description, price_inr, sold, inventory_limit").eq("event_id", id).order("sort_order"),
+      ])
+      setSpeakers((sp.data ?? []) as typeof speakers)
+      setSessions(
+        ((se.data ?? []) as Array<{ id: string; title: string; start_time: string; end_time: string | null; track: string | null }>).map((s) => ({
+          id: s.id,
+          title: s.title,
+          starts_at: s.start_time,
+          ends_at: s.end_time,
+          speaker_names: null,
+          track: s.track,
+        })),
+      )
+      setSponsors(
+        ((sn.data ?? []) as Array<{ id: string; name: string; logo_url: string | null; tier: string | null; website_url: string | null }>).map((s) => ({
+          id: s.id,
+          name: s.name,
+          logo_url: s.logo_url,
+          tier: s.tier,
+          website: s.website_url,
+        })),
+      )
+      setTickets(((tk.data ?? []) as typeof tickets))
+
     })()
     refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,7 +326,7 @@ export default function EventBuilderPage() {
         {/* ───── CANVAS ───────────────────────────────────────────────── */}
         <main className="flex-1 overflow-y-auto bg-[#0a0a0a]">
           {error && (
-            <div className="mx-auto max-w-[900px] mt-4 mx-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-200">
+            <div className="max-w-[1100px] mt-4 mx-auto px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-200">
               {error}
               <button onClick={() => setError(null)} className="ml-3 underline">dismiss</button>
             </div>
@@ -297,7 +337,10 @@ export default function EventBuilderPage() {
               <Loader2 size={22} className="animate-spin" />
             </div>
           ) : (
-            <div className="max-w-[900px] mx-auto py-8 px-4 space-y-0">
+            <div className="max-w-[1100px] mx-auto py-8 px-6 space-y-0">
+              <div className="mb-3 px-2 text-[11px] text-white/50 uppercase tracking-wider">
+                Live canvas — click any section to edit · hover between to insert new
+              </div>
               {/* First Add button (insert at top) */}
               <InlineAddButton
                 position={0}
@@ -320,6 +363,20 @@ export default function EventBuilderPage() {
                       onMove={handleMove}
                       onDelete={handleDelete}
                       onDuplicate={handleDuplicate}
+                      eventData={{
+                        id: id as string,
+                        slug: eventMeta.slug,
+                        title: eventMeta.title,
+                        start_date: eventMeta.start_date ?? new Date().toISOString(),
+                        end_date: null,
+                        venue: eventMeta.venue,
+                        description: null,
+                        cover_image_url: null,
+                      }}
+                      speakers={speakers}
+                      sessions={sessions}
+                      sponsors={sponsors}
+                      tickets={tickets}
                     />
                     <InlineAddButton
                       position={i + 1}
@@ -422,7 +479,7 @@ function EmptyHint({ onStart }: { onStart: () => void }) {
   )
 }
 
-/* ═════════════ SECTION CARD (canvas preview with hover overlay) ══════ */
+/* ═════════════ SECTION CARD — actual website rendering + edit overlay ═ */
 function SectionCard({
   section: s,
   index,
@@ -432,6 +489,11 @@ function SectionCard({
   onMove,
   onDelete,
   onDuplicate,
+  eventData,
+  speakers,
+  sessions,
+  sponsors,
+  tickets,
 }: {
   section: EventSection
   index: number
@@ -441,16 +503,31 @@ function SectionCard({
   onMove: (id: string, dir: "up" | "down") => void
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
+  eventData: { id: string; slug: string; title: string; start_date: string; end_date: string | null; venue: string | null; description: string | null; cover_image_url: string | null }
+  speakers: Array<{ id: string; name: string; designation: string | null; company: string | null; image_url: string | null }>
+  sessions: Array<{ id: string; title: string; starts_at: string; ends_at: string | null; speaker_names: string[] | null; track: string | null }>
+  sponsors: Array<{ id: string; name: string; logo_url: string | null; tier: string | null; website: string | null }>
+  tickets: Array<{ id: string; name: string; description: string | null; price_inr: number; sold: number; inventory_limit: number | null }>
 }) {
   const meta = KIND_META[s.kind]
   const Icon = meta.icon
 
   return (
     <div
-      className="group relative rounded-xl overflow-hidden bg-[#141414] border border-white/10 hover:border-[#e7ab1c]/50 transition-colors cursor-pointer"
+      className="group relative rounded-xl overflow-hidden bg-white border-2 border-transparent hover:border-[#e7ab1c] transition-colors cursor-pointer shadow-[0_0_0_1px_rgba(255,255,255,0.05)]"
       onClick={onEdit}
     >
-      <MiniPreview section={s} />
+      {/* Real website rendering — same component the public /events/[slug] uses */}
+      <div className="pointer-events-none">
+        <EventSectionsRenderer
+          sections={[s]}
+          event={eventData}
+          speakers={speakers}
+          sessions={sessions}
+          sponsors={sponsors}
+          tickets={tickets}
+        />
+      </div>
 
       {/* Hover overlay */}
       <div className="absolute inset-0 bg-[#0a0a0a]/0 group-hover:bg-[#0a0a0a]/30 transition-colors pointer-events-none" />
