@@ -92,6 +92,191 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;")
 }
 
+/**
+ * Fetch the set of valid inquiry types from the DB so the public contact
+ * form's dropdown is data-driven. Each row in contact_departments is a
+ * valid category (e.g. "Partner With Us"). No hardcoded fallback — if the
+ * admin hasn't added any departments yet, the dropdown is empty and the
+ * page shows only the "General" fallback.
+ */
+export async function getContactInquiryTypes(): Promise<string[]> {
+  try {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    const { data } = await supabase
+      .from("contact_departments")
+      .select("name")
+      .order("sort_order", { ascending: true })
+    const names = (data ?? []).map((d) => d.name as string).filter(Boolean)
+    // Always keep a generic catch-all last so visitors with miscellaneous
+    // inquiries can still submit — this is a UX label, not a contact person.
+    return [...names, "General"]
+  } catch {
+    return ["General"]
+  }
+}
+
+/**
+ * Admin action: reply to a contact inquiry via Resend. Pulls the signing
+ * org's primary office info from the DB so the inquirer gets real phone /
+ * email to reach back on — nothing hardcoded.
+ */
+export async function replyToContactInquiry(
+  inquiryId: string,
+  subject: string,
+  body: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: "Unauthorized" }
+
+    // Load the inquiry
+    const { data: inquiry, error: inqErr } = await supabase
+      .from("contact_inquiries")
+      .select("*")
+      .eq("id", inquiryId)
+      .maybeSingle()
+    if (inqErr || !inquiry) {
+      return { success: false, error: inqErr?.message ?? "Inquiry not found" }
+    }
+
+    // Load reply-back contact info (primary office + any key phone contact)
+    const [{ data: offices }, { data: persons }] = await Promise.all([
+      supabase
+        .from("office_locations")
+        .select("city, address_lines, phone, email, is_primary")
+        .order("is_primary", { ascending: false }),
+      supabase
+        .from("contact_persons")
+        .select("name, role, email, phone")
+        .not("phone", "is", null)
+        .order("sort_order", { ascending: true })
+        .limit(3),
+    ])
+
+    const primaryOffice =
+      (offices ?? []).find((o) => o.is_primary) ?? (offices ?? [])[0] ?? null
+    const phoneContacts = (persons ?? []).filter((p) => p.phone)
+
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      return {
+        success: false,
+        error:
+          "RESEND_API_KEY is not set in Vercel env. Email cannot be sent.",
+      }
+    }
+    const resend = new Resend(apiKey)
+
+    const html = renderReplyHtml({
+      inquirerName: inquiry.full_name as string,
+      inquirerMessage: inquiry.message as string,
+      inquiryType: inquiry.inquiry_type as string,
+      bodyText: body,
+      replyFromEmail: user.email ?? "",
+      office: primaryOffice
+        ? {
+            city: primaryOffice.city as string,
+            address: (primaryOffice.address_lines as string[] | null) ?? [],
+            phone: (primaryOffice.phone as string | null) ?? null,
+            email: (primaryOffice.email as string | null) ?? null,
+          }
+        : null,
+      phoneContacts: phoneContacts.map((p) => ({
+        name: (p.name as string) ?? "",
+        role: (p.role as string | null) ?? null,
+        phone: (p.phone as string | null) ?? null,
+        email: (p.email as string | null) ?? null,
+      })),
+    })
+
+    const { error: sendErr } = await resend.emails.send({
+      from: RESEND_FROM,
+      to: [inquiry.email as string],
+      replyTo: user.email || CONTACT_NOTIFY_EMAIL,
+      subject,
+      html,
+    })
+    if (sendErr) {
+      return { success: false, error: sendErr.message || "Send failed" }
+    }
+
+    // Auto-mark as contacted so the inbox reflects the outbound action
+    await supabase
+      .from("contact_inquiries")
+      .update({ status: "contacted", updated_at: new Date().toISOString() })
+      .eq("id", inquiryId)
+
+    revalidatePath("/admin/contact-inquiries", "page")
+    return { success: true }
+  } catch (err) {
+    console.error("[replyToContactInquiry] failed:", err)
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+function renderReplyHtml(ctx: {
+  inquirerName: string
+  inquirerMessage: string
+  inquiryType: string
+  bodyText: string
+  replyFromEmail: string
+  office: { city: string; address: string[]; phone: string | null; email: string | null } | null
+  phoneContacts: Array<{ name: string; role: string | null; phone: string | null; email: string | null }>
+}): string {
+  const bodyHtml = escapeHtml(ctx.bodyText).replace(/\n/g, "<br>")
+  const quotedMsg = escapeHtml(ctx.inquirerMessage).replace(/\n/g, "<br>")
+
+  const contactBlock = (() => {
+    const rows: string[] = []
+    if (ctx.office) {
+      if (ctx.office.phone) {
+        rows.push(
+          `<tr><td style="padding:2px 0;color:#888;width:90px">Office phone</td><td><a href="tel:${escapeHtml(ctx.office.phone)}" style="color:#1a1a2e">${escapeHtml(ctx.office.phone)}</a></td></tr>`,
+        )
+      }
+      if (ctx.office.email) {
+        rows.push(
+          `<tr><td style="padding:2px 0;color:#888">Office email</td><td><a href="mailto:${escapeHtml(ctx.office.email)}" style="color:#1a1a2e">${escapeHtml(ctx.office.email)}</a></td></tr>`,
+        )
+      }
+      if (ctx.office.address.length) {
+        rows.push(
+          `<tr><td style="padding:2px 0;color:#888;vertical-align:top">Address</td><td>${ctx.office.address.map(escapeHtml).join("<br>")}</td></tr>`,
+        )
+      }
+    }
+    for (const p of ctx.phoneContacts) {
+      const bits = [p.phone ? `<a href="tel:${escapeHtml(p.phone)}" style="color:#1a1a2e">${escapeHtml(p.phone)}</a>` : "", p.email ? `<a href="mailto:${escapeHtml(p.email)}" style="color:#1a1a2e">${escapeHtml(p.email)}</a>` : ""].filter(Boolean).join(" · ")
+      rows.push(
+        `<tr><td style="padding:2px 0;color:#888">${escapeHtml(p.name)}${p.role ? `<br><span style='color:#aaa;font-size:11px'>${escapeHtml(p.role)}</span>` : ""}</td><td>${bits}</td></tr>`,
+      )
+    }
+    if (rows.length === 0) return ""
+    return `
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0" />
+      <p style="margin:0 0 8px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.08em">Reach us on</p>
+      <table cellpadding="0" style="border-collapse:collapse;font-size:13px;color:#1a1a2e">
+        ${rows.join("")}
+      </table>`
+  })()
+
+  return `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#1a1a2e">
+      <p style="margin:0 0 16px">Hi ${escapeHtml(ctx.inquirerName.split(" ")[0] || ctx.inquirerName)},</p>
+      <div style="font-size:14px;line-height:1.6">${bodyHtml}</div>
+      ${contactBlock}
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0" />
+      <p style="margin:0;font-size:11px;color:#aaa">Your original message (${escapeHtml(ctx.inquiryType)}):</p>
+      <blockquote style="margin:8px 0 0;padding:12px 16px;background:#f7f7f8;border-radius:6px;font-size:12px;color:#666;line-height:1.5">${quotedMsg}</blockquote>
+    </div>
+  `
+}
+
 export async function submitContactInquiry(formData: FormData) {
   const payload: InquiryPayload = {
     full_name: formData.get("full_name") as string,
