@@ -18,6 +18,7 @@ import {
   type CreateTemplateData,
 } from "@/app/actions/emailTemplateActions"
 import { createClient } from "@/utils/supabase/client"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
 
@@ -71,6 +72,7 @@ interface EventOption {
 /* ── Component ──────────────────────────────────────────────────────────── */
 
 export default function AdminEmailTemplatesPage() {
+  const { can } = useAdminPermissions()
   const [templates, setTemplates] = useState<EmailTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState<EventOption[]>([])
@@ -281,7 +283,7 @@ export default function AdminEmailTemplatesPage() {
           </p>
         </div>
 
-        {!showForm && (
+        {!showForm && can("attendees", "create") && (
           <button
             onClick={handleCreate}
             className="flex items-center gap-2 px-5 py-2.5 bg-[#1a73e8] text-white text-sm font-semibold rounded-lg hover:bg-[#1557b0] transition-colors shadow-sm"

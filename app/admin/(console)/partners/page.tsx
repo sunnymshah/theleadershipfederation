@@ -16,6 +16,7 @@ import {
 import { Plus, Pencil, Trash2, Loader2, Handshake, Filter, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PageContentEditor, type SectionDef } from "@/components/admin/PageContentEditor"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 
 const PARTNERS_PAGE_SECTIONS: SectionDef[] = [
   {
@@ -105,6 +106,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 }
 
 export default function AdminPartnersPage() {
+  const { can } = useAdminPermissions()
   const [items, setItems]           = useState<Partner[]>([])
   const [loading, setLoading]       = useState(true)
   const [showForm, setShowForm]     = useState(false)
@@ -168,12 +170,14 @@ export default function AdminPartnersPage() {
             Manage partner logos shown on the /partners page.
           </p>
         </div>
-        <button
+        {can("sponsors", "create") && (
+          <button
           onClick={openAdd}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-colors"
         >
           <Plus size={16} /> New Partner
         </button>
+        )}
       </div>
 
       {error && !showForm && (
