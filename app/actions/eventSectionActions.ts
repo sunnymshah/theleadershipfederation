@@ -16,25 +16,29 @@ import { requirePermission } from "@/lib/server-permissions"
 import { SECTION_KINDS, type EventSection, type SectionKind } from "@/lib/event-sections"
 
 /**
- * Revalidate both the admin builder page and the public event page after a
- * section mutation so edits are "real-time" on the public site. Wrapped in
- * try/catch per Next 16 guidance — a render failure must not fail the
- * mutation.
+ * Revalidate the PUBLIC event page after a section mutation so edits are
+ * "real-time" on /events/[slug]. We deliberately do NOT revalidate the admin
+ * builder path — that page is a fully-client component, so revalidating it
+ * only forces a visible RSC re-render that remounts the client tree and
+ * wipes transient state (open popovers, focus, scroll). In practice that
+ * looked like the builder was "constantly refreshing" after every keystroke.
+ *
+ * Wrapped in try/catch per Next 16 guidance — a render failure must not
+ * fail the mutation.
  */
 async function revalidateEvent(eventId: string, slug?: string | null) {
-  try { revalidatePath(`/admin/events/${eventId}/builder`) } catch { /* ignore */ }
   if (slug) {
     try { revalidatePath(`/events/${slug}`) } catch { /* ignore */ }
-  } else {
-    // Look up the slug so we can revalidate the public page too.
-    try {
-      const admin = createAdminClient()
-      const { data } = await admin.from("events").select("slug").eq("id", eventId).maybeSingle()
-      if (data?.slug) {
-        try { revalidatePath(`/events/${data.slug}`) } catch { /* ignore */ }
-      }
-    } catch { /* ignore */ }
+    return
   }
+  // Look up the slug so we can revalidate the public page too.
+  try {
+    const admin = createAdminClient()
+    const { data } = await admin.from("events").select("slug").eq("id", eventId).maybeSingle()
+    if (data?.slug) {
+      try { revalidatePath(`/events/${data.slug}`) } catch { /* ignore */ }
+    }
+  } catch { /* ignore */ }
 }
 
 /* ── Read: public + admin ────────────────────────────────────────────── */
