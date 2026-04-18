@@ -22,7 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { Puck, type Data } from "@measured/puck"
 import "@measured/puck/puck.css"
-import { ArrowLeft, ExternalLink, Loader2, Check, Globe } from "lucide-react"
+import { ArrowLeft, ExternalLink, Loader2, Check, Globe, ChevronDown, Users, Ticket, ClipboardList, Building2, Settings, Database } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
 import type { BuilderMetadata } from "./blocks"
@@ -102,6 +102,18 @@ export function PuckEventBuilder({
     }
   }, [eventId])
 
+  /* ── Event-data menu ───────────────────────────────────────────────── *
+   * Quick access to the event's Sessions / Speakers / Tickets / Sponsors
+   * from inside the builder. Every link opens in a NEW TAB so the user's
+   * current Puck editing state (undo history, selection) isn't lost.     */
+  const [dataMenuOpen, setDataMenuOpen] = useState(false)
+  useEffect(() => {
+    if (!dataMenuOpen) return
+    const close = () => setDataMenuOpen(false)
+    window.addEventListener("click", close)
+    return () => window.removeEventListener("click", close)
+  }, [dataMenuOpen])
+
   /* ── Header override (replaces Puck's built-in header entirely) ──── *
    * We drop `actions` and `children` on purpose — the custom bar below
    * already carries Back, title, autosave, Preview, and a single Publish
@@ -111,10 +123,11 @@ export function PuckEventBuilder({
     <div className="h-14 shrink-0 flex items-center justify-between gap-4 px-4 bg-white border-b border-[#1a1a2e]/10">
       <div className="flex items-center gap-3 min-w-0">
         <Link
-          href={`/admin/events/${eventId}`}
+          href="/admin/builder"
           className="inline-flex items-center gap-1.5 text-sm text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
+          title="Back to Page Builder hub"
         >
-          <ArrowLeft size={15} /> Back
+          <ArrowLeft size={15} /> All pages
         </Link>
         <div className="w-px h-5 bg-[#1a1a2e]/15" />
         <div className="min-w-0">
@@ -127,6 +140,30 @@ export function PuckEventBuilder({
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Event data dropdown — same controls as the event detail page */}
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={() => setDataMenuOpen((v) => !v)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10"
+            aria-expanded={dataMenuOpen}
+            aria-haspopup="menu"
+          >
+            <Database size={13} /> Event data
+            <ChevronDown size={11} className={`transition-transform ${dataMenuOpen ? "rotate-180" : ""}`} />
+          </button>
+          {dataMenuOpen && (
+            <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-50">
+              <DataLink href={`/admin/events/${eventId}?tab=speakers`}     icon={Users}         label="Speakers" />
+              <DataLink href={`/admin/events/${eventId}?tab=agenda`}       icon={ClipboardList} label="Sessions & Agenda" />
+              <DataLink href={`/admin/events/${eventId}?tab=tickets`}      icon={Ticket}        label="Tickets" />
+              <DataLink href={`/admin/events/${eventId}?tab=sponsors`}     icon={Building2}     label="Sponsors" />
+              <div className="h-px bg-gray-100 my-1" />
+              <DataLink href={`/admin/events/${eventId}?tab=settings`}     icon={Settings}      label="Event settings" />
+            </div>
+          )}
+        </div>
+
         <Link
           href={`/events/${eventSlug}`}
           target="_blank"
@@ -154,7 +191,7 @@ export function PuckEventBuilder({
         </button>
       </div>
     </div>
-  ), [eventId, eventTitle, eventSlug, status, publishState, handlePublish])
+  ), [eventId, eventTitle, eventSlug, status, publishState, handlePublish, dataMenuOpen])
 
   const overrides = useMemo(() => ({
     header: Header,
@@ -184,6 +221,29 @@ export function PuckEventBuilder({
         />
       </div>
     </div>
+  )
+}
+
+function DataLink({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  label: string
+}) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2.5 px-3 py-2 text-[12px] text-[#1a1a2e]/80 hover:bg-gray-50 hover:text-[#1a1a2e] transition-colors"
+    >
+      <Icon size={13} className="text-gray-400" />
+      <span className="flex-1">{label}</span>
+      <ExternalLink size={10} className="text-gray-300" />
+    </Link>
   )
 }
 

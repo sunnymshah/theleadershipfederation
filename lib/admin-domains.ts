@@ -92,12 +92,13 @@ export const ADMIN_WORKSPACES: AdminWorkspace[] = [
       {
         title: "Build",
         items: [
-          { label: "All events",   href: "/admin/events" },
-          { label: "Sessions",     href: "/admin/sessions" },
-          { label: "Agenda",       href: "/admin/agenda" },
-          { label: "Speakers",     href: "/admin/advisory-board", permission: { module: "speakers", action: "view" } },
-          { label: "Tickets",      href: "/admin/tickets",        permission: { module: "tickets",  action: "view" } },
-          { label: "Promo codes",  href: "/admin/promo-codes",    permission: { module: "promo_codes", action: "view" } },
+          { label: "All events",    href: "/admin/events" },
+          { label: "Page Builder",  href: "/admin/builder", permission: { module: "events", action: "edit" } },
+          { label: "Sessions",      href: "/admin/sessions" },
+          { label: "Agenda",        href: "/admin/agenda" },
+          { label: "Speakers",      href: "/admin/advisory-board", permission: { module: "speakers", action: "view" } },
+          { label: "Tickets",       href: "/admin/tickets",        permission: { module: "tickets",  action: "view" } },
+          { label: "Promo codes",   href: "/admin/promo-codes",    permission: { module: "promo_codes", action: "view" } },
         ],
       },
       {

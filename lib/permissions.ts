@@ -103,6 +103,7 @@ export function canAccess(role: string, resource: string): boolean {
 export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin": "dashboard",
   "/admin/events": "events",
+  "/admin/builder": "events",
   "/admin/tickets": "tickets",
   "/admin/attendees": "attendees",
   "/admin/waitlist": "attendees",
