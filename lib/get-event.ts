@@ -20,19 +20,50 @@ import { createAdminClient } from "@/utils/supabase/admin"
  *      page that shows the attempted slug.
  */
 export const getEvent = cache(async (slug: string) => {
-  // 1. Anon client
+  const trimmed = (slug ?? "").trim()
+
+  // 1. Anon client, exact match
   try {
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
     const { data, error } = await supabase
       .from("events")
       .select("*")
-      .eq("slug", slug)
+      .eq("slug", trimmed)
       .maybeSingle()
     if (error) console.error("[getEvent] anon lookup error:", slug, error.message)
     if (data) return data
   } catch (err) {
     console.error("[getEvent] anon lookup threw:", err)
+  }
+
+  // 1b. Anon client, whitespace-tolerant match. Stored slugs sometimes pick
+  //     up leading/trailing spaces from form input (e.g. "mumbai "); the
+  //     URL param always arrives trimmed, so exact .eq() misses. We use
+  //     ILIKE with an exact-content guard (trim + case-insensitive compare)
+  //     so we only accept if exactly one row differs by whitespace alone.
+  if (trimmed) {
+    try {
+      const cookieStore = await cookies()
+      const supabase = createClient(cookieStore)
+      const safe = trimmed.replace(/[%_]/g, "")
+      const { data } = await supabase
+        .from("events")
+        .select("*")
+        .ilike("slug", `%${safe}%`)
+        .limit(5)
+      const canon = (data ?? []).filter(
+        (e) => (e.slug ?? "").trim().toLowerCase() === trimmed.toLowerCase(),
+      )
+      if (canon.length === 1) {
+        console.warn(
+          `[getEvent] slug matched via whitespace-tolerant anon lookup: requested="${slug}" matched="${canon[0].slug}"`,
+        )
+        return canon[0]
+      }
+    } catch (err) {
+      console.error("[getEvent] anon ws-tolerant lookup threw:", err)
+    }
   }
 
   // 2. Admin exact
