@@ -43,6 +43,8 @@ import {
   Users, Clock, Ticket, Building2, PlayCircle, ImageIcon,
   MousePointerClick, HelpCircle, Layers, Palette, Search, Plug,
   Settings, X, Undo, Redo, Globe, Monitor, Tablet, Smartphone,
+  Circle, Square, RectangleHorizontal, AlignCenter, AlignLeft, AlignRight,
+  Maximize2, Minimize2, SlidersHorizontal,
   FileText, History, Bell, Languages, Link2, Check, GripVertical, Sparkles, Keyboard,
 } from "lucide-react"
 
@@ -90,7 +92,10 @@ const RAIL: Array<{ id: RailTab; label: string; icon: React.ComponentType<{ size
 ]
 
 /* ── Device preview viewport widths ─────────────────────────────────── */
-const DEVICE_WIDTHS = { desktop: 1180, tablet: 820, mobile: 420 } as const
+// Desktop is intentionally "fluid" — it follows the canvas width so the
+// preview ratio matches how visitors actually see the page on a big screen.
+// Tablet + mobile stay pixel-fixed so device switchers remain useful.
+const DEVICE_WIDTHS = { desktop: "100%", tablet: "820px", mobile: "420px" } as const
 type Device = keyof typeof DEVICE_WIDTHS
 
 /* ── Quick-start templates (one-click stacks) ───────────────────────── */
@@ -734,8 +739,11 @@ export default function EventBuilderPage() {
             </div>
           ) : (
             <div
-              className="mx-auto py-8 px-4 space-y-0 transition-[max-width] duration-200"
+              className="mx-auto py-6 px-4 space-y-0 transition-[max-width,width] duration-200"
               style={{
+                // Desktop = 100% of the canvas column (full-screen ratio),
+                // tablet + mobile constrain to the device frame.
+                width: DEVICE_WIDTHS[device],
                 maxWidth: DEVICE_WIDTHS[device],
                 // subtle tint of the theme background so page-bg changes are visible between cards
                 ["--canvas-tint" as string]: "color-mix(in srgb, var(--lf-background, #F4F8FF) 18%, #0a0a0a)",
@@ -896,6 +904,191 @@ const DropZone = memo(function DropZone({
 })
 
 /* ═════════════════════════════════════════════════════════════════════ */
+/* LAYOUT / FRAME options per section kind                               */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Each section kind supports a handful of layout variants and, where
+ * applicable, picture frame + image-fit settings. These are stored in the
+ * section's JSONB `data` blob under `layout`, `frame`, and `fit` so the
+ * schema stays flexible. The public renderer (`components/site/EventSections.tsx`)
+ * reads the same keys.
+ */
+type LayoutOption = { id: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }
+type FrameOption  = { id: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }
+type FitOption    = { id: string; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }
+
+const LAYOUT_OPTIONS: Partial<Record<SectionKind, LayoutOption[]>> = {
+  hero: [
+    { id: "center",      label: "Centered",  icon: AlignCenter },
+    { id: "left",        label: "Left",      icon: AlignLeft },
+    { id: "right",       label: "Right",     icon: AlignRight },
+    { id: "split-image", label: "Split",     icon: LayoutPanelTop },
+  ],
+  rich_text: [
+    { id: "plain",       label: "Plain",       icon: Type },
+    { id: "image-left",  label: "Image left",  icon: AlignLeft },
+    { id: "image-right", label: "Image right", icon: AlignRight },
+  ],
+  speakers_grid: [
+    { id: "grid-4",   label: "4-up grid", icon: LayoutPanelTop },
+    { id: "grid-3",   label: "3-up grid", icon: LayoutPanelTop },
+    { id: "row",      label: "Row",       icon: AlignCenter },
+  ],
+  stats_row: [
+    { id: "row",  label: "Row",    icon: AlignCenter },
+    { id: "tiles", label: "Tiles", icon: LayoutPanelTop },
+  ],
+  cta_button: [
+    { id: "center", label: "Centered", icon: AlignCenter },
+    { id: "left",   label: "Left",     icon: AlignLeft },
+  ],
+}
+
+const FRAME_OPTIONS: Partial<Record<SectionKind, FrameOption[]>> = {
+  hero:          [{ id: "full",    label: "Full bleed", icon: RectangleHorizontal },
+                  { id: "rounded", label: "Rounded",     icon: Square },
+                  { id: "soft",    label: "Soft corners",icon: Square }],
+  speakers_grid: [{ id: "circle",  label: "Circular",    icon: Circle },
+                  { id: "rounded", label: "Rounded",     icon: Square },
+                  { id: "square",  label: "Square",      icon: Square }],
+  rich_text:     [{ id: "rounded", label: "Rounded",     icon: Square },
+                  { id: "circle",  label: "Circular",    icon: Circle }],
+}
+
+const FIT_OPTIONS: FitOption[] = [
+  { id: "cover",   label: "Fill (zoom)",  icon: Maximize2 },
+  { id: "contain", label: "Fit (unzoom)", icon: Minimize2 },
+]
+
+/** Read a data key with sensible defaults per kind. */
+function readDataKey(s: EventSection, key: "layout" | "frame" | "fit"): string | null {
+  const d = (s.data ?? {}) as Record<string, unknown>
+  const v = d[key]
+  if (typeof v === "string" && v.length > 0) return v
+  // Defaults
+  if (key === "frame" && s.kind === "speakers_grid") return "circle"
+  if (key === "fit"   && s.kind === "speakers_grid") return "contain"
+  if (key === "layout") {
+    if (s.kind === "hero") return "center"
+    if (s.kind === "rich_text") return "plain"
+    if (s.kind === "speakers_grid") return "grid-4"
+    if (s.kind === "stats_row") return "row"
+    if (s.kind === "cta_button") return "center"
+  }
+  return null
+}
+
+function writeDataKey(s: EventSection, key: string, value: string): Record<string, unknown> {
+  const d = (s.data ?? {}) as Record<string, unknown>
+  return { ...d, [key]: value }
+}
+
+/* ── Layout / frame popover toolbar button ───────────────────────────── */
+function LayoutFramePicker({
+  section, onChange,
+}: {
+  section: EventSection
+  onChange: (data: Record<string, unknown>) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const layouts = LAYOUT_OPTIONS[section.kind] ?? []
+  const frames  = FRAME_OPTIONS[section.kind] ?? []
+  const hasImage = ["hero", "speakers_grid", "rich_text", "gallery"].includes(section.kind)
+  const curLayout = readDataKey(section, "layout")
+  const curFrame  = readDataKey(section, "frame")
+  const curFit    = readDataKey(section, "fit")
+
+  if (layouts.length === 0 && frames.length === 0 && !hasImage) return null
+
+  return (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Layout & frame"
+        className={`w-7 h-7 rounded-md backdrop-blur border flex items-center justify-center transition-colors ${
+          open
+            ? "bg-[#e7ab1c] text-[#1a1a2e] border-[#e7ab1c]"
+            : "bg-[#1a1a1a]/90 border-white/10 text-white/80 hover:text-white hover:bg-[#2a2a2a]"
+        }`}
+      >
+        <SlidersHorizontal size={12} />
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1.5 w-[240px] bg-[#141414] border border-white/10 rounded-lg shadow-2xl p-3 z-30 space-y-3">
+          {layouts.length > 0 && (
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1.5">Layout</p>
+              <div className="grid grid-cols-2 gap-1">
+                {layouts.map((opt) => {
+                  const I = opt.icon
+                  const active = curLayout === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => onChange(writeDataKey(section, "layout", opt.id))}
+                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-[11px] font-medium transition-colors ${
+                        active ? "bg-[#e7ab1c] text-[#1a1a2e]" : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <I size={12} /> {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {frames.length > 0 && (
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1.5">Picture frame</p>
+              <div className="grid grid-cols-3 gap-1">
+                {frames.map((opt) => {
+                  const I = opt.icon
+                  const active = curFrame === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => onChange(writeDataKey(section, "frame", opt.id))}
+                      className={`flex flex-col items-center gap-1 px-2 py-2 rounded text-[10px] font-medium transition-colors ${
+                        active ? "bg-[#e7ab1c] text-[#1a1a2e]" : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <I size={14} /> {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {hasImage && (
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1.5">Image fit</p>
+              <div className="grid grid-cols-2 gap-1">
+                {FIT_OPTIONS.map((opt) => {
+                  const I = opt.icon
+                  const active = curFit === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => onChange(writeDataKey(section, "fit", opt.id))}
+                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-[11px] font-medium transition-colors ${
+                        active ? "bg-[#e7ab1c] text-[#1a1a2e]" : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <I size={12} /> {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
 /* SECTION CARD (compact + optional live render)                         */
 /* ═════════════════════════════════════════════════════════════════════ */
 
@@ -956,7 +1149,7 @@ const SectionCard = memo(function SectionCard(props: {
         <MiniPreview section={s} onInlineEdit={(patch) => onInlineEdit(s.id, patch)} />
       )}
 
-      {/* Drag handle (left edge, vertical center) */}
+      {/* Drag handle (left edge) — visible on hover */}
       <div
         draggable
         onDragStart={(e) => onDragStart(e, s.id)}
@@ -968,8 +1161,12 @@ const SectionCard = memo(function SectionCard(props: {
         <GripVertical size={12} />
       </div>
 
-      {/* Controls (top-right) */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20" onClick={(e) => e.stopPropagation()}>
+      {/* Controls (top-right) — always visible so edit options are discoverable */}
+      <div className="absolute top-2 right-2 flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()}>
+        <LayoutFramePicker
+          section={s}
+          onChange={(data) => onInlineEdit(s.id, { data } as Partial<EventSection>)}
+        />
         <button disabled={busy || index === 0} onClick={() => onMove(s.id, "up")} title="Move up"
           className="w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
           <ArrowUp size={12} />
@@ -1210,7 +1407,54 @@ const MiniPreview = memo(function MiniPreview({
         </div>
       )
     }
-    case "speakers_grid":
+    case "speakers_grid": {
+      // Preview the user's chosen frame/fit/layout using 4 placeholder
+      // avatars so the admin sees the outcome before publishing.
+      const frame  = readDataKey(s, "frame")  ?? "circle"
+      const fit    = readDataKey(s, "fit")    ?? "contain"
+      const layout = readDataKey(s, "layout") ?? "grid-4"
+      const cols = layout === "row" ? "flex flex-wrap justify-center gap-4"
+                 : layout === "grid-3" ? "grid grid-cols-3 gap-4"
+                 : "grid grid-cols-4 gap-4"
+      const isCircle = frame === "circle"
+      const shapeCls = frame === "square" ? "rounded-none"
+                     : frame === "rounded" ? "rounded-lg"
+                     : "rounded-full"
+      const fitCls = fit === "contain" ? "object-contain" : "object-cover"
+      return (
+        <div
+          className="p-8"
+          style={{
+            background: "color-mix(in srgb, var(--lf-background, #ffffff) 96%, black)",
+            color: "var(--lf-text, #1a1a2e)",
+            fontFamily: "var(--lf-body-font, inherit)",
+          }}
+        >
+          <Editable as="h3" value={s.title ?? ""} onCommit={(v) => onInlineEdit({ title: v })}
+            placeholder="Speakers" className="font-bold text-center block"
+            style={{ fontFamily: "var(--lf-heading-font, inherit)", fontSize: "calc(1rem * var(--lf-scale, 1))", color: "var(--lf-text, #1a1a2e)" }} />
+          <Editable as="p" value={s.subtitle ?? ""} onCommit={(v) => onInlineEdit({ subtitle: v })}
+            placeholder="Optional subtitle" className="text-xs text-center mt-1 block"
+            style={{ color: "color-mix(in srgb, var(--lf-text, #1a1a2e) 60%, transparent)" }} />
+          <div className={`${cols} mt-5 max-w-2xl mx-auto`}>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col items-center">
+                <div className={`relative ${isCircle ? "w-14 h-14" : "w-14 h-16"} ${shapeCls} overflow-hidden bg-white border border-[#1a1a2e]/10 flex items-center justify-center`}>
+                  <Users size={isCircle ? 20 : 18} className="text-[#1a1a2e]/30" />
+                  <span className={`absolute inset-0 ${fitCls}`} />
+                </div>
+                <span className="text-[9px] mt-1.5 text-[#1a1a2e]/60">Speaker {i + 1}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <span className="text-[10px] px-2 py-1 rounded bg-blue-50 text-blue-600 border border-blue-100 font-medium">
+              Auto-populates from event speakers · {layout} · {frame} · {fit}
+            </span>
+          </div>
+        </div>
+      )
+    }
     case "agenda":
     case "sponsors_grid":
     case "tickets_cta":
