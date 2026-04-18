@@ -46,6 +46,7 @@ import {
   Circle, Square, RectangleHorizontal, AlignCenter, AlignLeft, AlignRight,
   Maximize2, Minimize2, SlidersHorizontal,
   FileText, History, Bell, Languages, Link2, Check, GripVertical, Sparkles, Keyboard,
+  Pencil,
 } from "lucide-react"
 
 /* Lazy-load the heavy public-site renderer — only when user opts into
@@ -188,7 +189,11 @@ export default function EventBuilderPage() {
 
   const [tab, setTab] = useState<RailTab>("sections")
   const [device, setDevice] = useState<Device>("desktop")
-  const [livePreview, setLivePreview] = useState(false)
+  // Previously a toggle — now always on. The builder renders the REAL
+  // public-site components on the canvas, and every edit control is an
+  // overlay on top of that live render. Two-mode split was confusing and
+  // hid the edit chrome when Live was on.
+  const livePreview = true
 
   const [eventMeta, setEventMeta] = useState<EventMeta>({
     title: "", slug: "", status: "", start_date: null, end_date: null, venue: null, description: null, cover_image_url: null,
@@ -632,19 +637,15 @@ export default function EventBuilderPage() {
           })}
         </div>
 
-        {/* Live preview toggle */}
-        <button
-          onClick={() => setLivePreview((v) => !v)}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold border transition-colors ${
-            livePreview
-              ? "bg-[#e7ab1c]/15 text-[#e7ab1c] border-[#e7ab1c]/40"
-              : "bg-transparent text-white/60 border-white/10 hover:text-white"
-          }`}
-          title="Render actual website components on the canvas (slower)"
+        {/* Always-live indicator — the canvas always shows the real site.
+            There is no separate preview mode. */}
+        <span
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+          title="What you see is what visitors see. Click any text to edit."
         >
-          {livePreview ? <Eye size={12} /> : <EyeOff size={12} />}
-          Live
-        </button>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Live editing
+        </span>
 
         <div className="w-px h-5 bg-white/10 mx-1" />
 
@@ -753,9 +754,7 @@ export default function EventBuilderPage() {
             >
               <div className="mb-3 px-1 text-[11px] text-white/50 uppercase tracking-wider flex items-center justify-between">
                 <span>
-                  {livePreview
-                    ? "Live preview — what visitors see"
-                    : "Click any text to edit · hover between cards to insert · theme panel on the left"}
+                  Click any text to edit · use the + strip between cards to add · every change saves automatically
                 </span>
                 <span className="text-white/30 font-mono">{sections.length} section{sections.length === 1 ? "" : "s"}</span>
               </div>
@@ -1133,70 +1132,90 @@ const SectionCard = memo(function SectionCard(props: {
       style={{ background: "var(--lf-background, #ffffff)" }}
     >
       {livePreview ? (
-        <div className="pointer-events-none">
-          <Suspense fallback={<div className="h-[120px] bg-gray-100 animate-pulse" />}>
-            <EventSectionsRendererLazy
-              sections={onlineSections}
-              event={eventData}
-              speakers={speakers}
-              sessions={sessions}
-              sponsors={sponsors}
-              tickets={tickets}
-            />
-          </Suspense>
-        </div>
+        // Render the REAL public-site component. We do NOT use
+        // pointer-events-none here any more — clicks on editable text must
+        // reach the inline-edit handlers inside the renderer. The overlay
+        // chrome sits above (z-30) so controls win over any click target.
+        <Suspense fallback={<div className="h-[120px] bg-gray-100 animate-pulse" />}>
+          <EventSectionsRendererLazy
+            sections={onlineSections}
+            event={eventData}
+            speakers={speakers}
+            sessions={sessions}
+            sponsors={sponsors}
+            tickets={tickets}
+          />
+        </Suspense>
       ) : (
         <MiniPreview section={s} onInlineEdit={(patch) => onInlineEdit(s.id, patch)} />
       )}
 
-      {/* Drag handle (left edge) — visible on hover */}
+      {/* Top chrome — darkened bar across the top so controls are readable
+           over bright AND dark hero backgrounds. Always visible so every
+           edit option (pencil, layout, move, duplicate, delete) is
+           discoverable without hovering. */}
       <div
-        draggable
-        onDragStart={(e) => onDragStart(e, s.id)}
-        onDragEnd={onDragEnd}
+        className="absolute top-0 inset-x-0 z-30 flex items-center justify-between gap-2 px-2 py-2 bg-gradient-to-b from-black/60 to-transparent"
         onClick={(e) => e.stopPropagation()}
-        title="Drag to reorder"
-        className="absolute top-2 left-[160px] opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/70 hover:text-white hover:bg-[#2a2a2a] flex items-center justify-center cursor-grab active:cursor-grabbing z-20"
       >
-        <GripVertical size={12} />
-      </div>
+        <div className="flex items-center gap-1.5">
+          {/* Drag handle */}
+          <div
+            draggable
+            onDragStart={(e) => onDragStart(e, s.id)}
+            onDragEnd={onDragEnd}
+            title="Drag to reorder"
+            className="w-7 h-7 rounded-md bg-[#1a1a1a]/95 border border-white/15 text-white/80 hover:text-white hover:bg-[#2a2a2a] flex items-center justify-center cursor-grab active:cursor-grabbing"
+          >
+            <GripVertical size={12} />
+          </div>
+          {/* Section label */}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#1a1a1a]/95 border border-white/15">
+            <Icon size={11} className="text-[#e7ab1c]" />
+            <span className="text-[10px] font-bold text-white uppercase tracking-wider">{meta.label}</span>
+          </div>
+        </div>
 
-      {/* Controls (top-right) — always visible so edit options are discoverable */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()}>
-        <LayoutFramePicker
-          section={s}
-          onChange={(data) => onInlineEdit(s.id, { data } as Partial<EventSection>)}
-        />
-        <button disabled={busy || index === 0} onClick={() => onMove(s.id, "up")} title="Move up"
-          className="w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
-          <ArrowUp size={12} />
-        </button>
-        <button disabled={busy || index === total - 1} onClick={() => onMove(s.id, "down")} title="Move down"
-          className="w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
-          <ArrowDown size={12} />
-        </button>
-        <button disabled={busy} onClick={() => onDuplicate(s.id)} title="Duplicate"
-          className="w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
-          <Copy size={12} />
-        </button>
-        <button disabled={busy} onClick={() => onToggleVisibility(s.id)} title={hidden ? "Show" : "Hide"}
-          className={`w-7 h-7 rounded-md bg-[#1a1a1a]/90 backdrop-blur border border-white/10 hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center ${hidden ? "text-amber-300" : "text-white/80 hover:text-white"}`}>
-          {hidden ? <EyeOff size={12} /> : <Eye size={12} />}
-        </button>
-        <button disabled={busy} onClick={() => onDelete(s.id)} title="Delete"
-          className="w-7 h-7 rounded-md bg-red-500/15 backdrop-blur border border-red-500/30 text-red-300 hover:bg-red-500/25 disabled:opacity-30 flex items-center justify-center">
-          <Trash2 size={12} />
-        </button>
-      </div>
-
-      {/* Label (top-left) */}
-      <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#1a1a1a]/85 backdrop-blur border border-white/10">
-        <Icon size={11} className="text-[#e7ab1c]" />
-        <span className="text-[10px] font-bold text-white uppercase tracking-wider">{meta.label}</span>
+        <div className="flex items-center gap-1">
+          {/* Edit (opens inline edit focus) — prominent pencil button */}
+          <button
+            disabled={busy}
+            onClick={() => onEdit(s)}
+            title="Edit content, image, layout, font"
+            className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md bg-[#e7ab1c] text-[#1a1a2e] text-[11px] font-bold hover:bg-[#d49c10] disabled:opacity-40"
+          >
+            <Pencil size={11} /> Edit
+          </button>
+          {/* Layout / frame / fit picker */}
+          <LayoutFramePicker
+            section={s}
+            onChange={(data) => onInlineEdit(s.id, { data } as Partial<EventSection>)}
+          />
+          <button disabled={busy || index === 0} onClick={() => onMove(s.id, "up")} title="Move up"
+            className="w-7 h-7 rounded-md bg-[#1a1a1a]/95 border border-white/15 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
+            <ArrowUp size={12} />
+          </button>
+          <button disabled={busy || index === total - 1} onClick={() => onMove(s.id, "down")} title="Move down"
+            className="w-7 h-7 rounded-md bg-[#1a1a1a]/95 border border-white/15 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
+            <ArrowDown size={12} />
+          </button>
+          <button disabled={busy} onClick={() => onDuplicate(s.id)} title="Duplicate"
+            className="w-7 h-7 rounded-md bg-[#1a1a1a]/95 border border-white/15 text-white/80 hover:text-white hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center">
+            <Copy size={12} />
+          </button>
+          <button disabled={busy} onClick={() => onToggleVisibility(s.id)} title={hidden ? "Show" : "Hide"}
+            className={`w-7 h-7 rounded-md bg-[#1a1a1a]/95 border border-white/15 hover:bg-[#2a2a2a] disabled:opacity-30 flex items-center justify-center ${hidden ? "text-amber-300" : "text-white/80 hover:text-white"}`}>
+            {hidden ? <EyeOff size={12} /> : <Eye size={12} />}
+          </button>
+          <button disabled={busy} onClick={() => onDelete(s.id)} title="Delete"
+            className="w-7 h-7 rounded-md bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/35 disabled:opacity-30 flex items-center justify-center">
+            <Trash2 size={12} />
+          </button>
+        </div>
       </div>
 
       {busy && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40">
           <Loader2 size={18} className="text-white animate-spin" />
         </div>
       )}
@@ -1552,17 +1571,17 @@ const InlineAddButton = memo(function InlineAddButton({
   open, onToggle, onPick,
 }: { open: boolean; onToggle: () => void; onPick: (kind: SectionKind) => void }) {
   return (
-    <div className="relative h-8 flex items-center justify-center group">
-      <div className={`absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-white/10 ${open ? "" : "group-hover:bg-white/30"} transition-colors`} />
+    <div className="relative h-10 flex items-center justify-center group">
+      <div className={`absolute inset-x-0 top-1/2 -translate-y-1/2 h-px ${open ? "bg-[#e7ab1c]/60" : "bg-white/15 group-hover:bg-[#e7ab1c]/40"} transition-colors`} />
       <button
         onClick={onToggle}
-        className={`relative z-10 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
+        className={`relative z-10 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-all shadow-lg shadow-black/40 ${
           open
             ? "bg-[#e7ab1c] text-[#1a1a2e]"
-            : "bg-[#1a1a1a] text-white/60 border border-white/10 opacity-0 group-hover:opacity-100 hover:text-white hover:border-[#e7ab1c]/50"
+            : "bg-[#1a1a1a] text-white border border-[#e7ab1c]/40 hover:bg-[#e7ab1c] hover:text-[#1a1a2e] hover:border-[#e7ab1c]"
         }`}
       >
-        <Plus size={12} />
+        <Plus size={13} />
         Add Section
       </button>
       {open && (
