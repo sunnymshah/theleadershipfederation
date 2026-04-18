@@ -20,6 +20,15 @@ type Event = {
 }
 
 type Speaker = { id: string; name: string; designation: string | null; company: string | null; image_url: string | null }
+
+/** Pull a data-key from an event section's JSONB. Used for layout/frame/fit
+ *  options chosen in the admin builder. Returns null when unset so callers
+ *  can apply their own per-kind default. */
+function sData(s: EventSection, key: "layout" | "frame" | "fit"): string | null {
+  const d = (s.data ?? {}) as Record<string, unknown>
+  const v = d[key]
+  return typeof v === "string" && v.length > 0 ? v : null
+}
 type Session = { id: string; title: string; starts_at: string; ends_at: string | null; speaker_names: string[] | null; track: string | null }
 type Sponsor = { id: string; name: string; logo_url: string | null; tier: string | null; website: string | null }
 type Ticket = { id: string; name: string; description: string | null; price_inr: number; sold: number; inventory_limit: number | null }
@@ -210,6 +219,28 @@ function StatsRowBlock({ s }: { s: EventSection }) {
 /* ── SPEAKERS GRID ───────────────────────────────────────────────────── */
 function SpeakersGridBlock({ s, speakers }: { s: EventSection; speakers: Speaker[] }) {
   if (speakers.length === 0) return null
+
+  // Admin-controlled layout options (read from event_sections.data JSON):
+  //   layout: "grid-4" (default) | "grid-3" | "row"
+  //   frame : "circle" (default) | "rounded" | "square"
+  //   fit   : "contain" (default — "unzoomed" — whole photo visible) | "cover"
+  const layout = sData(s, "layout") ?? "grid-4"
+  const frame  = sData(s, "frame")  ?? "circle"
+  const fit    = sData(s, "fit")    ?? "contain"
+
+  const gridCls =
+    layout === "row"     ? "flex flex-wrap items-start justify-center gap-6" :
+    layout === "grid-3"  ? "grid grid-cols-2 sm:grid-cols-3 gap-6" :
+                           "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"
+
+  // Circular frame → square aspect + rounded-full, centred text beneath.
+  // Rounded/square → rectangular portrait card (old style).
+  const isCircle = frame === "circle"
+
+  // Image fit: contain avoids cropping heads off (what the user asked for
+  // when they said "unzoom"). Cover is the classic tight portrait crop.
+  const fitCls = fit === "contain" ? "object-contain" : "object-cover"
+
   return (
     <section className="max-w-6xl mx-auto px-6 py-16 sm:py-20">
       <div className="text-center mb-10">
@@ -221,26 +252,57 @@ function SpeakersGridBlock({ s, speakers }: { s: EventSection; speakers: Speaker
         </h2>
         {s.subtitle && <p className="mt-3 text-[#1a1a2e]/70 max-w-2xl mx-auto">{s.subtitle}</p>}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-        {speakers.map((sp) => (
-          <div key={sp.id} className="group bg-white border border-[#1a1a2e]/[0.06] rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-[#e7ab1c]/25 transition-all duration-300">
-            <div className="relative aspect-[4/5] bg-[#F4F8FF]">
-              {sp.image_url ? (
-                <Image src={sp.image_url} alt={sp.name} fill className="object-cover group-hover:scale-[1.03] transition-transform duration-500" sizes="(max-width: 640px) 50vw, 25vw" />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <User size={48} className="text-[#1a1a2e]/15" />
+
+      {isCircle ? (
+        <div className={gridCls}>
+          {speakers.map((sp) => (
+            <div key={sp.id} className="group flex flex-col items-center text-center">
+              <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-[#F4F8FF] border-4 border-white shadow-[0_8px_24px_rgba(26,26,46,0.12)] group-hover:shadow-[0_12px_32px_rgba(231,171,28,0.25)] transition-all duration-300">
+                {sp.image_url ? (
+                  <Image
+                    src={sp.image_url}
+                    alt={sp.name}
+                    fill
+                    className={`${fitCls} group-hover:scale-[1.03] transition-transform duration-500`}
+                    sizes="160px"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <User size={56} className="text-[#1a1a2e]/20" />
+                  </div>
+                )}
+              </div>
+              <h3 className="mt-4 text-sm font-bold text-[#1a1a2e] leading-snug max-w-[180px]" style={sfFont}>{sp.name}</h3>
+              {sp.designation && <p className="text-xs text-[#1a1a2e]/70 mt-1 max-w-[180px]">{sp.designation}</p>}
+              {sp.company && <p className="text-[11px] text-[#e7ab1c] font-semibold mt-0.5 max-w-[180px] truncate">{sp.company}</p>}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={gridCls}>
+          {speakers.map((sp) => {
+            const radius = frame === "square" ? "rounded-none" : "rounded-2xl"
+            return (
+              <div key={sp.id} className={`group bg-white border border-[#1a1a2e]/[0.06] overflow-hidden shadow-sm hover:shadow-md hover:border-[#e7ab1c]/25 transition-all duration-300 ${radius}`}>
+                <div className="relative aspect-[4/5] bg-[#F4F8FF]">
+                  {sp.image_url ? (
+                    <Image src={sp.image_url} alt={sp.name} fill className={`${fitCls} group-hover:scale-[1.03] transition-transform duration-500`} sizes="(max-width: 640px) 50vw, 25vw" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <User size={48} className="text-[#1a1a2e]/15" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="text-sm font-bold text-[#1a1a2e] leading-snug truncate" style={sfFont}>{sp.name}</h3>
-              {sp.designation && <p className="text-xs text-[#1a1a2e]/70 mt-0.5 truncate">{sp.designation}</p>}
-              {sp.company && <p className="text-[11px] text-[#e7ab1c] font-semibold mt-0.5 truncate">{sp.company}</p>}
-            </div>
-          </div>
-        ))}
-      </div>
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-[#1a1a2e] leading-snug truncate" style={sfFont}>{sp.name}</h3>
+                  {sp.designation && <p className="text-xs text-[#1a1a2e]/70 mt-0.5 truncate">{sp.designation}</p>}
+                  {sp.company && <p className="text-[11px] text-[#e7ab1c] font-semibold mt-0.5 truncate">{sp.company}</p>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }
