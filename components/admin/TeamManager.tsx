@@ -8,7 +8,6 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
 import {
   getTeamMembers,
   inviteTeamMember,
@@ -30,7 +29,6 @@ import {
   ChevronDown,
   AlertCircle,
   Check,
-  ArrowRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -154,13 +152,11 @@ export function TeamManager() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-[#333] mb-1">
-            Team Management
-          </h2>
+          <h3 className="text-lg font-semibold text-[#333] mb-0.5">Members</h3>
           <p className="text-sm text-[#888]">
-            Invite members and manage access roles
+            Invite people and assign their access role.
           </p>
         </div>
         <button
@@ -171,34 +167,9 @@ export function TeamManager() {
           }}
           className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
         >
-          <UserPlus size={16} /> Invite Member
+          <UserPlus size={16} /> Invite member
         </button>
       </div>
-
-      {/* Access profiles shortcut — the permissions themselves live in
-          Settings → Profiles. Keep one source of truth; link there. */}
-      <Link
-        href="/admin/settings?tab=profiles"
-        className="group flex items-center justify-between gap-4 mb-8 px-5 py-4 rounded-xl border border-[#e0e0e0] bg-gradient-to-r from-[#faf7ef] to-white hover:border-[#c9a84c]/40 hover:shadow-sm transition-all"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-[#c9a84c]/10 text-[#c9a84c] flex items-center justify-center shrink-0">
-            <Shield size={18} />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[13px] font-semibold text-[#1a1a2e]">
-              Access profiles
-            </div>
-            <div className="text-[11px] text-[#888] truncate">
-              Fine-grained per-module permissions. Assign a profile when inviting a member.
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 text-[12px] font-medium text-[#888] group-hover:text-[#1a1a2e] shrink-0">
-          Manage profiles
-          <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-        </div>
-      </Link>
 
       {/* Status messages */}
       {error && (
