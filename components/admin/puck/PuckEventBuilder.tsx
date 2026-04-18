@@ -120,36 +120,38 @@ export function PuckEventBuilder({
    * button. Keeping Puck's default actions would re-introduce the
    * duplicate-Publish bug.                                              */
   const Header = useCallback(() => (
-    <div className="h-14 shrink-0 flex items-center justify-between gap-4 px-4 bg-white border-b border-[#1a1a2e]/10">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="h-14 w-full shrink-0 flex items-center justify-between gap-3 px-4 bg-white border-b border-[#1a1a2e]/10">
+      {/* LEFT: back + title + autosave — all in one tight horizontal row */}
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <Link
           href="/admin/builder"
-          className="inline-flex items-center gap-1.5 text-sm text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors whitespace-nowrap shrink-0"
           title="Back to Page Builder hub"
         >
-          <ArrowLeft size={15} /> All pages
+          <ArrowLeft size={14} />
+          <span className="hidden sm:inline">Back</span>
         </Link>
-        <div className="w-px h-5 bg-[#1a1a2e]/15" />
-        <div className="min-w-0">
-          <p className="text-[10px] text-[#1a1a2e]/50 leading-none uppercase tracking-[0.12em] font-semibold">Page Builder</p>
-          <p className="text-sm font-semibold leading-tight truncate max-w-[340px] text-[#1a1a2e]">
-            {eventTitle}
-          </p>
-        </div>
-        <AutosaveBadge status={status} />
+        <span className="hidden md:block w-px h-5 bg-[#1a1a2e]/10 shrink-0" />
+        <span className="text-sm font-semibold truncate text-[#1a1a2e] min-w-0">
+          {eventTitle}
+        </span>
+        <span className="shrink-0"><AutosaveBadge status={status} /></span>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* RIGHT: actions */}
+      <div className="flex items-center gap-2 shrink-0">
         {/* Event data dropdown — same controls as the event detail page */}
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
             onClick={() => setDataMenuOpen((v) => !v)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap"
             aria-expanded={dataMenuOpen}
             aria-haspopup="menu"
+            title="Manage speakers, sessions, tickets, sponsors"
           >
-            <Database size={13} /> Event data
+            <Database size={13} />
+            <span className="hidden lg:inline">Event data</span>
             <ChevronDown size={11} className={`transition-transform ${dataMenuOpen ? "rotate-180" : ""}`} />
           </button>
           {dataMenuOpen && (
@@ -168,15 +170,16 @@ export function PuckEventBuilder({
           href={`/events/${eventSlug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap"
         >
-          <ExternalLink size={13} /> Preview
+          <ExternalLink size={13} />
+          <span className="hidden lg:inline">Preview</span>
         </Link>
         <button
           type="button"
           onClick={handlePublish}
           disabled={publishState === "publishing"}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors disabled:opacity-60 whitespace-nowrap"
         >
           {publishState === "publishing"
             ? <Loader2 size={13} className="animate-spin" />
@@ -184,7 +187,7 @@ export function PuckEventBuilder({
               ? <Check size={13} />
               : <Globe size={13} />}
           {publishState === "publishing"
-            ? "Publishing…"
+            ? "Publishing\u2026"
             : publishState === "published"
               ? "Published"
               : "Publish"}

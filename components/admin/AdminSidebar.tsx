@@ -226,15 +226,15 @@ function WorkspaceNav({
   perms: ProfilePermissions | null | undefined
   isActive: (href: string) => boolean
 }) {
-  // Filter each group's items by profile permissions.
-  const visibleGroups = w.groups
-    .map((g) => ({
-      ...g,
-      items: g.items.filter((s: WorkspaceSection) => canAccessSection(s, w, role, perms)),
-    }))
-    .filter((g) => g.items.length > 0)
+  // Flatten every group's items into one list and filter by profile perms.
+  // The groups in admin-domains.ts are preserved for the home tiles and
+  // semantic ordering, but the sidebar renders them as a single flat list
+  // so users don't have to navigate multiple nested sections.
+  const items: WorkspaceSection[] = w.groups
+    .flatMap((g) => g.items)
+    .filter((s) => canAccessSection(s, w, role, perms))
 
-  if (visibleGroups.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="px-3 py-2 text-[12px] text-gray-400">
         This workspace has no sections available to your profile.
@@ -243,41 +243,32 @@ function WorkspaceNav({
   }
 
   return (
-    <div className="space-y-5">
-      {visibleGroups.map((g) => (
-        <div key={g.title}>
-          <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">
-            {g.title}
-          </div>
-          <div className="space-y-0.5 px-1">
-            {g.items.map((s) => {
-              const active = isActive(s.href)
-              return (
-                <Link
-                  key={s.href}
-                  href={s.href}
-                  className={cn(
-                    "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] transition-all",
-                    active
-                      ? "font-semibold text-[#1a1a2e]"
-                      : "text-[#5f6368] hover:bg-[#f6f7f9] hover:text-[#1a1a2e] font-medium"
-                  )}
-                  style={active ? { backgroundColor: `${w.accent}14` } : undefined}
-                >
-                  <span
-                    className={cn(
-                      "w-1 h-1 rounded-full shrink-0 transition-all",
-                      active ? "w-1.5 h-1.5" : "opacity-40"
-                    )}
-                    style={{ backgroundColor: active ? w.accent : "currentColor" }}
-                  />
-                  <span className="truncate">{s.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      ))}
+    <div className="space-y-0.5 px-1">
+      {items.map((s) => {
+        const active = isActive(s.href)
+        return (
+          <Link
+            key={s.href}
+            href={s.href}
+            className={cn(
+              "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] transition-all",
+              active
+                ? "font-semibold text-[#1a1a2e]"
+                : "text-[#5f6368] hover:bg-[#f6f7f9] hover:text-[#1a1a2e] font-medium"
+            )}
+            style={active ? { backgroundColor: `${w.accent}14` } : undefined}
+          >
+            <span
+              className={cn(
+                "w-1 h-1 rounded-full shrink-0 transition-all",
+                active ? "w-1.5 h-1.5" : "opacity-40"
+              )}
+              style={{ backgroundColor: active ? w.accent : "currentColor" }}
+            />
+            <span className="truncate">{s.label}</span>
+          </Link>
+        )
+      })}
     </div>
   )
 }
