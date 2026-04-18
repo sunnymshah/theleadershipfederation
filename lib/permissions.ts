@@ -225,7 +225,7 @@ export function canAccessNavItem(
  * @returns true if access is granted, false otherwise
  */
 export function canAccessWithProfile(
-  permissions: ProfilePermissions,
+  permissions: ProfilePermissions | null | undefined,
   module: string,
   action: string
 ): boolean {

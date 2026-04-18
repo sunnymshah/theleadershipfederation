@@ -3,12 +3,19 @@
 /**
  * ── PuckEventBuilder ──────────────────────────────────────────────────
  *
- * Wraps Puck's `<Puck>` editor with the admin chrome the rest of the
- * console uses: back button, event title, Preview (opens the public page
- * in a new tab), and Publish. Autosave is debounced and fires
- * `saveBuilderDraft` on every change.
+ * Fullscreen wrapper around Puck's `<Puck>` editor. Uses the `overrides`
+ * API to REPLACE Puck's default header actions with our own so there's
+ * exactly ONE Publish button (the screenshot-reported duplicate bug).
  *
- * Gets mounted from `app/admin/(console)/events/[id]/builder/page.tsx`.
+ *   overrides.headerActions → our [Autosave-badge | Preview | Publish]
+ *   overrides.headerTitle   → our Back-arrow + event-title group
+ *
+ * Mounted from `app/admin/builder/[id]/page.tsx`, which lives OUTSIDE
+ * the `(console)` route group so the editor owns the entire viewport —
+ * no admin sidebar, no top bar, just `h-screen w-screen`.
+ *
+ * Autosave is debounced 700ms (fires `saveBuilderDraft`); publish flushes
+ * any pending save first so it can't race a stale draft.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -95,76 +102,84 @@ export function PuckEventBuilder({
     }
   }, [eventId])
 
+  /* ── Header override (replaces Puck's built-in header entirely) ──── *
+   * We drop `actions` and `children` on purpose — the custom bar below
+   * already carries Back, title, autosave, Preview, and a single Publish
+   * button. Keeping Puck's default actions would re-introduce the
+   * duplicate-Publish bug.                                              */
+  const Header = useCallback(() => (
+    <div className="h-14 shrink-0 flex items-center justify-between gap-4 px-4 bg-white border-b border-[#1a1a2e]/10">
+      <div className="flex items-center gap-3 min-w-0">
+        <Link
+          href={`/admin/events/${eventId}`}
+          className="inline-flex items-center gap-1.5 text-sm text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
+        >
+          <ArrowLeft size={15} /> Back
+        </Link>
+        <div className="w-px h-5 bg-[#1a1a2e]/15" />
+        <div className="min-w-0">
+          <p className="text-[10px] text-[#1a1a2e]/50 leading-none uppercase tracking-[0.12em] font-semibold">Page Builder</p>
+          <p className="text-sm font-semibold leading-tight truncate max-w-[340px] text-[#1a1a2e]">
+            {eventTitle}
+          </p>
+        </div>
+        <AutosaveBadge status={status} />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/events/${eventSlug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10"
+        >
+          <ExternalLink size={13} /> Preview
+        </Link>
+        <button
+          type="button"
+          onClick={handlePublish}
+          disabled={publishState === "publishing"}
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors disabled:opacity-60"
+        >
+          {publishState === "publishing"
+            ? <Loader2 size={13} className="animate-spin" />
+            : publishState === "published"
+              ? <Check size={13} />
+              : <Globe size={13} />}
+          {publishState === "publishing"
+            ? "Publishing…"
+            : publishState === "published"
+              ? "Published"
+              : "Publish"}
+        </button>
+      </div>
+    </div>
+  ), [eventId, eventTitle, eventSlug, status, publishState, handlePublish])
+
+  const overrides = useMemo(() => ({
+    header: Header,
+  }), [Header])
+
   return (
-    // Escape the admin shell's padding so the builder can fill edge-to-edge.
-    // The admin <main> is the scroll container (overflow-y-auto) with ~p-4
-    // padding and the top chrome is ~52px tall — so the builder gets the
-    // remaining viewport height minus that bar.
-    <div className="-m-3 sm:-m-4 md:-m-6 flex flex-col h-[calc(100vh-52px)] bg-[#0a0a14] text-white">
-      {/* ── Chrome top bar ────────────────────────────────────────── */}
-      <header className="shrink-0 h-14 flex items-center justify-between px-4 gap-4 bg-[#0a0a14] border-b border-white/10">
-        <div className="flex items-center gap-3 min-w-0">
-          <Link
-            href="/admin/events"
-            className="inline-flex items-center gap-1.5 text-sm text-white/65 hover:text-white transition-colors"
-          >
-            <ArrowLeft size={15} /> Events
-          </Link>
-          <div className="w-px h-5 bg-white/10" />
-          <div className="min-w-0">
-            <p className="text-xs text-white/45 leading-none">Builder</p>
-            <p className="text-sm font-semibold leading-tight truncate max-w-[340px]">
-              {eventTitle}
-            </p>
-          </div>
-          <AutosaveBadge status={status} />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/events/${eventSlug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <ExternalLink size={13} /> Preview
-          </Link>
-          <button
-            type="button"
-            onClick={handlePublish}
-            disabled={publishState === "publishing"}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors disabled:opacity-60"
-          >
-            {publishState === "publishing"
-              ? <Loader2 size={13} className="animate-spin" />
-              : publishState === "published"
-                ? <Check size={13} />
-                : <Globe size={13} />}
-            {publishState === "publishing"
-              ? "Publishing…"
-              : publishState === "published"
-                ? "Published"
-                : "Publish"}
-          </button>
-        </div>
-      </header>
-
+    // Fullscreen — we're outside the (console) shell so we can fill the
+    // whole viewport. The Puck chrome supplies its own header strip.
+    <div className="fixed inset-0 flex flex-col bg-white text-[#1a1a2e]">
       {publishMsg && (
-        <div className={`px-4 py-1.5 text-[11px] font-medium ${
-          publishState === "error" ? "bg-red-900/30 text-red-300" : "bg-emerald-900/30 text-emerald-300"
+        <div className={`shrink-0 px-4 py-1.5 text-[11px] font-medium text-center ${
+          publishState === "error" ? "bg-red-900/10 text-red-700" : "bg-emerald-900/10 text-emerald-700"
         }`}>
           {publishMsg}
         </div>
       )}
 
-      {/* ── Puck editor fills the rest ────────────────────────────── */}
-      <div className="flex-1 min-h-0 bg-white text-[#1a1a2e]">
+      <div className="flex-1 min-h-0">
         <Puck
           config={puckConfig}
           data={seededInitial}
           metadata={metadata as unknown as Record<string, unknown>}
           onChange={(d) => scheduleSave(d as Data)}
           onPublish={handlePublish}
+          overrides={overrides}
           iframe={{ enabled: true }}
         />
       </div>
@@ -179,11 +194,11 @@ function AutosaveBadge({ status }: { status: "idle" | "saving" | "saved" | "erro
       : status === "saved" ? "Saved"
         : "Save failed"
   const tone =
-    status === "saving" ? "text-white/55"
-      : status === "saved" ? "text-emerald-400"
-        : "text-red-400"
+    status === "saving" ? "text-[#1a1a2e]/55"
+      : status === "saved" ? "text-emerald-600"
+        : "text-red-600"
   return (
-    <span className={`inline-flex items-center gap-1.5 text-[11px] ${tone}`}>
+    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${tone}`}>
       {status === "saving"
         ? <Loader2 size={10} className="animate-spin" />
         : status === "saved"

@@ -1,40 +1,75 @@
 /**
- * ── /admin/events/[id]/builder ────────────────────────────────────────
+ * ── /admin/builder/[id] ───────────────────────────────────────────────
  *
- * Thin server wrapper that loads everything the Puck editor needs —
- * event, speakers, sessions, sponsors, tickets, and the current draft —
- * then mounts `<PuckEventBuilder>` on the client.
+ * FULLSCREEN Puck editor for the event page builder. Lives OUTSIDE the
+ * `(console)` route group so it doesn't inherit `AdminLayoutShell`
+ * (sidebar + 52px top bar). The builder owns the entire viewport.
  *
- * The actual editor lives in `components/admin/puck/PuckEventBuilder.tsx`;
- * this file just bridges server-fetched data into client props.
+ * Auth is inlined here — same three-layer gate as (console)/layout.tsx
+ * (authenticated → team member row → events.edit permission), just
+ * redirected to a deep /admin path on failure.
  *
- * Replaces the legacy custom canvas builder. For historical reference,
- * that implementation wrote to the `event_sections` table — data from
- * there is migrated on-the-fly by `getBuilderDraft` via `legacyToPuck`
- * so existing events open with a pre-populated canvas.
+ * Replaces the legacy /admin/events/[id]/builder route which sat inside
+ * the console shell and couldn't go edge-to-edge.
  */
 
-import { notFound } from "next/navigation"
+import { cookies } from "next/headers"
+import { notFound, redirect } from "next/navigation"
+import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { getBuilderDraft } from "@/app/actions/eventBuilderActions"
 import { PuckEventBuilder } from "@/components/admin/puck/PuckEventBuilder"
 import { emptyBuilderSeed } from "@/lib/event-puck-migrate"
+import { canAccessWithProfile } from "@/lib/permissions"
 import type { BuilderMetadata } from "@/components/admin/puck/blocks"
+import type { ProfilePermissions } from "@/app/actions/profileActions"
 import type { Data } from "@measured/puck"
 
 export const dynamic = "force-dynamic"
 
-export default async function EventBuilderPage({
+export default async function FullscreenBuilderPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const admin = createAdminClient()
 
-  // Load event + reference data in parallel. These all go through the
-  // service-role client so the builder works regardless of RLS state on
-  // the admin tables (the layout already auth-gates the route).
+  /* ── Auth gate (inline — we're outside (console)) ──────────────────── */
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    redirect(`/admin/login?next=${encodeURIComponent(`/admin/builder/${id}`)}`)
+  }
+
+  const admin = createAdminClient()
+  const { data: teamMember } = await admin
+    .from("team_members")
+    .select("role, profile_id")
+    .eq("user_id", user.id)
+    .maybeSingle()
+
+  if (!teamMember?.role) {
+    await supabase.auth.signOut()
+    redirect("/admin/login?error=access-denied")
+  }
+
+  let profilePermissions: ProfilePermissions | null = null
+  if (teamMember.role !== "super_admin" && teamMember.profile_id) {
+    const { data: profile } = await admin
+      .from("access_profiles")
+      .select("permissions")
+      .eq("id", teamMember.profile_id)
+      .eq("is_active", true)
+      .maybeSingle()
+    profilePermissions = (profile?.permissions as ProfilePermissions) ?? null
+  }
+
+  if (!canAccessWithProfile(profilePermissions, "events", "edit") && teamMember.role !== "super_admin") {
+    redirect("/admin/denied?from=/admin/builder")
+  }
+
+  /* ── Load event + reference data in parallel ───────────────────────── */
   const [
     eventRes,
     speakersRes,
@@ -71,12 +106,9 @@ export default async function EventBuilderPage({
     getBuilderDraft(id),
   ])
 
-  if (!eventRes.data) {
-    notFound()
-  }
+  if (!eventRes.data) notFound()
   const event = eventRes.data
 
-  // Shape the reference data exactly the way blocks.tsx expects it.
   const metadata: BuilderMetadata = {
     event: {
       id: event.id as string,

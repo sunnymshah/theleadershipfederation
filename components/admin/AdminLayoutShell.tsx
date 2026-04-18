@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { AdminSidebar } from "./AdminSidebar"
 import { AdminPermissionsProvider } from "./AdminPermissionsContext"
-import { Menu } from "lucide-react"
+import { Menu, Grid3x3 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { workspaceForPath } from "@/lib/admin-domains"
 import type { ProfilePermissions } from "@/app/actions/profileActions"
 
 export function AdminLayoutShell({
@@ -21,6 +23,7 @@ export function AdminLayoutShell({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const activeWorkspace = workspaceForPath(pathname)
 
   // Close sidebar on route change
   useEffect(() => {
@@ -60,12 +63,10 @@ export function AdminLayoutShell({
             : "opacity-0 pointer-events-none"
         )}
       >
-        {/* Backdrop */}
         <div
           className="absolute inset-0 bg-black/40"
           onClick={() => setSidebarOpen(false)}
         />
-        {/* Sidebar drawer */}
         <div
           className={cn(
             "absolute inset-y-0 left-0 w-[280px] max-w-[85vw] transition-transform duration-200 shadow-2xl [&>aside]:w-full",
@@ -92,14 +93,46 @@ export function AdminLayoutShell({
             >
               <Menu size={20} />
             </button>
-            <span className="text-[13px] sm:text-[14px] font-semibold text-[#333] truncate">
+            <Link
+              href="/admin"
+              className="text-[13px] sm:text-[14px] font-semibold text-[#333] truncate hover:text-[#c9a84c] transition-colors"
+            >
               The Leadership Federation
-            </span>
-            <span className="hidden sm:inline text-[11px] text-[#888] px-2 py-0.5 bg-[#f0f0f0] rounded font-medium whitespace-nowrap">
-              Admin Console
-            </span>
+            </Link>
+            {activeWorkspace ? (
+              <div className="hidden sm:flex items-center gap-1.5">
+                <span className="text-gray-300 text-sm">/</span>
+                <span
+                  className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap"
+                  style={{
+                    backgroundColor: `${activeWorkspace.accent}18`,
+                    color: activeWorkspace.accent,
+                  }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: activeWorkspace.accent }}
+                  />
+                  {activeWorkspace.name}
+                </span>
+              </div>
+            ) : (
+              <span className="hidden sm:inline text-[11px] text-[#888] px-2 py-0.5 bg-[#f0f0f0] rounded font-medium whitespace-nowrap">
+                Admin
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {activeWorkspace && (
+              <Link
+                href="/admin"
+                className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-[#1a1a2e] px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
+                title="Switch workspace"
+              >
+                <Grid3x3 size={12} />
+                Switch
+              </Link>
+            )}
             <span className="text-[12px] text-[#666] hidden md:block truncate max-w-[200px]">
               {userEmail}
             </span>
@@ -111,7 +144,6 @@ export function AdminLayoutShell({
           </div>
         </header>
 
-        {/* Scrollable workspace — responsive padding */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           {children}
         </main>

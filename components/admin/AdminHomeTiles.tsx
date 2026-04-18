@@ -1,86 +1,89 @@
 "use client"
 
 /**
- * ─── ADMIN HOME TILES ────────────────────────────────────────────────
+ * ─── WORKSPACE PICKER ────────────────────────────────────────────────
  *
- * Post-login landing surface. Renders the 9 domain tiles from
- * `ADMIN_DOMAINS`, splitting them into two rails:
+ * The post-login landing. Netflix-style "which workspace are you
+ * opening today" — big accent-coloured cards for the 4 workspaces the
+ * user has access to, a compact row of locked ones below.
  *
- *   Workspaces  — tiles the signed-in user can enter (full colour, clickable)
- *   Locked      — tiles they can't (dimmed + padlock; clicking shows a
- *                 "request access" dialog instead of silently bouncing).
- *
- * Data comes from `AdminPermissionsProvider`, which the console layout
- * populates from the user's team_members row + access_profiles JSON.
- * Super admins always see every tile as unlocked.
+ * Data comes from AdminPermissionsProvider so super admins see all
+ * four and everyone else sees only what their profile grants.
  */
 
 import Link from "next/link"
 import { useState } from "react"
 import { useAdminPermissions } from "./AdminPermissionsContext"
-import { ADMIN_DOMAINS, canAccessDomain, type AdminDomain, type IconName } from "@/lib/admin-domains"
-import { Lock } from "lucide-react"
+import {
+  ADMIN_WORKSPACES,
+  canAccessWorkspace,
+  type AdminWorkspace,
+  type IconName,
+} from "@/lib/admin-domains"
+import { Lock, ArrowRight } from "lucide-react"
 
 export function AdminHomeTiles({ userName }: { userName?: string | null }) {
   const { role, permissions } = useAdminPermissions()
+  const [denied, setDenied] = useState<AdminWorkspace | null>(null)
 
-  const [deniedDomain, setDeniedDomain] = useState<AdminDomain | null>(null)
+  const unlocked = ADMIN_WORKSPACES.filter((w) => canAccessWorkspace(w, role, permissions))
+  const locked   = ADMIN_WORKSPACES.filter((w) => !canAccessWorkspace(w, role, permissions))
 
-  const unlocked = ADMIN_DOMAINS.filter((d) => canAccessDomain(d, role, permissions))
-  const locked   = ADMIN_DOMAINS.filter((d) => !canAccessDomain(d, role, permissions))
+  const firstName = userName?.split(" ")[0] ?? null
 
   return (
-    <section className="mb-10">
+    <section>
       {/* Greeting */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-semibold text-[#1a1a2e] tracking-tight">
-          {userName ? `Welcome, ${userName.split(" ")[0]}.` : "Welcome."}
+      <div className="mb-8 md:mb-10">
+        <div className="text-[11px] uppercase tracking-[0.22em] text-gray-400 mb-2">
+          Workspaces
+        </div>
+        <h1 className="text-3xl md:text-4xl font-semibold text-[#1a1a2e] tracking-tight">
+          {firstName ? `Hey ${firstName}, where are we working today?` : "Where are we working today?"}
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-gray-500">
           {unlocked.length > 0
-            ? `You have access to ${unlocked.length} ${unlocked.length === 1 ? "workspace" : "workspaces"}. Pick where to begin.`
-            : "You don't have access to any workspaces yet. Contact your super admin."}
+            ? "Pick a workspace. You can switch anytime from the sidebar."
+            : "You don\u2019t have access to any workspaces yet. Ask a super admin."}
         </p>
       </div>
 
-      {/* Unlocked tiles */}
+      {/* Unlocked workspaces — large tiles */}
       {unlocked.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {unlocked.map((d) => (
-            <DomainTile key={d.slug} domain={d} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          {unlocked.map((w) => (
+            <WorkspaceTile key={w.slug} w={w} />
           ))}
         </div>
       )}
 
-      {/* Locked tiles, compact row */}
+      {/* Locked workspaces — compact padlock pills */}
       {locked.length > 0 && (
-        <div className="mt-8">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">
-            Not available to your role
+        <div className="mt-10">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-400 mb-3">
+            Not available to you
           </div>
           <div className="flex flex-wrap gap-2">
-            {locked.map((d) => (
+            {locked.map((w) => (
               <button
-                key={d.slug}
+                key={w.slug}
                 type="button"
-                onClick={() => setDeniedDomain(d)}
+                onClick={() => setDenied(w)}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 text-gray-500 text-xs hover:bg-gray-100 hover:border-gray-300 transition-all"
               >
                 <Lock size={12} />
-                {d.name}
+                {w.name}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Access-denied modal — the "if access not there then access denied"
-          UX the user asked for. Shown on click for locked tiles; keeps the
-          user on the landing instead of silently redirecting. */}
-      {deniedDomain && (
+      {/* Access-denied modal */}
+      {denied && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm"
-          onClick={() => setDeniedDomain(null)}
+          onClick={() => setDenied(null)}
         >
           <div
             className="max-w-sm w-full rounded-2xl bg-white p-6 shadow-2xl"
@@ -89,22 +92,25 @@ export function AdminHomeTiles({ userName }: { userName?: string | null }) {
             <div className="flex items-center gap-3 mb-4">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: `${deniedDomain.accent}22`, color: deniedDomain.accent }}
+                style={{ backgroundColor: `${denied.accent}22`, color: denied.accent }}
               >
                 <Lock size={18} />
               </div>
               <div>
-                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Access denied</div>
-                <div className="text-base font-semibold text-[#1a1a2e]">{deniedDomain.name}</div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-400">Access denied</div>
+                <div className="text-base font-semibold text-[#1a1a2e]">{denied.name}</div>
               </div>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Your profile doesn&rsquo;t include <strong>{deniedDomain.gate.module}.{deniedDomain.gate.action}</strong> permission.
-              Ask a super admin to update your access profile.
+              Your profile doesn&rsquo;t include{" "}
+              <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                {denied.gate.module}.{denied.gate.action}
+              </code>{" "}
+              permission. Ask a super admin to update your access profile.
             </p>
             <button
               type="button"
-              onClick={() => setDeniedDomain(null)}
+              onClick={() => setDenied(null)}
               className="mt-5 w-full py-2.5 rounded-xl bg-[#1a1a2e] text-white text-sm font-medium hover:bg-black transition-colors"
             >
               Got it
@@ -116,83 +122,86 @@ export function AdminHomeTiles({ userName }: { userName?: string | null }) {
   )
 }
 
-function DomainTile({ domain }: { domain: AdminDomain }) {
+function WorkspaceTile({ w }: { w: AdminWorkspace }) {
+  // Collect every section label across all groups so we can show what's
+  // inside the workspace at a glance.
+  const sectionLabels = w.groups.flatMap((g) => g.items.map((i) => i.label))
+
   return (
     <Link
-      href={domain.href}
-      className="group relative rounded-2xl overflow-hidden border border-gray-200 bg-white hover:border-transparent hover:shadow-[0_16px_40px_rgba(26,26,46,0.08)] transition-all"
+      href={w.href}
+      className="group relative rounded-3xl overflow-hidden border border-gray-200 bg-white hover:border-transparent hover:shadow-[0_24px_60px_rgba(26,26,46,0.10)] transition-all"
     >
-      {/* Accent stripe */}
-      <div
-        className="h-1.5 w-full"
-        style={{ background: `linear-gradient(90deg, ${domain.accent}, ${domain.accent}77)` }}
-      />
-      <div className="p-5">
-        <div className="flex items-start gap-4">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-            style={{
-              backgroundColor: `${domain.accent}18`,
-              color: domain.accent,
-            }}
-          >
-            <DomainIcon name={domain.icon} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-base font-semibold text-[#1a1a2e] group-hover:text-[#c9a84c] transition-colors">
-              {domain.name}
-            </div>
-            <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{domain.tagline}</div>
+      {/* Big accent block on the left */}
+      <div className="flex min-h-[180px]">
+        <div
+          className="w-[120px] md:w-[140px] shrink-0 flex items-center justify-center relative overflow-hidden"
+          style={{
+            background: `linear-gradient(135deg, ${w.accent} 0%, ${w.accent}cc 100%)`,
+          }}
+        >
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_30%_30%,white_0%,transparent_60%)]" />
+          <div className="relative text-white">
+            <WorkspaceIcon name={w.icon} />
           </div>
         </div>
-        <p className="mt-3 text-sm text-gray-600 leading-relaxed line-clamp-2">
-          {domain.description}
-        </p>
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex flex-wrap gap-1">
-            {domain.sections.slice(0, 3).map((s) => (
+
+        {/* Content */}
+        <div className="flex-1 p-5 md:p-6 min-w-0 flex flex-col">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-gray-400">
+                Workspace
+              </div>
+              <div className="mt-1 text-xl md:text-2xl font-semibold text-[#1a1a2e] group-hover:text-[#c9a84c] transition-colors">
+                {w.name}
+              </div>
+              <div className="mt-0.5 text-xs md:text-sm text-gray-500">{w.tagline}</div>
+            </div>
+            <ArrowRight
+              size={18}
+              className="shrink-0 text-gray-300 group-hover:text-[#c9a84c] group-hover:translate-x-1 transition-all"
+            />
+          </div>
+
+          <p className="mt-3 text-sm text-gray-600 leading-relaxed line-clamp-2">
+            {w.description}
+          </p>
+
+          <div className="mt-auto pt-4 flex flex-wrap gap-1.5">
+            {sectionLabels.slice(0, 4).map((label) => (
               <span
-                key={s.href}
+                key={label}
                 className="inline-block px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-[10px] text-gray-500"
               >
-                {s.label}
+                {label}
               </span>
             ))}
-            {domain.sections.length > 3 && (
+            {sectionLabels.length > 4 && (
               <span className="inline-block px-2 py-0.5 text-[10px] text-gray-400">
-                +{domain.sections.length - 3}
+                +{sectionLabels.length - 4} more
               </span>
             )}
           </div>
-          <span
-            className="text-xs font-medium transition-colors opacity-0 group-hover:opacity-100"
-            style={{ color: domain.accent }}
-          >
-            Open →
-          </span>
         </div>
       </div>
     </Link>
   )
 }
 
-/* Inline SVGs to avoid a new icon dependency and keep the tile grid
-   rendering on the first paint without a JS-dependent icon font. */
-function DomainIcon({ name }: { name: IconName }) {
+/* Inline SVG icons — one per workspace. No extra dep, renders on first paint. */
+function WorkspaceIcon({ name }: { name: IconName }) {
   const common = {
-    width: 22, height: 22, viewBox: "0 0 24 24",
-    fill: "none", stroke: "currentColor",
-    strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const,
+    width: 44,
+    height: 44,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
   }
   switch (name) {
-    case "crm":
-      return (
-        <svg {...common}>
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="8.5" cy="7" r="4" />
-          <path d="M20 8v6M23 11h-6" />
-        </svg>
-      )
     case "calendar":
       return (
         <svg {...common}>
@@ -225,27 +234,10 @@ function DomainIcon({ name }: { name: IconName }) {
           <path d="M18 12a2 2 0 0 0 0 4h4v-4z" />
         </svg>
       )
-    case "pages":
-      return (
-        <svg {...common}>
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="8" y1="13" x2="16" y2="13" />
-          <line x1="8" y1="17" x2="13" y2="17" />
-        </svg>
-      )
     case "shield":
       return (
         <svg {...common}>
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-      )
-    case "plug":
-      return (
-        <svg {...common}>
-          <path d="M9 2v6M15 2v6" />
-          <path d="M7 8h10v4a5 5 0 0 1-10 0z" />
-          <path d="M12 17v5" />
         </svg>
       )
     case "chart":
