@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useSearchParams } from "next/navigation"
 import {
   Settings as SettingsIcon,
   Shield,
@@ -370,8 +371,16 @@ function WidgetTab() {
  *  MAIN SETTINGS PAGE
  * ═══════════════════════════════════════════════════════════════════════════ */
 
+const VALID_TABS = new Set([
+  "general", "profiles", "registration", "payments",
+  "tax", "notifications", "widget", "audit",
+])
+
 export default function AdminSettingsPage() {
-  const [activeTab, setActiveTab] = useState("general")
+  const searchParams = useSearchParams()
+  const tabFromUrl = searchParams?.get("tab") ?? null
+  const initialTab = tabFromUrl && VALID_TABS.has(tabFromUrl) ? tabFromUrl : "general"
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [settings, setSettings] = useState<LocalSettings>(DEFAULT_SETTINGS)
   const [dirty, setDirty] = useState(false)
   const [saved, setSaved] = useState(false)
