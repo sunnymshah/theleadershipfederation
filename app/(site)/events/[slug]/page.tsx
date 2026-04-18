@@ -9,6 +9,8 @@ import { getEvent } from "@/lib/get-event"
 import { SpeakerGrid } from "@/components/site/SpeakerGrid"
 import { getEventSections } from "@/app/actions/eventSectionActions"
 import { EventSectionsRenderer } from "@/components/site/EventSections"
+import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
+import type { Data as PuckData } from "@measured/puck"
 
 // Short revalidate interval so admin edits appear on the public page quickly.
 // The section mutation actions also call revalidatePath(/events/<slug>) for
@@ -190,10 +192,65 @@ export default async function EventDetailPage({ params }: Props) {
   const tickets = ticketsRes.data ?? []
   const sections = sectionsRes.sections ?? []
 
-  // ── Page-builder renderer ──────────────────────────────────────────
-  // If the admin has added sections in /admin/events/<id>/builder, render
-  // from them (zoho-style). Otherwise fall back to the legacy layout
-  // below so existing events keep working.
+  // ── Puck-based builder (new) ──────────────────────────────────────
+  // If the admin has published via the Puck editor, render that first.
+  // `event.builder_data` is written by `publishBuilder` in
+  // eventBuilderActions.ts — a Puck `Data` object with content + root.
+  const builderData = (event as { builder_data?: PuckData | null }).builder_data
+  if (builderData && Array.isArray(builderData.content) && builderData.content.length > 0) {
+    return (
+      <PuckPublicRenderer
+        data={builderData}
+        metadata={{
+          event: {
+            id: event.id,
+            slug: event.slug,
+            title: event.title,
+            start_date: event.start_date,
+            end_date: event.end_date,
+            venue: event.venue,
+            description: event.description,
+            cover_image_url: event.cover_image_url,
+          },
+          speakers: speakers.map((s) => ({
+            id: s.id,
+            name: s.name,
+            designation: s.designation ?? null,
+            company: s.company ?? null,
+            image_url: s.image_url ?? null,
+          })),
+          sessions: sessions.map((s) => ({
+            id: s.id,
+            title: s.title,
+            starts_at: s.start_time,
+            ends_at: s.end_time ?? null,
+            speaker_names: null,
+            track: s.track ?? null,
+          })),
+          sponsors: sponsors.map((s) => ({
+            id: s.id,
+            name: s.name,
+            logo_url: s.logo_url ?? null,
+            tier: s.tier ?? null,
+            website: s.website_url ?? null,
+          })),
+          tickets: tickets.map((t) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description ?? null,
+            price_inr: t.price_inr,
+            sold: t.sold ?? 0,
+            inventory_limit: t.inventory_limit ?? null,
+          })),
+        }}
+      />
+    )
+  }
+
+  // ── Legacy page-builder renderer ─────────────────────────────────
+  // If the admin has added sections in /admin/events/<id>/builder (old
+  // table-based builder), render from them. Falls back to the legacy
+  // hard-coded layout below if neither builder has been used.
   if (sections.length > 0) {
     return (
       <EventSectionsRenderer
