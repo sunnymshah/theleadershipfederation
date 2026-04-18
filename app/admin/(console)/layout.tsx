@@ -118,7 +118,12 @@ export default async function ConsoleLayout({
   const gatePath =
     segments.length >= 2 ? `/${segments[0]}/${segments[1]}` : `/${segments[0] ?? ""}`
   if (!canAccessNavItem(userRole, gatePath, profilePermissions)) {
-    redirect("/admin")
+    // Redirect to the access-denied landing with the attempted path so
+    // the page can tell the user what they tried to open and suggest
+    // what they CAN access. Previously this silently bounced to /admin
+    // which was confusing — users didn't understand why their click
+    // "did nothing".
+    redirect(`/admin/denied?from=${encodeURIComponent(pathname)}`)
   }
 
   return (

@@ -157,6 +157,9 @@ export function canAccessNavItem(
 ): boolean {
   // Dashboard visible to everyone
   if (href === "/admin") return true
+  // Access-denied landing must be reachable regardless of permission state —
+  // otherwise the layout's "redirect on forbidden" loops into itself.
+  if (href === "/admin/denied") return true
 
   // Super admins ALWAYS see everything — their profile (if any) doesn't gate.
   if (role === "super_admin") return true
