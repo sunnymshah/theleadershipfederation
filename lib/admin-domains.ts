@@ -144,6 +144,7 @@ export const ADMIN_WORKSPACES: AdminWorkspace[] = [
         title: "Pipeline",
         items: [
           { label: "Leads",             href: "/admin/leads" },
+          { label: "Sponsor leads",     href: "/admin/sponsor-leads", permission: { module: "sponsors", action: "view" } },
           { label: "Contact inquiries", href: "/admin/contact-inquiries" },
         ],
       },
