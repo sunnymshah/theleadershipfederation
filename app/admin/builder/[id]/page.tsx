@@ -17,7 +17,7 @@ import { cookies } from "next/headers"
 import { notFound, redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
-import { getBuilderDraft } from "@/app/actions/eventBuilderActions"
+import { getBuilderDraft, getBuilderPagesDraft } from "@/app/actions/eventBuilderActions"
 import { PuckEventBuilder } from "@/components/admin/puck/PuckEventBuilder"
 import { emptyBuilderSeed } from "@/lib/event-puck-migrate"
 import { canAccessWithProfile } from "@/lib/permissions"
@@ -69,7 +69,7 @@ export default async function FullscreenBuilderPage({
     redirect("/admin/denied?from=/admin/builder")
   }
 
-  /* ── Load event + reference data in parallel ───────────────────────── */
+  /* ── Load event + reference data + builder state in parallel ──────── */
   const [
     eventRes,
     speakersRes,
@@ -77,6 +77,7 @@ export default async function FullscreenBuilderPage({
     sponsorsRes,
     ticketsRes,
     draftRes,
+    pagesRes,
   ] = await Promise.all([
     admin
       .from("events")
@@ -104,6 +105,7 @@ export default async function FullscreenBuilderPage({
       .eq("event_id", id)
       .order("sort_order", { ascending: true }),
     getBuilderDraft(id),
+    getBuilderPagesDraft(id),
   ])
 
   if (!eventRes.data) notFound()
@@ -162,6 +164,7 @@ export default async function FullscreenBuilderPage({
       eventTitle={(event.title as string) ?? "Event"}
       eventSlug={(event.slug as string) ?? ""}
       initialData={initialData}
+      initialPages={pagesRes.success ? pagesRes.pages : {}}
       metadata={metadata}
     />
   )

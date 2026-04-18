@@ -149,6 +149,8 @@ export default async function EventsPage() {
           <AnimateOnScroll animation="fade-up" delay={100}>
             <Link
               href={`/events/${(featured.slug ?? "").trim()}`}
+              target="_blank"
+              rel="noopener"
               className="group relative block rounded-3xl overflow-hidden bg-[#1a1a2e] min-h-[420px] sm:min-h-[480px]"
             >
               {/* Cover image as full background */}
@@ -277,6 +279,8 @@ export default async function EventsPage() {
                 <AnimateOnScroll key={event.id} animation="fade-up" delay={i * 100}>
                   <Link
                     href={`/events/${(event.slug ?? "").trim()}`}
+                    target="_blank"
+                    rel="noopener"
                     className="group relative flex flex-col rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_16px_48px_rgba(26,26,46,0.08)] hover:border-[#e7ab1c]/20 transition-all duration-300"
                   >
                     {/* Image */}
@@ -388,6 +392,8 @@ export default async function EventsPage() {
                 <Link
                   key={event.id}
                   href={`/events/${(event.slug ?? "").trim()}`}
+                  target="_blank"
+                  rel="noopener"
                   className="group relative block rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_8px_30px_rgba(26,26,46,0.06)] hover:border-[#e7ab1c]/15 transition-all duration-300"
                 >
                   {/* Cover */}
