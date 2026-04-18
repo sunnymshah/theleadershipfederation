@@ -21,7 +21,7 @@
  */
 
 import {
-  useState, useEffect, useCallback, useMemo, useRef, memo, lazy, Suspense,
+  useState, useEffect, useCallback, useMemo, useRef, memo,
 } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
@@ -48,14 +48,6 @@ import {
   FileText, History, Bell, Languages, Link2, Check, GripVertical, Sparkles, Keyboard,
   Pencil,
 } from "lucide-react"
-
-/* Lazy-load the heavy public-site renderer — only when user opts into
- * live preview. Keeps initial canvas render < 16ms for typical events. */
-const EventSectionsRendererLazy = lazy(() =>
-  import("@/components/site/EventSections").then((m) => ({
-    default: m.EventSectionsRenderer,
-  }))
-)
 
 const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -189,11 +181,6 @@ export default function EventBuilderPage() {
 
   const [tab, setTab] = useState<RailTab>("sections")
   const [device, setDevice] = useState<Device>("desktop")
-  // Previously a toggle — now always on. The builder renders the REAL
-  // public-site components on the canvas, and every edit control is an
-  // overlay on top of that live render. Two-mode split was confusing and
-  // hid the edit chrome when Live was on.
-  const livePreview = true
 
   const [eventMeta, setEventMeta] = useState<EventMeta>({
     title: "", slug: "", status: "", start_date: null, end_date: null, venue: null, description: null, cover_image_url: null,
@@ -776,7 +763,6 @@ export default function EventBuilderPage() {
                     index={i}
                     total={sections.length}
                     busy={pendingIds.has(s.id)}
-                    livePreview={livePreview}
                     eventData={eventData}
                     speakers={speakers}
                     sessions={sessions}
@@ -819,7 +805,6 @@ const SectionRow = memo(function SectionRow(props: {
   index: number
   total: number
   busy: boolean
-  livePreview: boolean
   eventData: Parameters<typeof SectionCard>[0]["eventData"]
   speakers: SpeakerRow[]
   sessions: SessionRow[]
@@ -843,7 +828,7 @@ const SectionRow = memo(function SectionRow(props: {
   onAddPick: (k: SectionKind) => void
 }) {
   const {
-    section, index, total, busy, livePreview, eventData,
+    section, index, total, busy, eventData,
     speakers, sessions, sponsors, tickets, editing, dragging, dropOver,
     onEdit, onMove, onDelete, onDuplicate, onToggleVisibility, onInlineEdit,
     onDragStart, onDragOver, onDrop, onDragEnd,
@@ -856,7 +841,6 @@ const SectionRow = memo(function SectionRow(props: {
         index={index}
         total={total}
         busy={busy}
-        livePreview={livePreview}
         editing={editing}
         dragging={dragging}
         eventData={eventData}
@@ -1096,7 +1080,6 @@ const SectionCard = memo(function SectionCard(props: {
   index: number
   total: number
   busy: boolean
-  livePreview: boolean
   editing: boolean
   dragging: boolean
   eventData: { id: string; slug: string; title: string; start_date: string; end_date: string | null; venue: string | null; description: string | null; cover_image_url: string | null }
@@ -1114,14 +1097,12 @@ const SectionCard = memo(function SectionCard(props: {
   onDragEnd: () => void
 }) {
   const {
-    section: s, index, total, busy, livePreview, editing, dragging, eventData,
-    speakers, sessions, sponsors, tickets,
+    section: s, index, total, busy, editing, dragging,
     onEdit, onMove, onDelete, onDuplicate, onToggleVisibility, onInlineEdit,
     onDragStart, onDragEnd,
   } = props
   const meta = KIND_META[s.kind]
   const Icon = meta.icon
-  const onlineSections = useMemo(() => [s], [s])
   const hidden = s.is_active === false
 
   return (
@@ -1131,24 +1112,18 @@ const SectionCard = memo(function SectionCard(props: {
       } ${dragging ? "opacity-50" : ""} ${hidden ? "opacity-50" : ""}`}
       style={{ background: "var(--lf-background, #ffffff)" }}
     >
-      {livePreview ? (
-        // Render the REAL public-site component. We do NOT use
-        // pointer-events-none here any more — clicks on editable text must
-        // reach the inline-edit handlers inside the renderer. The overlay
-        // chrome sits above (z-30) so controls win over any click target.
-        <Suspense fallback={<div className="h-[120px] bg-gray-100 animate-pulse" />}>
-          <EventSectionsRendererLazy
-            sections={onlineSections}
-            event={eventData}
-            speakers={speakers}
-            sessions={sessions}
-            sponsors={sponsors}
-            tickets={tickets}
-          />
-        </Suspense>
-      ) : (
-        <MiniPreview section={s} onInlineEdit={(patch) => onInlineEdit(s.id, patch)} />
-      )}
+      {/* EDITABLE live canvas.
+       *
+       * MiniPreview is styled with the same theme CSS variables
+       * (--lf-background, --lf-text, --lf-primary, --lf-heading-font,
+       * --lf-scale, …) as the public renderer, so it LOOKS like the
+       * live site — but every text node is a contentEditable Editable
+       * component that commits changes back through onInlineEdit.
+       *
+       * We do NOT mount the read-only public renderer here: it has no
+       * click-to-edit handlers, which was the reason "changes don't
+       * happen instantly" on the builder. */}
+      <MiniPreview section={s} onInlineEdit={(patch) => onInlineEdit(s.id, patch)} />
 
       {/* Top chrome — darkened bar across the top so controls are readable
            over bright AND dark hero backgrounds. Always visible so every
