@@ -156,11 +156,56 @@ function extractYouTubeId(url: string): string | null {
   return m ? m[1] : null
 }
 
-/* ── ROOT (theme cascade) ─────────────────────────────────────────── */
+/* ── ROOT (theme cascade + 20 presets) ───────────────────────────── *
+ * Pick a preset from the dropdown OR set explicit colour + font fields.
+ * A preset wins over individual fields so the user can "set and forget".
+ * Colours are published as CSS custom properties so child blocks can
+ * read them without hardcoding.                                       */
+
+export type ThemePresetKey =
+  | "custom"
+  | "classicGold"   | "midnightGold" | "ivorySerif"  | "techBlue"
+  | "forest"        | "sunset"       | "royalPurple" | "crimson"
+  | "slatePro"      | "neonNoir"     | "roseQuartz"  | "emerald"
+  | "amberLuxe"     | "navyLinen"    | "peach"       | "mint"
+  | "dusk"          | "paper"        | "ocean"       | "monochrome"
+
+type ThemePreset = {
+  label: string
+  primary: string
+  text: string
+  bg: string
+  font: NonNullable<RootProps["fontFamily"]>
+}
+
+export const THEME_PRESETS: Record<ThemePresetKey, ThemePreset> = {
+  custom:       { label: "Custom (use fields below)", primary: "#e7ab1c", text: "#1a1a2e", bg: "#ffffff", font: "sf" },
+  classicGold:  { label: "1. Classic Gold",  primary: "#e7ab1c", text: "#1a1a2e", bg: "#ffffff", font: "sf" },
+  midnightGold: { label: "2. Midnight Gold", primary: "#e7ab1c", text: "#f5f5f5", bg: "#0a0a14", font: "sf" },
+  ivorySerif:   { label: "3. Ivory Serif",   primary: "#8a6b3a", text: "#2a1a0a", bg: "#fdfaf3", font: "serif" },
+  techBlue:     { label: "4. Tech Blue",     primary: "#2563eb", text: "#0f172a", bg: "#f8fafc", font: "inter" },
+  forest:       { label: "5. Forest",        primary: "#065f46", text: "#022c22", bg: "#f0fdf4", font: "inter" },
+  sunset:       { label: "6. Sunset",        primary: "#f97316", text: "#431407", bg: "#fffbeb", font: "inter" },
+  royalPurple:  { label: "7. Royal Purple",  primary: "#7c3aed", text: "#1e1b4b", bg: "#faf5ff", font: "inter" },
+  crimson:      { label: "8. Crimson",       primary: "#dc2626", text: "#450a0a", bg: "#fef2f2", font: "serif" },
+  slatePro:     { label: "9. Slate Pro",     primary: "#475569", text: "#0f172a", bg: "#f1f5f9", font: "sf" },
+  neonNoir:     { label: "10. Neon Noir",    primary: "#22d3ee", text: "#e2e8f0", bg: "#020617", font: "mono" },
+  roseQuartz:   { label: "11. Rose Quartz",  primary: "#e11d48", text: "#4c0519", bg: "#fff1f2", font: "serif" },
+  emerald:      { label: "12. Emerald",      primary: "#10b981", text: "#064e3b", bg: "#ecfdf5", font: "sf" },
+  amberLuxe:    { label: "13. Amber Luxe",   primary: "#d97706", text: "#451a03", bg: "#fffbeb", font: "serif" },
+  navyLinen:    { label: "14. Navy Linen",   primary: "#f59e0b", text: "#f8f7f4", bg: "#1e293b", font: "serif" },
+  peach:        { label: "15. Peach",        primary: "#fb923c", text: "#7c2d12", bg: "#fff7ed", font: "inter" },
+  mint:         { label: "16. Mint",         primary: "#14b8a6", text: "#134e4a", bg: "#f0fdfa", font: "sf" },
+  dusk:         { label: "17. Dusk",         primary: "#c4b5fd", text: "#f5f3ff", bg: "#1e1b4b", font: "inter" },
+  paper:        { label: "18. Paper",        primary: "#dc2626", text: "#1f2937", bg: "#fef2f2", font: "serif" },
+  ocean:        { label: "19. Ocean",        primary: "#0891b2", text: "#0c4a6e", bg: "#f0f9ff", font: "sf" },
+  monochrome:   { label: "20. Monochrome",   primary: "#000000", text: "#111111", bg: "#ffffff", font: "mono" },
+}
 
 export type RootProps = {
   title?: string
-  primaryColor?: string     // hex
+  themePreset?: ThemePresetKey
+  primaryColor?: string     // hex (overridden by preset unless preset = custom)
   textColor?: string        // hex
   bgColor?: string          // hex
   fontFamily?: "sf" | "inter" | "serif" | "mono"
@@ -173,16 +218,24 @@ const FONT_STACKS: Record<NonNullable<RootProps["fontFamily"]>, string> = {
   mono:  "'JetBrains Mono', 'Menlo', monospace",
 }
 
-export function Root({ children, primaryColor, textColor, bgColor, fontFamily }: RootProps & { children: ReactNode }) {
-  const ff = FONT_STACKS[fontFamily ?? "sf"]
+export function Root({ children, themePreset, primaryColor, textColor, bgColor, fontFamily }: RootProps & { children: ReactNode }) {
+  // Preset wins unless set to "custom" — then fall back to explicit fields.
+  const preset =
+    themePreset && themePreset !== "custom"
+      ? THEME_PRESETS[themePreset]
+      : null
+  const effPrimary = preset ? preset.primary : (primaryColor || "#e7ab1c")
+  const effText    = preset ? preset.text    : (textColor    || "#1a1a2e")
+  const effBg      = preset ? preset.bg      : (bgColor      || "#ffffff")
+  const effFont    = preset ? preset.font    : (fontFamily   || "sf")
+  const ff = FONT_STACKS[effFont]
   const style: CSSProperties = {
     fontFamily: ff,
-    ...(bgColor ? { backgroundColor: bgColor } : {}),
-    ...(textColor ? { color: textColor } : {}),
-    // CSS custom properties for blocks that want to opt in later.
-    ["--lf-primary" as unknown as string]: primaryColor || "#e7ab1c",
-    ["--lf-text" as unknown as string]: textColor || "#1a1a2e",
-    ["--lf-bg" as unknown as string]: bgColor || "#ffffff",
+    backgroundColor: effBg,
+    color: effText,
+    ["--lf-primary" as unknown as string]: effPrimary,
+    ["--lf-text" as unknown as string]: effText,
+    ["--lf-bg" as unknown as string]: effBg,
   }
   return <div style={style}>{children}</div>
 }
@@ -914,6 +967,111 @@ export function Newsletter({ title, subtitle, ctaLabel, ctaUrl, layout }: Newsle
             {ctaLabel || "Subscribe"}
           </button>
         </form>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── TEXT BOX ─────────────────────────────────────────────────────── *
+ * Freeform paragraph/heading with full typography control. Use this
+ * when RichText is too opinionated — gives the admin direct knobs for
+ * size, weight, font, colour, bg, padding, width, alignment, and
+ * rounded corners. Effectively a "resizable, styleable text box".    */
+
+export type TextBoxProps = {
+  content: string
+  fontSize: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl"
+  fontWeight: "light" | "normal" | "medium" | "semibold" | "bold" | "extrabold"
+  fontFamily: "inherit" | "sf" | "inter" | "serif" | "mono"
+  italic: boolean
+  underline: boolean
+  textColor: string        // hex (blank = inherit)
+  backgroundColor: string  // hex (blank = transparent)
+  paddingY: "none" | "sm" | "md" | "lg"
+  paddingX: "none" | "sm" | "md" | "lg"
+  width: "narrow" | "wide" | "full"
+  alignment: "left" | "center" | "right"
+  rounded: "none" | "sm" | "md" | "lg" | "full"
+  border: boolean
+  layout?: LayoutProps
+}
+
+const TEXT_SIZE: Record<TextBoxProps["fontSize"], string> = {
+  sm: "text-sm",
+  base: "text-base",
+  lg: "text-lg",
+  xl: "text-xl",
+  "2xl": "text-2xl",
+  "3xl": "text-3xl sm:text-4xl",
+  "4xl": "text-4xl sm:text-5xl",
+  "5xl": "text-5xl sm:text-6xl",
+  "6xl": "text-6xl sm:text-7xl",
+}
+const TEXT_WEIGHT: Record<TextBoxProps["fontWeight"], string> = {
+  light: "font-light",
+  normal: "font-normal",
+  medium: "font-medium",
+  semibold: "font-semibold",
+  bold: "font-bold",
+  extrabold: "font-extrabold",
+}
+const PAD_Y: Record<TextBoxProps["paddingY"], string> = {
+  none: "py-0",
+  sm: "py-2",
+  md: "py-5",
+  lg: "py-10",
+}
+const PAD_X: Record<TextBoxProps["paddingX"], string> = {
+  none: "px-0",
+  sm: "px-3",
+  md: "px-6",
+  lg: "px-10",
+}
+const WIDTH: Record<TextBoxProps["width"], string> = {
+  narrow: "max-w-2xl",
+  wide:   "max-w-4xl",
+  full:   "max-w-none",
+}
+const ROUND: Record<TextBoxProps["rounded"], string> = {
+  none: "rounded-none",
+  sm:   "rounded-md",
+  md:   "rounded-xl",
+  lg:   "rounded-2xl",
+  full: "rounded-full",
+}
+
+export function TextBox({
+  content, fontSize, fontWeight, fontFamily, italic, underline,
+  textColor, backgroundColor, paddingY, paddingX, width, alignment, rounded,
+  border, layout,
+}: TextBoxProps) {
+  if (!content) return <SectionPlaceholder label="Text box (type content in the inspector)" />
+  const ff = fontFamily === "inherit" ? undefined : FONT_STACKS[fontFamily]
+  const boxStyle: CSSProperties = {
+    ...(textColor ? { color: textColor } : {}),
+    ...(backgroundColor ? { backgroundColor } : {}),
+    ...(ff ? { fontFamily: ff } : {}),
+  }
+  const innerCls = [
+    TEXT_SIZE[fontSize],
+    TEXT_WEIGHT[fontWeight],
+    PAD_Y[paddingY],
+    PAD_X[paddingX],
+    ROUND[rounded],
+    italic ? "italic" : "",
+    underline ? "underline decoration-[0.08em] underline-offset-4" : "",
+    border ? "border border-current/15" : "",
+    alignment === "center" ? "text-center"
+      : alignment === "right" ? "text-right" : "text-left",
+    "whitespace-pre-wrap leading-relaxed",
+  ].filter(Boolean).join(" ")
+
+  return (
+    <SectionShell layout={layout}>
+      <div className={`${WIDTH[width]} mx-auto px-6`}>
+        <div className={innerCls} style={boxStyle}>
+          {content}
+        </div>
       </div>
     </SectionShell>
   )

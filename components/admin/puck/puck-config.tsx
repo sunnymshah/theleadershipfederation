@@ -30,6 +30,8 @@ import {
   Hero, RichText, StatsRow, SpeakersGrid, Agenda, TicketsCta,
   SponsorsGrid, Video, Gallery, CtaButton, Faqs,
   Spacer, Divider, ImageBlock, TwoColumn, Testimonial, LogosStrip, Newsletter,
+  TextBox,
+  THEME_PRESETS,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -38,6 +40,7 @@ import {
   type SpacerProps, type DividerProps, type ImageBlockProps,
   type TwoColumnProps, type TestimonialProps, type LogosStripProps,
   type NewsletterProps,
+  type TextBoxProps,
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
@@ -45,6 +48,7 @@ import { ImageField } from "./ImageField"
 export type BuilderComponents = {
   Hero: HeroProps
   RichText: RichTextProps
+  TextBox: TextBoxProps
   StatsRow: StatsRowProps
   SpeakersGrid: SpeakersGridProps
   Agenda: AgendaProps
@@ -114,7 +118,7 @@ const defaultLayout: LayoutProps = { paddingY: "lg", backgroundColor: "", backgr
 export const puckConfig: Config<BuilderComponents> = {
   categories: {
     Headers:  { title: "Headers",         components: ["Hero"] },
-    Story:    { title: "Story",           components: ["RichText", "StatsRow", "TwoColumn", "Testimonial"] },
+    Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial"] },
     Speakers: { title: "Speakers",        components: ["SpeakersGrid"] },
     Program:  { title: "Program",         components: ["Agenda"] },
     Tickets:  { title: "Tickets",         components: ["TicketsCta"] },
@@ -180,6 +184,149 @@ export const puckConfig: Config<BuilderComponents> = {
         layout:   layoutField,
       },
       render: (p) => <RichText {...p} />,
+    },
+
+    /* ── TEXT BOX ────────────────────────────────────────────────── *
+     * Resizable/styleable text box — direct knobs for size, weight,
+     * font, colour, background, padding, width, alignment, rounded
+     * corners, and border. Use when RichText is too opinionated.     */
+    TextBox: {
+      label: "Text box",
+      defaultProps: {
+        content: "Type anything here.",
+        fontSize: "base",
+        fontWeight: "normal",
+        fontFamily: "inherit",
+        italic: false,
+        underline: false,
+        textColor: "",
+        backgroundColor: "",
+        paddingY: "md",
+        paddingX: "md",
+        width: "wide",
+        alignment: "left",
+        rounded: "md",
+        border: false,
+        layout: defaultLayout,
+      },
+      fields: {
+        content: { type: "textarea", label: "Content" },
+        fontSize: {
+          type: "select",
+          label: "Font size",
+          options: [
+            { label: "S (14)",   value: "sm" },
+            { label: "M (16)",   value: "base" },
+            { label: "L (18)",   value: "lg" },
+            { label: "XL (20)",  value: "xl" },
+            { label: "2XL (24)", value: "2xl" },
+            { label: "3XL (30)", value: "3xl" },
+            { label: "4XL (36)", value: "4xl" },
+            { label: "5XL (48)", value: "5xl" },
+            { label: "6XL (60)", value: "6xl" },
+          ],
+        },
+        fontWeight: {
+          type: "select",
+          label: "Weight",
+          options: [
+            { label: "Light",      value: "light" },
+            { label: "Normal",     value: "normal" },
+            { label: "Medium",     value: "medium" },
+            { label: "Semibold",   value: "semibold" },
+            { label: "Bold",       value: "bold" },
+            { label: "Extra-bold", value: "extrabold" },
+          ],
+        },
+        fontFamily: {
+          type: "select",
+          label: "Font family",
+          options: [
+            { label: "Inherit (page theme)", value: "inherit" },
+            { label: "SF Pro / System",       value: "sf" },
+            { label: "Inter",                 value: "inter" },
+            { label: "Serif (Playfair)",      value: "serif" },
+            { label: "Mono (JetBrains)",      value: "mono" },
+          ],
+        },
+        italic: {
+          type: "radio",
+          label: "Italic",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
+        underline: {
+          type: "radio",
+          label: "Underline",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
+        textColor:       { type: "text", label: "Text colour (hex, blank = inherit)" },
+        backgroundColor: { type: "text", label: "Box background colour (hex, blank = transparent)" },
+        paddingY: {
+          type: "select",
+          label: "Vertical padding (inner)",
+          options: [
+            { label: "None",  value: "none" },
+            { label: "Small", value: "sm" },
+            { label: "Medium", value: "md" },
+            { label: "Large", value: "lg" },
+          ],
+        },
+        paddingX: {
+          type: "select",
+          label: "Horizontal padding (inner)",
+          options: [
+            { label: "None",  value: "none" },
+            { label: "Small", value: "sm" },
+            { label: "Medium", value: "md" },
+            { label: "Large", value: "lg" },
+          ],
+        },
+        width: {
+          type: "select",
+          label: "Max width",
+          options: [
+            { label: "Narrow", value: "narrow" },
+            { label: "Wide",   value: "wide" },
+            { label: "Full",   value: "full" },
+          ],
+        },
+        alignment: {
+          type: "radio",
+          label: "Alignment",
+          options: [
+            { label: "Left",   value: "left" },
+            { label: "Center", value: "center" },
+            { label: "Right",  value: "right" },
+          ],
+        },
+        rounded: {
+          type: "select",
+          label: "Corner radius",
+          options: [
+            { label: "None",    value: "none" },
+            { label: "Small",   value: "sm" },
+            { label: "Medium",  value: "md" },
+            { label: "Large",   value: "lg" },
+            { label: "Pill",    value: "full" },
+          ],
+        },
+        border: {
+          type: "radio",
+          label: "Border",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
+        layout: layoutField,
+      },
+      render: (p) => <TextBox {...p} />,
     },
 
     /* ── STATS ROW ───────────────────────────────────────────────── */
@@ -589,7 +736,21 @@ export const puckConfig: Config<BuilderComponents> = {
 
   root: {
     fields: {
-      title:       { type: "text", label: "Page title (internal)" },
+      title: { type: "text", label: "Page title (internal)" },
+      /* Preset picker — 20 pre-designed colour + font combinations. If
+       * set to anything except "Custom", the preset's values WIN over the
+       * individual colour/font fields below. Keeps setup to one click for
+       * most events while still allowing full manual control.            */
+      themePreset: {
+        type: "select",
+        label: "Theme preset (overrides fields below when set)",
+        options: [
+          { label: "Custom — use fields below", value: "custom" },
+          ...Object.entries(THEME_PRESETS)
+            .filter(([k]) => k !== "custom")
+            .map(([k, v]) => ({ label: v.label, value: k })),
+        ],
+      },
       primaryColor: { type: "text", label: "Primary colour (hex, e.g. #e7ab1c)" },
       textColor:    { type: "text", label: "Default text colour (hex)" },
       bgColor:      { type: "text", label: "Page background colour (hex)" },
@@ -603,6 +764,14 @@ export const puckConfig: Config<BuilderComponents> = {
           { label: "Mono (JetBrains)",          value: "mono" },
         ],
       },
+    },
+    defaultProps: {
+      title: "",
+      themePreset: "custom",
+      primaryColor: "",
+      textColor: "",
+      bgColor: "",
+      fontFamily: "sf",
     },
     render: (props) => <Root {...(props as unknown as RootProps & { children: React.ReactNode })} />,
   },

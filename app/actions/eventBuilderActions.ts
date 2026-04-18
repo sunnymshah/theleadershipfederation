@@ -26,6 +26,8 @@ import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { requirePermission } from "@/lib/server-permissions"
 import { legacyToPuck, type PuckDataLike } from "@/lib/event-puck-migrate"
+import type { BuilderPagesMap, BuilderPage } from "@/lib/event-builder-pages"
+import { slugifyPage } from "@/lib/event-builder-pages"
 
 /* ── Read: admin editor ───────────────────────────────────────────────── */
 
@@ -289,6 +291,292 @@ export async function listEventTicketsForBuilder(
       description: (r.description as string | null) ?? null,
       price_inr: Number(r.price_inr ?? 0),
     }))
+  } catch {
+    return []
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+ * MULTI-PAGE SUPPORT
+ * ─────────────────────────────────────────────────────────────────────
+ * Home page continues to live in builder_data / builder_draft. Sub-pages
+ * live in builder_pages / builder_pages_draft as a map of slug → { title,
+ * data, order? }. Reads and writes use the same admin client + perm gate
+ * as the home-page equivalents above.                                   */
+
+/** Read the full DRAFT pages map for the editor. Returns {} when the
+ *  event has none yet. */
+export async function getBuilderPagesDraft(
+  eventId: string,
+): Promise<{ success: boolean; pages: BuilderPagesMap; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("events")
+      .select("builder_pages_draft, builder_pages")
+      .eq("id", eventId)
+      .maybeSingle()
+    if (error) return { success: false, pages: {}, error: error.message }
+    const draft = (data?.builder_pages_draft ?? data?.builder_pages ?? {}) as BuilderPagesMap
+    return { success: true, pages: draft }
+  } catch (err) {
+    return { success: false, pages: {}, error: (err as Error).message }
+  }
+}
+
+/** Autosave ONE sub-page. Title is optional — if omitted, the existing
+ *  title is preserved. */
+export async function saveBuilderPageDraft(
+  eventId: string,
+  pageSlug: string,
+  data: PuckDataLike,
+  title?: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const slug = slugifyPage(pageSlug)
+    if (!slug) return { success: false, error: "Invalid page slug." }
+    const admin = createAdminClient()
+
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_pages_draft")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = ((row?.builder_pages_draft ?? {}) as BuilderPagesMap)
+    const existing = map[slug]
+    if (!existing) return { success: false, error: "Page not found. Add it first." }
+
+    const next: BuilderPagesMap = {
+      ...map,
+      [slug]: {
+        ...existing,
+        data,
+        title: title ?? existing.title,
+      },
+    }
+    const { error } = await admin
+      .from("events")
+      .update({ builder_pages_draft: next, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/** Add a new blank sub-page. Fails on duplicate slug. Returns the final
+ *  slug (post-slugify) so the caller can switch to it. */
+export async function addBuilderPage(
+  eventId: string,
+  title: string,
+  desiredSlug?: string,
+): Promise<{ success: boolean; slug?: string; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const slug = slugifyPage(desiredSlug || title)
+    if (!slug) return { success: false, error: "Enter a page title." }
+
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_pages_draft")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = ((row?.builder_pages_draft ?? {}) as BuilderPagesMap)
+    if (map[slug]) return { success: false, error: "A page with that URL already exists." }
+
+    const blank: BuilderPage = {
+      title: title.trim() || slug,
+      data: {
+        content: [],
+        root: { props: { title: title.trim() || slug } },
+        zones: {},
+      },
+      order: Object.keys(map).length,
+    }
+    const next: BuilderPagesMap = { ...map, [slug]: blank }
+    const { error } = await admin
+      .from("events")
+      .update({ builder_pages_draft: next, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    return { success: true, slug }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/** Rename a sub-page (label AND slug). If `newSlug` resolves to the same
+ *  slugified value as `oldSlug`, only the title changes. */
+export async function renameBuilderPage(
+  eventId: string,
+  oldSlug: string,
+  newTitle: string,
+  newSlug?: string,
+): Promise<{ success: boolean; slug?: string; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const oldKey = slugifyPage(oldSlug)
+    const nextKey = slugifyPage(newSlug || newTitle)
+    if (!oldKey || !nextKey) return { success: false, error: "Invalid slug." }
+
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_pages_draft")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = ((row?.builder_pages_draft ?? {}) as BuilderPagesMap)
+    const existing = map[oldKey]
+    if (!existing) return { success: false, error: "Page not found." }
+
+    const copy: BuilderPagesMap = { ...map }
+    if (oldKey !== nextKey) {
+      if (copy[nextKey]) return { success: false, error: "That URL is already in use." }
+      delete copy[oldKey]
+    }
+    copy[nextKey] = { ...existing, title: newTitle.trim() || existing.title }
+
+    const { error } = await admin
+      .from("events")
+      .update({ builder_pages_draft: copy, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    return { success: true, slug: nextKey }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/** Remove a sub-page entirely. Also removes it from the PUBLISHED map so
+ *  it disappears from the public nav on next render. */
+export async function deleteBuilderPage(
+  eventId: string,
+  pageSlug: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const slug = slugifyPage(pageSlug)
+    if (!slug) return { success: false, error: "Invalid slug." }
+
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_pages_draft, builder_pages, slug")
+      .eq("id", eventId)
+      .maybeSingle()
+    const draftMap = ((row?.builder_pages_draft ?? {}) as BuilderPagesMap)
+    const liveMap  = ((row?.builder_pages       ?? {}) as BuilderPagesMap)
+    const nextDraft: BuilderPagesMap = { ...draftMap }
+    const nextLive:  BuilderPagesMap = { ...liveMap }
+    delete nextDraft[slug]
+    delete nextLive[slug]
+
+    const { error } = await admin
+      .from("events")
+      .update({
+        builder_pages_draft: nextDraft,
+        builder_pages: nextLive,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+
+    // Keep public caches honest — both the event home and the sub-page path.
+    if (row?.slug) {
+      try { revalidatePath(`/events/${row.slug as string}`) } catch { /* ignore */ }
+      try { revalidatePath(`/events/${row.slug as string}/p/${slug}`) } catch { /* ignore */ }
+    }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/** Publish ALL pages — flushes builder_pages_draft → builder_pages in a
+ *  single write. Called alongside publishBuilder() from the editor's
+ *  single Publish button so home + sub-pages go live together. */
+export async function publishBuilderPages(
+  eventId: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_pages_draft, slug")
+      .eq("id", eventId)
+      .maybeSingle()
+    const draft = (row?.builder_pages_draft ?? {}) as BuilderPagesMap
+    const { error } = await admin
+      .from("events")
+      .update({
+        builder_pages: draft,
+        builder_published_at: new Date().toISOString(),
+      })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    // Revalidate every published sub-page on this event.
+    if (row?.slug) {
+      for (const s of Object.keys(draft)) {
+        try { revalidatePath(`/events/${row.slug as string}/p/${s}`) } catch { /* ignore */ }
+      }
+    }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/** Public-side read: one sub-page's published data + the list of all
+ *  published pages (for the minimal event-page nav). */
+export async function getPublishedPageAndNav(
+  eventId: string,
+  pageSlug: string,
+): Promise<{
+  success: boolean
+  page: BuilderPage | null
+  nav: Array<{ slug: string; title: string }>
+}> {
+  try {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    const { data } = await supabase
+      .from("events")
+      .select("builder_pages")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = (data?.builder_pages ?? {}) as BuilderPagesMap
+    const page = map[slugifyPage(pageSlug)] ?? null
+    const nav = Object.entries(map)
+      .sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0))
+      .map(([slug, p]) => ({ slug, title: p.title }))
+    return { success: true, page, nav }
+  } catch {
+    return { success: false, page: null, nav: [] }
+  }
+}
+
+/** Public-side read: just the nav list. Used by the minimal event-page
+ *  layout to render the links next to "Home". */
+export async function getPublicBuilderNav(
+  eventId: string,
+): Promise<Array<{ slug: string; title: string }>> {
+  try {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    const { data } = await supabase
+      .from("events")
+      .select("builder_pages")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = (data?.builder_pages ?? {}) as BuilderPagesMap
+    return Object.entries(map)
+      .sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0))
+      .map(([slug, p]) => ({ slug, title: p.title }))
   } catch {
     return []
   }
