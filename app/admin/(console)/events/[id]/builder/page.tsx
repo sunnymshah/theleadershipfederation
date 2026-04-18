@@ -118,6 +118,163 @@ const TEMPLATES: Array<{
   },
 ]
 
+/* ── Section presets — Zoho Backstage-style curated blocks ──────────
+ * Unlike templates (multi-section stacks), presets are single fully-
+ * configured sections. Each one creates ONE section with pre-filled
+ * title/subtitle/body/cta/data so the admin sees a polished block
+ * the moment they pick it — no editing required. */
+type SectionPreset = {
+  id: string
+  category:
+    | "Headers"
+    | "Story"
+    | "Social proof"
+    | "Speakers"
+    | "Agenda"
+    | "Tickets"
+    | "Sponsors"
+    | "CTAs"
+    | "FAQs"
+    | "Media"
+  label: string
+  desc: string
+  kind: SectionKind
+  seed: {
+    title?: string
+    subtitle?: string
+    body?: string
+    cta_label?: string
+    cta_url?: string
+    image_url?: string
+    video_url?: string
+    data?: Record<string, unknown>
+  }
+}
+
+const SECTION_PRESETS: SectionPreset[] = [
+  /* ── Headers ──────────────────────────────────────────────────── */
+  { id: "hero-dark-luxe", category: "Headers", label: "Dark Luxe Hero",
+    desc: "Gold type on indigo · centered CTA",
+    kind: "hero",
+    seed: { title: "An unforgettable gathering of leaders.", subtitle: "Mumbai · 21 May 2026 · The Taj Palace",
+      cta_label: "Reserve my seat",
+      data: { layout: "center", frame: "full" } } },
+  { id: "hero-split-image", category: "Headers", label: "Split Image Hero",
+    desc: "Headline left · image right · rounded",
+    kind: "hero",
+    seed: { title: "Define the next decade of leadership.", subtitle: "200+ CXOs · 30+ nations · one stage",
+      cta_label: "See the agenda",
+      data: { layout: "split-image", frame: "rounded" } } },
+  { id: "hero-full-bleed", category: "Headers", label: "Cinematic Full-Bleed",
+    desc: "Edge-to-edge image · heavy overlay · by-invitation feel",
+    kind: "hero",
+    seed: { title: "The stage for sovereign leadership.", subtitle: "By invitation only.",
+      cta_label: "Request invitation",
+      data: { layout: "center", frame: "full", overlay: "heavy" } } },
+
+  /* ── Story ────────────────────────────────────────────────────── */
+  { id: "about-plain", category: "Story", label: "About Block",
+    desc: "Heading · kicker · 2-sentence paragraph",
+    kind: "rich_text",
+    seed: { title: "About the conclave", subtitle: "THE DEFINITIVE GATHERING",
+      body: "Three days. One stage. A carefully curated gathering of the most influential leaders of our generation — defining the future of commerce, policy, and the boardroom.",
+      data: { layout: "plain" } } },
+  { id: "about-image-left", category: "Story", label: "Image-Left Story",
+    desc: "Image on the left · copy on the right",
+    kind: "rich_text",
+    seed: { title: "Why it matters now",
+      body: "Across finance, government, energy, and tech, the rules of leadership are being rewritten. The Conclave is where that rewriting happens — in the room, off the record.",
+      data: { layout: "image-left" } } },
+
+  /* ── Social proof ─────────────────────────────────────────────── */
+  { id: "stats-four-tile", category: "Social proof", label: "Four-Stat Tile Grid",
+    desc: "Big numbers in a 4-column grid",
+    kind: "stats_row",
+    seed: { title: "By the Numbers",
+      data: { layout: "tiles", stats: [
+        { value: "30+", label: "Countries" },
+        { value: "500+", label: "CXOs" },
+        { value: "15", label: "Industry tracks" },
+        { value: "3", label: "Days of insights" },
+      ] } } },
+  { id: "stats-row", category: "Social proof", label: "Inline Stats Row",
+    desc: "Compact horizontal impact line",
+    kind: "stats_row",
+    seed: { data: { layout: "row", stats: [
+      { value: "#1", label: "Leadership gathering" },
+      { value: "$1B+", label: "AUM represented" },
+      { value: "98%", label: "Repeat rate" },
+    ] } } },
+
+  /* ── Speakers ─────────────────────────────────────────────────── */
+  { id: "speakers-circle-4", category: "Speakers", label: "Speakers — Circle Grid (4-up)",
+    desc: "Classic 4-column circular portraits",
+    kind: "speakers_grid",
+    seed: { title: "Speakers", subtitle: "Leaders shaping the next decade",
+      data: { layout: "grid-4", frame: "circle", fit: "cover" } } },
+  { id: "speakers-square-row", category: "Speakers", label: "Speakers — Square Row",
+    desc: "Single horizontal row · square frames",
+    kind: "speakers_grid",
+    seed: { title: "On the main stage",
+      data: { layout: "row", frame: "square", fit: "cover" } } },
+  { id: "speakers-rounded-3", category: "Speakers", label: "Speakers — Rounded 3-up",
+    desc: "3-column grid · soft-corner portraits",
+    kind: "speakers_grid",
+    seed: { title: "Featured voices",
+      data: { layout: "grid-3", frame: "rounded", fit: "cover" } } },
+
+  /* ── Agenda ───────────────────────────────────────────────────── */
+  { id: "agenda-timeline", category: "Agenda", label: "Agenda Timeline",
+    desc: "Auto-populates from your sessions table",
+    kind: "agenda",
+    seed: { title: "Agenda at a glance", subtitle: "Three days · main stage + breakouts" } },
+
+  /* ── Tickets ──────────────────────────────────────────────────── */
+  { id: "tickets-cards", category: "Tickets", label: "Pricing Cards",
+    desc: "Tier cards auto-pulled from tickets table",
+    kind: "tickets_cta",
+    seed: { title: "Choose your pass", subtitle: "Every seat counts." } },
+
+  /* ── Sponsors ─────────────────────────────────────────────────── */
+  { id: "sponsors-wall", category: "Sponsors", label: "Sponsor Logo Wall",
+    desc: "Grid of tier-grouped logos",
+    kind: "sponsors_grid",
+    seed: { title: "Our Partners", subtitle: "The organizations backing this edition" } },
+
+  /* ── CTAs ─────────────────────────────────────────────────────── */
+  { id: "cta-register", category: "CTAs", label: "Register CTA",
+    desc: "Centered call-to-action with supporting line",
+    kind: "cta_button",
+    seed: { title: "Ready to claim your seat?", subtitle: "Seats allocated in order of application.",
+      cta_label: "Apply to attend", data: { layout: "center" } } },
+  { id: "cta-newsletter", category: "CTAs", label: "Newsletter CTA",
+    desc: "Capture opt-ins for the next edition",
+    kind: "cta_button",
+    seed: { title: "Get notified for the next edition.", subtitle: "We announce the next city once per year.",
+      cta_label: "Notify me", data: { layout: "center" } } },
+
+  /* ── FAQs ─────────────────────────────────────────────────────── */
+  { id: "faqs-top-3", category: "FAQs", label: "Top 3 Questions",
+    desc: "Pre-answered eligibility · dress · refund",
+    kind: "faqs",
+    seed: { title: "Frequently asked",
+      data: { faqs: [
+        { q: "Who can attend?", a: "Applications are screened. Seats are reserved for CXOs, founders, and senior policy leaders." },
+        { q: "Is there a dress code?", a: "Business formal for main sessions, smart casual for evening receptions." },
+        { q: "What's the refund policy?", a: "Full refund until 30 days before the event, 50% until 7 days before." },
+      ] } } },
+
+  /* ── Media ────────────────────────────────────────────────────── */
+  { id: "video-highlight", category: "Media", label: "Video Highlight Reel",
+    desc: "Cinematic video block with caption",
+    kind: "video",
+    seed: { title: "Watch the 2025 highlights" } },
+  { id: "gallery-grid", category: "Media", label: "Photo Gallery",
+    desc: "Grid of event photos (editable)",
+    kind: "gallery",
+    seed: { title: "Moments from the stage", data: { images: [] } } },
+]
+
 /* ── Theme tokens (stub: persisted in localStorage per event) ───────── */
 interface ThemeTokens {
   primary: string
@@ -195,6 +352,7 @@ export default function EventBuilderPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [addOpenAt, setAddOpenAt] = useState<number | null>(null)
+  const [presetsOpen, setPresetsOpen] = useState(false)
   const [editing, setEditing] = useState<EventSection | null>(null)
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
   const [publishPulse, setPublishPulse] = useState(false)
@@ -302,6 +460,53 @@ export default function EventBuilderPage() {
     } else {
       setError(res.error ?? "Failed to add section")
     }
+  }, [eventId])
+
+  /* ── Preset → section (Zoho-style curated block) ────────────────────
+   * Unlike handleAdd (kind only), this creates a section pre-filled
+   * with a complete content set: title/subtitle/body/cta_label/data. */
+  const handleAddPreset = useCallback(async (preset: SectionPreset) => {
+    setPresetsOpen(false)
+    setAddOpenAt(null)
+    const res = await createEventSection({
+      eventId,
+      kind: preset.kind,
+      title: preset.seed.title ?? "",
+      data: preset.seed.data ?? {},
+    })
+    if (!res.success || !res.section) {
+      setError(res.error ?? "Failed to add preset")
+      return
+    }
+    // Apply the non-title seed fields through the normal update path so
+    // they land in the DB with one round-trip and reflect locally.
+    const hasExtras =
+      preset.seed.subtitle !== undefined ||
+      preset.seed.body !== undefined ||
+      preset.seed.cta_label !== undefined ||
+      preset.seed.cta_url !== undefined ||
+      preset.seed.image_url !== undefined ||
+      preset.seed.video_url !== undefined
+    if (hasExtras) {
+      await updateEventSection(res.section.id, {
+        ...(preset.seed.subtitle  !== undefined ? { subtitle:  preset.seed.subtitle ?? "" } : {}),
+        ...(preset.seed.body      !== undefined ? { body:      preset.seed.body ?? "" } : {}),
+        ...(preset.seed.cta_label !== undefined ? { ctaLabel:  preset.seed.cta_label ?? "" } : {}),
+        ...(preset.seed.cta_url   !== undefined ? { ctaUrl:    preset.seed.cta_url ?? "" } : {}),
+        ...(preset.seed.image_url !== undefined ? { imageUrl:  preset.seed.image_url ?? "" } : {}),
+        ...(preset.seed.video_url !== undefined ? { videoUrl:  preset.seed.video_url ?? "" } : {}),
+      })
+    }
+    const seeded: EventSection = {
+      ...(res.section as EventSection),
+      subtitle: preset.seed.subtitle ?? (res.section as EventSection).subtitle ?? null,
+      body: preset.seed.body ?? (res.section as EventSection).body ?? null,
+      cta_label: preset.seed.cta_label ?? (res.section as EventSection).cta_label ?? null,
+      cta_url: preset.seed.cta_url ?? (res.section as EventSection).cta_url ?? null,
+      image_url: preset.seed.image_url ?? (res.section as EventSection).image_url ?? null,
+      video_url: preset.seed.video_url ?? (res.section as EventSection).video_url ?? null,
+    }
+    setSections((prev) => [...prev, seeded])
   }, [eventId])
 
   const handleMove = useCallback(async (sectionId: string, dir: "up" | "down") => {
@@ -710,6 +915,7 @@ export default function EventBuilderPage() {
             onThemeChange={saveTheme}
             eventMeta={eventMeta}
             sections={sections}
+            onSwitchToSections={() => setTab("sections")}
           />
         )}
 
@@ -739,21 +945,31 @@ export default function EventBuilderPage() {
                 borderRadius: 10,
               }}
             >
-              <div className="mb-3 px-1 text-[11px] text-white/50 uppercase tracking-wider flex items-center justify-between">
-                <span>
-                  Click any text to edit · use the + strip between cards to add · every change saves automatically
+              <div className="mb-3 px-1 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-white/50 uppercase tracking-wider">
+                  Click any text to edit · drag the grip to reorder · every change saves automatically
                 </span>
-                <span className="text-white/30 font-mono">{sections.length} section{sections.length === 1 ? "" : "s"}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setPresetsOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors shadow-lg shadow-black/30"
+                    title="Pick a fully-configured section preset"
+                  >
+                    <Sparkles size={12} /> Browse presets
+                  </button>
+                  <span className="text-[10px] text-white/30 font-mono">{sections.length} section{sections.length === 1 ? "" : "s"}</span>
+                </div>
               </div>
 
               <DropZone index={0} active={dropAt === 0 && dragId !== null} onOver={onDragOver} onDrop={onDrop} />
-              <InlineAddButton open={addOpenAt === 0} onToggle={() => setAddOpenAt(addOpenAt === 0 ? null : 0)} onPick={handleAdd} />
+              <InlineAddButton open={addOpenAt === 0} onToggle={() => setAddOpenAt(addOpenAt === 0 ? null : 0)} onPick={handleAdd} onOpenPresets={() => setPresetsOpen(true)} />
 
               {sections.length === 0 ? (
                 <EmptyHint
                   templating={templating}
                   onStart={() => setAddOpenAt(0)}
                   onApplyTemplate={applyTemplate}
+                  onOpenPresets={() => setPresetsOpen(true)}
                 />
               ) : (
                 sections.map((s, i) => (
@@ -784,6 +1000,7 @@ export default function EventBuilderPage() {
                     addOpen={addOpenAt === i + 1}
                     onAddToggle={() => setAddOpenAt(addOpenAt === i + 1 ? null : i + 1)}
                     onAddPick={handleAdd}
+                    onOpenPresets={() => setPresetsOpen(true)}
                   />
                 ))
               )}
@@ -792,6 +1009,21 @@ export default function EventBuilderPage() {
         </main>
       </div>
 
+      {/* Presets modal (Zoho-style curated section blocks) */}
+      <PresetsModal
+        open={presetsOpen}
+        onClose={() => setPresetsOpen(false)}
+        onPick={handleAddPreset}
+      />
+
+      {/* Section inspector — right-side drawer for media, links, advanced */}
+      {editing && (
+        <SectionInspector
+          section={editing}
+          onClose={() => setEditing(null)}
+          onInlineEdit={handleInlineEdit}
+        />
+      )}
     </div>
   )
 }
@@ -826,13 +1058,14 @@ const SectionRow = memo(function SectionRow(props: {
   addOpen: boolean
   onAddToggle: () => void
   onAddPick: (k: SectionKind) => void
+  onOpenPresets: () => void
 }) {
   const {
     section, index, total, busy, eventData,
     speakers, sessions, sponsors, tickets, editing, dragging, dropOver,
     onEdit, onMove, onDelete, onDuplicate, onToggleVisibility, onInlineEdit,
     onDragStart, onDragOver, onDrop, onDragEnd,
-    addOpen, onAddToggle, onAddPick,
+    addOpen, onAddToggle, onAddPick, onOpenPresets,
   } = props
   return (
     <>
@@ -858,7 +1091,7 @@ const SectionRow = memo(function SectionRow(props: {
         onDragEnd={onDragEnd}
       />
       <DropZone index={index + 1} active={dropOver} onOver={onDragOver} onDrop={onDrop} />
-      <InlineAddButton open={addOpen} onToggle={onAddToggle} onPick={onAddPick} />
+      <InlineAddButton open={addOpen} onToggle={onAddToggle} onPick={onAddPick} onOpenPresets={onOpenPresets} />
     </>
   )
 })
@@ -1543,10 +1776,15 @@ const MiniPreview = memo(function MiniPreview({
 /* ═════════════════════════════════════════════════════════════════════ */
 
 const InlineAddButton = memo(function InlineAddButton({
-  open, onToggle, onPick,
-}: { open: boolean; onToggle: () => void; onPick: (kind: SectionKind) => void }) {
+  open, onToggle, onPick, onOpenPresets,
+}: {
+  open: boolean
+  onToggle: () => void
+  onPick: (kind: SectionKind) => void
+  onOpenPresets?: () => void
+}) {
   return (
-    <div className="relative h-10 flex items-center justify-center group">
+    <div className="relative h-10 flex items-center justify-center group gap-2">
       <div className={`absolute inset-x-0 top-1/2 -translate-y-1/2 h-px ${open ? "bg-[#e7ab1c]/60" : "bg-white/15 group-hover:bg-[#e7ab1c]/40"} transition-colors`} />
       <button
         onClick={onToggle}
@@ -1559,6 +1797,15 @@ const InlineAddButton = memo(function InlineAddButton({
         <Plus size={13} />
         Add Section
       </button>
+      {onOpenPresets && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenPresets() }}
+          className="relative z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#1a1a1a] text-white/80 border border-white/15 hover:bg-[#2a2a2a] hover:text-white hover:border-[#e7ab1c]/50 transition-all shadow-lg shadow-black/30"
+          title="Pick a fully-configured preset"
+        >
+          <Sparkles size={11} /> Presets
+        </button>
+      )}
       {open && (
         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[360px] bg-[#141414] rounded-xl shadow-2xl border border-white/10 z-50 p-2 max-h-[440px] overflow-y-auto">
           {SECTION_KINDS.map((kind) => {
@@ -1591,11 +1838,12 @@ const InlineAddButton = memo(function InlineAddButton({
 /* ═════════════════════════════════════════════════════════════════════ */
 
 function EmptyHint({
-  templating, onStart, onApplyTemplate,
+  templating, onStart, onApplyTemplate, onOpenPresets,
 }: {
   templating: boolean
   onStart: () => void
   onApplyTemplate: (t: (typeof TEMPLATES)[number]) => void
+  onOpenPresets: () => void
 }) {
   return (
     <div className="py-16 px-6 border border-dashed border-white/15 rounded-2xl bg-white/[0.02]">
@@ -1625,10 +1873,475 @@ function EmptyHint({
         ))}
       </div>
 
-      <div className="text-center mt-6">
-        <button onClick={onStart} className="text-[11px] font-semibold text-white/50 hover:text-white underline">
-          or start from scratch
+      <div className="text-center mt-6 flex items-center justify-center gap-4">
+        <button
+          onClick={onOpenPresets}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors shadow-lg shadow-black/30"
+        >
+          <Sparkles size={12} /> Or browse {SECTION_PRESETS.length} single-block presets
         </button>
+        <button onClick={onStart} className="text-[11px] font-semibold text-white/50 hover:text-white underline">
+          start from scratch
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* SECTION INSPECTOR — right-side drawer with media, links, advanced     */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Every section's fields that aren't conveniently editable inline
+ * (image upload, video URL, CTA URL, data key presets) get a dedicated
+ * inspector drawer. Opens from the Edit pencil button. Inline text
+ * remains editable on the canvas.
+ */
+function SectionInspector({
+  section, onClose, onInlineEdit,
+}: {
+  section: EventSection
+  onClose: () => void
+  onInlineEdit: (id: string, patch: Partial<EventSection>) => void
+}) {
+  const meta = KIND_META[section.kind]
+  const Icon = meta.icon
+  const hasImage = ["hero", "speakers_grid", "rich_text", "gallery"].includes(section.kind)
+  const hasVideo = section.kind === "video"
+  const hasCTA   = section.kind === "hero" || section.kind === "cta_button"
+
+  // Live local mirror for URL inputs so typing feels responsive.
+  const [imageUrl, setImageUrl] = useState(section.image_url ?? "")
+  const [videoUrl, setVideoUrl] = useState(section.video_url ?? "")
+  const [ctaUrl,   setCtaUrl]   = useState(section.cta_url ?? "")
+  const [uploading, setUploading] = useState(false)
+
+  useEffect(() => {
+    setImageUrl(section.image_url ?? "")
+    setVideoUrl(section.video_url ?? "")
+    setCtaUrl(section.cta_url ?? "")
+  }, [section.id, section.image_url, section.video_url, section.cta_url])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose])
+
+  const commit = (patch: Partial<EventSection>) => onInlineEdit(section.id, patch)
+
+  // Simple file -> data URL -> upload via uploadActions
+  const onUploadImage = async (file: File) => {
+    if (!file) return
+    setUploading(true)
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      const { uploadImageDataUrl } = await import("@/app/actions/uploadActions")
+      const res = await uploadImageDataUrl(dataUrl, "sections")
+      if (res.success && res.url) {
+        setImageUrl(res.url)
+        commit({ image_url: res.url })
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const DATA = (section.data ?? {}) as Record<string, unknown>
+  const setData = (key: string, value: string | number | boolean | null) => {
+    commit({ data: { ...DATA, [key]: value } as never })
+  }
+
+  const padding = (DATA.padding as string) ?? "regular"
+  const align   = (DATA.align as string)   ?? "center"
+  const bg      = (DATA.bg as string)      ?? "theme"
+  const overlay = (DATA.overlay as string) ?? "medium"
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-[55] bg-black/50 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      {/* Drawer */}
+      <aside
+        className="fixed top-0 right-0 bottom-0 z-[56] w-[380px] bg-[#0f0f0f] border-l border-white/10 shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-md bg-[#e7ab1c]/15 flex items-center justify-center text-[#e7ab1c] shrink-0">
+              <Icon size={13} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#e7ab1c]">{meta.label}</p>
+              <p className="text-[11px] text-white/50 truncate">{section.title || "Untitled section"}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md text-white/50 hover:text-white hover:bg-white/10"
+            title="Close (Esc)"
+          ><X size={14} /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+          {/* ── Content (text fields mirror inline editing) ─────────────── */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Content</p>
+            <InspectorField label="Title">
+              <input
+                type="text"
+                defaultValue={section.title ?? ""}
+                onBlur={(e) => commit({ title: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/10 text-[12px] text-white focus:outline-none focus:border-[#e7ab1c]/50"
+              />
+            </InspectorField>
+            <InspectorField label="Subtitle">
+              <input
+                type="text"
+                defaultValue={section.subtitle ?? ""}
+                onBlur={(e) => commit({ subtitle: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/10 text-[12px] text-white focus:outline-none focus:border-[#e7ab1c]/50"
+              />
+            </InspectorField>
+            {section.kind === "rich_text" && (
+              <InspectorField label="Body">
+                <textarea
+                  defaultValue={section.body ?? ""}
+                  onBlur={(e) => commit({ body: e.target.value })}
+                  rows={5}
+                  className="w-full px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/10 text-[12px] text-white focus:outline-none focus:border-[#e7ab1c]/50 resize-none"
+                />
+              </InspectorField>
+            )}
+          </div>
+
+          {/* ── Media ────────────────────────────────────────────────── */}
+          {hasImage && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Image</p>
+              {imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="w-full h-[140px] object-cover rounded-lg border border-white/10"
+                />
+              )}
+              <div className="flex gap-2">
+                <label className="flex-1 cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md bg-[#1a1a1a] border border-white/10 text-[11px] font-semibold text-white/80 hover:bg-[#2a2a2a] hover:text-white">
+                  {uploading ? <Loader2 size={12} className="animate-spin" /> : <ImageIcon size={12} />}
+                  {uploading ? "Uploading…" : "Upload"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) void onUploadImage(f)
+                    }}
+                  />
+                </label>
+                {imageUrl && (
+                  <button
+                    onClick={() => { setImageUrl(""); commit({ image_url: null }) }}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-red-500/15 border border-red-500/30 text-[11px] font-semibold text-red-300 hover:bg-red-500/25"
+                  >
+                    <Trash2 size={12} /> Remove
+                  </button>
+                )}
+              </div>
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                onBlur={() => commit({ image_url: imageUrl || null })}
+                placeholder="…or paste an image URL"
+                className="w-full px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/10 text-[11px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#e7ab1c]/50 font-mono"
+              />
+            </div>
+          )}
+
+          {/* ── Video ────────────────────────────────────────────────── */}
+          {hasVideo && (
+            <InspectorField label="Video URL (YouTube or Vimeo)">
+              <input
+                type="text"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                onBlur={() => commit({ video_url: videoUrl || null })}
+                placeholder="https://www.youtube.com/embed/…"
+                className="w-full px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/10 text-[11px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#e7ab1c]/50 font-mono"
+              />
+            </InspectorField>
+          )}
+
+          {/* ── CTA link ─────────────────────────────────────────────── */}
+          {hasCTA && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Button link</p>
+              <InspectorField label="Destination URL">
+                <input
+                  type="text"
+                  value={ctaUrl}
+                  onChange={(e) => setCtaUrl(e.target.value)}
+                  onBlur={() => commit({ cta_url: ctaUrl || null })}
+                  placeholder="/register  or  https://…"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-[#1a1a1a] border border-white/10 text-[11px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#e7ab1c]/50 font-mono"
+                />
+              </InspectorField>
+            </div>
+          )}
+
+          {/* ── Advanced layout ──────────────────────────────────────── */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Layout & style</p>
+            <InspectorField label="Padding">
+              <div className="grid grid-cols-3 gap-1">
+                {(["compact", "regular", "spacious"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setData("padding", p)}
+                    className={`px-2 py-1.5 rounded text-[10px] font-semibold capitalize transition-colors ${
+                      padding === p ? "bg-[#e7ab1c] text-[#1a1a2e]" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >{p}</button>
+                ))}
+              </div>
+            </InspectorField>
+            <InspectorField label="Text alignment">
+              <div className="grid grid-cols-3 gap-1">
+                {([
+                  { id: "left", icon: AlignLeft, label: "Left" },
+                  { id: "center", icon: AlignCenter, label: "Center" },
+                  { id: "right", icon: AlignRight, label: "Right" },
+                ] as const).map((a) => {
+                  const I = a.icon
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => setData("align", a.id)}
+                      className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded text-[10px] font-semibold transition-colors ${
+                        align === a.id ? "bg-[#e7ab1c] text-[#1a1a2e]" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <I size={11} /> {a.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </InspectorField>
+            <InspectorField label="Background">
+              <div className="grid grid-cols-4 gap-1">
+                {(["theme", "light", "muted", "dark"] as const).map((b) => (
+                  <button
+                    key={b}
+                    onClick={() => setData("bg", b)}
+                    className={`px-2 py-1.5 rounded text-[10px] font-semibold capitalize transition-colors ${
+                      bg === b ? "bg-[#e7ab1c] text-[#1a1a2e]" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >{b}</button>
+                ))}
+              </div>
+            </InspectorField>
+            {section.kind === "hero" && imageUrl && (
+              <InspectorField label="Image overlay">
+                <div className="grid grid-cols-3 gap-1">
+                  {(["light", "medium", "heavy"] as const).map((o) => (
+                    <button
+                      key={o}
+                      onClick={() => setData("overlay", o)}
+                      className={`px-2 py-1.5 rounded text-[10px] font-semibold capitalize transition-colors ${
+                        overlay === o ? "bg-[#e7ab1c] text-[#1a1a2e]" : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >{o}</button>
+                  ))}
+                </div>
+              </InspectorField>
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-white/5">
+            <p className="text-[10px] text-white/30 leading-snug">
+              All edits save automatically. Use the chrome on the card (drag,
+              duplicate, delete, layout/frame) for common actions.
+            </p>
+          </div>
+        </div>
+      </aside>
+    </>
+  )
+}
+
+function InspectorField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block space-y-1">
+      <span className="block text-[10px] font-semibold text-white/50">{label}</span>
+      {children}
+    </label>
+  )
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* PRESETS MODAL                                                         */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+function PresetsModal({
+  open, onClose, onPick,
+}: {
+  open: boolean
+  onClose: () => void
+  onPick: (p: SectionPreset) => void
+}) {
+  const [search, setSearch] = useState("")
+  const [activeCat, setActiveCat] = useState<string>("All")
+  const categories = useMemo(() => {
+    const set = new Set<string>(["All"])
+    SECTION_PRESETS.forEach((p) => set.add(p.category))
+    return Array.from(set)
+  }, [])
+  const filtered = useMemo(() => {
+    return SECTION_PRESETS.filter((p) => {
+      if (activeCat !== "All" && p.category !== activeCat) return false
+      if (!search.trim()) return true
+      const q = search.toLowerCase()
+      return (
+        p.label.toLowerCase().includes(q) ||
+        p.desc.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.kind.toLowerCase().includes(q)
+      )
+    })
+  }, [search, activeCat])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
+      onClick={onClose}
+    >
+      <div
+        className="w-[min(1100px,calc(100vw-3rem))] max-h-[85vh] bg-[#111111] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-[#e7ab1c]" />
+            <h3 className="text-[15px] font-bold text-white">Section presets</h3>
+            <span className="text-[11px] text-white/40">
+              {SECTION_PRESETS.length} curated blocks — pick one to drop onto your page, already styled.
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md text-white/50 hover:text-white hover:bg-white/10"
+            title="Close (Esc)"
+          ><X size={14} /></button>
+        </div>
+
+        {/* Search + categories */}
+        <div className="px-6 pt-4 pb-2 flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search presets…"
+              className="w-full pl-8 pr-3 py-2 rounded-md bg-[#1a1a1a] border border-white/10 text-[12px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#e7ab1c]/50"
+            />
+          </div>
+          <div className="flex items-center gap-1 flex-wrap">
+            {categories.map((c) => (
+              <button
+                key={c}
+                onClick={() => setActiveCat(c)}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-colors ${
+                  activeCat === c
+                    ? "bg-[#e7ab1c] text-[#1a1a2e]"
+                    : "bg-white/5 text-white/60 border border-white/10 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {filtered.length === 0 ? (
+            <div className="text-center py-20 text-white/40 text-sm">
+              No presets match &ldquo;{search}&rdquo;
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filtered.map((p) => {
+                const meta = KIND_META[p.kind]
+                const Icon = meta.icon
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => onPick(p)}
+                    className="text-left group p-4 rounded-xl border border-white/10 bg-[#1a1a1a] hover:border-[#e7ab1c]/50 hover:bg-[#222222] transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-lg bg-[#e7ab1c]/15 flex items-center justify-center text-[#e7ab1c] shrink-0">
+                          <Icon size={16} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#e7ab1c]">{p.category}</p>
+                          <p className="text-[13px] font-bold text-white leading-tight">{p.label}</p>
+                        </div>
+                      </div>
+                      <Plus size={14} className="text-white/30 group-hover:text-[#e7ab1c] shrink-0 mt-2" />
+                    </div>
+                    <p className="text-[11px] text-white/60 leading-snug">{p.desc}</p>
+                    {/* Miniature preview strip */}
+                    <div className="mt-3 h-10 rounded-md bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/5 flex items-center justify-center px-3 overflow-hidden">
+                      <span className="text-[10px] font-semibold text-white/70 truncate">
+                        {p.seed.title || meta.label}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-3 border-t border-white/10 flex items-center justify-between">
+          <p className="text-[11px] text-white/40">
+            Presets drop in pre-configured. You can still edit every text, image, and layout after.
+          </p>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-md text-[11px] font-semibold text-white/60 hover:text-white hover:bg-white/10"
+          >
+            Cancel (Esc)
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -1639,18 +2352,19 @@ function EmptyHint({
 /* ═════════════════════════════════════════════════════════════════════ */
 
 function RailPanel({
-  tab, theme, onThemeChange, eventMeta, sections,
+  tab, theme, onThemeChange, eventMeta, sections, onSwitchToSections,
 }: {
   tab: RailTab
   theme: ThemeTokens
   onThemeChange: (t: ThemeTokens) => void
   eventMeta: EventMeta
   sections: EventSection[]
+  onSwitchToSections: () => void
 }) {
   return (
     <section className="shrink-0 w-[280px] bg-[#141414] border-r border-[#1f1f1f] overflow-y-auto">
       {tab === "theme"        && <ThemePanel theme={theme} onChange={onThemeChange} />}
-      {tab === "pages"        && <PagesPanel eventMeta={eventMeta} sectionCount={sections.length} />}
+      {tab === "pages"        && <PagesPanel eventMeta={eventMeta} sectionCount={sections.length} onSwitchToSections={onSwitchToSections} />}
       {tab === "seo"          && <SEOPanel eventMeta={eventMeta} />}
       {tab === "integrations" && <IntegrationsPanel />}
       {tab === "settings"     && <SettingsPanel />}
@@ -1796,39 +2510,119 @@ function ThemePanel({ theme, onChange }: { theme: ThemeTokens; onChange: (t: The
 }
 
 /* ─── PAGES ─────────────────────────────────────────────────────────── */
-function PagesPanel({ eventMeta, sectionCount }: { eventMeta: EventMeta; sectionCount: number }) {
-  const pages = [
-    { slug: eventMeta.slug || "home",              label: "Home",      status: "ACTIVE",  count: sectionCount },
-    { slug: `${eventMeta.slug}/schedule`,           label: "Agenda",    status: "AUTO",    count: null },
-    { slug: `${eventMeta.slug}/speakers`,           label: "Speakers",  status: "AUTO",    count: null },
-    { slug: `${eventMeta.slug}/sponsors`,           label: "Sponsors",  status: "AUTO",    count: null },
-    { slug: `${eventMeta.slug}/tickets`,            label: "Tickets",   status: "AUTO",    count: null },
-    { slug: `${eventMeta.slug}/venue`,              label: "Venue",     status: "AUTO",    count: null },
+function PagesPanel({
+  eventMeta, sectionCount, onSwitchToSections,
+}: {
+  eventMeta: EventMeta
+  sectionCount: number
+  onSwitchToSections: () => void
+}) {
+  const slug = (eventMeta.slug ?? "").trim()
+  type PageRow = {
+    key: string
+    label: string
+    route: string          // relative url under /events/
+    status: "home" | "auto" | "sub"
+    sourceTable?: string
+    count?: number
+    description: string
+  }
+  const pages: PageRow[] = [
+    { key: "home",      label: "Home",     route: slug,                   status: "home", count: sectionCount,
+      description: "Hero, speakers, agenda teaser — your main event landing page. Built with sections." },
+    { key: "schedule",  label: "Agenda",   route: `${slug}/schedule`,     status: "auto", sourceTable: "sessions",
+      description: "Auto-generated from the sessions table. Add sessions in Admin → Sessions." },
+    { key: "delegates", label: "Delegates",route: `${slug}/delegates`,    status: "auto", sourceTable: "attendees",
+      description: "Private attendee directory — gated behind ticket holders only." },
+    { key: "live",      label: "Live",     route: `${slug}/live`,         status: "auto", sourceTable: "sessions",
+      description: "Live session tracker that activates during the event window." },
+    { key: "tickets",   label: "Tickets",  route: `${slug}/tickets`,      status: "auto", sourceTable: "tickets",
+      description: "Auto-generated pricing page. Add tiers in Admin → Tickets." },
   ]
+
   return (
     <div className="p-4 space-y-5">
-      <PanelHeader icon={FileText} title="Pages" subtitle="Every page is a page-builder canvas. Agenda / Speakers / Sponsors auto-populate from the event graph." />
+      <PanelHeader
+        icon={FileText}
+        title="Pages"
+        subtitle="The event has one builder canvas (Home) plus auto-generated sub-pages. Click any page to open the live version."
+      />
+
       <div className="space-y-2">
-        {pages.map((p) => (
-          <div key={p.slug} className="flex items-center justify-between p-2.5 rounded-lg bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-colors cursor-pointer">
-            <div className="min-w-0">
-              <p className="text-[12px] font-semibold text-white truncate">{p.label}</p>
-              <p className="text-[10px] text-white/40 font-mono truncate">/{p.slug}</p>
+        {pages.map((p) => {
+          const liveHref = `/events/${p.route}`
+          const isHome = p.status === "home"
+          return (
+            <div
+              key={p.key}
+              className="group rounded-lg bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-[#e7ab1c]/30 transition-colors"
+            >
+              <div className="flex items-center justify-between gap-2 p-2.5">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[12px] font-semibold text-white truncate">{p.label}</p>
+                    {isHome && sectionCount > 0 && (
+                      <span className="text-[8px] font-mono text-white/40">· {sectionCount} sections</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono truncate">/events/{p.route || "—"}</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {isHome ? (
+                    <button
+                      onClick={onSwitchToSections}
+                      className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+                      title="Switch to the Sections tab"
+                    >
+                      EDIT
+                    </button>
+                  ) : (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300">AUTO</span>
+                  )}
+                  {slug && (
+                    <Link
+                      href={liveHref}
+                      target="_blank"
+                      className="p-1 rounded-md text-white/50 hover:text-[#e7ab1c] hover:bg-white/10"
+                      title="Open in new tab"
+                    >
+                      <Globe size={11} />
+                    </Link>
+                  )}
+                </div>
+              </div>
+              <p className="text-[10px] text-white/40 leading-snug px-2.5 pb-2.5 -mt-1">
+                {p.description}
+                {p.sourceTable && (
+                  <Link
+                    href={`/admin/${p.sourceTable}`}
+                    className="ml-1 text-[#e7ab1c]/80 hover:text-[#e7ab1c] hover:underline"
+                  >
+                    Open {p.sourceTable} →
+                  </Link>
+                )}
+              </p>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {p.count !== null && <span className="text-[9px] text-white/40 font-mono">{p.count}</span>}
-              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                p.status === "ACTIVE" ? "bg-emerald-500/20 text-emerald-300" : "bg-blue-500/20 text-blue-300"
-              }`}>
-                {p.status}
-              </span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
-      <button disabled className="w-full py-2 rounded-lg border border-dashed border-white/15 text-[11px] font-semibold text-white/30 cursor-not-allowed">
-        + Custom page (coming soon)
-      </button>
+
+      {/* Custom pages — explainer replacing the dead "Coming soon" stub */}
+      <div className="mt-4 p-3 rounded-lg border border-dashed border-[#e7ab1c]/30 bg-[#e7ab1c]/[0.05]">
+        <div className="flex items-start gap-2">
+          <Plus size={12} className="text-[#e7ab1c] mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold text-[#e7ab1c]">Custom pages</p>
+            <p className="text-[10px] text-white/60 leading-snug mt-0.5">
+              Need a dedicated page for partners, press kit, or FAQ?
+              For now, add a rich text section on Home and link to it from the navigation —
+              or reach out so we can spin up a page route. Multi-page builder canvases
+              are on the roadmap (needs a schema migration to add <code className="text-white/70 font-mono">page_slug</code>
+              to event_sections).
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
