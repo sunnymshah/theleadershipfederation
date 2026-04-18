@@ -10,7 +10,10 @@ import { SpeakerGrid } from "@/components/site/SpeakerGrid"
 import { getEventSections } from "@/app/actions/eventSectionActions"
 import { EventSectionsRenderer } from "@/components/site/EventSections"
 
-export const revalidate = 60
+// Short revalidate interval so admin edits appear on the public page quickly.
+// The section mutation actions also call revalidatePath(/events/<slug>) for
+// near-instant updates, but this gives us a safety net for direct DB edits.
+export const revalidate = 10
 
 interface Props {
   params: Promise<{ slug: string }>
