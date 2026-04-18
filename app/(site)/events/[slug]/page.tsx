@@ -155,8 +155,13 @@ export default async function EventDetailPage({ params }: Props) {
   // /events/gcc-leadership-conclave-mumbai-7th-edition). Redirect so the URL
   // bar + share links use the real slug. Case-only drift also redirects
   // so there's a single canonical URL for SEO.
-  if (event.slug && event.slug !== slug) {
-    redirect(`/events/${event.slug}`)
+  //
+  // Trim both sides before comparing — stored slugs occasionally carry
+  // leading/trailing whitespace, and redirecting to "/events/mumbai " would
+  // produce a URL ending in %20 that breaks the page.
+  const canonicalSlug = (event.slug ?? "").trim()
+  if (canonicalSlug && canonicalSlug !== slug.trim()) {
+    redirect(`/events/${canonicalSlug}`)
   }
 
   const cookieStore = await cookies()

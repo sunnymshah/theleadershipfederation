@@ -148,7 +148,7 @@ export default async function EventsPage() {
         <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-10 sm:mb-16">
           <AnimateOnScroll animation="fade-up" delay={100}>
             <Link
-              href={`/events/${featured.slug}`}
+              href={`/events/${(featured.slug ?? "").trim()}`}
               className="group relative block rounded-3xl overflow-hidden bg-[#1a1a2e] min-h-[420px] sm:min-h-[480px]"
             >
               {/* Cover image as full background */}
@@ -232,10 +232,14 @@ export default async function EventsPage() {
                     </p>
                   )}
 
-                  {/* CTA row */}
+                  {/* CTA row — whole card is clickable; this is a visual
+                       affordance, not a separate link. */}
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold bg-[#e7ab1c] text-[#1a1a2e] group-hover:bg-[#d49c10] transition-all shadow-[0_4px_20px_rgba(231,171,28,0.3)]">
-                      Learn More <ArrowRight size={15} />
+                    <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold bg-[#e7ab1c] text-[#1a1a2e] group-hover:bg-[#d49c10] group-hover:gap-3 transition-all shadow-[0_4px_20px_rgba(231,171,28,0.3)]">
+                      Open event page <ArrowRight size={15} />
+                    </span>
+                    <span className="text-[11px] text-white/50 font-medium tracking-wider uppercase hidden sm:inline">
+                      Click anywhere on this card
                     </span>
                   </div>
                 </div>
@@ -272,7 +276,7 @@ export default async function EventsPage() {
               return (
                 <AnimateOnScroll key={event.id} animation="fade-up" delay={i * 100}>
                   <Link
-                    href={`/events/${event.slug}`}
+                    href={`/events/${(event.slug ?? "").trim()}`}
                     className="group relative flex flex-col rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_16px_48px_rgba(26,26,46,0.08)] hover:border-[#e7ab1c]/20 transition-all duration-300"
                   >
                     {/* Image */}
@@ -383,7 +387,7 @@ export default async function EventsPage() {
               {past.map((event) => (
                 <Link
                   key={event.id}
-                  href={`/events/${event.slug}`}
+                  href={`/events/${(event.slug ?? "").trim()}`}
                   className="group relative block rounded-2xl overflow-hidden bg-white border border-[#1a1a2e]/[0.06] hover:shadow-[0_8px_30px_rgba(26,26,46,0.06)] hover:border-[#e7ab1c]/15 transition-all duration-300"
                 >
                   {/* Cover */}

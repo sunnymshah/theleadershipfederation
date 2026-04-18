@@ -48,9 +48,37 @@ export function EventSectionsRenderer({
   sponsors: Sponsor[]
   tickets: Ticket[]
 }) {
+  // Auto-prepend a hero if the admin hasn't added one in the builder.
+  // Otherwise the page opens cold on whatever the first section is
+  // (e.g. a speakers grid), with no title, date, or venue anywhere in
+  // view — the featured event card links to a page that looks broken.
+  const hasHero = sections.some((s) => s.kind === "hero")
+  const renderList: EventSection[] = hasHero
+    ? sections
+    : [
+        {
+          id: `__auto_hero_${event.id}`,
+          event_id: event.id,
+          kind: "hero",
+          title: event.title,
+          subtitle: event.description ?? null,
+          body: null,
+          image_url: event.cover_image_url,
+          video_url: null,
+          cta_label: null,
+          cta_url: null,
+          data: {},
+          sort_order: -1,
+          is_active: true,
+          created_at: "",
+          updated_at: "",
+        } as EventSection,
+        ...sections,
+      ]
+
   return (
     <main className="min-h-screen bg-white">
-      {sections.map((s) => (
+      {renderList.map((s) => (
         <SectionBlock
           key={s.id}
           section={s}

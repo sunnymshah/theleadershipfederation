@@ -100,7 +100,10 @@ export async function createEvent(formData: FormData) {
     const { supabase, user } = await getAuthenticatedClient()
 
     const title       = formData.get("title") as string
-    const slug        = formData.get("slug") as string
+    // Trim slug — stray leading/trailing whitespace from copy-paste breaks
+    // the /events/[slug] route (URL param arrives without the whitespace,
+    // so the `WHERE slug = ?` lookup misses).
+    const slug        = ((formData.get("slug") as string) ?? "").trim()
     const startDate   = formData.get("startDate") as string
     const endDate     = formData.get("endDate") as string
     const venue       = formData.get("venue") as string
@@ -187,7 +190,8 @@ export async function updateEvent(eventId: string, formData: FormData) {
       .single()
 
     const title       = formData.get("title") as string
-    const slug        = formData.get("slug") as string
+    // Trim slug — see createEvent for rationale.
+    const slug        = ((formData.get("slug") as string) ?? "").trim()
     const startDate   = formData.get("startDate") as string
     const endDate     = formData.get("endDate") as string
     const venue       = formData.get("venue") as string
