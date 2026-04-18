@@ -84,7 +84,10 @@ export function legacyToPuck(
           type: "SpeakersGrid",
           props: {
             ...base,
-            layout: (d.layout as string) ?? "grid-4",
+            // Legacy stored it as `layout`; the Puck block renamed that
+            // field to `gridLayout` so the shared section `layout` object
+            // (padding/bg/align) wouldn't clash.
+            gridLayout: (d.layout as string) ?? "grid-4",
             frame: (d.frame as string) ?? "circle",
             fit: (d.fit as string) ?? "contain",
           },
