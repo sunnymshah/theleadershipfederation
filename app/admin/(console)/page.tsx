@@ -16,10 +16,12 @@
 
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { getOverallStats, getDashboardStats } from "@/app/actions/analyticsActions"
 import { canCurrentUser } from "@/lib/server-permissions"
 import Link from "next/link"
 import { DashboardClientParts } from "@/components/admin/DashboardClientParts"
+import { AdminHomeTiles } from "@/components/admin/AdminHomeTiles"
 
 /* ─── Formatters ──────────────────────────────────────────────────────── */
 
@@ -217,6 +219,21 @@ export default async function AdminDashboard() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
+  // Resolve the caller's display name for the welcome header. Uses the
+  // service-role client to dodge the recursive RLS on team_members.
+  let displayName: string | null = user.user_metadata?.name ?? null
+  try {
+    const admin = createAdminClient()
+    const { data: member } = await admin
+      .from("team_members")
+      .select("name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+    if (member?.name) displayName = member.name
+  } catch {
+    // fall back to email first-char in header
+  }
+
   // ─── Permission checks (drive tile/chart/quick-action visibility) ─────
   // Each tile and quick-action is gated against the relevant module
   // permission. Super admin always passes; restricted profiles get a
@@ -370,9 +387,15 @@ export default async function AdminDashboard() {
 
   return (
     <div className="p-6 md:p-8 max-w-[1400px] mx-auto">
+      {/* ═══ WORKSPACES — access-gated domain tiles ═════════════════════ *
+       *  Rendered first so users see their accessible workspaces at a
+       *  glance. Locked tiles show a padlock + modal explaining the
+       *  missing permission, mirroring the "access denied" flow.       */}
+      <AdminHomeTiles userName={displayName} />
+
       {/* Page Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#1a1a2e] mb-1">Dashboard</h2>
+        <h2 className="text-2xl font-bold text-[#1a1a2e] mb-1">At a glance</h2>
         <p className="text-sm text-gray-500">
           Analytics and performance overview across all events
         </p>

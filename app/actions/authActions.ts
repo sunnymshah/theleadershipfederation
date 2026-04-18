@@ -10,12 +10,14 @@
 
 import { cookies, headers } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import {
   isAccountLockedOut,
   recordLoginAttempt,
   writeAuditEvent,
   isIpBlocked,
   isValidEmail,
+  isValidUUID,
   adminIpAllowlist,
   ipMatchesAllowlist,
 } from "@/lib/security"
@@ -112,6 +114,70 @@ export async function adminSignIn(params: {
     return { success: false, error: "Invalid credentials." }
   }
   return { success: true }
+}
+
+/**
+ * ── Sign in by team_member profile id ───────────────────────────────
+ *
+ * Used by the Netflix-style profile picker. The client submits the
+ * profile id (visible on the picker) and the password — never the email.
+ *
+ * We resolve profileId → email server-side via the service-role client
+ * (bypasses team_members RLS recursion), then feed it into the standard
+ * adminSignIn pipeline so all the existing defenses (IP allowlist,
+ * blocklist, lockout, audit, honeypot-equivalent email validation) apply.
+ *
+ * Error messages stay deliberately generic ("Invalid credentials.") so
+ * a bad profile id and a bad password look identical to the caller.
+ * That's the whole point of not showing emails on the picker.
+ */
+export async function adminSignInByProfileId(params: {
+  profileId: string
+  password: string
+}): Promise<{ success: boolean; error?: string }> {
+  // 1. Validate profile id shape before any DB hit
+  if (!isValidUUID(params.profileId)) {
+    return { success: false, error: "Invalid credentials." }
+  }
+  if (!params.password || params.password.length < 1 || params.password.length > 500) {
+    return { success: false, error: "Invalid credentials." }
+  }
+
+  // 2. Resolve id → email (service role; team_members has recursive RLS)
+  let email: string | null = null
+  try {
+    const admin = createAdminClient()
+    const { data: member } = await admin
+      .from("team_members")
+      .select("email, status")
+      .eq("id", params.profileId)
+      .maybeSingle()
+    // Inactive / suspended profiles should not be able to sign in even
+    // if they know the password — the membership table is the gate.
+    if (member && (member.status ?? "active") === "active") {
+      email = member.email
+    }
+  } catch (err) {
+    console.error("[adminSignInByProfileId] lookup failed:", (err as Error).message)
+  }
+
+  // 3. If we couldn't map to an email, audit it as a profile-picker
+  //    failure and return the same generic error the real path returns.
+  if (!email) {
+    const hdrs = await headers()
+    writeAuditEvent({
+      action: "auth.signin.profile_not_found",
+      ip: ipFromHeaders(hdrs),
+      userAgent: hdrs.get("user-agent"),
+      metadata: { profileId: params.profileId },
+    })
+    return { success: false, error: "Invalid credentials." }
+  }
+
+  // 4. Delegate to the hardened email/password path so every single
+  //    defense (blocklist, allowlist, lockout, attempt recording,
+  //    audit trail) applies exactly once, in one place.
+  return adminSignIn({ email, password: params.password })
 }
 
 /**
