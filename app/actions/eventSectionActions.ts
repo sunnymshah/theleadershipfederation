@@ -15,6 +15,28 @@ import { createAdminClient } from "@/utils/supabase/admin"
 import { requirePermission } from "@/lib/server-permissions"
 import { SECTION_KINDS, type EventSection, type SectionKind } from "@/lib/event-sections"
 
+/**
+ * Revalidate both the admin builder page and the public event page after a
+ * section mutation so edits are "real-time" on the public site. Wrapped in
+ * try/catch per Next 16 guidance — a render failure must not fail the
+ * mutation.
+ */
+async function revalidateEvent(eventId: string, slug?: string | null) {
+  try { revalidatePath(`/admin/events/${eventId}/builder`) } catch { /* ignore */ }
+  if (slug) {
+    try { revalidatePath(`/events/${slug}`) } catch { /* ignore */ }
+  } else {
+    // Look up the slug so we can revalidate the public page too.
+    try {
+      const admin = createAdminClient()
+      const { data } = await admin.from("events").select("slug").eq("id", eventId).maybeSingle()
+      if (data?.slug) {
+        try { revalidatePath(`/events/${data.slug}`) } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+  }
+}
+
 /* ── Read: public + admin ────────────────────────────────────────────── */
 
 export async function getEventSections(
@@ -106,10 +128,8 @@ export async function createEventSection(input: {
       .single()
     if (error) return { success: false, error: error.message }
 
-    revalidatePath(`/admin/events/${input.eventId}/builder`, "page")
-    // Revalidate the public event page too (needs slug lookup)
     const { data: ev } = await admin.from("events").select("slug").eq("id", input.eventId).maybeSingle()
-    if (ev?.slug) revalidatePath(`/events/${ev.slug}`, "page")
+    await revalidateEvent(input.eventId, ev?.slug as string | null | undefined)
 
     return { success: true, section: data as EventSection }
   } catch (err) {
@@ -158,9 +178,8 @@ export async function updateEventSection(
     if (error) return { success: false, error: error.message }
 
     if (row?.event_id) {
-      revalidatePath(`/admin/events/${row.event_id}/builder`, "page")
       const slug = (row as unknown as { events?: { slug?: string } }).events?.slug
-      if (slug) revalidatePath(`/events/${slug}`, "page")
+      await revalidateEvent(row.event_id as string, slug)
     }
     return { success: true }
   } catch (err) {
@@ -186,7 +205,7 @@ export async function deleteEventSection(
     if (error) return { success: false, error: error.message }
 
     if (row?.event_id) {
-      revalidatePath(`/admin/events/${row.event_id}/builder`, "page")
+      await revalidateEvent(row.event_id as string)
     }
     return { success: true }
   } catch (err) {
@@ -234,7 +253,7 @@ export async function moveEventSection(
       .update({ sort_order: me.sort_order })
       .eq("id", swap.id)
 
-    revalidatePath(`/admin/events/${me.event_id}/builder`, "page")
+    await revalidateEvent(me.event_id as string)
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -271,7 +290,7 @@ export async function reorderEventSections(
         .eq("id", orderedIds[i])
     }
 
-    revalidatePath(`/admin/events/${eventId}/builder`, "page")
+    await revalidateEvent(eventId)
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -317,7 +336,7 @@ export async function duplicateEventSection(
     })
     if (error) return { success: false, error: error.message }
 
-    revalidatePath(`/admin/events/${src.event_id}/builder`, "page")
+    await revalidateEvent(src.event_id as string)
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
