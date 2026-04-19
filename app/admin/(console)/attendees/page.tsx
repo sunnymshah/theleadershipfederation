@@ -239,12 +239,16 @@ export default function AdminAttendeesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#444] hover:bg-[#fafafa] transition-colors">
-            <Download size={15} /> Export CSV
-          </button>
-          <button onClick={() => setImporterOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#444] hover:bg-[#fafafa] transition-colors">
-            <Upload size={15} /> Import CSV
-          </button>
+          {can("attendees", "export") && (
+            <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#444] hover:bg-[#fafafa] transition-colors">
+              <Download size={15} /> Export CSV
+            </button>
+          )}
+          {can("attendees", "create") && (
+            <button onClick={() => setImporterOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#444] hover:bg-[#fafafa] transition-colors">
+              <Upload size={15} /> Import CSV
+            </button>
+          )}
           {can("attendees", "create") && (
             <button onClick={() => { setEditingAttendee(null); setDrawerOpen(true); setActionError(null) }} className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors">
               <Plus size={16} /> Add Attendee
@@ -360,15 +364,19 @@ export default function AdminAttendeesPage() {
                       {a.qr_token && (
                         <AttendeeQrCode attendeeName={a.name} qrToken={a.qr_token} />
                       )}
-                      {a.status !== "checked_in" && a.status !== "cancelled" && (
+                      {a.status !== "checked_in" && a.status !== "cancelled" && can("check_in", "perform") && (
                         <button onClick={() => handleCheckIn(a.id)} disabled={checkingInId === a.id} className="p-2 rounded-md text-[#aaa] hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-30" title="Check in">
                           {checkingInId === a.id ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                         </button>
                       )}
-                      <button onClick={() => { setEditingAttendee(a); setDrawerOpen(true); setActionError(null) }} className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors" title="Edit"><Pencil size={15} /></button>
-                      <button onClick={() => handleDelete(a.id)} disabled={deletingId === a.id} className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30" title="Delete">
-                        {deletingId === a.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                      </button>
+                      {can("attendees", "edit") && (
+                        <button onClick={() => { setEditingAttendee(a); setDrawerOpen(true); setActionError(null) }} className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-[#fafafa] transition-colors" title="Edit"><Pencil size={15} /></button>
+                      )}
+                      {can("attendees", "delete") && (
+                        <button onClick={() => handleDelete(a.id)} disabled={deletingId === a.id} className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30" title="Delete">
+                          {deletingId === a.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

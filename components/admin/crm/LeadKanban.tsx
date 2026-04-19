@@ -9,6 +9,7 @@
 
 import { useMemo, useState } from "react"
 import type { CrmLead, LeadStatus } from "@/app/actions/crmLeadActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import { STATUS_LABELS, STATUS_ORDER, STATUS_PILL } from "./leadConstants"
 
 interface Props {
@@ -18,6 +19,8 @@ interface Props {
 }
 
 export function LeadKanban({ leads, onStatusChange, onOpenLead }: Props) {
+  const { can } = useAdminPermissions()
+  const canMove = can("leads", "edit")
   const [dragOver, setDragOver] = useState<LeadStatus | null>(null)
 
   const grouped = useMemo(() => {
@@ -33,6 +36,7 @@ export function LeadKanban({ leads, onStatusChange, onOpenLead }: Props) {
   function handleDrop(e: React.DragEvent<HTMLDivElement>, status: LeadStatus) {
     e.preventDefault()
     setDragOver(null)
+    if (!canMove) return
     const id = e.dataTransfer.getData("text/plain")
     if (id) onStatusChange(id, status)
   }
@@ -52,7 +56,7 @@ export function LeadKanban({ leads, onStatusChange, onOpenLead }: Props) {
                 w-[280px] shrink-0 rounded-xl border transition-colors
                 ${isTarget ? "border-[#c9a84c] bg-[#fffcf2]" : "border-[#e5e7eb] bg-[#fafafa]"}
               `}
-              onDragOver={(e) => { e.preventDefault(); setDragOver(s) }}
+              onDragOver={(e) => { if (canMove) { e.preventDefault(); setDragOver(s) } }}
               onDragLeave={() => setDragOver((v) => (v === s ? null : v))}
               onDrop={(e) => handleDrop(e, s)}
             >
@@ -75,11 +79,11 @@ export function LeadKanban({ leads, onStatusChange, onOpenLead }: Props) {
               {/* Cards */}
               <div className="p-2 space-y-2 min-h-[60vh] max-h-[70vh] overflow-y-auto">
                 {col.map((l) => (
-                  <KanbanCard key={l.id} lead={l} onOpen={() => onOpenLead(l.id)} />
+                  <KanbanCard key={l.id} lead={l} onOpen={() => onOpenLead(l.id)} canDrag={canMove} />
                 ))}
                 {col.length === 0 && (
                   <div className="text-[11px] text-[#ccc] text-center py-6">
-                    Drag leads here
+                    {canMove ? "Drag leads here" : "No leads"}
                   </div>
                 )}
               </div>
@@ -91,17 +95,17 @@ export function LeadKanban({ leads, onStatusChange, onOpenLead }: Props) {
   )
 }
 
-function KanbanCard({ lead, onOpen }: { lead: CrmLead; onOpen: () => void }) {
+function KanbanCard({ lead, onOpen, canDrag }: { lead: CrmLead; onOpen: () => void; canDrag: boolean }) {
   return (
     <div
-      draggable
-      onDragStart={(e) => e.dataTransfer.setData("text/plain", lead.id)}
+      draggable={canDrag}
+      onDragStart={(e) => { if (canDrag) e.dataTransfer.setData("text/plain", lead.id) }}
       onClick={onOpen}
-      className="
+      className={`
         bg-white border border-[#e5e7eb] rounded-md px-3 py-2.5
-        cursor-grab active:cursor-grabbing hover:border-[#c9a84c] hover:shadow-sm
-        transition-all
-      "
+        hover:border-[#c9a84c] hover:shadow-sm transition-all
+        ${canDrag ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}
+      `}
     >
       <div className="text-[13px] font-medium text-[#1a1a2e] truncate">
         {lead.full_name}

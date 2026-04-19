@@ -138,22 +138,23 @@ export const ADMIN_WORKSPACES: AdminWorkspace[] = [
     accent: "#c9a84c",
     href: "/admin/leads",
     icon: "users",
-    gate: { module: "attendees", action: "view" },
+    gate: { module: "leads", action: "view" },
     groups: [
       {
         title: "Pipeline",
         items: [
-          { label: "Leads",             href: "/admin/leads" },
+          { label: "Leads",             href: "/admin/leads",         permission: { module: "leads", action: "view" } },
+          { label: "Tasks",             href: "/admin/tasks",         permission: { module: "tasks", action: "view" } },
           { label: "Sponsor leads",     href: "/admin/sponsor-leads", permission: { module: "sponsors", action: "view" } },
-          { label: "Contact inquiries", href: "/admin/contact-inquiries" },
+          { label: "Contact inquiries", href: "/admin/contact-inquiries", permission: { module: "attendees", action: "view" } },
         ],
       },
       {
         title: "Community",
         items: [
-          { label: "Memberships",  href: "/admin/memberships" },
-          { label: "Inner Circle", href: "/admin/inner-circle" },
-          { label: "Newsletter",   href: "/admin/newsletter" },
+          { label: "Memberships",  href: "/admin/memberships",  permission: { module: "attendees", action: "view" } },
+          { label: "Inner Circle", href: "/admin/inner-circle", permission: { module: "attendees", action: "view" } },
+          { label: "Newsletter",   href: "/admin/newsletter",   permission: { module: "attendees", action: "view" } },
         ],
       },
       {
@@ -161,7 +162,7 @@ export const ADMIN_WORKSPACES: AdminWorkspace[] = [
         items: [
           { label: "Partners",     href: "/admin/partners",     permission: { module: "sponsors", action: "view" } },
           { label: "Platforms",    href: "/admin/platforms",    permission: { module: "sponsors", action: "view" } },
-          { label: "Testimonials", href: "/admin/testimonials" },
+          { label: "Testimonials", href: "/admin/testimonials", permission: { module: "content", action: "view" } },
         ],
       },
     ],
@@ -175,23 +176,23 @@ export const ADMIN_WORKSPACES: AdminWorkspace[] = [
     accent: "#7c3aed",
     href: "/admin/campaigns",
     icon: "megaphone",
-    gate: { module: "attendees", action: "view" },
+    gate: { module: "campaigns", action: "view" },
     groups: [
       {
         title: "Comms",
         items: [
-          { label: "Campaigns",       href: "/admin/campaigns" },
-          { label: "Email templates", href: "/admin/email-templates" },
-          { label: "Automations",     href: "/admin/automations" },
+          { label: "Campaigns",       href: "/admin/campaigns",       permission: { module: "campaigns", action: "view" } },
+          { label: "Email templates", href: "/admin/email-templates", permission: { module: "campaigns", action: "view" } },
+          { label: "Automations",     href: "/admin/automations",     permission: { module: "campaigns", action: "view" } },
         ],
       },
       {
         title: "Site pages",
         items: [
-          { label: "About",   href: "/admin/about" },
-          { label: "Contact", href: "/admin/contact" },
-          { label: "Media",   href: "/admin/media" },
-          { label: "FAQs",    href: "/admin/faqs" },
+          { label: "About",   href: "/admin/about",   permission: { module: "content", action: "view" } },
+          { label: "Contact", href: "/admin/contact", permission: { module: "content", action: "view" } },
+          { label: "Media",   href: "/admin/media",   permission: { module: "content", action: "view" } },
+          { label: "FAQs",    href: "/admin/faqs",    permission: { module: "content", action: "view" } },
         ],
       },
     ],

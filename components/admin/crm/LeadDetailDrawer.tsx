@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from "react"
 import {
   X, Mail, Phone, Building2, Briefcase, Globe, Link2, MapPin,
   User as UserIcon, Calendar, Flame, Trash2, Loader2, Check,
-  StickyNote, ListTodo, Activity as ActivityIcon, Info,
+  StickyNote, ListTodo, Activity as ActivityIcon, Info, Lock,
 } from "lucide-react"
 import {
   getLead, updateLead, deleteLead, listActivities, listNotes, addNote,
@@ -23,12 +23,20 @@ import {
   type CrmLead, type LeadInput, type LeadStatus, type LeadRating,
   type LeadSource, type LeadActivity, type LeadNote, type LeadTask,
 } from "@/app/actions/crmLeadActions"
+import { useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import {
   STATUS_LABELS, STATUS_ORDER, STATUS_PILL, RATING_LABELS,
   SOURCE_LABELS, SOURCE_OPTIONS,
 } from "./leadConstants"
 
-type Member = { user_id: string; email: string; role: string }
+type Member = {
+  user_id: string
+  email: string
+  name: string | null
+  role: string
+  profile_id: string | null
+  profile_name: string | null
+}
 type Tab = "overview" | "activity" | "notes" | "tasks"
 
 interface Props {
@@ -39,6 +47,11 @@ interface Props {
 }
 
 export function LeadDetailDrawer({ leadId, members, onClose, onChange }: Props) {
+  const { can } = useAdminPermissions()
+  const canEdit   = can("leads", "edit")
+  const canDelete = can("leads", "delete")
+  const canAssign = can("leads", "assign")
+  const canViewTasks = can("tasks", "view")
   const [lead, setLead] = useState<CrmLead | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>("overview")
@@ -114,14 +127,16 @@ export function LeadDetailDrawer({ leadId, members, onClose, onChange }: Props) 
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="p-2 rounded-md text-[#888] hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
-                    title="Delete lead"
-                  >
-                    {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="p-2 rounded-md text-[#888] hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                      title="Delete lead"
+                    >
+                      {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    </button>
+                  )}
                   <button
                     onClick={onClose}
                     className="p-2 rounded-md text-[#888] hover:text-[#1a1a2e] hover:bg-[#f5f5f5] transition-colors"
@@ -134,8 +149,14 @@ export function LeadDetailDrawer({ leadId, members, onClose, onChange }: Props) 
               {/* Stage stepper */}
               <StageStepper
                 value={lead.status}
+                disabled={!canEdit}
                 onChange={(s) => patch({ status: s })}
               />
+              {!canEdit && (
+                <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#999]">
+                  <Lock size={10} /> Read-only — you can view this lead but not edit it.
+                </div>
+              )}
             </div>
 
             {/* Tabs */}
@@ -143,16 +164,32 @@ export function LeadDetailDrawer({ leadId, members, onClose, onChange }: Props) 
               <TabBtn active={tab === "overview"} onClick={() => setTab("overview")} icon={<Info size={13} />} label="Overview" />
               <TabBtn active={tab === "activity"} onClick={() => setTab("activity")} icon={<ActivityIcon size={13} />} label="Activity" />
               <TabBtn active={tab === "notes"}    onClick={() => setTab("notes")}    icon={<StickyNote size={13} />}   label="Notes" />
-              <TabBtn active={tab === "tasks"}    onClick={() => setTab("tasks")}    icon={<ListTodo size={13} />}     label="Tasks" />
+              {canViewTasks && (
+                <TabBtn active={tab === "tasks"}  onClick={() => setTab("tasks")}    icon={<ListTodo size={13} />}     label="Tasks" />
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto">
               {tab === "overview" && (
-                <OverviewPanel lead={lead} members={members} onPatch={patch} />
+                <OverviewPanel
+                  lead={lead}
+                  members={members}
+                  onPatch={patch}
+                  canEdit={canEdit}
+                  canAssign={canAssign}
+                />
               )}
               {tab === "activity" && <ActivityPanel leadId={lead.id} />}
-              {tab === "notes"    && <NotesPanel leadId={lead.id} />}
-              {tab === "tasks"    && <TasksPanel leadId={lead.id} members={members} />}
+              {tab === "notes"    && <NotesPanel leadId={lead.id} canEdit={canEdit} />}
+              {tab === "tasks" && canViewTasks && (
+                <TasksPanel
+                  leadId={lead.id}
+                  members={members}
+                  canCreate={can("tasks", "create")}
+                  canEditTasks={can("tasks", "edit")}
+                  canDeleteTasks={can("tasks", "delete")}
+                />
+              )}
             </div>
           </>
         )}
@@ -164,8 +201,8 @@ export function LeadDetailDrawer({ leadId, members, onClose, onChange }: Props) 
 /* ── Stage stepper ─────────────────────────────────────────────────── */
 
 function StageStepper({
-  value, onChange,
-}: { value: LeadStatus; onChange: (s: LeadStatus) => void }) {
+  value, onChange, disabled,
+}: { value: LeadStatus; onChange: (s: LeadStatus) => void; disabled?: boolean }) {
   return (
     <div className="flex items-center gap-1">
       {STATUS_ORDER.map((s) => {
@@ -174,12 +211,14 @@ function StageStepper({
         return (
           <button
             key={s}
-            onClick={() => onChange(s)}
+            onClick={() => !disabled && onChange(s)}
+            disabled={disabled}
             className={`
               flex-1 px-2 py-1.5 text-[11px] font-medium rounded-md transition-all
               ${active
                 ? `${pill.bg} ${pill.text} ring-1 ring-inset ring-black/5`
                 : "text-[#888] hover:bg-[#f5f5f5]"}
+              ${disabled ? "cursor-not-allowed opacity-60" : ""}
             `}
           >
             {STATUS_LABELS[s]}
@@ -193,73 +232,86 @@ function StageStepper({
 /* ── Overview panel ────────────────────────────────────────────────── */
 
 function OverviewPanel({
-  lead, members, onPatch,
+  lead, members, onPatch, canEdit, canAssign,
 }: {
   lead: CrmLead
   members: Member[]
   onPatch: (p: Partial<LeadInput>) => void
+  canEdit: boolean
+  canAssign: boolean
 }) {
+  const memberLabel = (m: Member) => {
+    const base = m.name?.trim() || m.email || "Unknown"
+    const badge = m.profile_name
+      ? ` · ${m.profile_name}`
+      : m.role === "super_admin" ? " · Super admin"
+        : m.role === "admin" ? " · Admin"
+        : m.role === "manager" ? " · Manager"
+        : m.role === "check_in_staff" ? " · Check-in"
+        : m.role === "viewer" ? " · Viewer" : ""
+    return `${base}${badge}`
+  }
   return (
     <div className="p-6 space-y-5">
       <FieldGroup title="Identity">
-        <RowField icon={<UserIcon size={13} />} label="First name"
+        <RowField icon={<UserIcon size={13} />} label="First name" readOnly={!canEdit}
           value={lead.first_name} onSave={(v) => onPatch({ firstName: v })} />
-        <RowField icon={<UserIcon size={13} />} label="Last name"
+        <RowField icon={<UserIcon size={13} />} label="Last name" readOnly={!canEdit}
           value={lead.last_name ?? ""} onSave={(v) => onPatch({ lastName: v })} />
-        <RowField icon={<Mail size={13} />} label="Email" type="email"
+        <RowField icon={<Mail size={13} />} label="Email" type="email" readOnly={!canEdit}
           value={lead.email ?? ""} onSave={(v) => onPatch({ email: v })} />
-        <RowField icon={<Phone size={13} />} label="Phone"
+        <RowField icon={<Phone size={13} />} label="Phone" readOnly={!canEdit}
           value={lead.phone ?? ""} onSave={(v) => onPatch({ phone: v })} />
       </FieldGroup>
 
       <FieldGroup title="Professional">
-        <RowField icon={<Building2 size={13} />} label="Company"
+        <RowField icon={<Building2 size={13} />} label="Company" readOnly={!canEdit}
           value={lead.company ?? ""} onSave={(v) => onPatch({ company: v })} />
-        <RowField icon={<Briefcase size={13} />} label="Job title"
+        <RowField icon={<Briefcase size={13} />} label="Job title" readOnly={!canEdit}
           value={lead.title ?? ""} onSave={(v) => onPatch({ title: v })} />
-        <RowField icon={<Briefcase size={13} />} label="Industry"
+        <RowField icon={<Briefcase size={13} />} label="Industry" readOnly={!canEdit}
           value={lead.industry ?? ""} onSave={(v) => onPatch({ industry: v })} />
-        <RowField icon={<Globe size={13} />} label="Website"
+        <RowField icon={<Globe size={13} />} label="Website" readOnly={!canEdit}
           value={lead.website_url ?? ""} onSave={(v) => onPatch({ websiteUrl: v })} />
-        <RowField icon={<Link2 size={13} />} label="LinkedIn"
+        <RowField icon={<Link2 size={13} />} label="LinkedIn" readOnly={!canEdit}
           value={lead.linkedin_url ?? ""} onSave={(v) => onPatch({ linkedinUrl: v })} />
       </FieldGroup>
 
       <FieldGroup title="Location">
-        <RowField icon={<MapPin size={13} />} label="City"
+        <RowField icon={<MapPin size={13} />} label="City" readOnly={!canEdit}
           value={lead.city ?? ""} onSave={(v) => onPatch({ city: v })} />
-        <RowField icon={<MapPin size={13} />} label="Country"
+        <RowField icon={<MapPin size={13} />} label="Country" readOnly={!canEdit}
           value={lead.country ?? ""} onSave={(v) => onPatch({ country: v })} />
       </FieldGroup>
 
       <FieldGroup title="Pipeline">
-        <RowSelect label="Owner"
+        <RowSelect label="Owner" disabled={!canAssign}
           value={lead.owner_id ?? ""}
-          options={[{ value: "", label: "Unassigned" }, ...members.map((m) => ({ value: m.user_id, label: m.email }))]}
+          options={[{ value: "", label: "Unassigned" }, ...members.map((m) => ({ value: m.user_id, label: memberLabel(m) }))]}
           onSave={(v) => onPatch({ ownerId: v || null })} />
-        <RowSelect label="Rating"
+        <RowSelect label="Rating" disabled={!canEdit}
           value={lead.rating ?? ""}
           options={[
             { value: "", label: "—" },
             ...(["hot","warm","cold"] as LeadRating[]).map((r) => ({ value: r, label: RATING_LABELS[r] })),
           ]}
           onSave={(v) => onPatch({ rating: (v || undefined) as LeadRating })} />
-        <RowField icon={<Flame size={13} />} label="Lead value (₹)" type="number"
+        <RowField icon={<Flame size={13} />} label="Lead value (₹)" type="number" readOnly={!canEdit}
           value={lead.lead_value?.toString() ?? ""}
           onSave={(v) => onPatch({ leadValue: v ? Number(v) : undefined })} />
-        <RowSelect label="Source"
+        <RowSelect label="Source" disabled={!canEdit}
           value={lead.source}
           options={SOURCE_OPTIONS.map((s) => ({ value: s, label: SOURCE_LABELS[s] }))}
           onSave={(v) => onPatch({ source: v as LeadSource })} />
-        <RowField icon={<Info size={13} />} label="Source detail"
+        <RowField icon={<Info size={13} />} label="Source detail" readOnly={!canEdit}
           value={lead.source_detail ?? ""} onSave={(v) => onPatch({ sourceDetail: v })} />
       </FieldGroup>
 
       <FieldGroup title="Extra">
-        <RowField icon={<Info size={13} />} label="Tags (comma-separated)"
+        <RowField icon={<Info size={13} />} label="Tags (comma-separated)" readOnly={!canEdit}
           value={lead.tags.join(", ")}
           onSave={(v) => onPatch({ tags: v.split(",").map((t) => t.trim()).filter(Boolean) })} />
-        <RowTextarea label="Description"
+        <RowTextarea label="Description" readOnly={!canEdit}
           value={lead.description ?? ""}
           onSave={(v) => onPatch({ description: v })} />
       </FieldGroup>
@@ -316,7 +368,7 @@ function ActivityPanel({ leadId }: { leadId: string }) {
 
 /* ── Notes panel ───────────────────────────────────────────────────── */
 
-function NotesPanel({ leadId }: { leadId: string }) {
+function NotesPanel({ leadId, canEdit }: { leadId: string; canEdit: boolean }) {
   const [notes, setNotes] = useState<LeadNote[]>([])
   const [loading, setLoading] = useState(true)
   const [body, setBody] = useState("")
@@ -348,26 +400,32 @@ function NotesPanel({ leadId }: { leadId: string }) {
 
   return (
     <div className="p-6">
-      <div className="border border-[#e5e7eb] rounded-lg overflow-hidden mb-4">
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit() }}
-          placeholder="Add a note… (⌘↵ to save)"
-          className="w-full px-3 py-2.5 text-[13px] resize-none focus:outline-none"
-          rows={3}
-        />
-        <div className="flex items-center justify-between border-t border-[#eee] px-3 py-1.5 bg-[#fafafa]">
-          <span className="text-[11px] text-[#aaa]">{body.length} chars</span>
-          <button
-            onClick={submit}
-            disabled={!body.trim() || adding}
-            className="px-3 py-1 rounded-md bg-[#1a1a2e] text-white text-[12px] font-medium disabled:opacity-40 hover:bg-[#2a2a3e] transition-colors"
-          >
-            {adding ? <Loader2 size={12} className="animate-spin" /> : "Add note"}
-          </button>
+      {canEdit ? (
+        <div className="border border-[#e5e7eb] rounded-lg overflow-hidden mb-4">
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit() }}
+            placeholder="Add a note… (⌘↵ to save)"
+            className="w-full px-3 py-2.5 text-[13px] resize-none focus:outline-none"
+            rows={3}
+          />
+          <div className="flex items-center justify-between border-t border-[#eee] px-3 py-1.5 bg-[#fafafa]">
+            <span className="text-[11px] text-[#aaa]">{body.length} chars</span>
+            <button
+              onClick={submit}
+              disabled={!body.trim() || adding}
+              className="px-3 py-1 rounded-md bg-[#1a1a2e] text-white text-[12px] font-medium disabled:opacity-40 hover:bg-[#2a2a3e] transition-colors"
+            >
+              {adding ? <Loader2 size={12} className="animate-spin" /> : "Add note"}
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="mb-4 flex items-center gap-1.5 text-[11px] text-[#999] bg-[#fafafa] border border-[#eee] rounded-md px-3 py-2">
+          <Lock size={11} /> You don&apos;t have permission to add notes.
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center text-[#aaa]"><Loader2 size={18} className="inline animate-spin" /></div>
@@ -385,9 +443,11 @@ function NotesPanel({ leadId }: { leadId: string }) {
                     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
                   })}
                 </span>
-                <button onClick={() => remove(n.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#aaa] hover:text-red-600">
-                  <Trash2 size={12} />
-                </button>
+                {canEdit && (
+                  <button onClick={() => remove(n.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#aaa] hover:text-red-600">
+                    <Trash2 size={12} />
+                  </button>
+                )}
               </div>
             </li>
           ))}
@@ -399,13 +459,27 @@ function NotesPanel({ leadId }: { leadId: string }) {
 
 /* ── Tasks panel ───────────────────────────────────────────────────── */
 
-function TasksPanel({ leadId, members }: { leadId: string; members: Member[] }) {
+function TasksPanel({
+  leadId, members, canCreate, canEditTasks, canDeleteTasks,
+}: {
+  leadId: string
+  members: Member[]
+  canCreate: boolean
+  canEditTasks: boolean
+  canDeleteTasks: boolean
+}) {
   const [tasks, setTasks] = useState<LeadTask[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState("")
   const [dueDate, setDueDate] = useState("")
   const [assigneeId, setAssigneeId] = useState("")
   const [adding, setAdding] = useState(false)
+
+  const memberLabel = (m: Member) => {
+    const base = m.name?.trim() || m.email || "Unknown"
+    const badge = m.profile_name ? ` · ${m.profile_name}` : m.role ? ` · ${m.role.replace("_", " ")}` : ""
+    return `${base}${badge}`
+  }
 
   const fetch = useCallback(async () => {
     setLoading(true)
@@ -443,31 +517,37 @@ function TasksPanel({ leadId, members }: { leadId: string; members: Member[] }) 
 
   return (
     <div className="p-6">
-      <div className="border border-[#e5e7eb] rounded-lg overflow-hidden mb-4">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && title.trim()) submit() }}
-          placeholder="Add a task (press ↵)"
-          className="w-full px-3 py-2.5 text-[13px] focus:outline-none"
-        />
-        <div className="flex items-center gap-2 border-t border-[#eee] px-3 py-2 bg-[#fafafa]">
-          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-            className="text-[11px] border border-[#e5e7eb] rounded px-1.5 py-1 bg-white" />
-          <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}
-            className="text-[11px] border border-[#e5e7eb] rounded px-1.5 py-1 bg-white">
-            <option value="">Unassigned</option>
-            {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.email}</option>)}
-          </select>
-          <button
-            onClick={submit}
-            disabled={!title.trim() || adding}
-            className="ml-auto px-3 py-1 rounded-md bg-[#1a1a2e] text-white text-[12px] font-medium disabled:opacity-40 hover:bg-[#2a2a3e] transition-colors"
-          >
-            {adding ? <Loader2 size={12} className="animate-spin" /> : "Add"}
-          </button>
+      {canCreate ? (
+        <div className="border border-[#e5e7eb] rounded-lg overflow-hidden mb-4">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && title.trim()) submit() }}
+            placeholder="Add a task (press ↵)"
+            className="w-full px-3 py-2.5 text-[13px] focus:outline-none"
+          />
+          <div className="flex items-center gap-2 border-t border-[#eee] px-3 py-2 bg-[#fafafa]">
+            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+              className="text-[11px] border border-[#e5e7eb] rounded px-1.5 py-1 bg-white" />
+            <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}
+              className="text-[11px] border border-[#e5e7eb] rounded px-1.5 py-1 bg-white">
+              <option value="">Unassigned</option>
+              {members.map((m) => <option key={m.user_id} value={m.user_id}>{memberLabel(m)}</option>)}
+            </select>
+            <button
+              onClick={submit}
+              disabled={!title.trim() || adding}
+              className="ml-auto px-3 py-1 rounded-md bg-[#1a1a2e] text-white text-[12px] font-medium disabled:opacity-40 hover:bg-[#2a2a3e] transition-colors"
+            >
+              {adding ? <Loader2 size={12} className="animate-spin" /> : "Add"}
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="mb-4 flex items-center gap-1.5 text-[11px] text-[#999] bg-[#fafafa] border border-[#eee] rounded-md px-3 py-2">
+          <Lock size={11} /> You don&apos;t have permission to create tasks.
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center text-[#aaa]"><Loader2 size={18} className="inline animate-spin" /></div>
@@ -481,10 +561,12 @@ function TasksPanel({ leadId, members }: { leadId: string; members: Member[] }) 
             return (
               <li key={t.id} className="flex items-center gap-3 py-2 px-3 border border-[#eee] rounded-lg group hover:bg-[#fafafa]">
                 <button
-                  onClick={() => toggle(t)}
+                  onClick={() => { if (canEditTasks) toggle(t) }}
+                  disabled={!canEditTasks}
                   className={`
                     w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
                     ${done ? "bg-[#1a1a2e] border-[#1a1a2e]" : "border-[#ccc] hover:border-[#888]"}
+                    ${!canEditTasks ? "cursor-not-allowed opacity-60" : ""}
                   `}
                 >
                   {done && <Check size={12} className="text-white" />}
@@ -502,10 +584,12 @@ function TasksPanel({ leadId, members }: { leadId: string; members: Member[] }) 
                     {t.assignee_email && <span>· {t.assignee_email}</span>}
                   </div>
                 </div>
-                <button onClick={() => remove(t.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[#aaa] hover:text-red-600">
-                  <Trash2 size={12} />
-                </button>
+                {canDeleteTasks && (
+                  <button onClick={() => remove(t.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-[#aaa] hover:text-red-600">
+                    <Trash2 size={12} />
+                  </button>
+                )}
               </li>
             )
           })}
@@ -527,13 +611,14 @@ function FieldGroup({ title, children }: { title: string; children: React.ReactN
 }
 
 function RowField({
-  icon, label, value, onSave, type = "text",
+  icon, label, value, onSave, type = "text", readOnly = false,
 }: {
   icon?: React.ReactNode
   label: string
   value: string
   onSave: (v: string) => void
   type?: string
+  readOnly?: boolean
 }) {
   const [draft, setDraft] = useState(value)
   useEffect(() => setDraft(value), [value])
@@ -546,17 +631,29 @@ function RowField({
       <input
         type={type}
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => { if (changed) onSave(draft) }}
+        readOnly={readOnly}
+        onChange={(e) => { if (!readOnly) setDraft(e.target.value) }}
+        onBlur={() => { if (!readOnly && changed) onSave(draft) }}
         onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur() }}
-        className="flex-1 text-[13px] text-[#333] bg-transparent border-b border-transparent hover:border-[#eee] focus:border-[#c9a84c] focus:outline-none py-1"
+        className={`flex-1 text-[13px] bg-transparent border-b border-transparent py-1 focus:outline-none ${
+          readOnly
+            ? "text-[#666] cursor-default"
+            : "text-[#333] hover:border-[#eee] focus:border-[#c9a84c]"
+        }`}
         placeholder="—"
       />
     </div>
   )
 }
 
-function RowTextarea({ label, value, onSave }: { label: string; value: string; onSave: (v: string) => void }) {
+function RowTextarea({
+  label, value, onSave, readOnly = false,
+}: {
+  label: string
+  value: string
+  onSave: (v: string) => void
+  readOnly?: boolean
+}) {
   const [draft, setDraft] = useState(value)
   useEffect(() => setDraft(value), [value])
   return (
@@ -564,9 +661,14 @@ function RowTextarea({ label, value, onSave }: { label: string; value: string; o
       <div className="text-[12px] text-[#888] mb-1">{label}</div>
       <textarea
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => { if (draft !== value) onSave(draft) }}
-        className="w-full text-[13px] text-[#333] border border-[#eee] rounded-md px-2 py-1.5 focus:outline-none focus:border-[#c9a84c]"
+        readOnly={readOnly}
+        onChange={(e) => { if (!readOnly) setDraft(e.target.value) }}
+        onBlur={() => { if (!readOnly && draft !== value) onSave(draft) }}
+        className={`w-full text-[13px] border rounded-md px-2 py-1.5 focus:outline-none ${
+          readOnly
+            ? "text-[#666] border-[#f2f2f2] bg-[#fafafa] cursor-default"
+            : "text-[#333] border-[#eee] focus:border-[#c9a84c]"
+        }`}
         rows={3}
         placeholder="—"
       />
@@ -575,20 +677,26 @@ function RowTextarea({ label, value, onSave }: { label: string; value: string; o
 }
 
 function RowSelect({
-  label, value, options, onSave,
+  label, value, options, onSave, disabled = false,
 }: {
   label: string
   value: string
   options: { value: string; label: string }[]
   onSave: (v: string) => void
+  disabled?: boolean
 }) {
   return (
     <div className="flex items-center gap-3 py-1.5">
       <div className="w-32 text-[12px] text-[#888] shrink-0">{label}</div>
       <select
         value={value}
+        disabled={disabled}
         onChange={(e) => onSave(e.target.value)}
-        className="flex-1 text-[13px] text-[#333] bg-transparent border-b border-transparent hover:border-[#eee] focus:border-[#c9a84c] focus:outline-none py-1"
+        className={`flex-1 text-[13px] bg-transparent border-b border-transparent py-1 focus:outline-none ${
+          disabled
+            ? "text-[#666] cursor-not-allowed"
+            : "text-[#333] hover:border-[#eee] focus:border-[#c9a84c]"
+        }`}
       >
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>

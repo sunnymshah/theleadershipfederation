@@ -37,12 +37,13 @@ const PERMISSION_MODULES: {
   label: string
   description?: string
   columns: string[]
-  group: "content" | "people" | "operations" | "finance" | "admin"
+  group: "content" | "people" | "operations" | "finance" | "admin" | "crm" | "studio"
 }[] = [
   { key: "events",       label: "Events",       group: "content",    description: "The event calendar and listings.",                columns: ["view", "create", "edit", "delete"] },
   { key: "sessions",     label: "Sessions",     group: "content",    description: "Agenda, tracks, session details.",                  columns: ["view", "create", "edit", "delete"] },
   { key: "speakers",     label: "Speakers",     group: "content",    description: "Speaker bios and photos.",                          columns: ["view", "create", "edit", "delete"] },
   { key: "sponsors",     label: "Sponsors",     group: "content",    description: "Sponsor logos, tiers, placements.",                 columns: ["view", "create", "edit", "delete"] },
+  { key: "content",      label: "Site pages",   group: "content",    description: "Editable public pages (About, Contact, Media, FAQs, Testimonials).", columns: ["view", "edit", "publish"] },
 
   { key: "tickets",      label: "Tickets",      group: "operations", description: "Ticket tiers, inventory, and pricing.",             columns: ["view", "create", "edit", "delete"] },
   { key: "promo_codes",  label: "Promo Codes",  group: "operations", description: "Discount codes and coupon campaigns.",              columns: ["view", "create", "edit", "delete"] },
@@ -51,6 +52,11 @@ const PERMISSION_MODULES: {
 
   { key: "attendees",    label: "Attendees",    group: "people",     description: "People registered for events (PII).",               columns: ["view", "create", "edit", "delete", "export"] },
   { key: "analytics",    label: "Analytics",    group: "people",     description: "Aggregate engagement and attendance trends.",       columns: ["view"] },
+
+  { key: "leads",        label: "Leads",        group: "crm",        description: "CRM pipeline — prospects, companies, deal stages.", columns: ["view", "create", "edit", "delete", "import", "export", "assign"] },
+  { key: "tasks",        label: "Tasks",        group: "crm",        description: "Follow-ups and to-dos linked to leads.",            columns: ["view", "create", "edit", "delete"] },
+
+  { key: "campaigns",    label: "Campaigns",    group: "studio",     description: "Email campaigns, templates, and automations.",      columns: ["view", "create", "edit", "delete", "send"] },
 
   { key: "invoices",     label: "Invoices",     group: "finance",    description: "Issue, send, and archive invoices.",                columns: ["view", "generate", "email"] },
   { key: "payments",     label: "Payments",     group: "finance",    description: "Individual transactions and refund initiations.",   columns: ["view", "refund"] },
@@ -61,13 +67,15 @@ const PERMISSION_MODULES: {
 ]
 
 const PERMISSION_GROUPS: {
-  key: "content" | "people" | "operations" | "finance" | "admin"
+  key: "content" | "people" | "operations" | "finance" | "admin" | "crm" | "studio"
   label: string
   caption: string
 }[] = [
   { key: "content",    label: "Content",            caption: "Public-facing event content on the website." },
   { key: "operations", label: "Event Operations",   caption: "Day-of tools — ticketing, check-in, certificates." },
   { key: "people",     label: "People & Analytics", caption: "Attendee data (contains PII) and engagement metrics." },
+  { key: "crm",        label: "CRM",                caption: "Leads pipeline, notes, tasks, and assignments." },
+  { key: "studio",     label: "Studio",             caption: "Campaigns, email templates, and automations." },
   { key: "finance",    label: "Finance",            caption: "Money: transactions, invoices, revenue, refunds." },
   { key: "admin",      label: "Admin",              caption: "Team management and organization-wide settings." },
 ]
@@ -117,6 +125,26 @@ const SENSITIVE_PERMISSIONS: Record<string, { title: string; body: string }> = {
     title: "Allow editing organization settings?",
     body:
       "This member will be able to change organization-wide configuration — timezone, currency, tax rates, notification templates, and payment gateway settings.",
+  },
+  "leads.delete": {
+    title: "Allow deleting leads?",
+    body:
+      "This member will be able to permanently delete lead records — contact data, deal values, notes, and full activity history. Deletion is irreversible.",
+  },
+  "leads.export": {
+    title: "Allow exporting lead data?",
+    body:
+      "This member will be able to download a CSV of your lead pipeline — names, emails, phones, companies, deal values, and sources. Sensitive competitive and PII data.",
+  },
+  "campaigns.send": {
+    title: "Allow sending email campaigns?",
+    body:
+      "This member will be able to trigger campaign sends to your audience. Outbound email is visible to recipients and affects your sender reputation — grant only to trusted operators.",
+  },
+  "content.publish": {
+    title: "Allow publishing site content?",
+    body:
+      "This member will be able to push edits to the public marketing site live (About, Contact, Media, FAQs, Testimonials). Changes are visible to the world immediately.",
   },
 }
 

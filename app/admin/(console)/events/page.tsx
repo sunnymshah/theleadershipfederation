@@ -346,32 +346,38 @@ export default function AdminEventsPage() {
                       >
                         <ExternalLink size={15} />
                       </Link>
-                      <button
-                        onClick={() => openCloneModal(event)}
-                        className="p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
-                        title="Clone event"
-                      >
-                        <Copy size={15} />
-                      </button>
-                      <button
-                        onClick={() => openEdit(event)}
-                        className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-gray-100 transition-colors"
-                        title="Edit event"
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(event.id)}
-                        disabled={deletingId === event.id}
-                        className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
-                        title="Delete event"
-                      >
-                        {deletingId === event.id ? (
-                          <Loader2 size={15} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={15} />
-                        )}
-                      </button>
+                      {can("events", "create") && (
+                        <button
+                          onClick={() => openCloneModal(event)}
+                          className="p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+                          title="Clone event"
+                        >
+                          <Copy size={15} />
+                        </button>
+                      )}
+                      {can("events", "edit") && (
+                        <button
+                          onClick={() => openEdit(event)}
+                          className="p-2 rounded-md text-[#aaa] hover:text-[#555] hover:bg-gray-100 transition-colors"
+                          title="Edit event"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                      )}
+                      {can("events", "delete") && (
+                        <button
+                          onClick={() => handleDelete(event.id)}
+                          disabled={deletingId === event.id}
+                          className="p-2 rounded-md text-[#aaa] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
+                          title="Delete event"
+                        >
+                          {deletingId === event.id ? (
+                            <Loader2 size={15} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={15} />
+                          )}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

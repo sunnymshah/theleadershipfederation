@@ -112,10 +112,10 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/promo-codes": "promo-codes",
   "/admin/check-in": "check-in",
   "/admin/live": "check-in",
-  "/admin/leads": "attendees",
+  "/admin/leads": "leads",
   "/admin/sponsor-leads": "sponsors",
-  "/admin/campaigns": "attendees",
-  "/admin/email-templates": "attendees",
+  "/admin/campaigns": "campaigns",
+  "/admin/email-templates": "campaigns",
   "/admin/feedback": "attendees",
   "/admin/payments": "invoices",
   "/admin/certificates": "certificates",
@@ -123,7 +123,7 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/analytics": "analytics",
   "/admin/polls": "check-in",
   "/admin/qa": "check-in",
-  "/admin/automations": "attendees",
+  "/admin/automations": "campaigns",
   "/admin/agenda": "sessions",
   "/admin/integrations": "settings",
   "/admin/team": "team",
@@ -134,15 +134,15 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/contact-inquiries": "attendees",
   "/admin/newsletter": "attendees",
   "/admin/advisory-board": "speakers",
-  "/admin/testimonials": "attendees",
   "/admin/badges": "attendees",
   "/admin/partners": "sponsors",
   "/admin/platforms": "sponsors",
-  "/admin/about": "sponsors",
-  "/admin/contact": "sponsors",
-  "/admin/media": "sponsors",
-  "/admin/inner-circle": "sponsors",
-  "/admin/faqs": "attendees",
+  "/admin/about": "content",
+  "/admin/contact": "content",
+  "/admin/media": "content",
+  "/admin/inner-circle": "attendees",
+  "/admin/faqs": "content",
+  "/admin/testimonials": "content",
 }
 
 /**
@@ -187,12 +187,17 @@ export function canAccessNavItem(
       analytics: "analytics",
       team: "team",
       settings: "settings",
+      leads: "leads",
+      tasks: "tasks",
+      campaigns: "campaigns",
+      content: "content",
     }
 
     const module = navToModule[resource]
     if (module) {
-      // For nav visibility, check the "view" action (or "perform" for check_in, "manage" for team)
-      const viewAction = module === "check_in" ? "perform" : module === "team" ? "view" : "view"
+      // For nav visibility, check the "view" action — except check_in which
+      // uses "perform" as its only action.
+      const viewAction = module === "check_in" ? "perform" : "view"
       return canAccessWithProfile(profilePermissions, module, viewAction)
     }
   }

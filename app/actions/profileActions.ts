@@ -37,6 +37,22 @@ export interface ProfilePermissions {
   payments: { view: boolean; refund: boolean }
   /** Revenue & financial totals — gross, net, refund volume, fees, payout reports. SENSITIVE. */
   revenue: { view: boolean; export: boolean }
+  /** CRM leads — pipeline, notes, activity, import/export, assignment. */
+  leads: {
+    view: boolean
+    create: boolean
+    edit: boolean
+    delete: boolean
+    import: boolean
+    export: boolean
+    assign: boolean
+  }
+  /** CRM tasks — follow-ups, reminders, to-dos linked to leads. */
+  tasks: { view: boolean; create: boolean; edit: boolean; delete: boolean }
+  /** Campaigns, email templates & automations (Studio workspace). */
+  campaigns: { view: boolean; create: boolean; edit: boolean; delete: boolean; send: boolean }
+  /** Site content pages (About, Contact, Media, FAQs, Testimonials). */
+  content: { view: boolean; edit: boolean; publish: boolean }
 }
 
 export interface AccessProfile {
@@ -83,6 +99,10 @@ const DEFAULT_PERMISSIONS: ProfilePermissions = {
   team: { view: false, manage: false },
   payments: { view: false, refund: false },
   revenue: { view: false, export: false },
+  leads: { view: false, create: false, edit: false, delete: false, import: false, export: false, assign: false },
+  tasks: { view: false, create: false, edit: false, delete: false },
+  campaigns: { view: false, create: false, edit: false, delete: false, send: false },
+  content: { view: false, edit: false, publish: false },
 }
 
 const PROFILE_COLORS = [
