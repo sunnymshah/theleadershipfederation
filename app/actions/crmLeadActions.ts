@@ -10,7 +10,8 @@
  *
  * Distinct from sponsor_leads (booth scan at an event).
  *
- * Gate: attendees.view (read) / attendees.edit (write).
+ * Gate: leads.view (read) / leads.create|edit|delete|import|export|assign (write).
+ * Tasks use the dedicated tasks.* module.
  */
 
 import { revalidatePath } from "next/cache"
@@ -187,7 +188,7 @@ export async function listLeads(filters?: {
   search?: string
 }): Promise<{ success: true; leads: CrmLead[] } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "view")
+    await requirePermission("leads", "view")
     const supabase = await getServerClient()
     let q = supabase.from("crm_leads").select("*").order("created_at", { ascending: false })
     if (filters?.status)    q = q.eq("status", filters.status)
@@ -213,7 +214,7 @@ export async function getLead(
   id: string,
 ): Promise<{ success: true; lead: CrmLead } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "view")
+    await requirePermission("leads", "view")
     const supabase = await getServerClient()
     const { data, error } = await supabase.from("crm_leads").select("*").eq("id", id).single()
     if (error) throw error
@@ -227,16 +228,45 @@ export async function getLead(
 
 export async function listTeamMembers(): Promise<{
   success: true
-  members: { user_id: string; email: string; role: string }[]
+  members: {
+    user_id: string
+    email: string
+    name: string | null
+    role: string
+    profile_id: string | null
+    profile_name: string | null
+  }[]
 } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "view")
+    // Anyone authenticated with a team_members row can load the directory.
+    // This dropdown is used by Leads, Tasks, Events (owner pickers, etc).
+    // Gating it behind leads.view hid it from users who don't have CRM
+    // access but do have Events / other workspace access.
+    const ctx = await getCurrentUserContext()
+    if (!ctx) return { success: false, error: "Unauthorized" }
+
     const admin = createAdminClient()
     const { data: rows, error } = await admin
       .from("team_members")
-      .select("user_id, role")
+      .select("user_id, name, email, role, profile_id, status")
+      .neq("status", "suspended")
+      .order("name", { ascending: true })
     if (error) throw error
 
+    // Resolve access-profile display names (for the "Sunny · Admin profile" hint).
+    const profileIds = Array.from(
+      new Set((rows ?? []).map((r) => r.profile_id as string | null).filter(Boolean)),
+    ) as string[]
+    const profileMap = new Map<string, string>()
+    if (profileIds.length) {
+      const { data: profs } = await admin
+        .from("access_profiles")
+        .select("id, name")
+        .in("id", profileIds)
+      for (const p of profs ?? []) profileMap.set(p.id as string, p.name as string)
+    }
+
+    // Pull latest auth.users.email (teams row email can drift).
     const ids = (rows ?? []).map((r) => r.user_id as string)
     const emailMap = new Map<string, string>()
     if (ids.length) {
@@ -245,11 +275,17 @@ export async function listTeamMembers(): Promise<{
         if (ids.includes(u.id)) emailMap.set(u.id, u.email ?? "")
       }
     }
-    const members = (rows ?? []).map((r) => ({
-      user_id: r.user_id as string,
-      email: emailMap.get(r.user_id as string) ?? "",
-      role: r.role as string,
-    }))
+    const members = (rows ?? []).map((r) => {
+      const authEmail = emailMap.get(r.user_id as string)
+      return {
+        user_id: r.user_id as string,
+        email: authEmail || (r.email as string) || "",
+        name: (r.name as string | null) ?? null,
+        role: r.role as string,
+        profile_id: (r.profile_id as string | null) ?? null,
+        profile_name: r.profile_id ? (profileMap.get(r.profile_id as string) ?? null) : null,
+      }
+    })
     return { success: true, members }
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : "Failed to load team" }
@@ -262,7 +298,7 @@ export async function createLead(
   input: LeadInput,
 ): Promise<{ success: true; lead: CrmLead } | { success: false; error: string }> {
   try {
-    const ctx = await requirePermission("attendees", "edit")
+    const ctx = await requirePermission("leads", "create")
     if (!input.firstName?.trim()) return { success: false, error: "First name is required" }
 
     const supabase = await getServerClient()
@@ -294,7 +330,11 @@ export async function updateLead(
   patch: Partial<LeadInput>,
 ): Promise<{ success: true; lead: CrmLead } | { success: false; error: string }> {
   try {
-    const ctx = await requirePermission("attendees", "edit")
+    const ctx = await requirePermission("leads", "edit")
+    // If the patch includes an owner change, the actor also needs leads.assign.
+    if (patch.ownerId !== undefined) {
+      await requirePermission("leads", "assign")
+    }
     const supabase = await getServerClient()
 
     const { data: before } = await supabase
@@ -340,7 +380,7 @@ export async function deleteLead(
   id: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "delete")
+    await requirePermission("leads", "delete")
     const supabase = await getServerClient()
     const { error } = await supabase.from("crm_leads").delete().eq("id", id)
     if (error) throw error
@@ -358,7 +398,8 @@ export async function bulkUpdate(
   patch: { status?: LeadStatus; ownerId?: string | null; tags?: string[] },
 ): Promise<{ success: true; count: number } | { success: false; error: string }> {
   try {
-    const ctx = await requirePermission("attendees", "edit")
+    const ctx = await requirePermission("leads", "edit")
+    if (patch.ownerId !== undefined) await requirePermission("leads", "assign")
     if (!ids.length) return { success: true, count: 0 }
 
     const supabase = await getServerClient()
@@ -400,7 +441,7 @@ export async function bulkDelete(
   ids: string[],
 ): Promise<{ success: true; count: number } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "delete")
+    await requirePermission("leads", "delete")
     if (!ids.length) return { success: true, count: 0 }
     const supabase = await getServerClient()
     const { error } = await supabase.from("crm_leads").delete().in("id", ids)
@@ -436,7 +477,7 @@ export async function importLeads(
   defaults?: { source?: LeadSource; ownerId?: string | null; tags?: string[] },
 ): Promise<{ success: true; result: ImportResult } | { success: false; error: string }> {
   try {
-    const ctx = await requirePermission("attendees", "edit")
+    const ctx = await requirePermission("leads", "import")
     if (!rows.length) return { success: true, result: { created: 0, skippedDuplicates: 0, errors: [] } }
 
     const supabase = await getServerClient()
@@ -530,7 +571,7 @@ export async function listNotes(
   leadId: string,
 ): Promise<{ success: true; notes: LeadNote[] } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "view")
+    await requirePermission("leads", "view")
     const supabase = await getServerClient()
     const { data, error } = await supabase
       .from("crm_lead_notes")
@@ -552,7 +593,7 @@ export async function addNote(
   body: string,
 ): Promise<{ success: true; note: LeadNote } | { success: false; error: string }> {
   try {
-    const ctx = await requirePermission("attendees", "edit")
+    const ctx = await requirePermission("leads", "edit")
     if (!body.trim()) return { success: false, error: "Note cannot be empty" }
 
     const supabase = await getServerClient()
@@ -574,7 +615,7 @@ export async function deleteNote(
   id: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "edit")
+    await requirePermission("leads", "edit")
     const supabase = await getServerClient()
     const { error } = await supabase.from("crm_lead_notes").delete().eq("id", id)
     if (error) throw error
@@ -590,7 +631,7 @@ export async function listActivities(
   leadId: string,
 ): Promise<{ success: true; activities: LeadActivity[] } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "view")
+    await requirePermission("leads", "view")
     const supabase = await getServerClient()
     const { data, error } = await supabase
       .from("crm_lead_activities")
@@ -616,7 +657,7 @@ export async function listTasks(filter: {
   openOnly?: boolean
 }): Promise<{ success: true; tasks: LeadTask[] } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "view")
+    await requirePermission("tasks", "view")
     const supabase = await getServerClient()
     let q = supabase.from("crm_tasks").select("*").order("due_date", { ascending: true, nullsFirst: false })
     if (filter.leadId)     q = q.eq("lead_id", filter.leadId)
@@ -642,7 +683,7 @@ export async function addTask(input: {
   priority?: "low" | "normal" | "high"
 }): Promise<{ success: true; task: LeadTask } | { success: false; error: string }> {
   try {
-    const ctx = await requirePermission("attendees", "edit")
+    const ctx = await requirePermission("tasks", "create")
     if (!input.title.trim()) return { success: false, error: "Title is required" }
 
     const supabase = await getServerClient()
@@ -688,7 +729,7 @@ export async function updateTask(
   }>,
 ): Promise<{ success: true; task: LeadTask } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "edit")
+    await requirePermission("tasks", "edit")
     const supabase = await getServerClient()
     const up: Record<string, unknown> = {}
     if (patch.title !== undefined)       up.title = patch.title.trim()
@@ -709,7 +750,7 @@ export async function deleteTask(
   id: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "edit")
+    await requirePermission("tasks", "delete")
     const supabase = await getServerClient()
     const { error } = await supabase.from("crm_tasks").delete().eq("id", id)
     if (error) throw error
@@ -734,7 +775,7 @@ export async function getLeadStats(): Promise<{
   }
 } | { success: false; error: string }> {
   try {
-    await requirePermission("attendees", "view")
+    await requirePermission("leads", "view")
     const supabase = await getServerClient()
     const [{ data: leads }, { data: tasks }] = await Promise.all([
       supabase.from("crm_leads").select("status, rating, source, lead_value"),

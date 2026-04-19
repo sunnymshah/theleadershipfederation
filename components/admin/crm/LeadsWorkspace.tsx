@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   Search, Plus, Upload, LayoutGrid, Table as TableIcon, Loader2,
   Download, ChevronDown, UserCircle2, Users, TrendingUp, CheckCircle2, X,
+  Lock,
 } from "lucide-react"
 import {
   listLeads, createLead, updateLead, listTeamMembers, getLeadStats, getMyId,
@@ -25,12 +26,20 @@ import { LeadDetailDrawer } from "./LeadDetailDrawer"
 import { LeadKanban } from "./LeadKanban"
 import { LeadImportModal } from "./LeadImportModal"
 import { BulkActionsBar } from "./BulkActionsBar"
+import { PermissionGate, useAdminPermissions } from "@/components/admin/AdminPermissionsContext"
 import {
   STATUS_LABELS, STATUS_ORDER, STATUS_PILL,
   SOURCE_LABELS, SOURCE_OPTIONS,
 } from "./leadConstants"
 
-type Member = { user_id: string; email: string; role: string }
+type Member = {
+  user_id: string
+  email: string
+  name: string | null
+  role: string
+  profile_id: string | null
+  profile_name: string | null
+}
 type View = "table" | "kanban"
 
 type Stats = {
@@ -44,6 +53,7 @@ type Stats = {
 }
 
 export function LeadsWorkspace() {
+  const { can } = useAdminPermissions()
   const [leads, setLeads] = useState<CrmLead[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
@@ -165,18 +175,22 @@ export function LeadsWorkspace() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setImporting(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-[13px] text-[#333] hover:border-[#c9a84c] transition-colors"
-          >
-            <Upload size={14} /> Import
-          </button>
-          <button
-            onClick={() => setCreating(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#1a1a2e] text-white text-[13px] font-medium hover:bg-[#2a2a3e] transition-colors"
-          >
-            <Plus size={14} /> New lead
-          </button>
+          <PermissionGate module="leads" action="import">
+            <button
+              onClick={() => setImporting(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-[13px] text-[#333] hover:border-[#c9a84c] transition-colors"
+            >
+              <Upload size={14} /> Import
+            </button>
+          </PermissionGate>
+          <PermissionGate module="leads" action="create">
+            <button
+              onClick={() => setCreating(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#1a1a2e] text-white text-[13px] font-medium hover:bg-[#2a2a3e] transition-colors"
+            >
+              <Plus size={14} /> New lead
+            </button>
+          </PermissionGate>
         </div>
       </div>
 
@@ -224,7 +238,9 @@ export function LeadsWorkspace() {
           placeholder="All owners"
           options={[
             ...(myId ? [{ value: myId, label: "Me" }] : []),
-            ...members.filter((m) => m.user_id !== myId).map((m) => ({ value: m.user_id, label: m.email })),
+            ...members
+              .filter((m) => m.user_id !== myId)
+              .map((m) => ({ value: m.user_id, label: m.name?.trim() || m.email })),
           ]}
         />
 
@@ -233,13 +249,15 @@ export function LeadsWorkspace() {
           <ViewBtn active={view === "kanban"} onClick={() => setView("kanban")} icon={<LayoutGrid size={13} />} label="Kanban" />
         </div>
 
-        <button
-          onClick={() => exportCSV()}
-          className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] text-[#888] hover:text-[#1a1a2e]"
-          title="Export all filtered as CSV"
-        >
-          <Download size={13} />
-        </button>
+        <PermissionGate module="leads" action="export">
+          <button
+            onClick={() => exportCSV()}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] text-[#888] hover:text-[#1a1a2e]"
+            title="Export all filtered as CSV"
+          >
+            <Download size={13} />
+          </button>
+        </PermissionGate>
       </div>
 
       {/* ── Body ────────────────────────────────────────────────────── */}
@@ -248,7 +266,12 @@ export function LeadsWorkspace() {
           <Loader2 size={18} className="animate-spin" /> Loading…
         </div>
       ) : leads.length === 0 ? (
-        <EmptyState onNew={() => setCreating(true)} onImport={() => setImporting(true)} />
+        <EmptyState
+          onNew={() => setCreating(true)}
+          onImport={() => setImporting(true)}
+          canCreate={can("leads", "create")}
+          canImport={can("leads", "import")}
+        />
       ) : view === "kanban" ? (
         <LeadKanban
           leads={leads}
@@ -288,6 +311,8 @@ export function LeadsWorkspace() {
       {creating && (
         <NewLeadDrawer
           members={members}
+          myId={myId}
+          canAssign={can("leads", "assign")}
           onClose={() => setCreating(false)}
           onCreated={() => { setCreating(false); fetchAll() }}
         />
@@ -314,7 +339,7 @@ function LeadsTable({
   onToggle: (id: string) => void
   onToggleAll: () => void
   onOpen: (id: string) => void
-  memberById: Map<string, { email: string }>
+  memberById: Map<string, Member>
 }) {
   const allSelected = selected.size > 0 && selected.size === leads.length
   return (
@@ -372,7 +397,7 @@ function LeadsTable({
                     {SOURCE_LABELS[l.source]}
                   </td>
                   <td className="px-3 py-2.5 text-[#555] text-[12px]">
-                    {owner ? owner.email : <span className="text-[#ccc]">Unassigned</span>}
+                    {owner ? (owner.name?.trim() || owner.email) : <span className="text-[#ccc]">Unassigned</span>}
                   </td>
                   <td className="px-3 py-2.5 text-right text-[#555] font-medium">
                     {l.lead_value ? `₹${Number(l.lead_value).toLocaleString("en-IN")}` : <span className="text-[#ccc]">—</span>}
@@ -393,11 +418,19 @@ function LeadsTable({
 /* ── New lead drawer ───────────────────────────────────────────────── */
 
 function NewLeadDrawer({
-  members, onClose, onCreated,
-}: { members: Member[]; onClose: () => void; onCreated: () => void }) {
+  members, myId, canAssign, onClose, onCreated,
+}: {
+  members: Member[]
+  myId: string | null
+  canAssign: boolean
+  onClose: () => void
+  onCreated: () => void
+}) {
   const [form, setForm] = useState<LeadInput>({
     firstName: "", lastName: "", email: "", phone: "",
     company: "", title: "", source: "other", status: "new",
+    // Default to current user when they can assign (matches Zoho — lead auto-owned by creator).
+    ownerId: canAssign ? myId : null,
   })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -409,6 +442,21 @@ function NewLeadDrawer({
     setBusy(false)
     if (r.success) onCreated()
     else setError(r.error)
+  }
+
+  const memberLabel = (m: Member) => {
+    const base = m.name?.trim() || m.email || "Unknown"
+    // Prefer the access-profile name (user-configured) over the built-in role.
+    const badge = m.user_id === myId
+      ? " (me)"
+      : m.profile_name
+        ? ` · ${m.profile_name}`
+        : m.role === "super_admin" ? " · Super admin"
+          : m.role === "admin" ? " · Admin"
+          : m.role === "manager" ? " · Manager"
+          : m.role === "check_in_staff" ? " · Check-in"
+          : m.role === "viewer" ? " · Viewer" : ""
+    return `${base}${badge}`
   }
 
   return (
@@ -443,13 +491,53 @@ function NewLeadDrawer({
               options={STATUS_ORDER.map((s) => ({ value: s, label: STATUS_LABELS[s] }))} />
           </div>
 
-          <Select label="Assign to"
-            value={form.ownerId ?? ""}
-            onChange={(v) => setForm({ ...form, ownerId: v || null })}
-            options={[
-              { value: "", label: "Unassigned" },
-              ...members.map((m) => ({ value: m.user_id, label: m.email })),
-            ]} />
+          {canAssign ? (
+            members.length === 0 ? (
+              <div>
+                <label className="block text-[11px] text-[#888] mb-1">Assign to</label>
+                <div className="px-3 py-2 rounded-md bg-amber-50 border border-amber-200 text-[12px] text-amber-800">
+                  No other team members found yet. New leads will be assigned to you.
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-[11px] text-[#888] mb-1 flex items-center justify-between">
+                  <span>Assign to</span>
+                  <span className="text-[10px] uppercase tracking-wider text-[#c9a84c] font-semibold">
+                    Lead owner
+                  </span>
+                </label>
+                <select
+                  value={form.ownerId ?? ""}
+                  onChange={(e) => setForm({ ...form, ownerId: e.target.value || null })}
+                  className="w-full px-3 py-2 border border-[#e5e7eb] rounded-md text-[13px] bg-white focus:outline-none focus:border-[#c9a84c]"
+                >
+                  <option value="">Unassigned</option>
+                  {myId && members.find((m) => m.user_id === myId) && (
+                    <option value={myId}>{memberLabel(members.find((m) => m.user_id === myId)!)}</option>
+                  )}
+                  {members
+                    .filter((m) => m.user_id !== myId)
+                    .map((m) => (
+                      <option key={m.user_id} value={m.user_id}>
+                        {memberLabel(m)}
+                      </option>
+                    ))}
+                </select>
+                <p className="mt-1 text-[11px] text-[#999]">
+                  The lead owner gets follow-up reminders and appears as the primary contact.
+                </p>
+              </div>
+            )
+          ) : (
+            <div>
+              <label className="block text-[11px] text-[#888] mb-1">Assign to</label>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-[#fafafa] border border-[#e5e7eb] text-[12px] text-[#888]">
+                <Lock size={12} />
+                You don&apos;t have permission to assign leads. Ask a super admin for <code className="px-1 rounded bg-white border border-[#eee]">leads.assign</code>.
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2 text-[12px] text-red-700">
@@ -565,24 +653,40 @@ function StatCard({
   )
 }
 
-function EmptyState({ onNew, onImport }: { onNew: () => void; onImport: () => void }) {
+function EmptyState({
+  onNew, onImport, canCreate, canImport,
+}: { onNew: () => void; onImport: () => void; canCreate: boolean; canImport: boolean }) {
+  const noActions = !canCreate && !canImport
   return (
     <div className="border border-dashed border-[#e5e7eb] rounded-xl p-12 text-center bg-[#fafafa]">
       <Users size={32} className="mx-auto text-[#ccc] mb-3" />
       <h3 className="text-[15px] font-semibold text-[#1a1a2e] mb-1">No leads yet</h3>
       <p className="text-[12px] text-[#888] mb-5">
-        Add your first lead or import a CSV to get the pipeline started.
+        {noActions
+          ? "You don't have permission to create or import leads. Ask a super admin to grant you leads.create or leads.import on your profile."
+          : "Add your first lead or import a CSV to get the pipeline started."}
       </p>
-      <div className="flex items-center justify-center gap-2">
-        <button onClick={onImport}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-[13px] text-[#333] hover:border-[#c9a84c]">
-          <Upload size={14} /> Import CSV
-        </button>
-        <button onClick={onNew}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#1a1a2e] text-white text-[13px] font-medium hover:bg-[#2a2a3e]">
-          <Plus size={14} /> New lead
-        </button>
-      </div>
+      {!noActions && (
+        <div className="flex items-center justify-center gap-2">
+          {canImport && (
+            <button onClick={onImport}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-[#e5e7eb] bg-white text-[13px] text-[#333] hover:border-[#c9a84c]">
+              <Upload size={14} /> Import CSV
+            </button>
+          )}
+          {canCreate && (
+            <button onClick={onNew}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[#1a1a2e] text-white text-[13px] font-medium hover:bg-[#2a2a3e]">
+              <Plus size={14} /> New lead
+            </button>
+          )}
+        </div>
+      )}
+      {noActions && (
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-200 text-[12px] text-amber-800">
+          <Lock size={12} /> Read-only access
+        </div>
+      )}
     </div>
   )
 }

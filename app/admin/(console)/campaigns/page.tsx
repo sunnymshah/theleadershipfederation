@@ -328,7 +328,7 @@ export default function AdminCampaignsPage() {
               Create, schedule, and track bulk email campaigns to your attendees.
             </p>
           </div>
-          {can("attendees", "create") && (
+          {can("campaigns", "create") && (
             <button
               onClick={() => openBuilder()}
               className="flex items-center gap-2 px-5 py-2.5 bg-[#1a73e8] text-white text-sm font-semibold rounded-lg hover:bg-[#1557b0] transition-colors shadow-sm"
