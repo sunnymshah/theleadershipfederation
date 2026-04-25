@@ -628,6 +628,7 @@ export const puckConfig: Config<BuilderComponents> = {
       label: "Image",
       defaultProps: {
         imageUrl: "",
+        alt: "",
         caption: "",
         width: "wide",
         rounded: true,
@@ -638,6 +639,10 @@ export const puckConfig: Config<BuilderComponents> = {
           type: "custom",
           label: "Image",
           render: (p) => <ImageField {...p} folder="sections" />,
+        },
+        alt: {
+          type: "text",
+          label: "Alt text (REQUIRED — describe the image for screen readers)",
         },
         caption: { type: "text", label: "Caption (optional)" },
         width: {
@@ -701,6 +706,7 @@ export const puckConfig: Config<BuilderComponents> = {
         attribution: "Jane Doe",
         role: "CEO, Acme",
         avatar: "",
+        avatarAlt: "",
         layout: defaultLayout,
       },
       fields: {
@@ -711,6 +717,10 @@ export const puckConfig: Config<BuilderComponents> = {
           type: "custom",
           label: "Avatar",
           render: (p) => <ImageField {...p} folder="speakers" />,
+        },
+        avatarAlt: {
+          type: "text",
+          label: "Avatar alt text (REQUIRED when avatar set — defaults to attribution)",
         },
         layout: layoutField,
       },
@@ -738,7 +748,7 @@ export const puckConfig: Config<BuilderComponents> = {
               label: "Logo",
               render: (p) => <ImageField {...p} folder="sponsors" />,
             },
-            alt: { type: "text", label: "Brand name (alt)" },
+            alt: { type: "text", label: "Brand name (REQUIRED — used as alt text)" },
           },
         },
         layout: layoutField,

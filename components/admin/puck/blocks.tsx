@@ -330,6 +330,9 @@ export function Hero({
   const { event } = getMeta(puck)
   const bg = backgroundImage || event.cover_image_url
   const shownTitle = title || event.title
+  if (typeof window !== "undefined" && bg && !shownTitle) {
+    console.warn("[Hero] background image present but no title for alt text — provide a Title or event.title")
+  }
   const height =
     minHeight === "full" ? "min-h-[calc(100vh-48px)]" :
     minHeight === "short" ? "min-h-[380px] sm:min-h-[460px]" :
@@ -849,6 +852,10 @@ export type GalleryProps = {
 
 export function Gallery({ title, images, columns, layout }: GalleryProps) {
   if (!images || images.length === 0) return <SectionPlaceholder label="Gallery (upload images in the inspector)" />
+  if (typeof window !== "undefined") {
+    const missing = images.filter((img) => img?.url && !("alt" in img && (img as { alt?: string }).alt)).length
+    if (missing > 0) console.warn(`[Gallery] ${missing} image(s) missing alt text`)
+  }
   const grid =
     columns === 2 ? "grid-cols-2" :
     columns === 3 ? "grid-cols-2 md:grid-cols-3" :
@@ -994,14 +1001,19 @@ export function Divider({ style, color, layout }: DividerProps) {
 
 export type ImageBlockProps = {
   imageUrl: string
+  /** Required-by-policy alt text. Falls back to caption when blank. */
+  alt?: string
   caption?: string
   width?: "narrow" | "wide" | "full"
   rounded?: boolean
   layout?: LayoutProps
 }
 
-export function ImageBlock({ imageUrl, caption, width, rounded, layout }: ImageBlockProps) {
+export function ImageBlock({ imageUrl, alt, caption, width, rounded, layout }: ImageBlockProps) {
   if (!imageUrl) return <SectionPlaceholder label="Image (upload or paste URL in the inspector)" />
+  if (typeof window !== "undefined" && imageUrl && !alt && !caption) {
+    console.warn("[ImageBlock] missing alt text for", imageUrl)
+  }
   const max =
     width === "full" ? "max-w-none" :
     width === "narrow" ? "max-w-2xl" :
@@ -1012,7 +1024,7 @@ export function ImageBlock({ imageUrl, caption, width, rounded, layout }: ImageB
       <div className={`${max} mx-auto px-6`}>
         <div className={`relative w-full overflow-hidden ${r} shadow-lg`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt={caption || ""} className="w-full h-auto object-cover" />
+          <img src={imageUrl} alt={alt || caption || ""} className="w-full h-auto object-cover" />
         </div>
         {caption && (
           <p className="mt-3 text-center text-xs opacity-60 italic">{caption}</p>
@@ -1074,10 +1086,12 @@ export type TestimonialProps = {
   attribution: string
   role: string
   avatar: string
+  /** Override for the avatar alt — falls back to attribution. */
+  avatarAlt?: string
   layout?: LayoutProps
 }
 
-export function Testimonial({ quote, attribution, role, avatar, layout }: TestimonialProps) {
+export function Testimonial({ quote, attribution, role, avatar, avatarAlt, layout }: TestimonialProps) {
   if (!quote) return <SectionPlaceholder label="Testimonial (add a quote in the inspector)" />
   return (
     <SectionShell layout={layout}>
@@ -1090,7 +1104,7 @@ export function Testimonial({ quote, attribution, role, avatar, layout }: Testim
           {avatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[#F4F8FF]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={avatar} alt={attribution} className="w-full h-full object-cover" />
+              <img src={avatar} alt={avatarAlt || attribution || ""} className="w-full h-full object-cover" />
             </div>
           )}
           <div className="text-left">
@@ -1113,6 +1127,10 @@ export type LogosStripProps = {
 
 export function LogosStrip({ title, logos, layout }: LogosStripProps) {
   if (!logos || logos.length === 0) return <SectionPlaceholder label="Logos strip (add logos in the inspector)" />
+  if (typeof window !== "undefined") {
+    const missing = logos.filter((lg) => lg?.url && !lg.alt).length
+    if (missing > 0) console.warn(`[LogosStrip] ${missing} logo(s) missing alt text — fill the Brand name field`)
+  }
   return (
     <SectionShell layout={{ ...(layout ?? {}), paddingY: layout?.paddingY ?? "md" }}>
       <div className="max-w-6xl mx-auto px-6">
