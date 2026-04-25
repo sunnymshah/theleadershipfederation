@@ -79,6 +79,11 @@ export function PuckEventBuilder({
   const [publishState, setPublishState] = useState<"idle" | "publishing" | "published" | "error">("idle")
   const [publishMsg, setPublishMsg] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  /* Dirty tracking — flips true on first onChange after a publish. Used
+   * by C9 to show "Publish N changes" / "Published" state. We don't
+   * count individual changes (would require deep diff) — just whether
+   * there's anything new to publish. */
+  const [dirtyPages, setDirtyPages] = useState<Set<string>>(new Set())
   const [historyOpen, setHistoryOpen] = useState(false)
   const [reverting, setReverting] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -136,6 +141,13 @@ export function PuckEventBuilder({
   /* ── Autosave (debounced 700ms) ─────────────────────────────────── */
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const scheduleSave = useCallback((data: Data) => {
+    // Mark this page as dirty (C9 publish state).
+    setDirtyPages((prev) => {
+      if (prev.has(activePage)) return prev
+      const next = new Set(prev)
+      next.add(activePage)
+      return next
+    })
     // Update local cache immediately so switching tabs doesn't lose changes.
     if (activePage === "home") {
       setHomeData(data)
@@ -263,6 +275,7 @@ export function PuckEventBuilder({
     if (res.success) {
       setPublishState("published")
       setPublishMsg("Live on the public page.")
+      setDirtyPages(new Set()) // clear dirty markers on successful publish
       setTimeout(() => setPublishState("idle"), 2000)
     } else {
       setPublishState("error")
@@ -533,23 +546,46 @@ export function PuckEventBuilder({
             </button>
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
             <PreviewMenu eventSlug={eventSlug} activePage={activePage} />
-            <button
-              type="button"
-              onClick={handlePublish}
-              disabled={publishState === "publishing"}
-              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-md text-[12px] font-semibold bg-[var(--bs-accent,#f0483e)] text-white hover:bg-[var(--bs-accent-hover,#d63d33)] transition-colors disabled:opacity-60 whitespace-nowrap"
-            >
-              {publishState === "publishing"
-                ? <Loader2 size={14} className="animate-spin" />
-                : publishState === "published"
-                  ? <Check size={14} strokeWidth={1.5} />
-                  : <Globe size={14} strokeWidth={1.5} />}
-              {publishState === "publishing"
-                ? "Publishing\u2026"
-                : publishState === "published"
-                  ? "Published"
-                  : "Publish"}
-            </button>
+            {(() => {
+              const isPublishing = publishState === "publishing"
+              const justPublished = publishState === "published"
+              const dirtyCount = dirtyPages.size
+              const isDirty = dirtyCount > 0 && !isPublishing
+              const isClean = !isDirty && !isPublishing && !justPublished
+
+              const cls = isClean
+                ? "border border-[var(--bs-border,#e5e7eb)] bg-white text-[var(--bs-text,#1f2937)] cursor-default"
+                : "bg-[var(--bs-accent,#f0483e)] text-white hover:bg-[var(--bs-accent-hover,#d63d33)]"
+
+              return (
+                <button
+                  type="button"
+                  onClick={handlePublish}
+                  disabled={isPublishing || isClean}
+                  className={`relative inline-flex items-center gap-1.5 px-3 h-8 rounded-md text-[12px] font-semibold transition-colors disabled:opacity-80 whitespace-nowrap ${cls}`}
+                  title={isClean ? "No unpublished changes" : "Publish all dirty pages"}
+                >
+                  {isPublishing
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : justPublished
+                      ? <Check size={14} strokeWidth={1.5} />
+                      : <Globe size={14} strokeWidth={1.5} />}
+                  {isPublishing
+                    ? "Publishing\u2026"
+                    : justPublished
+                      ? "Published"
+                      : isDirty
+                        ? `Publish ${dirtyCount} change${dirtyCount === 1 ? "" : "s"}`
+                        : "Published"}
+                  {isDirty && (
+                    <span
+                      aria-hidden
+                      className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-white ring-2 ring-[var(--bs-accent,#f0483e)]"
+                    />
+                  )}
+                </button>
+              )
+            })()}
             <button
               type="button"
               onClick={() => setShortcutsOpen(true)}
@@ -648,6 +684,20 @@ export function PuckEventBuilder({
         </div>
       )}
 
+      {/* C11 — first-time onboarding card. Shown when the home page is
+          empty AND the editor hasn't been used yet (no sub-pages). */}
+      {activePage === "home"
+        && (!homeData?.content || homeData.content.length === 0)
+        && Object.keys(pages).length === 0
+        && <BuilderOnboarding onDismiss={() => {
+          // Add a placeholder block via setHomeData to dismiss; cheaper
+          // than persisting a flag. The user can immediately delete it.
+          setHomeData((prev) => ({
+            ...prev,
+            content: [{ type: "Hero", props: { id: `Hero-${Date.now()}`, title: "", subtitle: "", ctaLabel: "Register", ctaUrl: "internal:tickets", backgroundImage: "", alignment: "left", minHeight: "tall" } } as unknown as Data["content"][number]],
+          }))
+        }} />}
+
       <div className="flex-1 min-h-0">
         <Puck
           key={puckKey}
@@ -694,6 +744,12 @@ export function PuckEventBuilder({
   )
 }
 
+/**
+ * Zoho-style page tab. Action icons (rename/duplicate/delete) appear on
+ * tab HOVER, not just on the active tab — matches Backstage. Active tab
+ * has white bg + 1px border + subtle bottom shadow; inactive is
+ * transparent and lifts on hover.
+ */
 function PageTab({
   active, onClick, icon, label, onRename, onDelete, onDuplicate,
 }: {
@@ -706,31 +762,32 @@ function PageTab({
   onDuplicate?: () => void
 }) {
   return (
-    <div className="relative group inline-flex items-center gap-0 shrink-0">
+    <div className="relative group inline-flex items-center gap-0 shrink-0 h-8">
       <button
         type="button"
         onClick={onClick}
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[12px] font-medium transition-colors whitespace-nowrap ${
+        className={`inline-flex items-center gap-1.5 px-3 h-8 rounded-md text-[12px] font-medium transition-colors whitespace-nowrap ${
           active
-            ? "bg-white text-[#1a1a2e] border border-[#1a1a2e]/15 shadow-sm"
-            : "text-[#1a1a2e]/65 hover:text-[#1a1a2e] hover:bg-white/60 border border-transparent"
+            ? "bg-white text-[var(--bs-text,#1f2937)] border border-[var(--bs-border,#e5e7eb)] shadow-[0_2px_4px_rgba(0,0,0,0.04)]"
+            : "text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] border border-transparent"
         }`}
         title={label}
       >
         {icon}
         <span className="max-w-[160px] truncate">{label}</span>
       </button>
-      {(onRename || onDelete || onDuplicate) && active && (
-        <>
+      {(onRename || onDelete || onDuplicate) && (
+        <span className={`ml-0.5 inline-flex items-center transition-opacity ${active ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
           {onRename && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onRename() }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="ml-1 p-1 rounded-md text-[#1a1a2e]/60 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5"
+              className="p-1 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
               title="Rename page"
+              aria-label="Rename page"
             >
-              <Pencil size={11} />
+              <Pencil size={11} strokeWidth={1.5} />
             </button>
           )}
           {onDuplicate && (
@@ -738,10 +795,11 @@ function PageTab({
               type="button"
               onClick={(e) => { e.stopPropagation(); onDuplicate() }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="p-1 rounded-md text-[#1a1a2e]/60 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5"
+              className="p-1 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
               title="Duplicate page"
+              aria-label="Duplicate page"
             >
-              <Copy size={11} />
+              <Copy size={11} strokeWidth={1.5} />
             </button>
           )}
           {onDelete && (
@@ -751,11 +809,12 @@ function PageTab({
               onPointerDown={(e) => e.stopPropagation()}
               className="p-1 rounded-md text-red-600/70 hover:text-red-700 hover:bg-red-50"
               title="Delete page"
+              aria-label="Delete page"
             >
-              <Trash2 size={11} />
+              <Trash2 size={11} strokeWidth={1.5} />
             </button>
           )}
-        </>
+        </span>
       )}
     </div>
   )
@@ -781,6 +840,69 @@ function DataLink({
       <span className="flex-1">{label}</span>
       <ExternalLink size={10} className="text-gray-300" />
     </Link>
+  )
+}
+
+/**
+ * First-time onboarding card. Floats over the canvas (pointer-events:auto
+ * on the card, none on the backdrop wrapper) so the admin can still
+ * interact with the palette to drop a block.
+ */
+function BuilderOnboarding({ onDismiss }: { onDismiss: () => void }) {
+  const [importOpen, setImportOpen] = useState(false)
+  return (
+    <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center">
+      <div className="pointer-events-auto max-w-md w-[calc(100%-2rem)] bg-white border border-[var(--bs-border,#e5e7eb)] rounded-2xl shadow-xl p-6 text-center">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--bs-text-muted,#6b7280)] mb-2">Get started</p>
+        <h2 className="text-xl font-bold text-[var(--bs-text,#1f2937)] mb-2">Choose how to start</h2>
+        <p className="text-[13px] text-[var(--bs-text-muted,#6b7280)] mb-5">
+          Drop sections from the left palette, pick a template, or migrate from your existing Backstage event.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="px-3 py-3 rounded-lg border border-[var(--bs-border,#e5e7eb)] hover:border-[var(--bs-info,#3e7af7)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] text-left"
+          >
+            <p className="text-[13px] font-semibold text-[var(--bs-text,#1f2937)]">Start blank</p>
+            <p className="text-[11px] text-[var(--bs-text-muted,#6b7280)] mt-0.5">An empty Hero, ready to edit</p>
+          </button>
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="px-3 py-3 rounded-lg border border-[var(--bs-border,#e5e7eb)] hover:border-[var(--bs-info,#3e7af7)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] text-left"
+          >
+            <p className="text-[13px] font-semibold text-[var(--bs-text,#1f2937)]">Use a template</p>
+            <p className="text-[11px] text-[var(--bs-text-muted,#6b7280)] mt-0.5">Coming soon</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="px-3 py-3 rounded-lg border border-[var(--bs-border,#e5e7eb)] hover:border-[var(--bs-info,#3e7af7)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] text-left"
+          >
+            <p className="text-[13px] font-semibold text-[var(--bs-text,#1f2937)]">Import from Backstage</p>
+            <p className="text-[11px] text-[var(--bs-text-muted,#6b7280)] mt-0.5">Paste a public URL</p>
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="mt-5 text-[12px] text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)]"
+        >
+          Skip for now
+        </button>
+      </div>
+      <ConfirmDialog
+        open={importOpen}
+        title="Import from Zoho Backstage"
+        message="Coming soon — you'll be able to paste a Backstage event URL and we'll migrate the page structure."
+        confirmLabel="Got it"
+        cancelLabel="Close"
+        tone="default"
+        onCancel={() => setImportOpen(false)}
+        onConfirm={() => setImportOpen(false)}
+      />
+    </div>
   )
 }
 
