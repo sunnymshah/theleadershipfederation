@@ -326,13 +326,20 @@ export type HeroProps = {
 export function Hero({
   title, subtitle, ctaLabel, ctaUrl, backgroundImage, alignment, minHeight,
   puck,
-}: HeroProps & { puck: { metadata?: Record<string, unknown> } }) {
+}: HeroProps & { puck: { metadata?: Record<string, unknown>; dragRef?: unknown; id?: string } }) {
   const { event } = getMeta(puck)
   const bg = backgroundImage || event.cover_image_url
   const shownTitle = title || event.title
   if (typeof window !== "undefined" && bg && !shownTitle) {
     console.warn("[Hero] background image present but no title for alt text — provide a Title or event.title")
   }
+  // Only mark the cover image priority when this Hero is the first
+  // content block on the page. PuckPublicRenderer stamps
+  // metadata.firstBlockId with the id of the first content node.
+  const meta = (puck?.metadata ?? {}) as Record<string, unknown>
+  const firstBlockId = (meta.firstBlockId as string | null | undefined) ?? null
+  const myId = puck?.id ?? null
+  const isFirstBlock = firstBlockId !== null && myId !== null && firstBlockId === myId
   const height =
     minHeight === "full" ? "min-h-[calc(100vh-48px)]" :
     minHeight === "short" ? "min-h-[380px] sm:min-h-[460px]" :
@@ -346,7 +353,8 @@ export function Hero({
           src={bg}
           alt={shownTitle || "Event"}
           fill
-          priority
+          priority={isFirstBlock}
+          fetchPriority={isFirstBlock ? "high" : "auto"}
           className="object-cover opacity-60"
           sizes="100vw"
         />
