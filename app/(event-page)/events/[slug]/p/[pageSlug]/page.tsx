@@ -12,12 +12,15 @@
  */
 
 import { cookies } from "next/headers"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import { getEvent } from "@/lib/get-event"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
 import { EventPageNav } from "@/components/site/event-pages/EventPageNav"
-import { getPublishedPageAndNav } from "@/app/actions/eventBuilderActions"
+import {
+  getPublishedPageAndNav,
+  getBuilderPageRedirect,
+} from "@/app/actions/eventBuilderActions"
 import type { Data as PuckData } from "@measured/puck"
 
 export const revalidate = 10
@@ -44,7 +47,15 @@ export default async function EventSubPage({ params }: Props) {
   if (!event) notFound()
 
   const { page } = await getPublishedPageAndNav(event.id, pageSlug)
-  if (!page || !page.data) notFound()
+  if (!page || !page.data) {
+    // Check for a renamed-slug redirect before bailing out so old links
+    // keep working as 301s.
+    const redirectTo = await getBuilderPageRedirect(event.id, pageSlug)
+    if (redirectTo) {
+      redirect(`/events/${event.slug}/p/${redirectTo}`)
+    }
+    notFound()
+  }
 
   /* ── Load the same reference data the home page uses so shared blocks
    *    (SpeakersGrid, Agenda, SponsorsGrid, TicketsCta) render with real
