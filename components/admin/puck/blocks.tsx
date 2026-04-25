@@ -24,6 +24,8 @@
 import Image from "next/image"
 import Link from "next/link"
 import type { CSSProperties, ReactNode } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import {
   Calendar, MapPin, User, Mic2, Ticket, ChevronRight, Building2, Quote,
 } from "lucide-react"
@@ -378,8 +380,10 @@ export function RichText({ title, subtitle, body, layout }: RichTextProps) {
           </h2>
         )}
         {body && (
-          <div className="prose prose-neutral max-w-none leading-relaxed text-[16px] whitespace-pre-wrap" style={{ opacity: 0.9 }}>
-            {body}
+          <div className="prose prose-neutral max-w-none leading-relaxed text-[16px]" style={{ opacity: 0.9 }}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {body}
+            </ReactMarkdown>
           </div>
         )}
       </div>
