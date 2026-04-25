@@ -65,8 +65,50 @@ export default async function FullscreenBuilderPage({
     profilePermissions = (profile?.permissions as ProfilePermissions) ?? null
   }
 
-  if (!canAccessWithProfile(profilePermissions, "events", "edit") && teamMember.role !== "super_admin") {
-    redirect("/admin/denied?from=/admin/builder")
+  /* ── Row-level access ─────────────────────────────────────────────
+   * Three sufficient conditions to edit a specific event's builder:
+   *   (a) super_admin — unconditional
+   *   (b) the user created the event (events.created_by = user.id)
+   *   (c) the user is a member of event_team_members for this event
+   * Otherwise punt to /admin/denied. The events.edit profile permission
+   * (the legacy gate) is no longer enough on its own — it would let any
+   * editor touch any event regardless of ownership. */
+  if (teamMember.role !== "super_admin") {
+    let allowed = false
+
+    // (b) creator?
+    const { data: ownership } = await admin
+      .from("events")
+      .select("created_by")
+      .eq("id", id)
+      .maybeSingle()
+    if (ownership?.created_by && ownership.created_by === user.id) allowed = true
+
+    // (c) listed in event_team_members for this event?
+    if (!allowed) {
+      try {
+        const { data: etm } = await admin
+          .from("event_team_members")
+          .select("user_id")
+          .eq("event_id", id)
+          .eq("user_id", user.id)
+          .maybeSingle()
+        if (etm) allowed = true
+      } catch {
+        // event_team_members may not exist in older deployments — fall
+        // through to deny. Migration adds the table.
+      }
+    }
+
+    if (!allowed) {
+      redirect("/admin/denied?from=/admin/builder")
+    }
+
+    // Belt-and-braces: if the team-member profile doesn't grant events.edit
+    // either (e.g. they were given creator-only rights), still deny.
+    if (!canAccessWithProfile(profilePermissions, "events", "edit")) {
+      redirect("/admin/denied?from=/admin/builder")
+    }
   }
 
   /* ── Load event + reference data + builder state in parallel ──────── */
