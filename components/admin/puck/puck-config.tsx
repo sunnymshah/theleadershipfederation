@@ -140,6 +140,8 @@ export const puckConfig: Config<BuilderComponents> = {
         subtitle: "",
         ctaLabel: "Register Now",
         ctaUrl: "/tickets",
+        secondaryCtaLabel: "",
+        secondaryCtaUrl: "",
         backgroundImage: "",
         alignment: "left",
         minHeight: "tall",
@@ -151,6 +153,18 @@ export const puckConfig: Config<BuilderComponents> = {
         ctaUrl: {
           type: "custom",
           label: "CTA link",
+          render: (p) => (
+            <UrlPicker
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+            />
+          ),
+        },
+        secondaryCtaLabel: { type: "text", label: "Secondary CTA label (optional)" },
+        secondaryCtaUrl: {
+          type: "custom",
+          label: "Secondary CTA link",
           render: (p) => (
             <UrlPicker
               field={p.field as { label?: string }}
@@ -347,25 +361,35 @@ export const puckConfig: Config<BuilderComponents> = {
       defaultProps: {
         title: "By the numbers",
         subtitle: "",
+        animated: false,
         stats: [
-          { value: "500+", label: "Attendees" },
-          { value: "30+",  label: "Speakers" },
-          { value: "15+",  label: "Sessions" },
-          { value: "10",   label: "Countries" },
+          { value: "500+", label: "Attendees", icon: "" },
+          { value: "30+",  label: "Speakers",  icon: "" },
+          { value: "15+",  label: "Sessions",  icon: "" },
+          { value: "10",   label: "Countries", icon: "" },
         ],
         layout: defaultLayout,
       },
       fields: {
         title:    { type: "text", label: "Heading" },
         subtitle: { type: "text", label: "Subtitle" },
+        animated: {
+          type: "radio",
+          label: "Animate count-up on scroll",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
         stats: {
           type: "array",
           label: "Stats",
           getItemSummary: (it) => `${it.value} ${it.label}`,
-          defaultItemProps: { value: "100+", label: "Label" },
+          defaultItemProps: { value: "100+", label: "Label", icon: "" },
           arrayFields: {
-            value: { type: "text", label: "Value" },
+            value: { type: "text", label: "Value (e.g. 500+, 1.2k, 10)" },
             label: { type: "text", label: "Label" },
+            icon:  { type: "text", label: "Lucide icon name (optional, e.g. Users)" },
           },
         },
         layout: layoutField,
@@ -421,10 +445,59 @@ export const puckConfig: Config<BuilderComponents> = {
     /* ── AGENDA ──────────────────────────────────────────────────── */
     Agenda: {
       label: "Agenda",
-      defaultProps: { title: "Agenda", subtitle: "", layout: defaultLayout },
+      defaultProps: {
+        title: "Agenda",
+        subtitle: "",
+        groupByDay: false,
+        showTracks: false,
+        showDuration: false,
+        showSpeakers: true,
+        linkToDetailPages: false,
+        layout: defaultLayout,
+      },
       fields: {
         title:    { type: "text", label: "Heading" },
         subtitle: { type: "text", label: "Subtitle" },
+        groupByDay: {
+          type: "radio",
+          label: "Day tabs",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
+        showTracks: {
+          type: "radio",
+          label: "Track filter chips",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
+        showDuration: {
+          type: "radio",
+          label: "Show duration",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
+        showSpeakers: {
+          type: "radio",
+          label: "Show speakers",
+          options: [
+            { label: "On",  value: true },
+            { label: "Off", value: false },
+          ],
+        },
+        linkToDetailPages: {
+          type: "radio",
+          label: "Link sessions to detail pages",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
         layout:   layoutField,
       },
       render: (p) => <Agenda {...p} />,
@@ -484,6 +557,7 @@ export const puckConfig: Config<BuilderComponents> = {
         title: "Event Gallery",
         images: [],
         columns: 4,
+        lightbox: false,
         layout: defaultLayout,
       },
       fields: {
@@ -497,17 +571,27 @@ export const puckConfig: Config<BuilderComponents> = {
             { label: "4", value: 4 },
           ],
         },
+        lightbox: {
+          type: "radio",
+          label: "Lightbox on click",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
         images: {
           type: "array",
           label: "Images",
-          getItemSummary: (_, idx) => `Image ${Number(idx ?? 0) + 1}`,
-          defaultItemProps: { url: "" },
+          getItemSummary: (it, idx) => (it?.caption || it?.alt || `Image ${Number(idx ?? 0) + 1}`),
+          defaultItemProps: { url: "", alt: "", caption: "" },
           arrayFields: {
             url: {
               type: "custom",
               label: "Image",
               render: (p) => <ImageField {...p} folder="sections" />,
             },
+            alt: { type: "text", label: "Alt text (recommended)" },
+            caption: { type: "text", label: "Caption (optional)" },
           },
         },
         layout: layoutField,
