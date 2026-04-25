@@ -10,6 +10,7 @@ import { SpeakerGrid } from "@/components/site/SpeakerGrid"
 import { getEventSections } from "@/app/actions/eventSectionActions"
 import { EventSectionsRenderer } from "@/components/site/EventSections"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
+import { EventPageNav } from "@/components/site/event-pages/EventPageNav"
 import type { Data as PuckData } from "@measured/puck"
 
 // Short revalidate interval so admin edits appear on the public page quickly.
@@ -199,7 +200,9 @@ export default async function EventDetailPage({ params }: Props) {
   const builderData = (event as { builder_data?: PuckData | null }).builder_data
   if (builderData && Array.isArray(builderData.content) && builderData.content.length > 0) {
     return (
-      <PuckPublicRenderer
+      <>
+        <EventPageNav eventId={event.id} eventSlug={event.slug} currentPageSlug={null} />
+        <PuckPublicRenderer
         data={builderData}
         metadata={{
           event: {
@@ -244,6 +247,7 @@ export default async function EventDetailPage({ params }: Props) {
           })),
         }}
       />
+      </>
     )
   }
 
