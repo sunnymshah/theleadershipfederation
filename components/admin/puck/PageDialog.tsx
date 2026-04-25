@@ -32,9 +32,12 @@ export function PageDialog({ open, mode, initialTitle = "", onCancel, onConfirm 
   const [title, setTitle] = useState(initialTitle)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  // Reset state on (re-)open and focus the input.
+  // Reset state on (re-)open and focus the input. The setState here is
+  // legitimate — we're synchronising a derived UI prop into local state
+  // when the dialog (re)opens with a different initialTitle.
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTitle(initialTitle)
       // setTimeout so the input exists when we focus.
       const t = setTimeout(() => inputRef.current?.focus(), 30)

@@ -38,6 +38,8 @@ export function RevisionHistoryPanel({
   useEffect(() => {
     if (!open) return
     let cancelled = false
+    // Reset request-scoped state when the panel opens.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
     ;(async () => {
