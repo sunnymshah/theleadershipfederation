@@ -31,7 +31,7 @@ import "@measured/puck/puck.css"
 import {
   ArrowLeft, ExternalLink, Loader2, Check, Globe, ChevronDown,
   Users, Ticket, ClipboardList, Building2, Settings, Database,
-  Plus, Pencil, Trash2, Home, FileText, RefreshCw,
+  Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -42,7 +42,8 @@ import { SortablePageTabs } from "./SortablePageTabs"
 import {
   saveBuilderDraft, publishBuilder,
   saveBuilderPageDraft, publishBuilderPages,
-  addBuilderPage, renameBuilderPage, deleteBuilderPage, reorderBuilderPages,
+  addBuilderPage, renameBuilderPage, deleteBuilderPage,
+  reorderBuilderPages, duplicateBuilderPage,
 } from "@/app/actions/eventBuilderActions"
 import type { BuilderPagesMap } from "@/lib/event-builder-pages"
 import { sortPages } from "@/lib/event-builder-pages"
@@ -242,6 +243,25 @@ export function PuckEventBuilder({
     }
   }, [pageDialog, eventId, pages, activePage])
 
+  const handleDuplicatePage = useCallback(async (slug: string) => {
+    const res = await duplicateBuilderPage(eventId, slug)
+    if (res.success && res.slug) {
+      const source = pages[slug]
+      const newSlug = res.slug
+      setPages((prev) => ({
+        ...prev,
+        [newSlug]: {
+          title: source ? `${source.title} (copy)` : "Page (copy)",
+          data: source?.data ?? { content: [], root: { props: {} } },
+          order: Math.max(0, ...Object.values(prev).map((p) => p.order ?? 0)) + 1,
+        },
+      }))
+      setActivePage(newSlug)
+    } else if (res.error) {
+      setErrorBanner(res.error)
+    }
+  }, [eventId, pages])
+
   const handleReorderPages = useCallback(async (slugs: string[]) => {
     // Optimistically update local order so the UI doesn't snap back.
     setPages((prev) => {
@@ -286,6 +306,12 @@ export function PuckEventBuilder({
     window.addEventListener("click", close)
     return () => window.removeEventListener("click", close)
   }, [dataMenuOpen])
+
+  /* ── Tab strip overflow (chevrons + edge fades) ──────────────────── */
+  const tabStripRef = useRef<HTMLDivElement | null>(null)
+  const scrollTabs = useCallback((delta: number) => {
+    tabStripRef.current?.scrollBy({ left: delta, behavior: "smooth" })
+  }, [])
 
   /* ── Header override (replaces Puck's built-in header entirely) ──── */
   const Header = useCallback(() => {
@@ -376,39 +402,64 @@ export function PuckEventBuilder({
         </div>
 
         {/* Row 2 — page tab strip. "Home" is always first and can't be moved. */}
-        <div className="h-11 w-full flex items-center gap-1 px-2 border-t border-[#1a1a2e]/5 bg-[#fafafa] overflow-x-auto">
-          <PageTab
-            active={activePage === "home"}
-            onClick={() => setActivePage("home")}
-            icon={<Home size={12} />}
-            label="Home"
-          />
-          <SortablePageTabs
-            tabs={pageList.map(([slug, p]) => ({ slug, title: p.title }))}
-            onReorder={handleReorderPages}
-            renderTab={(tab) => (
-              <PageTab
-                active={activePage === tab.slug}
-                onClick={() => setActivePage(tab.slug)}
-                icon={<FileText size={12} />}
-                label={tab.title}
-                onRename={() => handleRenamePage(tab.slug)}
-                onDelete={() => handleDeletePage(tab.slug)}
-              />
-            )}
-          />
+        <div className="relative h-11 w-full border-t border-[#1a1a2e]/5 bg-[#fafafa]">
+          {/* Left chevron */}
           <button
             type="button"
-            onClick={handleAddPage}
-            className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-[#1a1a2e]/70 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 border border-dashed border-[#1a1a2e]/20 whitespace-nowrap shrink-0"
-            title="Add a new page"
+            onClick={() => scrollTabs(-220)}
+            aria-label="Scroll tabs left"
+            className="absolute left-0 top-0 h-full w-8 flex items-center justify-center bg-gradient-to-r from-[#fafafa] via-[#fafafa] to-transparent z-10 text-[#1a1a2e]/60 hover:text-[#1a1a2e]"
           >
-            <Plus size={11} /> Add page
+            <ChevronLeft size={14} />
           </button>
+          {/* Right chevron */}
+          <button
+            type="button"
+            onClick={() => scrollTabs(220)}
+            aria-label="Scroll tabs right"
+            className="absolute right-0 top-0 h-full w-8 flex items-center justify-center bg-gradient-to-l from-[#fafafa] via-[#fafafa] to-transparent z-10 text-[#1a1a2e]/60 hover:text-[#1a1a2e]"
+          >
+            <ChevronRight size={14} />
+          </button>
+          <div
+            ref={tabStripRef}
+            className="h-full flex items-center gap-1 px-9 overflow-x-auto scrollbar-none scroll-smooth"
+            style={{ scrollbarWidth: "none" }}
+          >
+            <PageTab
+              active={activePage === "home"}
+              onClick={() => setActivePage("home")}
+              icon={<Home size={12} />}
+              label="Home"
+            />
+            <SortablePageTabs
+              tabs={pageList.map(([slug, p]) => ({ slug, title: p.title }))}
+              onReorder={handleReorderPages}
+              renderTab={(tab) => (
+                <PageTab
+                  active={activePage === tab.slug}
+                  onClick={() => setActivePage(tab.slug)}
+                  icon={<FileText size={12} />}
+                  label={tab.title}
+                  onRename={() => handleRenamePage(tab.slug)}
+                  onDelete={() => handleDeletePage(tab.slug)}
+                  onDuplicate={() => handleDuplicatePage(tab.slug)}
+                />
+              )}
+            />
+            <button
+              type="button"
+              onClick={handleAddPage}
+              className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-[#1a1a2e]/70 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 border border-dashed border-[#1a1a2e]/20 whitespace-nowrap shrink-0"
+              title="Add a new page"
+            >
+              <Plus size={11} /> Add page
+            </button>
+          </div>
         </div>
       </div>
     )
-  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleReorderPages, handleRefreshData, refreshing])
+  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleDuplicatePage, handleReorderPages, handleRefreshData, refreshing, scrollTabs])
 
   const overrides = useMemo(() => ({
     header: Header,
@@ -476,7 +527,7 @@ export function PuckEventBuilder({
 }
 
 function PageTab({
-  active, onClick, icon, label, onRename, onDelete,
+  active, onClick, icon, label, onRename, onDelete, onDuplicate,
 }: {
   active: boolean
   onClick: () => void
@@ -484,6 +535,7 @@ function PageTab({
   label: string
   onRename?: () => void
   onDelete?: () => void
+  onDuplicate?: () => void
 }) {
   return (
     <div className="relative group inline-flex items-center gap-0 shrink-0">
@@ -500,22 +552,35 @@ function PageTab({
         {icon}
         <span className="max-w-[160px] truncate">{label}</span>
       </button>
-      {(onRename || onDelete) && active && (
+      {(onRename || onDelete || onDuplicate) && active && (
         <>
           {onRename && (
             <button
               type="button"
-              onClick={onRename}
+              onClick={(e) => { e.stopPropagation(); onRename() }}
+              onPointerDown={(e) => e.stopPropagation()}
               className="ml-1 p-1 rounded-md text-[#1a1a2e]/60 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5"
               title="Rename page"
             >
               <Pencil size={11} />
             </button>
           )}
+          {onDuplicate && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDuplicate() }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="p-1 rounded-md text-[#1a1a2e]/60 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5"
+              title="Duplicate page"
+            >
+              <Copy size={11} />
+            </button>
+          )}
           {onDelete && (
             <button
               type="button"
-              onClick={onDelete}
+              onClick={(e) => { e.stopPropagation(); onDelete() }}
+              onPointerDown={(e) => e.stopPropagation()}
               className="p-1 rounded-md text-red-600/70 hover:text-red-700 hover:bg-red-50"
               title="Delete page"
             >
