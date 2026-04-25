@@ -25,12 +25,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Puck, type Data } from "@measured/puck"
 import "@measured/puck/puck.css"
 import {
   ArrowLeft, ExternalLink, Loader2, Check, Globe, ChevronDown,
   Users, Ticket, ClipboardList, Building2, Settings, Database,
-  Plus, Pencil, Trash2, Home, FileText,
+  Plus, Pencil, Trash2, Home, FileText, RefreshCw,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -64,9 +65,20 @@ export function PuckEventBuilder({
   initialPages: BuilderPagesMap
   metadata: BuilderMetadata
 }) {
+  const router = useRouter()
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [publishState, setPublishState] = useState<"idle" | "publishing" | "published" | "error">("idle")
   const [publishMsg, setPublishMsg] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const handleRefreshData = useCallback(() => {
+    // The reference data (speakers/sessions/sponsors/tickets) is loaded
+    // from the server page; router.refresh() re-fetches it without a full
+    // navigation, then the editor remounts with fresh metadata.
+    setRefreshing(true)
+    router.refresh()
+    // No reliable signal that refresh finished — clear after a short tick.
+    window.setTimeout(() => setRefreshing(false), 1200)
+  }, [router])
 
   /* ── Page state ────────────────────────────────────────────────────
    * Home draft + sub-page drafts live in local state so Puck can autosave
@@ -279,7 +291,7 @@ export function PuckEventBuilder({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <div className="relative flex items-center" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => setDataMenuOpen((v) => !v)}
@@ -291,6 +303,16 @@ export function PuckEventBuilder({
                 <Database size={13} />
                 <span className="hidden lg:inline">Event data</span>
                 <ChevronDown size={11} className={`transition-transform ${dataMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+              <button
+                type="button"
+                onClick={handleRefreshData}
+                disabled={refreshing}
+                title="Re-fetch speakers, sessions, sponsors, tickets"
+                aria-label="Refresh event data"
+                className="ml-1 inline-flex items-center justify-center w-8 h-8 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 disabled:opacity-60"
+              >
+                <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
               </button>
               {dataMenuOpen && (
                 <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-50">
@@ -363,7 +385,7 @@ export function PuckEventBuilder({
         </div>
       </div>
     )
-  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage])
+  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleRefreshData, refreshing])
 
   const overrides = useMemo(() => ({
     header: Header,
