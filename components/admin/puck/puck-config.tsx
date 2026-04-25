@@ -393,7 +393,7 @@ export const puckConfig: Config<BuilderComponents> = {
           options: [
             { label: "4-column grid", value: "grid-4" },
             { label: "3-column grid", value: "grid-3" },
-            { label: "Single row",    value: "row" },
+            { label: "Auto-flow",     value: "row" },
           ],
         },
         frame: {
@@ -468,7 +468,10 @@ export const puckConfig: Config<BuilderComponents> = {
       defaultProps: { title: "", videoUrl: "", layout: defaultLayout },
       fields: {
         title:    { type: "text", label: "Heading" },
-        videoUrl: { type: "text", label: "YouTube URL" },
+        videoUrl: {
+          type: "text",
+          label: "Video URL (YouTube, Vimeo, Loom, or .mp4/.webm)",
+        },
         layout:   layoutField,
       },
       render: (p) => <Video {...p} />,
