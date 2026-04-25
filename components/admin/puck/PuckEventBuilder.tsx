@@ -38,10 +38,11 @@ import { puckConfig } from "./puck-config"
 import type { BuilderMetadata } from "./blocks"
 import { PageDialog } from "./PageDialog"
 import { ConfirmDialog } from "./ConfirmDialog"
+import { SortablePageTabs } from "./SortablePageTabs"
 import {
   saveBuilderDraft, publishBuilder,
   saveBuilderPageDraft, publishBuilderPages,
-  addBuilderPage, renameBuilderPage, deleteBuilderPage,
+  addBuilderPage, renameBuilderPage, deleteBuilderPage, reorderBuilderPages,
 } from "@/app/actions/eventBuilderActions"
 import type { BuilderPagesMap } from "@/lib/event-builder-pages"
 import { sortPages } from "@/lib/event-builder-pages"
@@ -241,6 +242,25 @@ export function PuckEventBuilder({
     }
   }, [pageDialog, eventId, pages, activePage])
 
+  const handleReorderPages = useCallback(async (slugs: string[]) => {
+    // Optimistically update local order so the UI doesn't snap back.
+    setPages((prev) => {
+      const next: BuilderPagesMap = {}
+      let i = 0
+      for (const slug of slugs) {
+        const existing = prev[slug]
+        if (existing) next[slug] = { ...existing, order: i++ }
+      }
+      // Trailing entries keep their relative order pushed to the end.
+      for (const [slug, page] of Object.entries(prev)) {
+        if (!(slug in next)) next[slug] = { ...page, order: i++ }
+      }
+      return next
+    })
+    const res = await reorderBuilderPages(eventId, slugs)
+    if (!res.success && res.error) setErrorBanner(res.error)
+  }, [eventId])
+
   const submitConfirmDelete = useCallback(async () => {
     if (!confirmDelete.open) return
     const { slug } = confirmDelete
@@ -355,7 +375,7 @@ export function PuckEventBuilder({
           </div>
         </div>
 
-        {/* Row 2 — page tab strip. "Home" is always first and can't be removed. */}
+        {/* Row 2 — page tab strip. "Home" is always first and can't be moved. */}
         <div className="h-11 w-full flex items-center gap-1 px-2 border-t border-[#1a1a2e]/5 bg-[#fafafa] overflow-x-auto">
           <PageTab
             active={activePage === "home"}
@@ -363,17 +383,20 @@ export function PuckEventBuilder({
             icon={<Home size={12} />}
             label="Home"
           />
-          {pageList.map(([slug, p]) => (
-            <PageTab
-              key={slug}
-              active={activePage === slug}
-              onClick={() => setActivePage(slug)}
-              icon={<FileText size={12} />}
-              label={p.title}
-              onRename={() => handleRenamePage(slug)}
-              onDelete={() => handleDeletePage(slug)}
-            />
-          ))}
+          <SortablePageTabs
+            tabs={pageList.map(([slug, p]) => ({ slug, title: p.title }))}
+            onReorder={handleReorderPages}
+            renderTab={(tab) => (
+              <PageTab
+                active={activePage === tab.slug}
+                onClick={() => setActivePage(tab.slug)}
+                icon={<FileText size={12} />}
+                label={tab.title}
+                onRename={() => handleRenamePage(tab.slug)}
+                onDelete={() => handleDeletePage(tab.slug)}
+              />
+            )}
+          />
           <button
             type="button"
             onClick={handleAddPage}
@@ -385,7 +408,7 @@ export function PuckEventBuilder({
         </div>
       </div>
     )
-  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleRefreshData, refreshing])
+  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleReorderPages, handleRefreshData, refreshing])
 
   const overrides = useMemo(() => ({
     header: Header,

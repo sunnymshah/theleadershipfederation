@@ -470,6 +470,44 @@ export async function renameBuilderPage(
   }
 }
 
+/** Reorder sub-pages — sets `order` on each entry to match the index in
+ *  `slugs[]`. Slugs missing from the array keep their existing relative
+ *  order pushed to the end. Used by the drag-reorder tab strip. */
+export async function reorderBuilderPages(
+  eventId: string,
+  slugs: string[],
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_pages_draft")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = ((row?.builder_pages_draft ?? {}) as BuilderPagesMap)
+    const normalised = slugs.map((s) => slugifyPage(s)).filter(Boolean)
+    const seen = new Set<string>(normalised)
+    const trailing = Object.keys(map).filter((k) => !seen.has(k))
+
+    const next: BuilderPagesMap = {}
+    let i = 0
+    for (const slug of [...normalised, ...trailing]) {
+      const existing = map[slug]
+      if (!existing) continue
+      next[slug] = { ...existing, order: i++ }
+    }
+    const { error } = await admin
+      .from("events")
+      .update({ builder_pages_draft: next, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
 /** Public-side read: look up a redirect target for a missing sub-page
  *  slug. Returns null when no redirect exists. */
 export async function getBuilderPageRedirect(
