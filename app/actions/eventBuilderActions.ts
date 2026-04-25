@@ -470,6 +470,55 @@ export async function renameBuilderPage(
   }
 }
 
+/** Duplicate a sub-page. The new page gets a unique slug (originalSlug-copy
+ *  or originalSlug-copy-2 etc.) and a title with " (copy)" appended.
+ *  Inserts at the end of the order. */
+export async function duplicateBuilderPage(
+  eventId: string,
+  pageSlug: string,
+): Promise<{ success: boolean; slug?: string; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const sourceKey = slugifyPage(pageSlug)
+    if (!sourceKey) return { success: false, error: "Invalid slug." }
+
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_pages_draft")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = ((row?.builder_pages_draft ?? {}) as BuilderPagesMap)
+    const source = map[sourceKey]
+    if (!source) return { success: false, error: "Source page not found." }
+
+    // Pick a free copy-suffixed slug.
+    const base = slugifyPage(`${sourceKey}-copy`)
+    let candidate = base
+    let i = 2
+    while (map[candidate]) {
+      candidate = slugifyPage(`${base}-${i}`)
+      i++
+      if (i > 50) return { success: false, error: "Couldn't generate a unique slug." }
+    }
+
+    const newPage: BuilderPage = {
+      title: `${source.title} (copy)`,
+      data: source.data, // jsonb is by-value once stored
+      order: Math.max(0, ...Object.values(map).map((p) => p.order ?? 0)) + 1,
+    }
+    const next: BuilderPagesMap = { ...map, [candidate]: newPage }
+    const { error } = await admin
+      .from("events")
+      .update({ builder_pages_draft: next, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    return { success: true, slug: candidate }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
 /** Reorder sub-pages — sets `order` on each entry to match the index in
  *  `slugs[]`. Slugs missing from the array keep their existing relative
  *  order pushed to the end. Used by the drag-reorder tab strip. */
