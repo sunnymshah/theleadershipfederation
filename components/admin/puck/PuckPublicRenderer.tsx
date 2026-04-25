@@ -23,12 +23,24 @@ export function PuckPublicRenderer({
   data: Data
   metadata: BuilderMetadata
 }) {
+  // Identify the first content block — used by Hero to decide whether
+  // to mark its background image priority/fetchPriority. Only the very
+  // first LCP-eligible block should be marked.
+  const firstContent = Array.isArray(data?.content) ? data.content[0] : null
+  const firstBlockId =
+    firstContent && typeof firstContent === "object" && "props" in firstContent
+      ? ((firstContent as unknown as { props?: { id?: string } }).props?.id ?? null)
+      : null
+
   return (
     <main className="min-h-screen bg-white text-[#1a1a2e]">
       <Render
         config={puckConfig}
         data={data}
-        metadata={metadata as unknown as Record<string, unknown>}
+        metadata={{
+          ...(metadata as unknown as Record<string, unknown>),
+          firstBlockId,
+        } as unknown as Record<string, unknown>}
       />
     </main>
   )
