@@ -193,6 +193,40 @@ function extractYouTubeId(url: string): string | null {
   return m ? m[1] : null
 }
 
+/** Detect the video provider + return an embed URL (or direct file URL).
+ *  Supports: YouTube, Vimeo, Loom, raw mp4/webm. */
+type VideoEmbed =
+  | { kind: "youtube"; embedUrl: string }
+  | { kind: "vimeo";   embedUrl: string }
+  | { kind: "loom";    embedUrl: string }
+  | { kind: "file";    fileUrl:  string; mimeType: string }
+  | { kind: "unknown" }
+
+function detectVideo(url: string): VideoEmbed {
+  if (!url) return { kind: "unknown" }
+  const u = url.trim()
+
+  // YouTube — re-use the existing extractor.
+  const yt = extractYouTubeId(u)
+  if (yt) return { kind: "youtube", embedUrl: `https://www.youtube.com/embed/${yt}` }
+
+  // Vimeo — both vimeo.com/<id> and player.vimeo.com/video/<id>.
+  const vimeo = u.match(/vimeo\.com\/(?:video\/)?(\d+)/)
+  if (vimeo) return { kind: "vimeo", embedUrl: `https://player.vimeo.com/video/${vimeo[1]}` }
+
+  // Loom — share URLs use /share/<id>.
+  const loom = u.match(/loom\.com\/share\/([a-zA-Z0-9]+)/)
+  if (loom) return { kind: "loom", embedUrl: `https://www.loom.com/embed/${loom[1]}` }
+
+  // Raw video files.
+  const ext = u.split("?")[0].split(".").pop()?.toLowerCase()
+  if (ext === "mp4")  return { kind: "file", fileUrl: u, mimeType: "video/mp4" }
+  if (ext === "webm") return { kind: "file", fileUrl: u, mimeType: "video/webm" }
+  if (ext === "mov")  return { kind: "file", fileUrl: u, mimeType: "video/quicktime" }
+
+  return { kind: "unknown" }
+}
+
 /* ── ROOT (theme cascade + 20 presets) ───────────────────────────── *
  * Pick a preset from the dropdown OR set explicit colour + font fields.
  * A preset wins over individual fields so the user can "set and forget".
@@ -761,8 +795,14 @@ export function SponsorsGrid({
 export type VideoProps = { title: string; videoUrl: string; layout?: LayoutProps }
 
 export function Video({ title, videoUrl, layout }: VideoProps) {
-  const id = extractYouTubeId(videoUrl)
-  if (!id) return <SectionPlaceholder label="Video (paste a YouTube URL in the inspector)" />
+  const embed = detectVideo(videoUrl ?? "")
+  if (embed.kind === "unknown") {
+    return (
+      <SectionPlaceholder
+        label="Video (paste a YouTube, Vimeo, Loom, or .mp4/.webm URL in the inspector)"
+      />
+    )
+  }
   return (
     <SectionShell layout={layout}>
       <div className="max-w-5xl mx-auto px-6">
@@ -771,14 +811,27 @@ export function Video({ title, videoUrl, layout }: VideoProps) {
             {title}
           </h2>
         )}
-        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg">
-          <iframe
-            src={`https://www.youtube.com/embed/${id}`}
-            className="absolute inset-0 w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={title || "Video"}
-          />
+        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg bg-black">
+          {embed.kind === "file" ? (
+            <video
+              src={embed.fileUrl}
+              controls
+              playsInline
+              className="absolute inset-0 w-full h-full"
+              preload="metadata"
+            >
+              <source src={embed.fileUrl} type={embed.mimeType} />
+              Your browser doesn&apos;t support embedded video.
+            </video>
+          ) : (
+            <iframe
+              src={embed.embedUrl}
+              className="absolute inset-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={title || "Video"}
+            />
+          )}
         </div>
       </div>
     </SectionShell>
