@@ -29,6 +29,7 @@ import remarkGfm from "remark-gfm"
 import {
   Calendar, MapPin, User, Mic2, Ticket, ChevronRight, Building2, Quote,
 } from "lucide-react"
+import { resolveUrl, urlIsExternal } from "./UrlPicker"
 
 export const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -343,7 +344,9 @@ export function Hero({
         {ctaLabel && ctaUrl && (
           <div className={`mt-8 ${centered ? "flex justify-center" : ""}`}>
             <Link
-              href={ctaUrl}
+              href={resolveUrl(ctaUrl, event.slug)}
+              target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
+              rel={urlIsExternal(ctaUrl) ? "noopener noreferrer" : undefined}
               className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold transition-colors hover:brightness-95"
               style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
             >
@@ -748,7 +751,10 @@ export type CtaButtonProps = {
   layout?: LayoutProps
 }
 
-export function CtaButton({ title, subtitle, ctaLabel, ctaUrl, variant, layout }: CtaButtonProps) {
+export function CtaButton({
+  title, subtitle, ctaLabel, ctaUrl, variant, layout,
+  puck,
+}: CtaButtonProps & { puck: { metadata?: Record<string, unknown> } }) {
   if (!ctaLabel || !ctaUrl) return <SectionPlaceholder label="CTA button (set label + URL in the inspector)" />
   const btnCls =
     variant === "outline" ? "border-2 border-[#1a1a2e] text-[#1a1a2e] hover:bg-[#1a1a2e] hover:text-white" :
@@ -768,7 +774,9 @@ export function CtaButton({ title, subtitle, ctaLabel, ctaUrl, variant, layout }
         )}
         {subtitle && <p className="opacity-80 mb-7 max-w-xl mx-auto">{subtitle}</p>}
         <Link
-          href={ctaUrl}
+          href={resolveUrl(ctaUrl, getMeta(puck).event.slug)}
+          target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
+          rel={urlIsExternal(ctaUrl) ? "noopener noreferrer" : undefined}
           className={`inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold transition-colors ${btnCls}`}
           style={btnStyle}
         >
@@ -1004,7 +1012,11 @@ export type NewsletterProps = {
   layout?: LayoutProps
 }
 
-export function Newsletter({ title, subtitle, ctaLabel, ctaUrl, layout }: NewsletterProps) {
+export function Newsletter({
+  title, subtitle, ctaLabel, ctaUrl, layout,
+  puck,
+}: NewsletterProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const eventSlug = getMeta(puck).event.slug
   return (
     <SectionShell layout={layout}>
       <div className="max-w-2xl mx-auto px-6 text-center">
@@ -1015,7 +1027,7 @@ export function Newsletter({ title, subtitle, ctaLabel, ctaUrl, layout }: Newsle
         )}
         {subtitle && <p className="opacity-80 mb-7">{subtitle}</p>}
         <form
-          action={ctaUrl || "/#subscribe"}
+          action={resolveUrl(ctaUrl, eventSlug) || "/#subscribe"}
           method="post"
           className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
         >
