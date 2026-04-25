@@ -410,7 +410,10 @@ export async function addBuilderPage(
 }
 
 /** Rename a sub-page (label AND slug). If `newSlug` resolves to the same
- *  slugified value as `oldSlug`, only the title changes. */
+ *  slugified value as `oldSlug`, only the title changes.
+ *
+ *  When the slug DOES change, we record a redirect (oldKey → nextKey) on
+ *  events.builder_pages_redirects so old shared links keep working. */
 export async function renameBuilderPage(
   eventId: string,
   oldSlug: string,
@@ -426,7 +429,7 @@ export async function renameBuilderPage(
 
     const { data: row } = await admin
       .from("events")
-      .select("builder_pages_draft")
+      .select("builder_pages_draft, builder_pages_redirects")
       .eq("id", eventId)
       .maybeSingle()
     const map = ((row?.builder_pages_draft ?? {}) as BuilderPagesMap)
@@ -434,20 +437,58 @@ export async function renameBuilderPage(
     if (!existing) return { success: false, error: "Page not found." }
 
     const copy: BuilderPagesMap = { ...map }
+    let redirects = (row?.builder_pages_redirects ?? {}) as Record<string, string>
     if (oldKey !== nextKey) {
       if (copy[nextKey]) return { success: false, error: "That URL is already in use." }
       delete copy[oldKey]
+      // Record old → new. Also collapse transitive chains: if some
+      // earlier slug X already pointed at oldKey, retarget X → nextKey
+      // so we don't bounce visitors twice.
+      const updated: Record<string, string> = {}
+      for (const [k, v] of Object.entries(redirects)) {
+        updated[k] = v === oldKey ? nextKey : v
+      }
+      updated[oldKey] = nextKey
+      // Don't keep self-redirects (nextKey → nextKey).
+      delete updated[nextKey]
+      redirects = updated
     }
     copy[nextKey] = { ...existing, title: newTitle.trim() || existing.title }
 
     const { error } = await admin
       .from("events")
-      .update({ builder_pages_draft: copy, updated_at: new Date().toISOString() })
+      .update({
+        builder_pages_draft: copy,
+        builder_pages_redirects: redirects,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", eventId)
     if (error) return { success: false, error: error.message }
     return { success: true, slug: nextKey }
   } catch (err) {
     return { success: false, error: (err as Error).message }
+  }
+}
+
+/** Public-side read: look up a redirect target for a missing sub-page
+ *  slug. Returns null when no redirect exists. */
+export async function getBuilderPageRedirect(
+  eventId: string,
+  fromSlug: string,
+): Promise<string | null> {
+  try {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    const { data } = await supabase
+      .from("events")
+      .select("builder_pages_redirects")
+      .eq("id", eventId)
+      .maybeSingle()
+    const map = (data?.builder_pages_redirects ?? {}) as Record<string, string>
+    const target = map[slugifyPage(fromSlug)] ?? null
+    return target ? slugifyPage(target) : null
+  } catch {
+    return null
   }
 }
 
