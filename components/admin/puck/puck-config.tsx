@@ -446,9 +446,17 @@ export const puckConfig: Config<BuilderComponents> = {
     /* ── SPONSORS ────────────────────────────────────────────────── */
     SponsorsGrid: {
       label: "Sponsors grid",
-      defaultProps: { title: "Our Partners", layout: defaultLayout },
+      defaultProps: { title: "Our Partners", groupByTier: false, layout: defaultLayout },
       fields: {
         title:  { type: "text", label: "Heading" },
+        groupByTier: {
+          type: "radio",
+          label: "Group by tier",
+          options: [
+            { label: "No (single grid)", value: false },
+            { label: "Yes (tier rows)",  value: true },
+          ],
+        },
         layout: layoutField,
       },
       render: (p) => <SponsorsGrid {...p} />,
