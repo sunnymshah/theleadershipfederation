@@ -31,7 +31,6 @@ import {
   SponsorsGrid, Video, Gallery, CtaButton, Faqs,
   Spacer, Divider, ImageBlock, TwoColumn, Testimonial, LogosStrip, Newsletter,
   TextBox,
-  THEME_PRESETS,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -45,6 +44,7 @@ import {
 } from "./blocks"
 import { ImageField } from "./ImageField"
 import { UrlPicker } from "./UrlPicker"
+import { ThemePresetGrid } from "./ThemePresetGrid"
 
 export type BuilderComponents = {
   Hero: HeroProps
@@ -785,14 +785,15 @@ export const puckConfig: Config<BuilderComponents> = {
        * individual colour/font fields below. Keeps setup to one click for
        * most events while still allowing full manual control.            */
       themePreset: {
-        type: "select",
+        type: "custom",
         label: "Theme preset (overrides fields below when set)",
-        options: [
-          { label: "Custom — use fields below", value: "custom" },
-          ...Object.entries(THEME_PRESETS)
-            .filter(([k]) => k !== "custom")
-            .map(([k, v]) => ({ label: v.label, value: k })),
-        ],
+        render: (p: FieldProps): ReactElement => (
+          <ThemePresetGrid
+            field={p.field as { label?: string }}
+            value={p.value as string | undefined}
+            onChange={p.onChange as (v: string) => void}
+          />
+        ),
       },
       primaryColor: { type: "text", label: "Primary colour (hex, e.g. #e7ab1c)" },
       textColor:    { type: "text", label: "Default text colour (hex)" },
