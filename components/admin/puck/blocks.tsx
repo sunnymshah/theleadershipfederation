@@ -1543,6 +1543,235 @@ export function TextBox({
   )
 }
 
+/* ── COUNTDOWN (B13) ──────────────────────────────────────────────── */
+
+export type CountdownProps = {
+  /** ISO datetime override; falls back to event.start_date. */
+  targetDateOverride?: string
+  title?: string
+  subtitle?: string
+  pastMessage?: string
+  layout?: LayoutProps
+}
+
+function diffParts(target: number, now: number) {
+  const diff = Math.max(0, target - now)
+  const days = Math.floor(diff / 86_400_000)
+  const hours = Math.floor((diff % 86_400_000) / 3_600_000)
+  const minutes = Math.floor((diff % 3_600_000) / 60_000)
+  const seconds = Math.floor((diff % 60_000) / 1000)
+  return { days, hours, minutes, seconds, expired: diff <= 0 }
+}
+
+export function Countdown({
+  targetDateOverride, title, subtitle, pastMessage, layout, puck,
+}: CountdownProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { event } = getMeta(puck)
+  const target = (targetDateOverride && targetDateOverride.trim()) || event.start_date
+  const targetTime = target ? new Date(target).getTime() : NaN
+  const [now, setNow] = useState<number>(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  if (!Number.isFinite(targetTime)) return <SectionPlaceholder label="Countdown (set a target date or use the event start date)" />
+  const { days, hours, minutes, seconds, expired } = diffParts(targetTime, now)
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-4xl mx-auto px-6 text-center">
+        {title && <h2 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight" style={sfFont}>{title}</h2>}
+        {subtitle && <p className="opacity-75 mb-6">{subtitle}</p>}
+        {expired ? (
+          <p className="text-xl font-semibold" style={{ color: "var(--lf-primary, #e7ab1c)" }}>
+            {pastMessage || "We're live!"}
+          </p>
+        ) : (
+          <div className="grid grid-cols-4 gap-3 max-w-xl mx-auto">
+            {[
+              { v: days, l: "Days" },
+              { v: hours, l: "Hours" },
+              { v: minutes, l: "Minutes" },
+              { v: seconds, l: "Seconds" },
+            ].map((u) => (
+              <div key={u.l} className="rounded-xl py-4" style={{ border: "1px solid color-mix(in srgb, var(--lf-primary, #e7ab1c) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 10%, transparent)" }}>
+                <div className="text-3xl sm:text-4xl font-bold tabular-nums" style={{ color: "var(--lf-primary, #e7ab1c)" }}>
+                  {String(u.v).padStart(2, "0")}
+                </div>
+                <div className="text-[10px] uppercase tracking-[0.18em] opacity-70 mt-1">{u.l}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── VENUE / MAP (B14) ────────────────────────────────────────────── */
+
+export type VenueMapProps = {
+  title?: string
+  address: string
+  lat?: number
+  lng?: number
+  height?: "sm" | "md" | "lg"
+  layout?: LayoutProps
+}
+
+export function VenueMap({ title, address, lat, lng, height, layout }: VenueMapProps) {
+  if (!address && (lat === undefined || lng === undefined)) {
+    return <SectionPlaceholder label="Venue map (add an address or lat/lng)" />
+  }
+  const q = lat !== undefined && lng !== undefined && (lat || lng)
+    ? `${lat},${lng}`
+    : encodeURIComponent(address || "")
+  const src = `https://www.google.com/maps?q=${q}&output=embed`
+  const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${q}`
+  const h = height === "sm" ? "h-64" : height === "lg" ? "h-[520px]" : "h-96"
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-5xl mx-auto px-6">
+        {title && (
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 tracking-tight" style={sfFont}>{title}</h2>
+        )}
+        {address && <p className="opacity-80 mb-3">{address}</p>}
+        <div className={`relative ${h} rounded-2xl overflow-hidden border border-[#1a1a2e]/10`}>
+          <iframe
+            src={src}
+            className="absolute inset-0 w-full h-full"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title={title || "Venue map"}
+          />
+        </div>
+        <a
+          href={directionsHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium hover:underline"
+          style={{ color: "var(--lf-primary, #e7ab1c)" }}
+        >
+          Get directions
+          <ChevronRight size={14} />
+        </a>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── STICKY CTA (B15) ─────────────────────────────────────────────── */
+
+export type StickyCtaProps = {
+  ctaLabel: string
+  ctaUrl: string
+  subtext?: string
+  visibleOn?: "always" | "after-hero" | "scroll-up"
+  mobileOnly?: boolean
+}
+
+export function StickyCta({
+  ctaLabel, ctaUrl, subtext, visibleOn, mobileOnly,
+  puck,
+}: StickyCtaProps & { puck: { metadata?: Record<string, unknown>; isEditing?: boolean } }) {
+  const { event } = getMeta(puck)
+  const [visible, setVisible] = useState<boolean>(visibleOn !== "after-hero" && visibleOn !== "scroll-up")
+  const lastY = useRef<number>(typeof window !== "undefined" ? window.scrollY : 0)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (visibleOn === "always" || visibleOn === undefined) {
+      setVisible(true)
+      return
+    }
+    const onScroll = () => {
+      const y = window.scrollY
+      if (visibleOn === "after-hero") {
+        setVisible(y > 300)
+      } else if (visibleOn === "scroll-up") {
+        setVisible(y > 200 && y < lastY.current)
+      }
+      lastY.current = y
+    }
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [visibleOn])
+
+  // Editor preview — show as a labelled card; renderer (front-end) sticks to the bottom.
+  const isEditor = (puck as { isEditing?: boolean })?.isEditing
+  if (!ctaLabel || !ctaUrl) return <SectionPlaceholder label="Sticky CTA (set a label and URL)" />
+  if (isEditor) {
+    return (
+      <div className="border-2 border-dashed border-[var(--bs-border,#e5e7eb)] bg-[var(--bs-bg-alt,#f7f8fa)] rounded-xl mx-6 my-4 p-4 text-center">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--bs-text-muted,#6b7280)] mb-1">
+          Sticky CTA — visible on the public page
+        </p>
+        <p className="text-sm font-semibold">{ctaLabel}</p>
+        {subtext && <p className="text-xs opacity-70 mt-0.5">{subtext}</p>}
+      </div>
+    )
+  }
+  if (!visible) return null
+
+  const cls = mobileOnly ? "fixed inset-x-0 bottom-0 z-40 sm:hidden" : "fixed inset-x-0 bottom-0 z-40"
+  return (
+    <div className={cls}>
+      <div className="bg-[#1a1a2e] text-white border-t border-white/10 px-4 py-3 flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {subtext && <p className="text-[11px] opacity-70 truncate">{subtext}</p>}
+        </div>
+        <Link
+          href={resolveUrl(ctaUrl, event.slug)}
+          target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
+          rel={urlIsExternal(ctaUrl) ? "noopener noreferrer" : undefined}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-bold text-[#1a1a2e] shrink-0"
+          style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
+        >
+          {ctaLabel}
+          <ChevronRight size={14} />
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+/* ── SOCIAL BAR (B25) ─────────────────────────────────────────────── */
+
+export type SocialBarProps = {
+  links: Array<{ platform: string; url: string }>
+  style?: "icon" | "icon-label"
+  alignment?: "left" | "center" | "right"
+  layout?: LayoutProps
+}
+
+export function SocialBar({ links, style, alignment, layout }: SocialBarProps) {
+  if (!links || links.length === 0) return <SectionPlaceholder label="Social bar (add at least one link)" />
+  const align = alignment === "center" ? "justify-center" : alignment === "right" ? "justify-end" : "justify-start"
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-5xl mx-auto px-6">
+        <ul className={`flex flex-wrap items-center gap-3 ${align}`}>
+          {links.map((l, i) => (
+            <li key={i}>
+              <a
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 h-10 rounded-md border border-[#1a1a2e]/10 hover:bg-[#1a1a2e]/[0.04] text-sm"
+                aria-label={l.platform}
+              >
+                <span className="font-semibold capitalize">{l.platform}</span>
+                {style === "icon-label" && (
+                  <span className="text-xs opacity-60 truncate max-w-[180px]">{l.url.replace(/^https?:\/\//, "")}</span>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </SectionShell>
+  )
+}
+
 /* ── Placeholder shown in the editor when a block has no content yet. ── */
 
 function SectionPlaceholder({ label, dark }: { label: string; dark?: boolean }) {
