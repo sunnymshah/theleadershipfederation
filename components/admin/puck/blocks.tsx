@@ -280,7 +280,10 @@ export function Hero({
       <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent" />
       <div className={`relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pb-16 pt-28 w-full ${centered ? "text-center" : ""}`}>
         {event.start_date && (
-          <div className={`flex items-center gap-3 text-xs font-semibold text-[#e7ab1c] uppercase tracking-[0.22em] mb-4 ${centered ? "justify-center" : ""}`}>
+          <div
+            className={`flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] mb-4 ${centered ? "justify-center" : ""}`}
+            style={{ color: "var(--lf-primary, #e7ab1c)" }}
+          >
             <Calendar size={13} /> {fmtDate(event.start_date, event.end_date)}
             {event.venue && (
               <>
@@ -305,7 +308,8 @@ export function Hero({
           <div className={`mt-8 ${centered ? "flex justify-center" : ""}`}>
             <Link
               href={ctaUrl}
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-[#e7ab1c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d49c10] transition-colors"
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold transition-colors hover:brightness-95"
+              style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
             >
               {ctaLabel}
               <ChevronRight size={14} />
@@ -372,7 +376,13 @@ export function StatsRow({ title, stats, layout }: StatsRowProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
             <div key={i} className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[#e7ab1c] to-[#d49c10] bg-clip-text text-transparent" style={sfFont}>
+              <div
+                className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent"
+                style={{
+                  ...sfFont,
+                  backgroundImage: "linear-gradient(to right, var(--lf-primary, #e7ab1c), color-mix(in srgb, var(--lf-primary, #e7ab1c) 80%, black))",
+                }}
+              >
                 {stat.value}
               </div>
               <div className="text-xs uppercase tracking-[0.15em] mt-2 font-semibold opacity-70">
@@ -461,7 +471,7 @@ export function SpeakersGrid({
                   <div className="p-4">
                     <h3 className="text-sm font-bold text-[#1a1a2e] leading-snug truncate" style={sfFont}>{sp.name}</h3>
                     {sp.designation && <p className="text-xs text-[#1a1a2e]/70 mt-0.5 truncate">{sp.designation}</p>}
-                    {sp.company && <p className="text-[11px] text-[#e7ab1c] font-semibold mt-0.5 truncate">{sp.company}</p>}
+                    {sp.company && <p className="text-[11px] font-semibold mt-0.5 truncate" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{sp.company}</p>}
                   </div>
                 </div>
               )
@@ -489,7 +499,14 @@ export function Agenda({
     <SectionShell layout={layout} baseClass={baseBg} dark>
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-10">
-          <span className="inline-block text-[10px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-3 px-3 py-1 rounded-full bg-[#e7ab1c]/15 border border-[#e7ab1c]/20">
+          <span
+            className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] mb-3 px-3 py-1 rounded-full border"
+            style={{
+              color: "var(--lf-primary, #e7ab1c)",
+              backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 15%, transparent)",
+              borderColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 20%, transparent)",
+            }}
+          >
             Schedule
           </span>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight" style={sfFont}>
@@ -500,12 +517,12 @@ export function Agenda({
         <div className="space-y-3">
           {sessions.map((sess) => (
             <div key={sess.id} className="flex gap-5 p-5 rounded-xl bg-white/[0.04] border border-white/[0.08]">
-              <div className="shrink-0 text-[#e7ab1c] font-mono text-sm w-20">
+              <div className="shrink-0 font-mono text-sm w-20" style={{ color: "var(--lf-primary, #e7ab1c)" }}>
                 {fmtTime(sess.starts_at)}
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="text-base font-semibold leading-snug">{sess.title}</h4>
-                {sess.track && <p className="text-xs text-[#e7ab1c] mt-1">{sess.track}</p>}
+                {sess.track && <p className="text-xs mt-1" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{sess.track}</p>}
                 {sess.speaker_names && sess.speaker_names.length > 0 && (
                   <p className="text-xs text-white/60 mt-1">
                     <Mic2 size={11} className="inline mr-1" />
@@ -534,7 +551,13 @@ export function TicketsCta({
     <SectionShell layout={layout}>
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-10">
-          <span className="inline-block text-[10px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-3 px-3 py-1 rounded-full bg-[#e7ab1c]/10">
+          <span
+            className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] mb-3 px-3 py-1 rounded-full"
+            style={{
+              color: "var(--lf-primary, #e7ab1c)",
+              backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 10%, transparent)",
+            }}
+          >
             Reserve Your Seat
           </span>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight" style={sfFont}>
@@ -692,7 +715,11 @@ export function CtaButton({ title, subtitle, ctaLabel, ctaUrl, variant, layout }
   const btnCls =
     variant === "outline" ? "border-2 border-[#1a1a2e] text-[#1a1a2e] hover:bg-[#1a1a2e] hover:text-white" :
     variant === "secondary" ? "bg-[#1a1a2e] text-white hover:bg-[#2a2a4e]" :
-    "bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10]"
+    "text-[#1a1a2e] hover:brightness-95"
+  const btnStyle: CSSProperties =
+    variant === "outline" || variant === "secondary"
+      ? {}
+      : { backgroundColor: "var(--lf-primary, #e7ab1c)" }
   return (
     <SectionShell layout={layout}>
       <div className="max-w-4xl mx-auto px-6 text-center">
@@ -705,6 +732,7 @@ export function CtaButton({ title, subtitle, ctaLabel, ctaUrl, variant, layout }
         <Link
           href={ctaUrl}
           className={`inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold transition-colors ${btnCls}`}
+          style={btnStyle}
         >
           {ctaLabel}
           <ChevronRight size={14} />
@@ -958,11 +986,12 @@ export function Newsletter({ title, subtitle, ctaLabel, ctaUrl, layout }: Newsle
             name="email"
             placeholder="you@company.com"
             required
-            className="flex-1 px-4 py-3 rounded-xl bg-white/90 border border-[#1a1a2e]/10 text-[#1a1a2e] text-sm placeholder:text-[#1a1a2e]/40 focus:outline-none focus:border-[#e7ab1c]"
+            className="flex-1 px-4 py-3 rounded-xl bg-white/90 border border-[#1a1a2e]/10 text-[#1a1a2e] text-sm placeholder:text-[#1a1a2e]/40 focus:outline-none focus:border-[var(--lf-primary,#e7ab1c)]"
           />
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#e7ab1c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d49c10] transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold hover:brightness-95 transition-[filter,background-color]"
+            style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
           >
             {ctaLabel || "Subscribe"}
           </button>
