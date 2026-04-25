@@ -640,16 +640,106 @@ export function TicketsCta({
 
 /* ── SPONSORS GRID ────────────────────────────────────────────────── */
 
-export type SponsorsGridProps = { title: string; layout?: LayoutProps }
+export type SponsorsGridProps = {
+  title: string
+  layout?: LayoutProps
+  /** When true, partition sponsors by `tier` and render per-tier columns
+   *  instead of a single uniform grid. */
+  groupByTier?: boolean
+  /** Override the tier display order. Defaults to the standard ladder. */
+  tierOrder?: string[]
+}
+
+const DEFAULT_TIER_ORDER = ["title", "platinum", "gold", "silver", "bronze", "partner"]
+const TIER_LABELS: Record<string, string> = {
+  title: "Title Sponsor",
+  platinum: "Platinum",
+  gold: "Gold",
+  silver: "Silver",
+  bronze: "Bronze",
+  partner: "Partners",
+}
+const TIER_COLS: Record<string, string> = {
+  // Headline tier — bigger cards, fewer per row.
+  title:    "grid-cols-1 sm:grid-cols-2",
+  platinum: "grid-cols-1 sm:grid-cols-2",
+  gold:     "grid-cols-2 sm:grid-cols-3 md:grid-cols-4",
+  silver:   "grid-cols-3 sm:grid-cols-4 md:grid-cols-6",
+  bronze:   "grid-cols-3 sm:grid-cols-4 md:grid-cols-6",
+  partner:  "grid-cols-3 sm:grid-cols-4 md:grid-cols-6",
+}
+
+function SponsorCard({
+  sponsor,
+}: {
+  sponsor: SponsorShape
+}) {
+  return (
+    <div className="aspect-[3/2] bg-white rounded-xl border border-[#1a1a2e]/[0.06] flex items-center justify-center p-4">
+      {sponsor.logo_url ? (
+        <Image src={sponsor.logo_url} alt={sponsor.name} width={160} height={80} className="object-contain max-h-12" />
+      ) : (
+        <span className="text-xs font-semibold text-[#1a1a2e]/70 text-center inline-flex items-center gap-1.5">
+          <Building2 size={14} />
+          {sponsor.name}
+        </span>
+      )}
+    </div>
+  )
+}
 
 export function SponsorsGrid({
-  title, layout,
+  title, layout, groupByTier, tierOrder,
   puck,
 }: SponsorsGridProps & { puck: { metadata?: Record<string, unknown> } }) {
   const { sponsors } = getMeta(puck)
   if (sponsors.length === 0) return <SectionPlaceholder label="Sponsors grid (empty — add sponsors to this event)" />
   const hasOverride = layout?.backgroundColor || layout?.backgroundImage
   const baseBg = hasOverride ? "" : "bg-[#F4F8FF]"
+
+  // If grouping is on, partition by tier; unknown tiers fall through to a
+  // generic "Other" bucket at the end so they're never silently dropped.
+  if (groupByTier) {
+    const order = (tierOrder && tierOrder.length > 0 ? tierOrder : DEFAULT_TIER_ORDER)
+      .map((t) => t.toLowerCase())
+    const partitions = new Map<string, SponsorShape[]>()
+    for (const sp of sponsors) {
+      const key = (sp.tier || "").toLowerCase() || "other"
+      if (!partitions.has(key)) partitions.set(key, [])
+      partitions.get(key)!.push(sp)
+    }
+    const orderedKeys: string[] = [...order, ...Array.from(partitions.keys()).filter((k) => !order.includes(k))]
+
+    return (
+      <SectionShell layout={layout} baseClass={baseBg}>
+        <div className="max-w-6xl mx-auto px-6 space-y-12">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight" style={sfFont}>
+              {title || "Our Partners"}
+            </h2>
+          </div>
+          {orderedKeys.map((key) => {
+            const list = partitions.get(key)
+            if (!list || list.length === 0) return null
+            const cols = TIER_COLS[key] ?? TIER_COLS.partner
+            const label = TIER_LABELS[key] ?? key.replace(/^./, (c) => c.toUpperCase())
+            return (
+              <div key={key}>
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.18em] mb-4 text-center opacity-70">
+                  {label}
+                </h3>
+                <div className={`grid gap-6 items-center ${cols}`}>
+                  {list.map((sp) => <SponsorCard key={sp.id} sponsor={sp} />)}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </SectionShell>
+    )
+  }
+
+  // Default — single uniform grid.
   return (
     <SectionShell layout={layout} baseClass={baseBg}>
       <div className="max-w-6xl mx-auto px-6">
@@ -659,18 +749,7 @@ export function SponsorsGrid({
           </h2>
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 items-center">
-          {sponsors.map((sp) => (
-            <div key={sp.id} className="aspect-[3/2] bg-white rounded-xl border border-[#1a1a2e]/[0.06] flex items-center justify-center p-4">
-              {sp.logo_url ? (
-                <Image src={sp.logo_url} alt={sp.name} width={120} height={60} className="object-contain max-h-12" />
-              ) : (
-                <span className="text-xs font-semibold text-[#1a1a2e]/70 text-center inline-flex items-center gap-1.5">
-                  <Building2 size={14} />
-                  {sp.name}
-                </span>
-              )}
-            </div>
-          ))}
+          {sponsors.map((sp) => <SponsorCard key={sp.id} sponsor={sp} />)}
         </div>
       </div>
     </SectionShell>
