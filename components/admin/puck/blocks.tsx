@@ -85,7 +85,9 @@ export type LayoutProps = {
   paddingY?: "none" | "sm" | "md" | "lg" | "xl"
   backgroundColor?: string       // hex or empty
   backgroundImage?: string       // URL or empty
-  backgroundOverlay?: number     // 0..100, dark overlay percent on bg image
+  backgroundOverlay?: number     // 0..100, overlay opacity on bg image
+  /** Hex/rgb colour for the overlay tint. Defaults to black when blank. */
+  overlayColor?: string
   textColor?: string             // hex or empty
   textAlign?: "left" | "center" | "right"
   fullBleed?: boolean
@@ -124,7 +126,10 @@ function SectionShell({
   if (l.backgroundColor) style.backgroundColor = l.backgroundColor
   if (l.textColor) style.color = l.textColor
   if (hasBgImage) {
-    style.backgroundImage = `linear-gradient(rgba(0,0,0,${overlayPct / 100}), rgba(0,0,0,${overlayPct / 100})), url('${l.backgroundImage}')`
+    // Translate (overlayColor + opacityPct) into an rgba() string so any
+    // hex / "white" / etc. the user pastes in works. Falls back to black.
+    const overlayRgba = makeOverlayColor(l.overlayColor, overlayPct)
+    style.backgroundImage = `linear-gradient(${overlayRgba}, ${overlayRgba}), url('${l.backgroundImage}')`
     style.backgroundSize = "cover"
     style.backgroundPosition = "center"
   }
@@ -142,6 +147,30 @@ function SectionShell({
       {children}
     </section>
   )
+}
+
+/** Convert a hex (or short-hex) overlay colour + 0..100 opacity into an
+ *  rgba() string. Falls back to black when the input isn't a parseable
+ *  hex. Accepts "#rgb", "#rrggbb", "rgb(...)", or "rgba(...)" passthroughs. */
+function makeOverlayColor(input: string | undefined, opacityPct: number): string {
+  const a = Math.max(0, Math.min(100, opacityPct)) / 100
+  const v = (input ?? "").trim()
+  if (!v) return `rgba(0,0,0,${a})`
+  // Pass through existing rgb()/rgba() values; replace alpha if present.
+  if (/^rgba?\(/i.test(v)) {
+    const inside = v.replace(/^rgba?\(|\)$/g, "").split(",").map((s) => s.trim())
+    const [r, g, b] = inside
+    if (r && g && b) return `rgba(${r}, ${g}, ${b}, ${a})`
+    return `rgba(0,0,0,${a})`
+  }
+  // Hex (#RGB or #RRGGBB). Strip leading hash, expand short form.
+  let h = v.startsWith("#") ? v.slice(1) : v
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("")
+  if (h.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(h)) return `rgba(0,0,0,${a})`
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${a})`
 }
 
 function fmtDate(d: string, end?: string | null) {

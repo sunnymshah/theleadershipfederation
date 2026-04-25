@@ -99,7 +99,8 @@ const layoutField = {
         />
       ),
     },
-    backgroundOverlay: { type: "number", label: "Background overlay darkness (0–100)", min: 0, max: 100 },
+    backgroundOverlay: { type: "number", label: "Background overlay opacity (0–100)", min: 0, max: 100 },
+    overlayColor: { type: "text", label: "Overlay colour (hex; blank = black)" },
     textColor: { type: "text", label: "Text colour (hex)" },
     textAlign: {
       type: "select",
