@@ -1,0 +1,106 @@
+/* ── Builder chrome theme tokens ──────────────────────────────────────
+ * Zoho Backstage-aligned palette for the EDITOR CHROME ONLY. The public
+ * event page still uses the Leadership Federation gold theme via Puck's
+ * Root cascade — these vars are scoped to .lf-builder-shell so they
+ * don't bleed into the rendered iframe.
+ */
+
+.lf-builder-shell {
+  --bs-bg:           #ffffff;
+  --bs-bg-alt:       #f7f8fa;
+  --bs-bg-canvas:    #eef0f3;
+  --bs-border:       #e5e7eb;
+  --bs-border-strong:#d1d5db;
+  --bs-text:         #1f2937;
+  --bs-text-muted:   #6b7280;
+  --bs-accent:       #f0483e;
+  --bs-accent-hover: #d63d33;
+  --bs-info:         #3e7af7;
+}
+
+/* ── Block palette ──
+ * Override Puck's defaults so the left sidebar matches Zoho Backstage:
+ * 280px wide, white surface, monoline tiles. */
+.lf-builder-shell ._SidebarSection,
+.lf-builder-shell [class*="SidebarSection"] {
+  border-color: var(--bs-border) !important;
+  background: var(--bs-bg) !important;
+}
+.lf-builder-shell ._SidebarSection-title,
+.lf-builder-shell [class*="SidebarSection-title"] {
+  font-size: 10px !important;
+  letter-spacing: 0.08em !important;
+  color: var(--bs-text-muted) !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+}
+.lf-builder-shell ._ComponentList-item,
+.lf-builder-shell [class*="ComponentList-item"] {
+  min-height: 64px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--bs-border) !important;
+  background: var(--bs-bg) !important;
+  color: var(--bs-text) !important;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease !important;
+}
+.lf-builder-shell ._ComponentList-item:hover,
+.lf-builder-shell [class*="ComponentList-item"]:hover {
+  background: var(--bs-bg-alt) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── Canvas surrounds (paper-on-canvas effect) ── */
+.lf-builder-shell ._Frame,
+.lf-builder-shell [class*="Frame"] {
+  background: var(--bs-bg-canvas) !important;
+}
+
+/* ── Drop zones — visible on hover ── */
+.lf-builder-shell ._DropZone-content,
+.lf-builder-shell [class*="DropZone-content"] {
+  min-height: 8px !important;
+  transition: outline 120ms ease, background 120ms ease !important;
+}
+.lf-builder-shell ._DropZone-content--hovering,
+.lf-builder-shell [class*="DropZone-content--hovering"],
+.lf-builder-shell ._DropZone-content--isOver,
+.lf-builder-shell [class*="DropZone-content--isOver"] {
+  outline: 2px dashed var(--bs-info) !important;
+  outline-offset: 2px !important;
+  background: rgba(62, 122, 247, 0.05) !important;
+}
+
+/* Section selection / hover — outline (not border) so layout stays put */
+.lf-builder-shell ._DraggableComponent--isSelected,
+.lf-builder-shell [class*="DraggableComponent--isSelected"] {
+  outline: 2px solid var(--bs-info) !important;
+  outline-offset: 2px !important;
+}
+.lf-builder-shell ._DraggableComponent:hover,
+.lf-builder-shell [class*="DraggableComponent"]:hover {
+  outline: 2px solid var(--bs-info) !important;
+  outline-offset: 2px !important;
+}
+
+/* Right inspector */
+.lf-builder-shell ._SidebarSection--right,
+.lf-builder-shell [class*="SidebarSection--right"] {
+  background: var(--bs-bg-alt) !important;
+  border-color: var(--bs-border) !important;
+}
+
+/* Inspector inputs — uniform 32px tall, 8px corners */
+.lf-builder-shell ._Input-input,
+.lf-builder-shell [class*="Input-input"] {
+  min-height: 32px !important;
+  border-radius: 8px !important;
+  border-color: var(--bs-border) !important;
+  background: var(--bs-bg) !important;
+}
+.lf-builder-shell ._Input-input:focus,
+.lf-builder-shell [class*="Input-input"]:focus {
+  outline: 2px solid var(--bs-info) !important;
+  outline-offset: 0 !important;
+  border-color: var(--bs-info) !important;
+}
