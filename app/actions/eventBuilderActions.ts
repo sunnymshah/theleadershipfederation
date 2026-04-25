@@ -531,7 +531,10 @@ export async function addBuilderPage(
         root: { props: { title: title.trim() || slug } },
         zones: {},
       },
-      order: Object.keys(map).length,
+      // Push to the end of the existing order, even if some entries
+      // already had explicit higher orders. Keeps Object.keys().length
+      // from re-numbering existing pages.
+      order: Math.max(0, ...Object.values(map).map((p) => p.order ?? 0)) + 1,
     }
     const next: BuilderPagesMap = { ...map, [slug]: blank }
     const { error } = await admin
