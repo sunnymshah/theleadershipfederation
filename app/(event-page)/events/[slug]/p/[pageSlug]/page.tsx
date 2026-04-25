@@ -16,6 +16,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import { getEvent } from "@/lib/get-event"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
+import { EventPageNav } from "@/components/site/event-pages/EventPageNav"
 import { getPublishedPageAndNav } from "@/app/actions/eventBuilderActions"
 import type { Data as PuckData } from "@measured/puck"
 
@@ -62,7 +63,9 @@ export default async function EventSubPage({ params }: Props) {
   const tickets  = ticketsRes.data ?? []
 
   return (
-    <PuckPublicRenderer
+    <>
+      <EventPageNav eventId={event.id} eventSlug={event.slug} currentPageSlug={pageSlug} />
+      <PuckPublicRenderer
       data={page.data as unknown as PuckData}
       metadata={{
         event: {
@@ -103,5 +106,6 @@ export default async function EventSubPage({ params }: Props) {
         })),
       }}
     />
+    </>
   )
 }
