@@ -423,6 +423,11 @@ export function PuckEventBuilder({
           onPublish={handlePublish}
           overrides={overrides}
           iframe={{ enabled: true }}
+          viewports={[
+            { label: "Desktop", width: 1280, height: "auto" },
+            { label: "Tablet",  width: 768,  height: "auto" },
+            { label: "Mobile",  width: 390,  height: "auto" },
+          ]}
         />
       </div>
 
