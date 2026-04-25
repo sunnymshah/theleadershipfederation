@@ -23,6 +23,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 import type { CSSProperties, ReactNode } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -30,6 +31,7 @@ import {
   Calendar, MapPin, User, Mic2, Ticket, ChevronRight, Building2, Quote,
 } from "lucide-react"
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
+import { GalleryLightbox } from "./GalleryLightbox"
 
 export const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -318,13 +320,17 @@ export type HeroProps = {
   subtitle: string
   ctaLabel: string
   ctaUrl: string
+  /** Optional secondary CTA — renders an outline button next to the primary. */
+  secondaryCtaLabel?: string
+  secondaryCtaUrl?: string
   backgroundImage: string
   alignment?: "left" | "center"
   minHeight?: "short" | "tall" | "full"
 }
 
 export function Hero({
-  title, subtitle, ctaLabel, ctaUrl, backgroundImage, alignment, minHeight,
+  title, subtitle, ctaLabel, ctaUrl, secondaryCtaLabel, secondaryCtaUrl,
+  backgroundImage, alignment, minHeight,
   puck,
 }: HeroProps & { puck: { metadata?: Record<string, unknown>; dragRef?: unknown; id?: string } }) {
   const { event } = getMeta(puck)
@@ -386,20 +392,32 @@ export function Hero({
             {subtitle}
           </p>
         )}
-        {ctaLabel && ctaUrl && (
-          <div className={`mt-8 ${centered ? "flex justify-center" : ""}`}>
-            <Link
-              href={resolveUrl(ctaUrl, event.slug)}
-              target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
-              rel={urlIsExternal(ctaUrl) ? "noopener noreferrer" : undefined}
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold transition-colors hover:brightness-95"
-              style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
-            >
-              {ctaLabel}
-              <ChevronRight size={14} />
-            </Link>
+        {(ctaLabel && ctaUrl) || (secondaryCtaLabel && secondaryCtaUrl) ? (
+          <div className={`mt-8 flex flex-wrap items-center gap-3 ${centered ? "justify-center" : ""}`}>
+            {ctaLabel && ctaUrl && (
+              <Link
+                href={resolveUrl(ctaUrl, event.slug)}
+                target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
+                rel={urlIsExternal(ctaUrl) ? "noopener noreferrer" : undefined}
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold transition-colors hover:brightness-95"
+                style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
+              >
+                {ctaLabel}
+                <ChevronRight size={14} />
+              </Link>
+            )}
+            {secondaryCtaLabel && secondaryCtaUrl && (
+              <Link
+                href={resolveUrl(secondaryCtaUrl, event.slug)}
+                target={urlIsExternal(secondaryCtaUrl) ? "_blank" : undefined}
+                rel={urlIsExternal(secondaryCtaUrl) ? "noopener noreferrer" : undefined}
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-white border-2 border-white/80 text-sm font-bold hover:bg-white/10 transition-colors"
+              >
+                {secondaryCtaLabel}
+              </Link>
+            )}
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   )
@@ -444,11 +462,58 @@ export function RichText({ title, subtitle, body, layout }: RichTextProps) {
 export type StatsRowProps = {
   title: string
   subtitle: string
-  stats: Array<{ value: string; label: string }>
+  stats: Array<{ value: string; label: string; icon?: string }>
+  /** Animate numbers from 0 → value when they enter the viewport. */
+  animated?: boolean
   layout?: LayoutProps
 }
 
-export function StatsRow({ title, stats, layout }: StatsRowProps) {
+/** Pull a digit-portion from "30+" / "1.2k" / "10" etc. so we can ramp it. */
+function parseStatNumber(raw: string): { num: number; prefix: string; suffix: string } | null {
+  const m = raw.match(/^(\D*)([\d,.]+)(.*)$/)
+  if (!m) return null
+  const num = parseFloat(m[2].replace(/,/g, ""))
+  if (!Number.isFinite(num)) return null
+  return { num, prefix: m[1] ?? "", suffix: m[3] ?? "" }
+}
+
+function AnimatedNumber({ value }: { value: string }) {
+  const parsed = parseStatNumber(value)
+  const ref = useRef<HTMLSpanElement | null>(null)
+  const [displayed, setDisplayed] = useState<number>(0)
+  useEffect(() => {
+    if (!parsed) return
+    const node = ref.current
+    if (!node) return
+    let started = false
+    const obs = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting && !started) {
+          started = true
+          const start = performance.now()
+          const dur = 1100
+          const tick = (t: number) => {
+            const p = Math.min(1, (t - start) / dur)
+            const eased = 1 - Math.pow(1 - p, 3)
+            setDisplayed(parsed.num * eased)
+            if (p < 1) requestAnimationFrame(tick)
+            else setDisplayed(parsed.num)
+          }
+          requestAnimationFrame(tick)
+          obs.disconnect()
+        }
+      }
+    }, { threshold: 0.4 })
+    obs.observe(node)
+    return () => obs.disconnect()
+  }, [parsed])
+  if (!parsed) return <span ref={ref}>{value}</span>
+  const isInt = Number.isInteger(parsed.num)
+  const out = isInt ? Math.round(displayed).toLocaleString("en-IN") : displayed.toFixed(1)
+  return <span ref={ref}>{parsed.prefix}{out}{parsed.suffix}</span>
+}
+
+export function StatsRow({ title, stats, animated, layout }: StatsRowProps) {
   if (!stats || stats.length === 0) return <SectionPlaceholder label="Stats (add rows in the right-hand inspector)" />
   const baseBg = layout?.backgroundColor || layout?.backgroundImage ? "" : "bg-[#F4F8FF]"
   return (
@@ -463,13 +528,13 @@ export function StatsRow({ title, stats, layout }: StatsRowProps) {
           {stats.map((stat, i) => (
             <div key={i} className="text-center">
               <div
-                className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent"
+                className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent tabular-nums"
                 style={{
                   ...sfFont,
                   backgroundImage: "linear-gradient(to right, var(--lf-primary, #e7ab1c), color-mix(in srgb, var(--lf-primary, #e7ab1c) 80%, black))",
                 }}
               >
-                {stat.value}
+                {animated ? <AnimatedNumber value={stat.value} /> : stat.value}
               </div>
               <div className="text-xs uppercase tracking-[0.15em] mt-2 font-semibold opacity-70">
                 {stat.label}
@@ -571,16 +636,56 @@ export function SpeakersGrid({
 
 /* ── AGENDA ───────────────────────────────────────────────────────── */
 
-export type AgendaProps = { title: string; subtitle: string; layout?: LayoutProps }
+export type AgendaProps = {
+  title: string
+  subtitle: string
+  layout?: LayoutProps
+  /** Group sessions by date and render day tabs at the top. */
+  groupByDay?: boolean
+  /** Show track filter chips when any session has a track. */
+  showTracks?: boolean
+  /** Show "60 min" duration next to time. */
+  showDuration?: boolean
+  /** Show speaker names below the title. */
+  showSpeakers?: boolean
+  /** When true, link each session to /events/<slug>/sessions/<sessionSlug>. */
+  linkToDetailPages?: boolean
+}
+
+function formatDayKey(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+}
+function durationMins(starts: string, ends: string | null) {
+  if (!ends) return null
+  const a = new Date(starts).getTime()
+  const b = new Date(ends).getTime()
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null
+  return Math.max(0, Math.round((b - a) / 60000))
+}
 
 export function Agenda({
-  title, subtitle, layout,
+  title, subtitle, layout, groupByDay, showTracks, showDuration, showSpeakers, linkToDetailPages,
   puck,
 }: AgendaProps & { puck: { metadata?: Record<string, unknown> } }) {
-  const { sessions } = getMeta(puck)
+  const { sessions, event } = getMeta(puck)
   if (sessions.length === 0) return <SectionPlaceholder label="Agenda (empty — add sessions to this event)" dark />
   const hasOverride = layout?.backgroundColor || layout?.backgroundImage
   const baseBg = hasOverride ? "" : "bg-[#1a1a2e] text-white"
+
+  // Day grouping
+  const dayKeys: string[] = []
+  const byDay = new Map<string, typeof sessions>()
+  for (const s of sessions) {
+    const key = new Date(s.starts_at).toDateString()
+    if (!byDay.has(key)) {
+      byDay.set(key, [])
+      dayKeys.push(key)
+    }
+    byDay.get(key)!.push(s)
+  }
+  const tracks = Array.from(new Set(sessions.map((s) => s.track).filter((t): t is string => Boolean(t))))
+
   return (
     <SectionShell layout={layout} baseClass={baseBg} dark>
       <div className="max-w-4xl mx-auto px-6">
@@ -600,16 +705,121 @@ export function Agenda({
           </h2>
           {subtitle && <p className="mt-3 text-white/70 max-w-2xl mx-auto">{subtitle}</p>}
         </div>
-        <div className="space-y-3">
-          {sessions.map((sess) => (
+        <AgendaInteractive
+          dayKeys={dayKeys}
+          byDay={byDay}
+          tracks={tracks}
+          eventSlug={event.slug}
+          options={{
+            groupByDay: groupByDay ?? false,
+            showTracks: showTracks ?? false,
+            showDuration: showDuration ?? false,
+            showSpeakers: showSpeakers ?? true,
+            linkToDetailPages: linkToDetailPages ?? false,
+          }}
+        />
+      </div>
+    </SectionShell>
+  )
+}
+
+/** Client-only inner with the interactive day tabs / track chips. */
+function AgendaInteractive({
+  dayKeys, byDay, tracks, eventSlug, options,
+}: {
+  dayKeys: string[]
+  byDay: Map<string, SessionShape[]>
+  tracks: string[]
+  eventSlug: string
+  options: {
+    groupByDay: boolean
+    showTracks: boolean
+    showDuration: boolean
+    showSpeakers: boolean
+    linkToDetailPages: boolean
+  }
+}) {
+  // For non-interactive use we still render correctly. The "use client" at
+  // the top of this module makes the hooks below safe.
+  const [activeDay, setActiveDay] = useState<string>(dayKeys[0] ?? "")
+  const [activeTrack, setActiveTrack] = useState<string>("")
+
+  const visible = options.groupByDay
+    ? (byDay.get(activeDay) ?? [])
+    : Array.from(byDay.values()).flat()
+  const filtered = activeTrack
+    ? visible.filter((s) => s.track === activeTrack)
+    : visible
+
+  return (
+    <>
+      {options.groupByDay && dayKeys.length > 1 && (
+        <div className="flex flex-wrap items-center justify-center gap-1.5 mb-6">
+          {dayKeys.map((d, i) => {
+            const list = byDay.get(d) ?? []
+            const sample = list[0]?.starts_at
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setActiveDay(d)}
+                className={`inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12px] font-medium transition-colors ${
+                  activeDay === d
+                    ? "bg-white text-[#1a1a2e]"
+                    : "bg-white/10 text-white/80 hover:bg-white/20"
+                }`}
+              >
+                <span className="font-bold">Day {i + 1}</span>
+                {sample && <span className="opacity-70">{formatDayKey(sample)}</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {options.showTracks && tracks.length > 0 && (
+        <div className="flex flex-wrap items-center justify-center gap-1.5 mb-6">
+          <button
+            type="button"
+            onClick={() => setActiveTrack("")}
+            className={`inline-flex items-center px-3 h-7 rounded-full text-[11px] font-medium ${
+              activeTrack === "" ? "bg-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e]" : "bg-white/10 text-white/80 hover:bg-white/20"
+            }`}
+          >
+            All tracks
+          </button>
+          {tracks.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setActiveTrack(t)}
+              className={`inline-flex items-center px-3 h-7 rounded-full text-[11px] font-medium ${
+                activeTrack === t ? "bg-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e]" : "bg-white/10 text-white/80 hover:bg-white/20"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="space-y-3">
+        {filtered.map((sess) => {
+          const dur = durationMins(sess.starts_at, sess.ends_at)
+          const sessSlug = (sess as unknown as { slug?: string }).slug
+          const titleEl = (
+            <h4 className="text-base font-semibold leading-snug">{sess.title}</h4>
+          )
+          return (
             <div key={sess.id} className="flex gap-5 p-5 rounded-xl bg-white/[0.04] border border-white/[0.08]">
               <div className="shrink-0 font-mono text-sm w-20" style={{ color: "var(--lf-primary, #e7ab1c)" }}>
                 {fmtTime(sess.starts_at)}
+                {options.showDuration && dur ? <div className="text-[10px] opacity-70 mt-0.5">{dur} min</div> : null}
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-base font-semibold leading-snug">{sess.title}</h4>
+                {options.linkToDetailPages && sessSlug
+                  ? <Link href={`/events/${eventSlug}/sessions/${sessSlug}`} className="hover:underline">{titleEl}</Link>
+                  : titleEl}
                 {sess.track && <p className="text-xs mt-1" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{sess.track}</p>}
-                {sess.speaker_names && sess.speaker_names.length > 0 && (
+                {options.showSpeakers && sess.speaker_names && sess.speaker_names.length > 0 && (
                   <p className="text-xs text-white/60 mt-1">
                     <Mic2 size={11} className="inline mr-1" />
                     {sess.speaker_names.join(", ")}
@@ -617,10 +827,10 @@ export function Agenda({
                 )}
               </div>
             </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
-    </SectionShell>
+    </>
   )
 }
 
@@ -853,15 +1063,18 @@ export function Video({ title, videoUrl, layout }: VideoProps) {
 
 export type GalleryProps = {
   title: string
-  images: Array<{ url: string }>
+  images: Array<{ url: string; alt?: string; caption?: string }>
   columns?: 2 | 3 | 4
+  /** When true, clicking an image opens a fullscreen lightbox (yet-another-react-lightbox). */
+  lightbox?: boolean
   layout?: LayoutProps
 }
 
-export function Gallery({ title, images, columns, layout }: GalleryProps) {
+export function Gallery({ title, images, columns, lightbox, layout }: GalleryProps) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
   if (!images || images.length === 0) return <SectionPlaceholder label="Gallery (upload images in the inspector)" />
   if (typeof window !== "undefined") {
-    const missing = images.filter((img) => img?.url && !("alt" in img && (img as { alt?: string }).alt)).length
+    const missing = images.filter((img) => img?.url && !img.alt).length
     if (missing > 0) console.warn(`[Gallery] ${missing} image(s) missing alt text`)
   }
   const grid =
@@ -879,12 +1092,28 @@ export function Gallery({ title, images, columns, layout }: GalleryProps) {
         <div className={`grid gap-3 ${grid}`}>
           {images.map((img, i) =>
             img.url ? (
-              <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#F4F8FF]">
-                <Image src={img.url} alt="" fill className="object-cover" sizes="(max-width:768px) 50vw, 25vw" />
-              </div>
+              <figure key={i} className="m-0">
+                <button
+                  type="button"
+                  onClick={() => lightbox ? setOpenIdx(i) : undefined}
+                  className={`relative aspect-square w-full rounded-xl overflow-hidden bg-[#F4F8FF] ${lightbox ? "cursor-zoom-in hover:opacity-90 transition-opacity" : ""}`}
+                  aria-label={img.caption || img.alt || `Image ${i + 1}`}
+                  disabled={!lightbox}
+                >
+                  <Image src={img.url} alt={img.alt || ""} fill className="object-cover" sizes="(max-width:768px) 50vw, 25vw" />
+                </button>
+                {img.caption && <figcaption className="mt-1.5 text-[11px] opacity-60 italic text-center">{img.caption}</figcaption>}
+              </figure>
             ) : null,
           )}
         </div>
+        {lightbox && openIdx !== null && (
+          <GalleryLightbox
+            images={images}
+            startIndex={openIdx}
+            onClose={() => setOpenIdx(null)}
+          />
+        )}
       </div>
     </SectionShell>
   )
