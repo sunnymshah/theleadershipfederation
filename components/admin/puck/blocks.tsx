@@ -129,9 +129,14 @@ function SectionShell({
     style.backgroundPosition = "center"
   }
 
+  // Only force white text when there's a background image AND the user
+  // hasn't explicitly chosen a text colour — otherwise their custom
+  // textColor gets nuked by `text-white` on the section.
+  const forcesWhite = hasBgImage && !l.textColor
+
   return (
     <section
-      className={`${padding} ${align} ${baseClass} ${hasBgImage ? "text-white" : ""}`.trim()}
+      className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""}`.trim()}
       style={style}
     >
       {children}
