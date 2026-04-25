@@ -35,6 +35,8 @@ import {
 
 import { puckConfig } from "./puck-config"
 import type { BuilderMetadata } from "./blocks"
+import { PageDialog } from "./PageDialog"
+import { ConfirmDialog } from "./ConfirmDialog"
 import {
   saveBuilderDraft, publishBuilder,
   saveBuilderPageDraft, publishBuilderPages,
@@ -160,53 +162,77 @@ export function PuckEventBuilder({
   }, [eventId, activePage, homeData, pages])
 
   /* ── Add / rename / delete sub-pages ─────────────────────────────── */
-  const handleAddPage = useCallback(async () => {
-    const title = typeof window !== "undefined"
-      ? window.prompt("New page title (e.g. Venue, Agenda, Travel)") ?? ""
-      : ""
-    if (!title.trim()) return
-    const res = await addBuilderPage(eventId, title.trim())
-    if (res.success && res.slug) {
-      setPages((prev) => ({
-        ...prev,
-        [res.slug!]: {
-          title: title.trim(),
-          data: { content: [], root: { props: { title: title.trim() } } },
-          order: Object.keys(prev).length,
-        },
-      }))
-      setActivePage(res.slug)
-    } else if (res.error) {
-      window.alert(res.error)
-    }
-  }, [eventId])
+  /* Modal state — replaces window.prompt / window.confirm. */
+  const [pageDialog, setPageDialog] = useState<
+    | { open: false }
+    | { open: true; mode: "create" }
+    | { open: true; mode: "rename"; slug: string; initialTitle: string }
+  >({ open: false })
+  const [confirmDelete, setConfirmDelete] = useState<
+    { open: false } | { open: true; slug: string; title: string }
+  >({ open: false })
+  const [errorBanner, setErrorBanner] = useState<string | null>(null)
 
-  const handleRenamePage = useCallback(async (slug: string) => {
+  const handleAddPage = useCallback(() => {
+    setPageDialog({ open: true, mode: "create" })
+  }, [])
+
+  const handleRenamePage = useCallback((slug: string) => {
     const existing = pages[slug]
     if (!existing) return
-    const nextTitle = window.prompt("Rename page", existing.title) ?? ""
-    if (!nextTitle.trim() || nextTitle.trim() === existing.title) return
-    const res = await renameBuilderPage(eventId, slug, nextTitle.trim())
-    if (res.success && res.slug) {
-      setPages((prev) => {
-        const copy: BuilderPagesMap = { ...prev }
-        const row = copy[slug]
-        if (!row) return copy
-        delete copy[slug]
-        copy[res.slug!] = { ...row, title: nextTitle.trim() }
-        return copy
-      })
-      if (activePage === slug) setActivePage(res.slug)
-    } else if (res.error) {
-      window.alert(res.error)
-    }
-  }, [eventId, pages, activePage])
+    setPageDialog({ open: true, mode: "rename", slug, initialTitle: existing.title })
+  }, [pages])
 
-  const handleDeletePage = useCallback(async (slug: string) => {
+  const handleDeletePage = useCallback((slug: string) => {
     const existing = pages[slug]
     if (!existing) return
-    const ok = window.confirm(`Delete page "${existing.title}"? This can't be undone.`)
-    if (!ok) return
+    setConfirmDelete({ open: true, slug, title: existing.title })
+  }, [pages])
+
+  const submitPageDialog = useCallback(async (title: string) => {
+    if (!pageDialog.open) return
+    if (pageDialog.mode === "create") {
+      setPageDialog({ open: false })
+      const res = await addBuilderPage(eventId, title)
+      if (res.success && res.slug) {
+        setPages((prev) => ({
+          ...prev,
+          [res.slug!]: {
+            title,
+            data: { content: [], root: { props: { title } } },
+            order: Math.max(0, ...Object.values(prev).map((p) => p.order ?? 0)) + 1,
+          },
+        }))
+        setActivePage(res.slug)
+      } else if (res.error) {
+        setErrorBanner(res.error)
+      }
+    } else {
+      const { slug } = pageDialog
+      setPageDialog({ open: false })
+      const existing = pages[slug]
+      if (!existing || title === existing.title) return
+      const res = await renameBuilderPage(eventId, slug, title)
+      if (res.success && res.slug) {
+        setPages((prev) => {
+          const copy: BuilderPagesMap = { ...prev }
+          const row = copy[slug]
+          if (!row) return copy
+          delete copy[slug]
+          copy[res.slug!] = { ...row, title }
+          return copy
+        })
+        if (activePage === slug) setActivePage(res.slug)
+      } else if (res.error) {
+        setErrorBanner(res.error)
+      }
+    }
+  }, [pageDialog, eventId, pages, activePage])
+
+  const submitConfirmDelete = useCallback(async () => {
+    if (!confirmDelete.open) return
+    const { slug } = confirmDelete
+    setConfirmDelete({ open: false })
     const res = await deleteBuilderPage(eventId, slug)
     if (res.success) {
       setPages((prev) => {
@@ -216,9 +242,9 @@ export function PuckEventBuilder({
       })
       if (activePage === slug) setActivePage("home")
     } else if (res.error) {
-      window.alert(res.error)
+      setErrorBanner(res.error)
     }
-  }, [eventId, pages, activePage])
+  }, [confirmDelete, eventId, activePage])
 
   /* ── Event-data dropdown (opens separate admin tabs) ─────────────── */
   const [dataMenuOpen, setDataMenuOpen] = useState(false)
@@ -352,6 +378,18 @@ export function PuckEventBuilder({
           {publishMsg}
         </div>
       )}
+      {errorBanner && (
+        <div className="shrink-0 px-4 py-1.5 text-[11px] font-medium text-center bg-red-900/10 text-red-700 flex items-center justify-center gap-2">
+          {errorBanner}
+          <button
+            type="button"
+            onClick={() => setErrorBanner(null)}
+            className="ml-2 underline-offset-2 hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="flex-1 min-h-0">
         <Puck
@@ -365,6 +403,24 @@ export function PuckEventBuilder({
           iframe={{ enabled: true }}
         />
       </div>
+
+      {/* Modals (replace window.prompt / confirm) */}
+      <PageDialog
+        open={pageDialog.open}
+        mode={pageDialog.open ? pageDialog.mode : "create"}
+        initialTitle={pageDialog.open && pageDialog.mode === "rename" ? pageDialog.initialTitle : ""}
+        onCancel={() => setPageDialog({ open: false })}
+        onConfirm={submitPageDialog}
+      />
+      <ConfirmDialog
+        open={confirmDelete.open}
+        title={confirmDelete.open ? `Delete "${confirmDelete.title}"?` : "Delete page?"}
+        message="This page and its content will be removed. The page won't appear on the public site after the next publish."
+        confirmLabel="Delete"
+        tone="danger"
+        onCancel={() => setConfirmDelete({ open: false })}
+        onConfirm={submitConfirmDelete}
+      />
     </div>
   )
 }
