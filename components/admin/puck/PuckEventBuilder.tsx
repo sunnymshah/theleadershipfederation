@@ -32,6 +32,7 @@ import {
   ArrowLeft, ExternalLink, Loader2, Check, Globe, ChevronDown,
   Users, Ticket, ClipboardList, Building2, Settings, Database,
   Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
+  History, Undo2,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -39,9 +40,12 @@ import type { BuilderMetadata } from "./blocks"
 import { PageDialog } from "./PageDialog"
 import { ConfirmDialog } from "./ConfirmDialog"
 import { SortablePageTabs } from "./SortablePageTabs"
+import { RevisionHistoryPanel } from "./RevisionHistoryPanel"
 import {
-  saveBuilderDraft, publishBuilder,
-  saveBuilderPageDraft, publishBuilderPages,
+  saveBuilderDraft,
+  saveBuilderPageDraft,
+  publishBuilderAtomic,
+  revertBuilderDraft,
   addBuilderPage, renameBuilderPage, deleteBuilderPage,
   reorderBuilderPages, duplicateBuilderPage,
 } from "@/app/actions/eventBuilderActions"
@@ -72,6 +76,19 @@ export function PuckEventBuilder({
   const [publishState, setPublishState] = useState<"idle" | "publishing" | "published" | "error">("idle")
   const [publishMsg, setPublishMsg] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [reverting, setReverting] = useState(false)
+  const handleRevert = useCallback(async () => {
+    setReverting(true)
+    const res = await revertBuilderDraft(eventId)
+    setReverting(false)
+    if (res.success) {
+      router.refresh()
+    } else if (res.error) {
+      setPublishState("error")
+      setPublishMsg(res.error)
+    }
+  }, [eventId, router])
   const handleRefreshData = useCallback(() => {
     // The reference data (speakers/sessions/sponsors/tickets) is loaded
     // from the server page; router.refresh() re-fetches it without a full
@@ -161,17 +178,17 @@ export function PuckEventBuilder({
       await pending
     }
 
-    const [homeRes, pagesRes] = await Promise.all([
-      publishBuilder(eventId, homeData as unknown as Parameters<typeof publishBuilder>[1]),
-      publishBuilderPages(eventId),
-    ])
-    if (homeRes.success && pagesRes.success) {
+    const res = await publishBuilderAtomic(
+      eventId,
+      homeData as unknown as Parameters<typeof publishBuilderAtomic>[1],
+    )
+    if (res.success) {
       setPublishState("published")
       setPublishMsg("Live on the public page.")
       setTimeout(() => setPublishState("idle"), 2000)
     } else {
       setPublishState("error")
-      setPublishMsg(homeRes.error || pagesRes.error || "Publish failed.")
+      setPublishMsg(res.error || "Publish failed.")
     }
   }, [eventId, activePage, homeData, pages])
 
@@ -383,6 +400,25 @@ export function PuckEventBuilder({
             </Link>
             <button
               type="button"
+              onClick={() => setHistoryOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap"
+              title="Show publish history"
+            >
+              <History size={13} />
+              <span className="hidden lg:inline">History</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleRevert}
+              disabled={reverting}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap disabled:opacity-50"
+              title="Discard unpublished changes — revert draft to last published"
+            >
+              {reverting ? <Loader2 size={13} className="animate-spin" /> : <Undo2 size={13} />}
+              <span className="hidden lg:inline">Revert</span>
+            </button>
+            <button
+              type="button"
               onClick={handlePublish}
               disabled={publishState === "publishing"}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors disabled:opacity-60 whitespace-nowrap"
@@ -459,7 +495,7 @@ export function PuckEventBuilder({
         </div>
       </div>
     )
-  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleDuplicatePage, handleReorderPages, handleRefreshData, refreshing, scrollTabs])
+  }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleDuplicatePage, handleReorderPages, handleRefreshData, refreshing, scrollTabs, handleRevert, reverting])
 
   const overrides = useMemo(() => ({
     header: Header,
@@ -521,6 +557,12 @@ export function PuckEventBuilder({
         tone="danger"
         onCancel={() => setConfirmDelete({ open: false })}
         onConfirm={submitConfirmDelete}
+      />
+      <RevisionHistoryPanel
+        open={historyOpen}
+        eventId={eventId}
+        onClose={() => setHistoryOpen(false)}
+        onRestored={() => router.refresh()}
       />
     </div>
   )

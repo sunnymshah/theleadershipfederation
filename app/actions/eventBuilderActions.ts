@@ -29,6 +29,69 @@ import { legacyToPuck, type PuckDataLike } from "@/lib/event-puck-migrate"
 import type { BuilderPagesMap, BuilderPage } from "@/lib/event-builder-pages"
 import { slugifyPage } from "@/lib/event-builder-pages"
 
+/* ── Revision history ─────────────────────────────────────────────────── */
+
+export type BuilderRevision = {
+  id: string
+  event_id: string
+  data: PuckDataLike
+  pages: BuilderPagesMap
+  published_by: string | null
+  label: string | null
+  created_at: string
+}
+
+/** List the last N (default 20) published revisions for an event,
+ *  newest first. Service-role read so the editor sees every row. */
+export async function listBuilderRevisions(
+  eventId: string,
+  limit = 20,
+): Promise<{ success: boolean; revisions: BuilderRevision[]; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("event_builder_revisions")
+      .select("id, event_id, data, pages, published_by, label, created_at")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+    if (error) return { success: false, revisions: [], error: error.message }
+    return { success: true, revisions: (data ?? []) as BuilderRevision[] }
+  } catch (err) {
+    return { success: false, revisions: [], error: (err as Error).message }
+  }
+}
+
+/** Restore a prior revision into the DRAFT (not into live). The admin
+ *  reviews on the canvas, then explicitly hits Publish to roll out. */
+export async function restoreBuilderRevision(
+  eventId: string,
+  revisionId: string,
+): Promise<{ success: boolean; data: PuckDataLike | null; pages: BuilderPagesMap | null; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data: rev } = await admin
+      .from("event_builder_revisions")
+      .select("data, pages, event_id")
+      .eq("id", revisionId)
+      .maybeSingle()
+    if (!rev) return { success: false, data: null, pages: null, error: "Revision not found." }
+    if (rev.event_id !== eventId) return { success: false, data: null, pages: null, error: "Revision belongs to a different event." }
+    const data = (rev.data ?? null) as PuckDataLike | null
+    const pages = (rev.pages ?? {}) as BuilderPagesMap
+    const { error } = await admin
+      .from("events")
+      .update({ builder_draft: data, builder_pages_draft: pages, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, data: null, pages: null, error: error.message }
+    return { success: true, data, pages }
+  } catch (err) {
+    return { success: false, data: null, pages: null, error: (err as Error).message }
+  }
+}
+
 /* ── Read: admin editor ───────────────────────────────────────────────── */
 
 /**
@@ -131,6 +194,79 @@ export async function saveBuilderDraft(
 
 /* ── Write: publish (copy draft → live) ──────────────────────────────── */
 
+/**
+ * Atomic publish — replaces the older two-step (publishBuilder +
+ * publishBuilderPages) with a single events update plus a row in
+ * event_builder_revisions. Use this for new code; the deprecated splits
+ * remain for back-compat.
+ */
+export async function publishBuilderAtomic(
+  eventId: string,
+  homeData?: PuckDataLike,
+  label?: string,
+): Promise<{ success: boolean; revisionId?: string; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+
+    // Resolve home payload + sub-pages from the draft if not provided.
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_draft, builder_pages_draft, slug")
+      .eq("id", eventId)
+      .maybeSingle()
+    const homePayload = (homeData ?? row?.builder_draft ?? null) as PuckDataLike | null
+    if (!homePayload) return { success: false, error: "No draft to publish." }
+    const pagesPayload = (row?.builder_pages_draft ?? {}) as BuilderPagesMap
+
+    const now = new Date().toISOString()
+    const { error } = await admin
+      .from("events")
+      .update({
+        builder_data: homePayload,
+        builder_draft: homePayload,
+        builder_pages: pagesPayload,
+        builder_published_at: now,
+      })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+
+    // Best-effort revision insert; failure here doesn't roll back the
+    // publish (the user-visible action succeeded).
+    let revisionId: string | undefined
+    try {
+      const cookieStore = await cookies()
+      const supabase = createClient(cookieStore)
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: rev } = await admin
+        .from("event_builder_revisions")
+        .insert({
+          event_id: eventId,
+          data: homePayload,
+          pages: pagesPayload,
+          published_by: user?.id ?? null,
+          label: label ?? null,
+        })
+        .select("id")
+        .maybeSingle()
+      revisionId = (rev?.id as string | undefined) ?? undefined
+    } catch (revErr) {
+      console.error("[publishBuilderAtomic] revision insert failed:", (revErr as Error).message)
+    }
+
+    if (row?.slug) {
+      try { revalidatePath(`/events/${row.slug as string}`) } catch { /* ignore */ }
+      for (const s of Object.keys(pagesPayload)) {
+        try { revalidatePath(`/events/${row.slug as string}/p/${s}`) } catch { /* ignore */ }
+      }
+    }
+    return { success: true, revisionId }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/** @deprecated Use publishBuilderAtomic. Kept for back-compat. */
 export async function publishBuilder(
   eventId: string,
   data?: PuckDataLike,
@@ -624,9 +760,7 @@ export async function deleteBuilderPage(
   }
 }
 
-/** Publish ALL pages — flushes builder_pages_draft → builder_pages in a
- *  single write. Called alongside publishBuilder() from the editor's
- *  single Publish button so home + sub-pages go live together. */
+/** @deprecated Use publishBuilderAtomic. Kept for back-compat. */
 export async function publishBuilderPages(
   eventId: string,
 ): Promise<{ success: boolean; error?: string }> {
