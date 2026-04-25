@@ -31,6 +31,7 @@ import {
   SponsorsGrid, Video, Gallery, CtaButton, Faqs,
   Spacer, Divider, ImageBlock, TwoColumn, Testimonial, LogosStrip, Newsletter,
   TextBox,
+  Countdown, VenueMap, StickyCta, SocialBar,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -40,6 +41,7 @@ import {
   type TwoColumnProps, type TestimonialProps, type LogosStripProps,
   type NewsletterProps,
   type TextBoxProps,
+  type CountdownProps, type VenueMapProps, type StickyCtaProps, type SocialBarProps,
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
@@ -66,6 +68,10 @@ export type BuilderComponents = {
   Testimonial: TestimonialProps
   LogosStrip: LogosStripProps
   Newsletter: NewsletterProps
+  Countdown: CountdownProps
+  VenueMap: VenueMapProps
+  StickyCta: StickyCtaProps
+  SocialBar: SocialBarProps
 }
 
 /* ── Shared layout field ─────────────────────────────────────────────
@@ -119,14 +125,15 @@ const defaultLayout: LayoutProps = { paddingY: "lg", backgroundColor: "", backgr
 
 export const puckConfig: Config<BuilderComponents> = {
   categories: {
-    Headers:  { title: "Headers",         components: ["Hero"] },
+    Headers:  { title: "Headers",         components: ["Hero", "Countdown"] },
     Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial"] },
     Speakers: { title: "Speakers",        components: ["SpeakersGrid"] },
     Program:  { title: "Program",         components: ["Agenda"] },
     Tickets:  { title: "Tickets",         components: ["TicketsCta"] },
     Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip"] },
     Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock"] },
-    CTAs:     { title: "Call-to-actions", components: ["CtaButton", "Newsletter"] },
+    Venue:    { title: "Venue",           components: ["VenueMap"] },
+    CTAs:     { title: "Call-to-actions", components: ["CtaButton", "Newsletter", "StickyCta", "SocialBar"] },
     FAQs:     { title: "FAQs",            components: ["Faqs"] },
     Layout:   { title: "Layout",          components: ["Spacer", "Divider"] },
   },
@@ -838,6 +845,142 @@ export const puckConfig: Config<BuilderComponents> = {
         layout: layoutField,
       },
       render: (p) => <LogosStrip {...p} />,
+    },
+
+    /* ── COUNTDOWN (B13) ─────────────────────────────────────────── */
+    Countdown: {
+      label: "Countdown",
+      defaultProps: { targetDateOverride: "", title: "Event begins in", subtitle: "", pastMessage: "We're live!", layout: defaultLayout },
+      fields: {
+        title:    { type: "text", label: "Heading" },
+        subtitle: { type: "text", label: "Subtitle (optional)" },
+        targetDateOverride: {
+          type: "text",
+          label: "Target date (ISO; blank = event start)",
+        },
+        pastMessage: { type: "text", label: "Message after target passes" },
+        layout: layoutField,
+      },
+      render: (p) => <Countdown {...p} />,
+    },
+
+    /* ── VENUE / MAP (B14) ───────────────────────────────────────── */
+    VenueMap: {
+      label: "Venue",
+      defaultProps: { title: "Venue", address: "", lat: undefined, lng: undefined, height: "md", layout: defaultLayout },
+      fields: {
+        title:   { type: "text", label: "Heading" },
+        address: { type: "textarea", label: "Address (used if lat/lng blank)" },
+        lat:     { type: "number", label: "Latitude (optional)" },
+        lng:     { type: "number", label: "Longitude (optional)" },
+        height: {
+          type: "select",
+          label: "Map height",
+          options: [
+            { label: "Small",  value: "sm" },
+            { label: "Medium", value: "md" },
+            { label: "Large",  value: "lg" },
+          ],
+        },
+        layout: layoutField,
+      },
+      render: (p) => <VenueMap {...p} />,
+    },
+
+    /* ── STICKY CTA (B15) ────────────────────────────────────────── */
+    StickyCta: {
+      label: "Sticky CTA",
+      defaultProps: { ctaLabel: "Register Now", ctaUrl: "internal:tickets", subtext: "", visibleOn: "after-hero", mobileOnly: false },
+      fields: {
+        ctaLabel: { type: "text", label: "Button label" },
+        ctaUrl: {
+          type: "custom",
+          label: "Link",
+          render: (p) => (
+            <UrlPicker
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+            />
+          ),
+        },
+        subtext: { type: "text", label: "Sub-text (optional)" },
+        visibleOn: {
+          type: "select",
+          label: "Visible on",
+          options: [
+            { label: "Always",       value: "always" },
+            { label: "After hero",   value: "after-hero" },
+            { label: "Scroll up",    value: "scroll-up" },
+          ],
+        },
+        mobileOnly: {
+          type: "radio",
+          label: "Mobile only",
+          options: [
+            { label: "No",  value: false },
+            { label: "Yes", value: true },
+          ],
+        },
+      },
+      render: (p) => <StickyCta {...p} />,
+    },
+
+    /* ── SOCIAL BAR (B25) ────────────────────────────────────────── */
+    SocialBar: {
+      label: "Social bar",
+      defaultProps: {
+        links: [
+          { platform: "linkedin", url: "" },
+          { platform: "twitter",  url: "" },
+        ],
+        style: "icon-label",
+        alignment: "left",
+        layout: defaultLayout,
+      },
+      fields: {
+        alignment: {
+          type: "radio",
+          label: "Alignment",
+          options: [
+            { label: "Left",   value: "left" },
+            { label: "Center", value: "center" },
+            { label: "Right",  value: "right" },
+          ],
+        },
+        style: {
+          type: "radio",
+          label: "Display",
+          options: [
+            { label: "Platform name only",     value: "icon" },
+            { label: "Platform name + URL",    value: "icon-label" },
+          ],
+        },
+        links: {
+          type: "array",
+          label: "Links",
+          getItemSummary: (it) => `${it.platform || "platform"}: ${it.url || ""}`,
+          defaultItemProps: { platform: "linkedin", url: "" },
+          arrayFields: {
+            platform: {
+              type: "select",
+              label: "Platform",
+              options: [
+                { label: "LinkedIn",  value: "linkedin" },
+                { label: "Twitter / X", value: "twitter" },
+                { label: "Instagram", value: "instagram" },
+                { label: "Facebook",  value: "facebook" },
+                { label: "YouTube",   value: "youtube" },
+                { label: "TikTok",    value: "tiktok" },
+                { label: "Website",   value: "website" },
+              ],
+            },
+            url: { type: "text", label: "URL" },
+          },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <SocialBar {...p} />,
     },
 
     /* ── NEWSLETTER ──────────────────────────────────────────────── */
