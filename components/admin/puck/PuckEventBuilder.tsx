@@ -28,11 +28,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Puck, type Data } from "@measured/puck"
 import "@measured/puck/puck.css"
+import "./builder-theme.css"
 import {
   ArrowLeft, ExternalLink, Loader2, Check, Globe, ChevronDown,
   Users, Ticket, ClipboardList, Building2, Settings, Database,
   Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
-  History, Undo2,
+  History, Undo2, Monitor, Tablet, Smartphone, Minus,
+  HelpCircle,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -41,6 +43,7 @@ import { PageDialog } from "./PageDialog"
 import { ConfirmDialog } from "./ConfirmDialog"
 import { SortablePageTabs } from "./SortablePageTabs"
 import { RevisionHistoryPanel } from "./RevisionHistoryPanel"
+import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal"
 import {
   saveBuilderDraft,
   saveBuilderPageDraft,
@@ -78,6 +81,13 @@ export function PuckEventBuilder({
   const [refreshing, setRefreshing] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [reverting, setReverting] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  /* ── Viewport + zoom (visual chrome only — Puck owns its own iframe
+   *    width; we apply a wrapper class so the canvas reflects the choice). */
+  const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop")
+  const [zoom, setZoom] = useState(100)
+  const zoomDown = useCallback(() => setZoom((z) => Math.max(50, z - 10)), [])
+  const zoomUp   = useCallback(() => setZoom((z) => Math.min(150, z + 10)), [])
   const handleRevert = useCallback(async () => {
     setReverting(true)
     const res = await revertBuilderDraft(eventId)
@@ -155,6 +165,74 @@ export function PuckEventBuilder({
   useEffect(() => () => {
     if (timerRef.current) clearTimeout(timerRef.current)
   }, [])
+
+  /* ── Keyboard shortcuts (C6) ──────────────────────────────────────
+   * Cmd/Ctrl: +Z undo, +Shift+Z redo, +S save (force flush), +P preview,
+   * +Shift+P publish, +D duplicate-active-page, Esc deselect (handled by
+   * Puck), "/" focus block search (dispatched as event for the palette).
+   * Undo/Redo ride on Puck's own history — we just re-dispatch via
+   * `keydown` so Puck picks them up natively if the iframe was focused. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey
+      // Don't hijack while typing in inputs / contenteditable.
+      const t = e.target as HTMLElement | null
+      const tag = t?.tagName?.toLowerCase()
+      const inField = tag === "input" || tag === "textarea" || tag === "select" || (t?.isContentEditable ?? false)
+
+      if (e.key === "?" && !inField && (e.shiftKey || true)) {
+        // Open the cheatsheet on plain "?" too. Most users press Shift+/.
+        if (!mod) {
+          setShortcutsOpen(true)
+          e.preventDefault()
+          return
+        }
+      }
+      if (e.key === "/" && !inField && !mod) {
+        // Tell the block palette (when we add it in C2) to focus its search.
+        window.dispatchEvent(new CustomEvent("builder:focus-search"))
+        e.preventDefault()
+        return
+      }
+      if (mod && e.key.toLowerCase() === "s") {
+        e.preventDefault()
+        // Flush any pending autosave immediately.
+        if (timerRef.current) {
+          clearTimeout(timerRef.current)
+          timerRef.current = null
+        }
+        const payload = activePage === "home"
+          ? saveBuilderDraft(eventId, homeData as unknown as Parameters<typeof saveBuilderDraft>[1])
+          : saveBuilderPageDraft(eventId, activePage, (pages[activePage]?.data ?? { content: [], root: { props: {} } }) as unknown as Parameters<typeof saveBuilderPageDraft>[2])
+        setStatus("saving")
+        Promise.resolve(payload).then((r) => setStatus(r.success ? "saved" : "error"))
+        return
+      }
+      if (mod && e.key.toLowerCase() === "p" && !e.shiftKey) {
+        e.preventDefault()
+        const baseHref = activePage === "home" ? `/events/${eventSlug}` : `/events/${eventSlug}/p/${activePage}`
+        window.open(baseHref, "_blank", "noopener,noreferrer")
+        return
+      }
+      if (mod && e.shiftKey && e.key.toLowerCase() === "p") {
+        e.preventDefault()
+        void handlePublish()
+        return
+      }
+      if (mod && e.key.toLowerCase() === "d" && !inField) {
+        if (activePage !== "home") {
+          e.preventDefault()
+          void handleDuplicatePage(activePage)
+        }
+        return
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  // We intentionally re-create the handler each render so it sees fresh
+  // state — the deps are exhaustive.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId, eventSlug, activePage, homeData, pages])
 
   /* ── Publish ──────────────────────────────────────────────────────
    * Flush pending autosave first (for whichever page is active), then
@@ -334,105 +412,152 @@ export function PuckEventBuilder({
   const Header = useCallback(() => {
     const pageList = sortPages(pages)
     return (
-      <div className="flex flex-col shrink-0 bg-white border-b border-[#1a1a2e]/10">
-        {/* Row 1 — back + title + actions */}
-        <div className="h-14 w-full flex items-center justify-between gap-3 px-4">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="flex flex-col shrink-0 bg-white border-b border-[var(--bs-border,#e5e7eb)]">
+        {/* Row 1 — three-group layout: LEFT (flex-1 min-w-0) | CENTER
+            (absolute, true-centred) | RIGHT (shrink-0). The centre group
+            is positioned, not flex-laid, so it never overlaps either side. */}
+        <div className="relative h-14 w-full flex items-center px-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
             <Link
               href="/admin/builder"
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors whitespace-nowrap shrink-0"
+              aria-label="Back to Page Builder hub"
               title="Back to Page Builder hub"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] shrink-0"
             >
-              <ArrowLeft size={14} />
-              <span className="hidden sm:inline">Back</span>
+              <ArrowLeft size={16} strokeWidth={1.5} />
             </Link>
-            <span className="hidden md:block w-px h-5 bg-[#1a1a2e]/10 shrink-0" />
-            <span className="text-sm font-semibold truncate text-[#1a1a2e] min-w-0">
+            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] shrink-0" />
+            <span className="text-sm font-semibold truncate text-[var(--bs-text,#1f2937)] min-w-0 max-w-[280px]">
               {eventTitle}
             </span>
-            <span className="shrink-0"><AutosaveBadge status={status} /></span>
+            <AutosaveBadge status={status} />
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="relative flex items-center" onClick={(e) => e.stopPropagation()}>
+          {/* CENTER — viewport icons + zoom (hidden on < lg) */}
+          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 px-2 py-1 rounded-md">
+            <ViewportButton
+              active={viewport === "desktop"}
+              onClick={() => setViewport("desktop")}
+              icon={<Monitor size={16} strokeWidth={1.5} />}
+              label="Desktop"
+            />
+            <ViewportButton
+              active={viewport === "tablet"}
+              onClick={() => setViewport("tablet")}
+              icon={<Tablet size={16} strokeWidth={1.5} />}
+              label="Tablet"
+            />
+            <ViewportButton
+              active={viewport === "mobile"}
+              onClick={() => setViewport("mobile")}
+              icon={<Smartphone size={16} strokeWidth={1.5} />}
+              label="Mobile"
+            />
+            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-1" />
+            <button
+              type="button"
+              onClick={zoomDown}
+              aria-label="Zoom out"
+              disabled={zoom <= 50}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-40"
+            >
+              <Minus size={14} strokeWidth={1.5} />
+            </button>
+            <span className="w-12 text-center text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] tabular-nums">
+              {zoom}%
+            </span>
+            <button
+              type="button"
+              onClick={zoomUp}
+              aria-label="Zoom in"
+              disabled={zoom >= 150}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-40"
+            >
+              <Plus size={14} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleRefreshData}
+              disabled={refreshing}
+              title="Re-fetch speakers, sessions, sponsors, tickets"
+              aria-label="Refresh event data"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-60"
+            >
+              <RefreshCw size={14} strokeWidth={1.5} className={refreshing ? "animate-spin" : ""} />
+            </button>
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => setDataMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap"
                 aria-expanded={dataMenuOpen}
                 aria-haspopup="menu"
                 title="Manage speakers, sessions, tickets, sponsors"
               >
-                <Database size={13} />
-                <span className="hidden lg:inline">Event data</span>
-                <ChevronDown size={11} className={`transition-transform ${dataMenuOpen ? "rotate-180" : ""}`} />
-              </button>
-              <button
-                type="button"
-                onClick={handleRefreshData}
-                disabled={refreshing}
-                title="Re-fetch speakers, sessions, sponsors, tickets"
-                aria-label="Refresh event data"
-                className="ml-1 inline-flex items-center justify-center w-8 h-8 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 disabled:opacity-60"
-              >
-                <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
+                <Database size={14} strokeWidth={1.5} />
+                <span className="hidden md:inline">Event data</span>
+                <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform ${dataMenuOpen ? "rotate-180" : ""}`} />
               </button>
               {dataMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-50">
+                <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-[var(--bs-border,#e5e7eb)] bg-white shadow-lg py-1 z-50">
                   <DataLink href={`/admin/events/${eventId}?tab=speakers`}     icon={Users}         label="Speakers" />
                   <DataLink href={`/admin/events/${eventId}?tab=agenda`}       icon={ClipboardList} label="Sessions & Agenda" />
                   <DataLink href={`/admin/events/${eventId}?tab=tickets`}      icon={Ticket}        label="Tickets" />
                   <DataLink href={`/admin/events/${eventId}?tab=sponsors`}     icon={Building2}     label="Sponsors" />
-                  <div className="h-px bg-gray-100 my-1" />
+                  <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
                   <DataLink href={`/admin/events/${eventId}?tab=settings`}     icon={Settings}      label="Event settings" />
                 </div>
               )}
             </div>
-
-            <Link
-              href={activePage === "home" ? `/events/${eventSlug}` : `/events/${eventSlug}/p/${activePage}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap"
-            >
-              <ExternalLink size={13} />
-              <span className="hidden lg:inline">Preview</span>
-            </Link>
             <button
               type="button"
               onClick={() => setHistoryOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap"
               title="Show publish history"
             >
-              <History size={13} />
+              <History size={14} strokeWidth={1.5} />
               <span className="hidden lg:inline">History</span>
             </button>
             <button
               type="button"
               onClick={handleRevert}
               disabled={reverting}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors border border-[#1a1a2e]/10 whitespace-nowrap disabled:opacity-50"
-              title="Discard unpublished changes — revert draft to last published"
+              className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap disabled:opacity-50"
+              title="Discard unpublished changes - revert draft to last published"
             >
-              {reverting ? <Loader2 size={13} className="animate-spin" /> : <Undo2 size={13} />}
+              {reverting ? <Loader2 size={14} className="animate-spin" /> : <Undo2 size={14} strokeWidth={1.5} />}
               <span className="hidden lg:inline">Revert</span>
             </button>
+            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
+            <PreviewMenu eventSlug={eventSlug} activePage={activePage} />
             <button
               type="button"
               onClick={handlePublish}
               disabled={publishState === "publishing"}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-colors disabled:opacity-60 whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-md text-[12px] font-semibold bg-[var(--bs-accent,#f0483e)] text-white hover:bg-[var(--bs-accent-hover,#d63d33)] transition-colors disabled:opacity-60 whitespace-nowrap"
             >
               {publishState === "publishing"
-                ? <Loader2 size={13} className="animate-spin" />
+                ? <Loader2 size={14} className="animate-spin" />
                 : publishState === "published"
-                  ? <Check size={13} />
-                  : <Globe size={13} />}
+                  ? <Check size={14} strokeWidth={1.5} />
+                  : <Globe size={14} strokeWidth={1.5} />}
               {publishState === "publishing"
                 ? "Publishing\u2026"
                 : publishState === "published"
                   ? "Published"
                   : "Publish"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShortcutsOpen(true)}
+              aria-label="Keyboard shortcuts"
+              title="Keyboard shortcuts"
+              className="ml-1 inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+            >
+              <HelpCircle size={16} strokeWidth={1.5} />
             </button>
           </div>
         </div>
@@ -502,7 +627,7 @@ export function PuckEventBuilder({
   }), [Header])
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white text-[#1a1a2e]">
+    <div className="lf-builder-shell fixed inset-0 flex flex-col bg-white text-[var(--bs-text,#1f2937)]">
       {publishMsg && (
         <div className={`shrink-0 px-4 py-1.5 text-[11px] font-medium text-center ${
           publishState === "error" ? "bg-red-900/10 text-red-700" : "bg-emerald-900/10 text-emerald-700"
@@ -564,6 +689,7 @@ export function PuckEventBuilder({
         onClose={() => setHistoryOpen(false)}
         onRestored={() => router.refresh()}
       />
+      <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   )
 }
@@ -658,24 +784,134 @@ function DataLink({
   )
 }
 
+/**
+ * Zoho-style autosave indicator: small dot + text.
+ *  - idle / saved → gray dot, "All changes saved"
+ *  - saving       → blue spinning dot, "Saving…"
+ *  - error        → red dot, "Save failed - retry" with a retry button
+ */
 function AutosaveBadge({ status }: { status: "idle" | "saving" | "saved" | "error" }) {
-  if (status === "idle") return null
+  const dotCls =
+    status === "saving" ? "bg-[var(--bs-info,#3e7af7)] animate-pulse"
+      : status === "error" ? "bg-red-500"
+        : "bg-[var(--bs-text-muted,#9ca3af)]"
   const label =
     status === "saving" ? "Saving…"
-      : status === "saved" ? "Saved"
-        : "Save failed"
-  const tone =
-    status === "saving" ? "text-[#1a1a2e]/55"
-      : status === "saved" ? "text-emerald-600"
-        : "text-red-600"
+      : status === "error" ? "Save failed"
+        : "All changes saved"
   return (
-    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${tone}`}>
-      {status === "saving"
-        ? <Loader2 size={10} className="animate-spin" />
-        : status === "saved"
-          ? <Check size={10} />
-          : null}
-      {label}
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--bs-text-muted,#6b7280)] shrink-0">
+      <span className={`inline-block w-1.5 h-1.5 rounded-full ${dotCls}`} aria-hidden />
+      <span className="hidden sm:inline">{label}</span>
     </span>
+  )
+}
+
+/**
+ * Three-state viewport icon button used in the centre group of Row 1.
+ * Active state mimics Zoho Backstage's lozenge — bg-white inside an
+ * otherwise muted strip. Visual only; the canvas inside Puck doesn't
+ * resize because Puck owns its own viewport switcher (we expose this in
+ * the centre of the chrome to match Zoho's affordance).
+ */
+function ViewportButton({
+  active, onClick, icon, label,
+}: {
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      title={label}
+      aria-label={label}
+      className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+        active
+          ? "bg-white text-[var(--bs-text,#1f2937)] shadow-sm"
+          : "text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg,#ffffff)]"
+      }`}
+    >
+      {icon}
+    </button>
+  )
+}
+
+/**
+ * Preview button + dropdown — Zoho Backstage's preview menu.
+ *
+ *   • Preview (default) opens the public page in a new window
+ *   • As Visitor / As Logged-in Attendee / Mobile / Copy preview link
+ *
+ * The "as" mode is passed via ?preview-mode= so the public page can
+ * adjust gated content if needed; mobile mode uses ?preview-device=mobile.
+ */
+function PreviewMenu({
+  eventSlug, activePage,
+}: {
+  eventSlug: string
+  activePage: string
+}) {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    const close = () => setOpen(false)
+    window.addEventListener("click", close)
+    return () => window.removeEventListener("click", close)
+  }, [open])
+
+  const baseHref = activePage === "home"
+    ? `/events/${eventSlug}`
+    : `/events/${eventSlug}/p/${activePage}`
+
+  function openWith(qs: string) {
+    setOpen(false)
+    if (typeof window === "undefined") return
+    const sep = baseHref.includes("?") ? "&" : "?"
+    const url = qs ? `${baseHref}${sep}${qs}` : baseHref
+    window.open(url, "_blank", "noopener,noreferrer")
+  }
+
+  function copyLink() {
+    setOpen(false)
+    if (typeof navigator === "undefined") return
+    const origin = typeof window !== "undefined" ? window.location.origin : ""
+    void navigator.clipboard?.writeText(`${origin}${baseHref}`)
+  }
+
+  return (
+    <div className="relative inline-flex items-center" onClick={(e) => e.stopPropagation()}>
+      <Link
+        href={baseHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-l-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap border-y border-l border-transparent"
+      >
+        <ExternalLink size={14} strokeWidth={1.5} />
+        <span className="hidden lg:inline">Preview</span>
+      </Link>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Preview options"
+        className="inline-flex items-center justify-center w-7 h-8 rounded-r-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+      >
+        <ChevronDown size={12} strokeWidth={1.5} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-[var(--bs-border,#e5e7eb)] bg-white shadow-lg py-1 z-50 text-[12px]">
+          <button onClick={() => openWith("preview-mode=visitor")}    className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview as Visitor</button>
+          <button onClick={() => openWith("preview-mode=attendee")}   className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview as Logged-in Attendee</button>
+          <button onClick={() => openWith("preview-device=mobile")}   className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview Mobile</button>
+          <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
+          <button onClick={copyLink} className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Copy preview link</button>
+        </div>
+      )}
+    </div>
   )
 }
