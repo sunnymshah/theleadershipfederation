@@ -44,6 +44,7 @@ import {
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
+import { UrlPicker } from "./UrlPicker"
 
 export type BuilderComponents = {
   Hero: HeroProps
@@ -147,7 +148,17 @@ export const puckConfig: Config<BuilderComponents> = {
         title:    { type: "text",     label: "Title (leave blank to use event title)" },
         subtitle: { type: "textarea", label: "Subtitle" },
         ctaLabel: { type: "text",     label: "CTA label" },
-        ctaUrl:   { type: "text",     label: "CTA URL" },
+        ctaUrl: {
+          type: "custom",
+          label: "CTA link",
+          render: (p) => (
+            <UrlPicker
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+            />
+          ),
+        },
         backgroundImage: {
           type: "custom",
           label: "Background image",
@@ -508,7 +519,17 @@ export const puckConfig: Config<BuilderComponents> = {
         title:    { type: "text",     label: "Heading" },
         subtitle: { type: "textarea", label: "Subtitle" },
         ctaLabel: { type: "text",     label: "Button label" },
-        ctaUrl:   { type: "text",     label: "Button URL" },
+        ctaUrl: {
+          type: "custom",
+          label: "Button link",
+          render: (p) => (
+            <UrlPicker
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+            />
+          ),
+        },
         variant: {
           type: "select",
           label: "Button style",
@@ -728,7 +749,17 @@ export const puckConfig: Config<BuilderComponents> = {
         title:    { type: "text", label: "Heading" },
         subtitle: { type: "textarea", label: "Subtitle" },
         ctaLabel: { type: "text", label: "Button label" },
-        ctaUrl:   { type: "text", label: "Form action URL" },
+        ctaUrl: {
+          type: "custom",
+          label: "Form action / Link",
+          render: (p) => (
+            <UrlPicker
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+            />
+          ),
+        },
         layout:   layoutField,
       },
       render: (p) => <Newsletter {...p} />,
