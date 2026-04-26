@@ -34,6 +34,7 @@ import {
   Countdown, VenueMap, StickyCta, SocialBar,
   Carousel, TabsBlock, AccordionBlock, ImageHotspots, EventCardGrid,
   TicketsPricing,
+  FormBlock,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -47,6 +48,7 @@ import {
   type CarouselProps, type TabsBlockProps, type AccordionBlockProps,
   type ImageHotspotsProps, type EventCardGridProps,
   type TicketsPricingProps,
+  type FormBlockProps,
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
@@ -83,6 +85,7 @@ export type BuilderComponents = {
   ImageHotspots: ImageHotspotsProps
   EventCardGrid: EventCardGridProps
   TicketsPricing: TicketsPricingProps
+  FormBlock: FormBlockProps
 }
 
 /* ── Shared layout field ─────────────────────────────────────────────
@@ -145,7 +148,7 @@ export const puckConfig: Config<BuilderComponents> = {
     Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip"] },
     Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock", "ImageHotspots"] },
     Venue:    { title: "Venue",           components: ["VenueMap"] },
-    CTAs:     { title: "Call-to-actions", components: ["CtaButton", "Newsletter", "StickyCta", "SocialBar"] },
+    CTAs:     { title: "Call-to-actions", components: ["CtaButton", "FormBlock", "Newsletter", "StickyCta", "SocialBar"] },
     FAQs:     { title: "FAQs",            components: ["Faqs"] },
     Layout:   { title: "Layout",          components: ["Spacer", "Divider"] },
   },
@@ -868,6 +871,84 @@ export const puckConfig: Config<BuilderComponents> = {
       render: (p) => <LogosStrip {...p} />,
     },
 
+    /* ── FORM (B23) ──────────────────────────────────────────────── */
+    FormBlock: {
+      label: "Form",
+      defaultProps: {
+        title: "Get in touch",
+        subtitle: "",
+        ctaLabel: "Submit",
+        successMessage: "Thanks — we got your submission.",
+        webhookUrl: "",
+        fields: [
+          { id: "name",  label: "Your name", type: "text",  required: true },
+          { id: "email", label: "Email",     type: "email", required: true },
+        ],
+        layout: defaultLayout,
+      },
+      fields: {
+        title:    { type: "text", label: "Heading" },
+        subtitle: { type: "textarea", label: "Subtitle" },
+        ctaLabel: { type: "text", label: "Submit button label" },
+        successMessage: { type: "textarea", label: "Success message" },
+        webhookUrl: { type: "text", label: "Optional webhook URL (POST on submit)" },
+        fields: {
+          type: "array",
+          label: "Form fields",
+          getItemSummary: (it) => `${it?.label || "Field"}${it?.required ? " *" : ""}`,
+          defaultItemProps: { id: "field", label: "Field", type: "text", required: false, options: [] },
+          arrayFields: {
+            id:    { type: "text", label: "ID (no spaces)" },
+            label: { type: "text", label: "Label" },
+            type: {
+              type: "select",
+              label: "Type",
+              options: [
+                { label: "Text",      value: "text" },
+                { label: "Email",     value: "email" },
+                { label: "Phone",     value: "tel" },
+                { label: "Textarea",  value: "textarea" },
+                { label: "Select",    value: "select" },
+                { label: "Checkbox",  value: "checkbox" },
+              ],
+            },
+            required: {
+              type: "radio",
+              label: "Required",
+              options: [
+                { label: "No",  value: false },
+                { label: "Yes", value: true },
+              ],
+            },
+            options: {
+              type: "textarea",
+              label: "Select options (one per line)",
+            },
+          },
+        },
+        layout: layoutField,
+      },
+      render: (p) => {
+        const raw = (p as { fields?: unknown }).fields
+        const fields: FormBlockProps["fields"] = Array.isArray(raw)
+          ? (raw as Array<Record<string, unknown>>).map((f) => {
+              const opts = (f.options ?? []) as unknown
+              const optionList = typeof opts === "string"
+                ? opts.split(/\r?\n/).map((s) => s.trim()).filter(Boolean)
+                : Array.isArray(opts) ? opts.map((o) => String(o)) : undefined
+              return {
+                id: typeof f.id === "string" ? f.id : "",
+                label: typeof f.label === "string" ? f.label : "",
+                type: (typeof f.type === "string" ? f.type : "text") as FormBlockProps["fields"][number]["type"],
+                required: Boolean(f.required),
+                options: optionList,
+              }
+            })
+          : []
+        return <FormBlock {...p} fields={fields} />
+      },
+    },
+
     /* ── TICKETS PRICING (B16) ───────────────────────────────────── */
     TicketsPricing: {
       label: "Pricing cards",
@@ -1187,7 +1268,7 @@ export const puckConfig: Config<BuilderComponents> = {
       render: (p) => <SocialBar {...p} />,
     },
 
-    /* ── NEWSLETTER ──────────────────────────────────────────────── */
+    /* ── NEWSLETTER (deprecated — use FormBlock) ───────────────── */
     Newsletter: {
       label: "Newsletter",
       defaultProps: {
