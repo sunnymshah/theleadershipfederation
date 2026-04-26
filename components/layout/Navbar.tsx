@@ -17,7 +17,7 @@ const navLinks = [
   { label: "About", href: "/about" },
   { label: "Platforms", href: "/platforms" },
   { label: "Membership", href: "/memberships" },
-  { label: "Event", href: "/events" },
+  { label: "Events", href: "/events" },
   { label: "Past Events", href: "/archive" },
   { label: "Advisory Board & Jury", href: "/advisory-board" },
   { label: "Media", href: "/media" },
