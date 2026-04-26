@@ -17,11 +17,13 @@ import { useEffect, useRef, useState } from "react"
 import { ActionBar, usePuck } from "@measured/puck"
 import {
   Copy, ArrowUp, ArrowDown, Eye, EyeOff, Lock, Unlock, BookmarkPlus,
-  Trash2, MoreHorizontal,
+  Trash2, MoreHorizontal, Beaker,
 } from "lucide-react"
 import {
   duplicateBlockById, moveBlockById, removeBlockById,
 } from "./PuckBridge"
+import { ABTestCreateDialog } from "../ABTestCreateDialog"
+import { saveAsTemplate as saveTemplateAction } from "@/app/actions/templateActions"
 
 export function SectionActionBarOverflow({
   label, children, parentAction,
@@ -96,12 +98,31 @@ function SectionMenu({ id }: { id: string }) {
     })
   }
 
-  function saveAsTemplate() {
+  async function saveAsTemplate() {
     const name = window.prompt("Save this section as a template — name?")
     if (!name || !name.trim()) return
-    // Stash on block props for now; Phase 5 wires this up to a templates table.
-    patchProp("__templateName", name.trim())
     setOpen(false)
+    // Pull the eventId from the current URL path (/admin/events/{id}/builder).
+    const m = window.location.pathname.match(/\/admin\/events\/([^/]+)\/builder/)
+    const eventId = m?.[1] ?? ""
+    if (!eventId) {
+      alert("Couldn't find the event id in the URL.")
+      patchProp("__templateName", name.trim())
+      return
+    }
+    // Wrap the single block in a one-block Puck data tree so it can be
+    // applied later as either a replace or append.
+    const data = {
+      content: [block].filter(Boolean),
+      root: { props: {} },
+      zones: {},
+    } as unknown as Parameters<typeof saveTemplateAction>[0]["data"]
+    const res = await saveTemplateAction({ eventId, name: name.trim(), data })
+    if (!res.success) {
+      alert(`Couldn't save template: ${res.error ?? "unknown error"}`)
+      return
+    }
+    patchProp("__templateName", name.trim())
   }
 
   return (
@@ -135,6 +156,23 @@ function SectionMenu({ id }: { id: string }) {
             onClick={() => { patchProp("__locked", !locked); setOpen(false) }}
           />
           <MenuItem icon={BookmarkPlus} label="Save as template" onClick={saveAsTemplate} />
+          <MenuItem
+            icon={Beaker}
+            label="A/B test"
+            onClick={() => {
+              // Fire a global event — PuckEventBuilder owns the dialog
+              // because it already has eventId + activePage in scope.
+              const event = new CustomEvent("builder:open-ab-dialog", {
+                detail: {
+                  blockId: id,
+                  blockType: (block as { type?: string } | undefined)?.type ?? "",
+                  blockProps: (block?.props ?? {}) as Record<string, unknown>,
+                },
+              })
+              window.dispatchEvent(event)
+              setOpen(false)
+            }}
+          />
           <Divider />
           <MenuItem
             icon={Trash2}

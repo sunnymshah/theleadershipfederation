@@ -35,7 +35,7 @@ import {
   Users, Ticket, ClipboardList, Building2, Settings, Database,
   Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
   History, Undo2, Monitor, Tablet, Smartphone, Minus,
-  HelpCircle,
+  HelpCircle, Calendar, X,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -45,6 +45,9 @@ import { ConfirmDialog } from "./ConfirmDialog"
 import { SortablePageTabs } from "./SortablePageTabs"
 import { RevisionHistoryPanel } from "./RevisionHistoryPanel"
 import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal"
+import { SchedulePublishDialog } from "./SchedulePublishDialog"
+import { ABTestCreateDialog } from "./ABTestCreateDialog"
+import { AIWizardDialog } from "./AIWizardDialog"
 import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
 import { PuckBridge, insertBlockAtEnd } from "./zoho/PuckBridge"
@@ -105,10 +108,18 @@ export function PuckEventBuilder({
   const [historyOpen, setHistoryOpen] = useState(false)
   const [reverting, setReverting] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [aiWizardOpen, setAiWizardOpen] = useState(false)
+  const [abDialog, setAbDialog] = useState<null | {
+    blockId: string
+    blockType: string
+    blockProps: Record<string, unknown>
+  }>(null)
   /** Zoho-style primary-rail state. Default to "sections" so the user
    *  always lands on the block catalog. Setting to null collapses the
    *  secondary panel entirely. */
-  const [activeRail, setActiveRail] = useState<RailKey | null>("sections")
+  // Zoho lands on the Pages panel by default; admins explore from there.
+  const [activeRail, setActiveRail] = useState<RailKey | null>("stdpages")
   /** B14 — at <lg the rail+panel collapse into a slide-over drawer
    *  toggled by a floating button on the canvas. Tracks whether the
    *  drawer is open. Has no effect at lg+. */
@@ -266,7 +277,16 @@ export function PuckEventBuilder({
       }
     }
     window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
+    const onAbDialog = (e: Event) => {
+      const detail = (e as CustomEvent<{ blockId: string; blockType: string; blockProps: Record<string, unknown> }>).detail
+      if (!detail?.blockId) return
+      setAbDialog(detail)
+    }
+    window.addEventListener("builder:open-ab-dialog", onAbDialog)
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      window.removeEventListener("builder:open-ab-dialog", onAbDialog)
+    }
   // We intentionally re-create the handler each render so it sees fresh
   // state — the deps are exhaustive.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -599,6 +619,15 @@ export function PuckEventBuilder({
             })()}
             <button
               type="button"
+              onClick={() => setScheduleOpen(true)}
+              aria-label="Schedule publish"
+              title="Schedule publish"
+              className="ml-1 inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+            >
+              <Calendar size={15} strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
               onClick={() => setShortcutsOpen(true)}
               aria-label="Keyboard shortcuts"
               title="Keyboard shortcuts"
@@ -606,6 +635,25 @@ export function PuckEventBuilder({
             >
               <HelpCircle size={16} strokeWidth={1.5} />
             </button>
+            <a
+              href={`/events/${eventSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View website"
+              title="Open published microsite in a new tab"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+            >
+              <ExternalLink size={14} strokeWidth={1.5} />
+            </a>
+            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
+            <Link
+              href="/admin/builder"
+              aria-label="Close builder"
+              title="Close — back to Builder hub"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+            >
+              <X size={15} strokeWidth={1.5} />
+            </Link>
           </div>
         </div>
 
@@ -730,7 +778,7 @@ export function PuckEventBuilder({
       {activePage === "home"
         && (!homeData?.content || homeData.content.length === 0)
         && Object.keys(pages).length === 0
-        && <BuilderOnboarding onDismiss={() => {
+        && <BuilderOnboarding onAiGenerate={() => setAiWizardOpen(true)} onDismiss={() => {
           // Add a placeholder block via setHomeData to dismiss; cheaper
           // than persisting a flag. The user can immediately delete it.
           setHomeData((prev) => ({
@@ -748,8 +796,19 @@ export function PuckEventBuilder({
         {/* Desktop rail (≥ lg) */}
         <div className="hidden lg:flex">
           <PrimaryRail
-            active={(activeRail ?? "sections") as RailKey}
+            active={(activeRail ?? "stdpages") as RailKey}
             onChange={(key) => setActiveRail((cur) => (cur === key ? null : key))}
+            topSlot={
+              <button
+                type="button"
+                onClick={() => setActiveRail("sections")}
+                aria-label="Add section"
+                title="Add section"
+                className={`z-rail-item ${activeRail === "sections" ? "is-active" : ""}`}
+              >
+                <Plus size={18} strokeWidth={1.5} />
+              </button>
+            }
           />
         </div>
         {/* Mobile slide-over (< lg) */}
@@ -886,6 +945,23 @@ export function PuckEventBuilder({
         onRestored={() => router.refresh()}
       />
       <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <SchedulePublishDialog eventId={eventId} open={scheduleOpen} onClose={() => setScheduleOpen(false)} />
+      {abDialog && (
+        <ABTestCreateDialog
+          open={true}
+          onClose={() => setAbDialog(null)}
+          eventId={eventId}
+          pageKind={activePage === "home" ? "home" : activePage}
+          blockId={abDialog.blockId}
+          blockType={abDialog.blockType}
+          blockProps={abDialog.blockProps}
+        />
+      )}
+      <AIWizardDialog
+        eventId={eventId}
+        open={aiWizardOpen}
+        onClose={() => setAiWizardOpen(false)}
+      />
     </div>
   )
 }
@@ -1105,7 +1181,7 @@ function ActiveRailPanel({
  * on the card, none on the backdrop wrapper) so the admin can still
  * interact with the palette to drop a block.
  */
-function BuilderOnboarding({ onDismiss }: { onDismiss: () => void }) {
+function BuilderOnboarding({ onDismiss, onAiGenerate }: { onDismiss: () => void; onAiGenerate?: () => void }) {
   const [importOpen, setImportOpen] = useState(false)
   return (
     <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center">
@@ -1113,7 +1189,7 @@ function BuilderOnboarding({ onDismiss }: { onDismiss: () => void }) {
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--bs-text-muted,#6b7280)] mb-2">Get started</p>
         <h2 className="text-xl font-bold text-[var(--bs-text,#1f2937)] mb-2">Choose how to start</h2>
         <p className="text-[13px] text-[var(--bs-text-muted,#6b7280)] mb-5">
-          Drop sections from the left palette, pick a template, or migrate from your existing Backstage event.
+          Your event already has 12 standard pages. Edit them in place, generate copy with AI, or import from a Backstage URL.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button
@@ -1121,16 +1197,16 @@ function BuilderOnboarding({ onDismiss }: { onDismiss: () => void }) {
             onClick={onDismiss}
             className="px-3 py-3 rounded-lg border border-[var(--bs-border,#e5e7eb)] hover:border-[var(--bs-info,#3e7af7)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] text-left"
           >
-            <p className="text-[13px] font-semibold text-[var(--bs-text,#1f2937)]">Start blank</p>
-            <p className="text-[11px] text-[var(--bs-text-muted,#6b7280)] mt-0.5">An empty Hero, ready to edit</p>
+            <p className="text-[13px] font-semibold text-[var(--bs-text,#1f2937)]">Edit blank</p>
+            <p className="text-[11px] text-[var(--bs-text-muted,#6b7280)] mt-0.5">Start from the canonical defaults</p>
           </button>
           <button
             type="button"
-            onClick={onDismiss}
-            className="px-3 py-3 rounded-lg border border-[var(--bs-border,#e5e7eb)] hover:border-[var(--bs-info,#3e7af7)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] text-left"
+            onClick={() => { onDismiss(); onAiGenerate?.() }}
+            className="px-3 py-3 rounded-lg border border-[var(--lf-primary,#e7ab1c)]/40 bg-[var(--lf-primary,#e7ab1c)]/[0.06] hover:bg-[var(--lf-primary,#e7ab1c)]/[0.10] text-left"
           >
-            <p className="text-[13px] font-semibold text-[var(--bs-text,#1f2937)]">Use a template</p>
-            <p className="text-[11px] text-[var(--bs-text-muted,#6b7280)] mt-0.5">Coming soon</p>
+            <p className="text-[13px] font-semibold text-[var(--bs-text,#1f2937)]">Generate with AI</p>
+            <p className="text-[11px] text-[var(--bs-text-muted,#6b7280)] mt-0.5">Describe → drafts the whole site</p>
           </button>
           <button
             type="button"

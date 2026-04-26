@@ -147,11 +147,16 @@ function SectionShell({
   children,
   baseClass = "",
   dark = false,
+  hidden = false,
 }: {
   layout?: LayoutProps
   children: ReactNode
   baseClass?: string
   dark?: boolean
+  /** When true, SectionShell adds data-lf-hidden so the editor CSS
+   *  paints the diagonal-stripe overlay. The public renderer filters
+   *  hidden blocks before this ever runs (see PuckPublicRenderer). */
+  hidden?: boolean
 }) {
   const l = layout ?? {}
   const padding = padY[l.paddingY ?? "lg"]
@@ -191,6 +196,7 @@ function SectionShell({
   return (
     <section
       id={anchorId}
+      data-lf-hidden={hidden ? "true" : undefined}
       className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""} ${extraClass} ${lockedClass}`.trim()}
       style={style}
     >

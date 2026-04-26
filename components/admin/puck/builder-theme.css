@@ -104,3 +104,56 @@
   outline-offset: 0 !important;
   border-color: var(--bs-info) !important;
 }
+
+/* ─── Hidden-element overlay (Phase 2 Zoho parity) ─────────────────────
+ *
+ * Sections marked __hidden via the SectionContextMenu render at half
+ * opacity with a diagonal stripe overlay + a "Hidden Element" pill.
+ * Public renderer (PuckPublicRenderer) drops these entirely; this CSS
+ * is editor-only.
+ *
+ * Targets the SectionShell-rendered <section> via [data-puck-component]
+ * with the special data-lf-hidden attribute we set when the layout's
+ * __hidden flag is true. (See SectionShell wiring in blocks.tsx.)
+ */
+
+.lf-builder-shell [data-lf-hidden="true"] {
+  position: relative;
+  opacity: 0.55;
+  filter: grayscale(0.6);
+  pointer-events: none; /* admin can re-show via the toolbar */
+}
+
+.lf-builder-shell [data-lf-hidden="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(15, 23, 42, 0.10) 0,
+    rgba(15, 23, 42, 0.10) 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.lf-builder-shell [data-lf-hidden="true"]::after {
+  content: "Hidden element";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

@@ -23,7 +23,7 @@
 
 import { useCallback, useRef, useState } from "react"
 import Image from "next/image"
-import { Crop, Loader2, Trash2, Upload, ZoomIn, ZoomOut, X } from "lucide-react"
+import { Crop, Loader2, Trash2, Upload, ZoomIn, ZoomOut, X, Target, Check } from "lucide-react"
 import { uploadImageDataUrl, deleteImage } from "@/app/actions/uploadActions"
 
 type Folder = "speakers" | "events" | "sponsors" | "sections" | "general"
@@ -53,6 +53,12 @@ export function ImageUploadCrop({
   const [error, setError] = useState<string | null>(null)
   const [showUrlInput, setShowUrlInput] = useState(false)
   const [urlInput, setUrlInput] = useState("")
+  /** After crop succeeds, we transition into a focal-point picking stage
+   *  so the admin can pin the visually important point of the image
+   *  (face, logo). Public renderer applies it as object-position so
+   *  responsive crops never clip the point. Stored as `?fp=x,y` suffix. */
+  const [focalStage, setFocalStage] = useState<{ url: string } | null>(null)
+  const [focal, setFocal] = useState<{ x: number; y: number }>({ x: 0.5, y: 0.5 })
 
   const imgRef = useRef<HTMLImageElement | null>(null)
   const frameRef = useRef<HTMLDivElement | null>(null)
@@ -97,9 +103,7 @@ export function ImageUploadCrop({
       const frameRect = frameRef.current.getBoundingClientRect()
       const imgEl = imgRef.current
       const natW = imgEl.naturalWidth
-      const natH = imgEl.naturalHeight
       const renderedW = imgEl.getBoundingClientRect().width
-      const renderedH = imgEl.getBoundingClientRect().height
       const scale = natW / renderedW // how many source pixels per displayed pixel
 
       // Frame is centered within the scroll-area — compute what slice of the
@@ -131,13 +135,41 @@ export function ImageUploadCrop({
         setUploading(false)
         return
       }
-      onChange(res.url)
+      // Don't commit yet — drop into focal-point stage. Caller-supplied
+      // onChange fires after the focal point is set (or skipped).
       setPicking(null)
+      setFocalStage({ url: res.url })
+      setFocal({ x: 0.5, y: 0.5 })
       setUploading(false)
     } catch (err) {
       setError((err as Error).message)
       setUploading(false)
     }
+  }
+
+  function commitFocal() {
+    if (!focalStage) return
+    const x = Math.max(0, Math.min(1, focal.x))
+    const y = Math.max(0, Math.min(1, focal.y))
+    // Skip the suffix when the focal point is centered (default behaviour).
+    const isCentered = Math.abs(x - 0.5) < 0.02 && Math.abs(y - 0.5) < 0.02
+    const url = isCentered
+      ? focalStage.url
+      : `${focalStage.url}${focalStage.url.includes("?") ? "&" : "?"}fp=${x.toFixed(3)},${y.toFixed(3)}`
+    onChange(url)
+    setFocalStage(null)
+  }
+  function skipFocal() {
+    if (!focalStage) return
+    onChange(focalStage.url)
+    setFocalStage(null)
+  }
+  function onFocalClick(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setFocal({
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+    })
   }
 
   async function removeCurrent() {
@@ -237,9 +269,16 @@ export function ImageUploadCrop({
         </div>
       )}
 
-      {/* Crop stage — fixed aspect-ratio frame, pan + zoom the image under it */}
+      {/* Crop stage — full-screen overlay so narrow side panels (e.g. the
+          288px Settings/Inspector column) don't clip the crop frame, and
+          parent scroll containers don't fight the pan gesture. */}
       {picking && (
-        <div className="space-y-3 p-4 rounded-xl bg-[#050505] border border-[#1a1a1a]">
+        <div
+          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 overscroll-contain"
+          role="dialog"
+          aria-modal="true"
+        >
+        <div className="relative w-full max-w-2xl max-h-full overflow-y-auto space-y-3 p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white/90 text-xs font-semibold">
               <Crop size={14} className="text-[#e7ab1c]" />
@@ -348,9 +387,86 @@ export function ImageUploadCrop({
             </button>
           </div>
         </div>
+        </div>
+      )}
+
+      {/* Focal-point picker — full-screen overlay (same reason as crop). */}
+      {focalStage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 overscroll-contain"
+          role="dialog"
+          aria-modal="true"
+        >
+        <div className="relative w-full max-w-2xl max-h-full overflow-y-auto space-y-3 p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-2xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/90 text-xs font-semibold">
+              <Target size={14} className="text-[#e7ab1c]" />
+              Click the most important point — faces, logos. Used when the photo is cropped to fit smaller layouts.
+            </div>
+            <button type="button" onClick={skipFocal} aria-label="Skip" className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10">
+              <X size={14} />
+            </button>
+          </div>
+          <div
+            onClick={onFocalClick}
+            className="relative w-full max-w-[520px] mx-auto rounded-lg overflow-hidden ring-2 ring-[#e7ab1c]/90 cursor-crosshair select-none"
+            style={{ aspectRatio: aspectRatio > 0 ? String(aspectRatio) : "16/9" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={focalStage.url} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+            <div
+              className="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-[0_0_0_2px_rgba(231,171,28,0.6)] pointer-events-none"
+              style={{ left: `${focal.x * 100}%`, top: `${focal.y * 100}%`, background: "rgba(231,171,28,0.5)" }}
+            />
+            {/* Crosshair guide lines */}
+            <div className="absolute inset-y-0 w-px bg-white/30 pointer-events-none" style={{ left: `${focal.x * 100}%` }} />
+            <div className="absolute inset-x-0 h-px bg-white/30 pointer-events-none" style={{ top: `${focal.y * 100}%` }} />
+          </div>
+          <p className="text-center text-[11px] text-white/55 tabular-nums">
+            Focal point: {(focal.x * 100).toFixed(0)}% from left, {(focal.y * 100).toFixed(0)}% from top
+          </p>
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+            <button type="button" onClick={skipFocal} className="px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 text-sm">
+              Use centre (skip)
+            </button>
+            <button type="button" onClick={commitFocal} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#e7ab1c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d49c10]">
+              <Check size={14} /> Save focal point
+            </button>
+          </div>
+        </div>
+        </div>
       )}
 
       {help && <p className="text-[11px] text-[#aaa] mt-1">{help}</p>}
     </div>
   )
+}
+
+/**
+ * Public-renderer helper: parses ?fp=x,y off an image URL and returns
+ * the bare URL + a CSS object-position value. Falls back to "center"
+ * when no fp is set.
+ *
+ *   const { src, objectPosition } = parseFocalPoint(image.url)
+ *   <img src={src} style={{ objectPosition }} />
+ */
+export function parseFocalPoint(input: string | null | undefined): { src: string; objectPosition: string } {
+  if (!input) return { src: "", objectPosition: "center" }
+  try {
+    const u = new URL(input, "http://_")
+    const fp = u.searchParams.get("fp")
+    if (!fp) return { src: input, objectPosition: "center" }
+    const [xStr, yStr] = fp.split(",")
+    const x = Number(xStr), y = Number(yStr)
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return { src: input, objectPosition: "center" }
+    u.searchParams.delete("fp")
+    const cleanSearch = u.searchParams.toString()
+    const cleanUrl = `${u.origin === "http://_" ? "" : u.origin}${u.pathname}${cleanSearch ? `?${cleanSearch}` : ""}${u.hash}`
+    return {
+      src: cleanUrl || input.split("?")[0],
+      objectPosition: `${(x * 100).toFixed(2)}% ${(y * 100).toFixed(2)}%`,
+    }
+  } catch {
+    return { src: input, objectPosition: "center" }
+  }
 }
