@@ -837,11 +837,11 @@ export function PuckEventBuilder({
             onPublish={handlePublish}
             overrides={overrides}
             iframe={{ enabled: true }}
-            viewports={[
-              { label: "Desktop", width: 1280, height: "auto" },
-              { label: "Tablet",  width: 768,  height: "auto" },
-              { label: "Mobile",  width: 390,  height: "auto" },
-            ]}
+            /* viewports removed: passing it makes Puck render its own
+               viewport+zoom bar inside the canvas, which sat on top of
+               our floating ViewportPill and on top of the page-tab strip.
+               Our floating pill at bottom-right of the canvas owns
+               viewport switching now. */
           />
         </div>
       </div>
