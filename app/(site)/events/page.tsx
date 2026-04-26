@@ -86,9 +86,19 @@ export default async function EventsPage() {
   return (
     <main className="min-h-screen">
       {/* ── Hero ── */}
-      <section className="relative pt-20 sm:pt-24 pb-10 sm:pb-14 px-4 sm:px-6 overflow-hidden">
-        {/* Subtle geometric pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #1a1a2e 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+      <section className="relative pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 overflow-hidden">
+        {/* Layered backgrounds: subtle dot pattern + diagonal gold sheen */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #1a1a2e 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(231,171,28,0.08) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(231,171,28,0.15) 0%, transparent 70%)" }}
+        />
 
         <div className="relative max-w-6xl mx-auto text-center">
           <AnimateOnScroll animation="fade-up" delay={0}>
@@ -115,26 +125,36 @@ export default async function EventsPage() {
             </p>
           </AnimateOnScroll>
 
-          {/* Quick stats */}
+          {/* Quick stats — pill cards instead of inline counters */}
           {(upcoming.length > 0 || past.length > 0) && (
             <AnimateOnScroll animation="fade-up" delay={240}>
-              <div className="inline-flex items-center gap-6 sm:gap-8 text-sm text-[#1a1a2e]/60">
+              <div className="inline-flex flex-wrap items-center justify-center gap-3 mt-4">
                 {upcoming.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>
-                      <strong className="text-[#1a1a2e] font-semibold">{upcoming.length}</strong> upcoming
+                  <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#1a1a2e]/[0.08] shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    <span className="text-sm text-[#1a1a2e]">
+                      <strong className="font-bold">{upcoming.length}</strong> upcoming
                     </span>
                   </div>
                 )}
                 {past.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#1a1a2e]/20" />
-                    <span>
-                      <strong className="text-[#1a1a2e] font-semibold">{past.length}</strong> completed
+                  <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#1a1a2e]/[0.08] shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                    <span className="w-2 h-2 rounded-full bg-[#1a1a2e]/30" />
+                    <span className="text-sm text-[#1a1a2e]/65">
+                      <strong className="text-[#1a1a2e] font-bold">{past.length}</strong> completed
                     </span>
                   </div>
                 )}
+                <Link
+                  href="#upcoming"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-[#1a1a2e] hover:text-[#e7ab1c] transition-colors"
+                >
+                  Browse events
+                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                </Link>
               </div>
             </AnimateOnScroll>
           )}
@@ -145,7 +165,7 @@ export default async function EventsPage() {
        *  FEATURED EVENT — immersive hero card
        * ═════════════════════════════════════════════════════════ */}
       {featured && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-10 sm:mb-16">
+        <section id="upcoming" className="max-w-6xl mx-auto px-4 sm:px-6 mb-10 sm:mb-16 scroll-mt-24">
           <AnimateOnScroll animation="fade-up" delay={100}>
             <Link
               href={`/events/${(featured.slug ?? "").trim()}`}

@@ -50,6 +50,7 @@ import { SectionsPanel } from "./zoho/SectionsPanel"
 import { PuckBridge, insertBlockAtEnd } from "./zoho/PuckBridge"
 import { SectionActionBarOverflow } from "./zoho/SectionContextMenu"
 import { InspectorTabs, ZohoFieldLabel } from "./zoho/InspectorTabs"
+import { DevicePreviewModal } from "./zoho/DevicePreviewModal"
 import { SpeakersManager } from "./zoho/SpeakersManager"
 import { SessionsManager } from "./zoho/SessionsManager"
 import { TicketsManager } from "./zoho/TicketsManager"
@@ -1275,6 +1276,7 @@ function PreviewMenu({
   activePage: string
 }) {
   const [open, setOpen] = useState(false)
+  const [modal, setModal] = useState<{ device: "desktop" | "tablet" | "mobile"; mode: "visitor" | "attendee" } | null>(null)
   useEffect(() => {
     if (!open) return
     const close = () => setOpen(false)
@@ -1286,12 +1288,9 @@ function PreviewMenu({
     ? `/events/${eventSlug}`
     : `/events/${eventSlug}/p/${activePage}`
 
-  function openWith(qs: string) {
+  function openModal(device: "desktop" | "tablet" | "mobile", mode: "visitor" | "attendee" = "visitor") {
     setOpen(false)
-    if (typeof window === "undefined") return
-    const sep = baseHref.includes("?") ? "&" : "?"
-    const url = qs ? `${baseHref}${sep}${qs}` : baseHref
-    window.open(url, "_blank", "noopener,noreferrer")
+    setModal({ device, mode })
   }
 
   function copyLink() {
@@ -1303,16 +1302,15 @@ function PreviewMenu({
 
   return (
     <div className="relative inline-flex items-center" onClick={(e) => e.stopPropagation()}>
-      <Link
-        href={baseHref}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        onClick={() => openModal("desktop", "visitor")}
         className="inline-flex items-center justify-center w-8 h-8 rounded-l-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
         aria-label="Preview public page"
-        title="Preview public page"
+        title="Preview public page (inline)"
       >
         <ExternalLink size={14} strokeWidth={1.5} />
-      </Link>
+      </button>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -1325,14 +1323,33 @@ function PreviewMenu({
         <ChevronDown size={12} strokeWidth={1.5} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-[var(--bs-border,#e5e7eb)] bg-white shadow-lg py-1 z-50 text-[12px]">
-          <button onClick={() => openWith("preview-mode=visitor")}    className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview as Visitor</button>
-          <button onClick={() => openWith("preview-mode=attendee")}   className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview as Logged-in Attendee</button>
-          <button onClick={() => openWith("preview-device=mobile")}   className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview Mobile</button>
+        <div className="absolute right-0 top-full mt-1 w-60 rounded-lg border border-[var(--bs-border,#e5e7eb)] bg-white shadow-lg py-1 z-50 text-[12px]">
+          <button onClick={() => openModal("desktop",  "visitor")}  className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview Desktop</button>
+          <button onClick={() => openModal("tablet",   "visitor")}  className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview Tablet</button>
+          <button onClick={() => openModal("mobile",   "visitor")}  className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Preview Mobile</button>
           <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
+          <button onClick={() => openModal("desktop",  "visitor")}  className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">As Visitor</button>
+          <button onClick={() => openModal("desktop",  "attendee")} className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">As Logged-in Attendee</button>
+          <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
+          <a
+            href={baseHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            className="block w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+          >
+            Open in new tab
+          </a>
           <button onClick={copyLink} className="w-full text-left px-3 py-2 hover:bg-[var(--bs-bg-alt,#f7f8fa)]">Copy preview link</button>
         </div>
       )}
+      <DevicePreviewModal
+        open={modal !== null}
+        onClose={() => setModal(null)}
+        baseUrl={baseHref}
+        initialDevice={modal?.device ?? "desktop"}
+        initialMode={modal?.mode ?? "visitor"}
+      />
     </div>
   )
 }

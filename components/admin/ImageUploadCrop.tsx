@@ -147,16 +147,20 @@ export function ImageUploadCrop({
     void deleteImage(value).catch(() => {}) // fire-and-forget cleanup
   }
 
+  // Frame width follows the container — `max-w-full` keeps it inside
+  // narrow Puck inspector panels (~280-320px) without overflowing.
   const frameStyle =
     aspectRatio > 0
-      ? { aspectRatio: String(aspectRatio), width: "100%", maxWidth: "520px" }
-      : { width: "100%", maxWidth: "520px", aspectRatio: "16/9" }
+      ? { aspectRatio: String(aspectRatio), width: "100%", maxWidth: "100%" }
+      : { width: "100%", maxWidth: "100%", aspectRatio: "16/9" }
 
   return (
-    <div className="space-y-2">
-      <label className="block text-[11px] font-semibold text-[#888] uppercase tracking-wider">
-        {label}
-      </label>
+    <div className="space-y-2 w-full">
+      {label && (
+        <label className="block text-[11px] font-semibold text-[#888] uppercase tracking-wider">
+          {label}
+        </label>
+      )}
 
       {/* Empty / current-image states */}
       {!picking && value && (
