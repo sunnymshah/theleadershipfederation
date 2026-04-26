@@ -11,7 +11,11 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.leadershipfed
 export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const admin = createAdminClient()
+  // The admin client throws if SUPABASE_SERVICE_ROLE_KEY is missing,
+  // which happens during local builds without secrets. Degrade to a
+  // marketing-only sitemap rather than failing the prerender.
+  let admin: ReturnType<typeof createAdminClient> | null = null
+  try { admin = createAdminClient() } catch { admin = null }
 
   const staticPaths = [
     "", "about", "platforms", "memberships", "events", "archive",
@@ -23,6 +27,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
     priority: p === "" ? 1 : 0.7,
   }))
+
+  if (!admin) return out
 
   let eventRows: Array<{ id: string; slug: string; builder_published_at: string | null }> = []
   try {
