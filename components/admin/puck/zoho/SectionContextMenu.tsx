@@ -92,7 +92,7 @@ function SectionMenu({ id }: { id: string }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: { type: existing.type, props: { ...existing.props, [key]: value } } as any,
       destinationIndex: idx,
-      destinationZone: "default-zone",
+      destinationZone: "root:default-zone",
     })
   }
 

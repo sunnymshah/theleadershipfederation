@@ -447,12 +447,14 @@ export function PuckEventBuilder({
     const pageList = sortPages(pages)
     return (
       <div className="flex flex-col shrink-0 bg-white border-b border-[var(--bs-border,#e5e7eb)]">
-        {/* Row 1 — single flex flow: LEFT (flex-1 min-w-0, truncates) +
-            CENTER (shrink-0, hidden below xl) + RIGHT (shrink-0). Each
-            group stays in its own flex slot so they can never overlap.
-            Previously CENTER was absolute-positioned, which let the
-            viewport icons collide with right-group buttons at lg/xl. */}
-        <div className="h-14 w-full flex items-center gap-3 px-4">
+        {/* Row 1 — top bar lives INSIDE the canvas column (rail + panel
+            steal ~344px on the left), so it must fit comfortably in
+            ~900px. Layout: LEFT (flex-1 min-w-0) + RIGHT (shrink-0,
+            icon-only on this width). Viewport + zoom moved to a
+            floating pill at the bottom-right of the canvas (see
+            ViewportPill render below) — Figma's pattern, never crowds
+            the top bar. */}
+        <div className="h-12 w-full flex items-center gap-2 px-3">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Link
               href="/admin/builder"
@@ -463,78 +465,34 @@ export function PuckEventBuilder({
               <ArrowLeft size={16} strokeWidth={1.5} />
             </Link>
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] shrink-0" />
-            {/* Breadcrumbs (B13): Events / {Event title} / Microsite */}
+            {/* Breadcrumbs (B13). Tightened for the constrained column:
+                  - 2xl+ : "Events / Event title / Microsite"
+                  - lg-xl: "Event title / Microsite" (Events link dropped)
+                  - md   : just "Microsite" (event title in the back
+                            button's tooltip)
+                  - < md : nothing (just the autosave dot) */}
             <nav aria-label="Breadcrumb" className="hidden md:flex items-center gap-1.5 text-[12px] min-w-0">
               <Link
                 href="/admin/events"
-                className="text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] shrink-0"
+                className="hidden 2xl:inline text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] shrink-0"
               >
                 Events
               </Link>
-              <span className="text-[var(--bs-text-subtle,#9ca3af)]">/</span>
+              <span className="hidden 2xl:inline text-[var(--bs-text-subtle,#9ca3af)]">/</span>
               <Link
                 href={`/admin/events/${eventId}`}
-                className="text-[var(--bs-text,#1f2937)] font-semibold truncate max-w-[180px]"
+                className="hidden lg:inline text-[var(--bs-text,#1f2937)] font-semibold truncate max-w-[160px]"
                 title={eventTitle}
               >
                 {eventTitle}
               </Link>
-              <span className="text-[var(--bs-text-subtle,#9ca3af)]">/</span>
+              <span className="hidden lg:inline text-[var(--bs-text-subtle,#9ca3af)]">/</span>
               <span className="text-[var(--bs-text-muted,#6b7280)] shrink-0">Microsite</span>
             </nav>
-            {/* Compact title for < md */}
-            <span className="md:hidden text-sm font-semibold truncate text-[var(--bs-text,#1f2937)] min-w-0 max-w-[160px]">
-              {eventTitle}
-            </span>
             <AutosaveBadge status={status} />
           </div>
 
-          {/* CENTER — viewport icons + zoom. Hidden on < xl because at
-              lg the right group already fills the row. */}
-          <div className="hidden xl:flex shrink-0 items-center gap-1 px-2 py-1 rounded-md">
-            <ViewportButton
-              active={viewport === "desktop"}
-              onClick={() => setViewport("desktop")}
-              icon={<Monitor size={16} strokeWidth={1.5} />}
-              label="Desktop"
-            />
-            <ViewportButton
-              active={viewport === "tablet"}
-              onClick={() => setViewport("tablet")}
-              icon={<Tablet size={16} strokeWidth={1.5} />}
-              label="Tablet"
-            />
-            <ViewportButton
-              active={viewport === "mobile"}
-              onClick={() => setViewport("mobile")}
-              icon={<Smartphone size={16} strokeWidth={1.5} />}
-              label="Mobile"
-            />
-            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-1" />
-            <button
-              type="button"
-              onClick={zoomDown}
-              aria-label="Zoom out"
-              disabled={zoom <= 50}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-40"
-            >
-              <Minus size={14} strokeWidth={1.5} />
-            </button>
-            <span className="w-12 text-center text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] tabular-nums">
-              {zoom}%
-            </span>
-            <button
-              type="button"
-              onClick={zoomUp}
-              aria-label="Zoom in"
-              disabled={zoom >= 150}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-40"
-            >
-              <Plus size={14} strokeWidth={1.5} />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-0.5 shrink-0">
             <button
               type="button"
               onClick={handleRefreshData}
@@ -549,14 +507,13 @@ export function PuckEventBuilder({
               <button
                 type="button"
                 onClick={() => setDataMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
                 aria-expanded={dataMenuOpen}
                 aria-haspopup="menu"
+                aria-label="Event data"
                 title="Manage speakers, sessions, tickets, sponsors"
               >
                 <Database size={14} strokeWidth={1.5} />
-                <span className="hidden xl:inline">Event data</span>
-                <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform ${dataMenuOpen ? "rotate-180" : ""}`} />
               </button>
               {dataMenuOpen && (
                 <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-[var(--bs-border,#e5e7eb)] bg-white shadow-lg py-1 z-50">
@@ -572,21 +529,21 @@ export function PuckEventBuilder({
             <button
               type="button"
               onClick={() => setHistoryOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap"
-              title="Show publish history"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+              aria-label="Publish history"
+              title="Publish history"
             >
               <History size={14} strokeWidth={1.5} />
-              <span className="hidden 2xl:inline">History</span>
             </button>
             <button
               type="button"
               onClick={handleRevert}
               disabled={reverting}
-              className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap disabled:opacity-50"
-              title="Discard unpublished changes - revert draft to last published"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-50"
+              aria-label="Revert"
+              title="Discard unpublished changes — revert draft to last published"
             >
               {reverting ? <Loader2 size={14} className="animate-spin" /> : <Undo2 size={14} strokeWidth={1.5} />}
-              <span className="hidden 2xl:inline">Revert</span>
             </button>
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
             <PreviewMenu eventSlug={eventSlug} activePage={activePage} />
@@ -601,12 +558,22 @@ export function PuckEventBuilder({
                 ? "border border-[var(--bs-border,#e5e7eb)] bg-white text-[var(--bs-text,#1f2937)] cursor-default"
                 : "bg-[var(--bs-accent,#f0483e)] text-white hover:bg-[var(--bs-accent-hover,#d63d33)]"
 
+              const labelShort = isPublishing
+                ? "Publishing\u2026"
+                : justPublished
+                  ? "Published"
+                  : isDirty
+                    ? `Publish ${dirtyCount}`
+                    : "Published"
+              const labelFull = isDirty
+                ? `Publish ${dirtyCount} change${dirtyCount === 1 ? "" : "s"}`
+                : labelShort
               return (
                 <button
                   type="button"
                   onClick={handlePublish}
                   disabled={isPublishing || isClean}
-                  className={`relative inline-flex items-center gap-1.5 px-3 h-8 rounded-md text-[12px] font-semibold transition-colors disabled:opacity-80 whitespace-nowrap ${cls}`}
+                  className={`relative inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-semibold transition-colors disabled:opacity-80 whitespace-nowrap ${cls}`}
                   title={isClean ? "No unpublished changes" : "Publish all dirty pages"}
                 >
                   {isPublishing
@@ -614,13 +581,8 @@ export function PuckEventBuilder({
                     : justPublished
                       ? <Check size={14} strokeWidth={1.5} />
                       : <Globe size={14} strokeWidth={1.5} />}
-                  {isPublishing
-                    ? "Publishing\u2026"
-                    : justPublished
-                      ? "Published"
-                      : isDirty
-                        ? `Publish ${dirtyCount} change${dirtyCount === 1 ? "" : "s"}`
-                        : "Published"}
+                  <span className="2xl:hidden">{labelShort}</span>
+                  <span className="hidden 2xl:inline">{labelFull}</span>
                   {isDirty && (
                     <span
                       aria-hidden
@@ -855,6 +817,17 @@ export function PuckEventBuilder({
           >
             <Plus size={20} strokeWidth={2} />
           </button>
+
+          {/* Floating viewport + zoom pill (Figma-style). Sits at the
+              bottom-right of the canvas, never crowds the top bar. */}
+          <ViewportPill
+            viewport={viewport}
+            onViewport={setViewport}
+            zoom={zoom}
+            onZoomDown={zoomDown}
+            onZoomUp={zoomUp}
+          />
+
           <Puck
             key={puckKey}
             config={puckConfig}
@@ -1183,11 +1156,9 @@ function AutosaveBadge({ status }: { status: "idle" | "saving" | "saved" | "erro
 }
 
 /**
- * Three-state viewport icon button used in the centre group of Row 1.
+ * Three-state viewport icon button used inside ViewportPill below.
  * Active state mimics Zoho Backstage's lozenge — bg-white inside an
- * otherwise muted strip. Visual only; the canvas inside Puck doesn't
- * resize because Puck owns its own viewport switcher (we expose this in
- * the centre of the chrome to match Zoho's affordance).
+ * otherwise muted strip.
  */
 function ViewportButton({
   active, onClick, icon, label,
@@ -1204,14 +1175,76 @@ function ViewportButton({
       aria-pressed={active}
       title={label}
       aria-label={label}
-      className={`inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+      className={`inline-flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
         active
           ? "bg-white text-[var(--bs-text,#1f2937)] shadow-sm"
-          : "text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg,#ffffff)]"
+          : "text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-white"
       }`}
     >
       {icon}
     </button>
+  )
+}
+
+/**
+ * Floating viewport + zoom pill — Figma-style. Bottom-right of the
+ * canvas column, absolute-positioned. Stays out of the top bar so the
+ * top bar never cramps when rail+panel eat width.
+ */
+function ViewportPill({
+  viewport, onViewport, zoom, onZoomDown, onZoomUp,
+}: {
+  viewport: "desktop" | "tablet" | "mobile"
+  onViewport: (v: "desktop" | "tablet" | "mobile") => void
+  zoom: number
+  onZoomDown: () => void
+  onZoomUp: () => void
+}) {
+  return (
+    <div className="absolute bottom-4 right-4 z-30 pointer-events-none">
+      <div className="pointer-events-auto inline-flex items-center gap-1 bg-white border border-[var(--bs-border,#e5e7eb)] shadow-[var(--z-shadow-lg,0_8px_24px_rgba(15,23,42,0.10))] rounded-full px-1.5 py-1">
+        <ViewportButton
+          active={viewport === "desktop"}
+          onClick={() => onViewport("desktop")}
+          icon={<Monitor size={14} strokeWidth={1.5} />}
+          label="Desktop"
+        />
+        <ViewportButton
+          active={viewport === "tablet"}
+          onClick={() => onViewport("tablet")}
+          icon={<Tablet size={14} strokeWidth={1.5} />}
+          label="Tablet"
+        />
+        <ViewportButton
+          active={viewport === "mobile"}
+          onClick={() => onViewport("mobile")}
+          icon={<Smartphone size={14} strokeWidth={1.5} />}
+          label="Mobile"
+        />
+        <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-1" />
+        <button
+          type="button"
+          onClick={onZoomDown}
+          aria-label="Zoom out"
+          disabled={zoom <= 50}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-40"
+        >
+          <Minus size={12} strokeWidth={1.5} />
+        </button>
+        <span className="w-9 text-center text-[11px] font-medium text-[var(--bs-text-muted,#6b7280)] tabular-nums">
+          {zoom}%
+        </span>
+        <button
+          type="button"
+          onClick={onZoomUp}
+          aria-label="Zoom in"
+          disabled={zoom >= 150}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-40"
+        >
+          <Plus size={12} strokeWidth={1.5} />
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -1263,10 +1296,11 @@ function PreviewMenu({
         href={baseHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-l-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap"
+        className="inline-flex items-center justify-center w-8 h-8 rounded-l-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+        aria-label="Preview public page"
+        title="Preview public page"
       >
         <ExternalLink size={14} strokeWidth={1.5} />
-        <span className="hidden 2xl:inline">Preview</span>
       </Link>
       <button
         type="button"
@@ -1274,7 +1308,8 @@ function PreviewMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Preview options"
-        className="inline-flex items-center justify-center w-7 h-8 rounded-r-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+        title="More preview options"
+        className="inline-flex items-center justify-center w-6 h-8 rounded-r-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
       >
         <ChevronDown size={12} strokeWidth={1.5} />
       </button>

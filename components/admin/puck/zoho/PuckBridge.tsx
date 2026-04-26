@@ -20,6 +20,15 @@ import type { Data } from "@measured/puck"
 type DispatchFn = ReturnType<typeof usePuck>["dispatch"]
 type AppStateGetter = () => Data
 
+/**
+ * Puck's canonical root content zone — what their internal dispatch
+ * uses when the user drags a block into the top-level canvas. The
+ * combined `<rootAreaId>:<rootZone>` form is what Puck's `walk-tree`
+ * helpers expect; using just "default-zone" inserts into a phantom
+ * zone Puck never reads back.
+ */
+const ROOT_ZONE = "root:default-zone"
+
 /* Module-level ref so callers outside Puck can grab the latest. */
 const refs: { dispatch: DispatchFn | null; getState: AppStateGetter | null } = {
   dispatch: null,
@@ -60,12 +69,12 @@ export function insertBlockAtEnd(componentType: string): boolean {
   if (!dispatch || !data) return false
   const idx = Array.isArray(data.content) ? data.content.length : 0
   const id = `${componentType}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-  // The default zone for the root canvas in Puck v0.20 is "default-zone".
+  // The default zone for the root canvas in Puck v0.20 is ROOT_ZONE.
   dispatch({
     type: "insert",
     componentType,
     destinationIndex: idx,
-    destinationZone: "default-zone",
+    destinationZone: ROOT_ZONE,
     id,
   })
   return true
@@ -105,7 +114,7 @@ export function removeBlockById(id: string): boolean {
   dispatch({
     type: "remove",
     index: idx,
-    zone: "default-zone",
+    zone: ROOT_ZONE,
   })
   return true
 }
@@ -123,7 +132,7 @@ export function duplicateBlockById(id: string): boolean {
   dispatch({
     type: "duplicate",
     sourceIndex: idx,
-    sourceZone: "default-zone",
+    sourceZone: ROOT_ZONE,
   })
   return true
 }
@@ -142,7 +151,7 @@ export function moveBlockById(id: string, delta: -1 | 1): boolean {
     type: "reorder",
     sourceIndex: idx,
     destinationIndex: target,
-    destinationZone: "default-zone",
+    destinationZone: ROOT_ZONE,
   })
   return true
 }
