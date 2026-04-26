@@ -29,6 +29,7 @@ import { useRouter } from "next/navigation"
 import { Puck, type Data } from "@measured/puck"
 import "@measured/puck/puck.css"
 import "./builder-theme.css"
+import "@/components/admin/zoho-theme.css"
 import {
   ArrowLeft, ExternalLink, Loader2, Check, Globe, ChevronDown,
   Users, Ticket, ClipboardList, Building2, Settings, Database,
@@ -44,6 +45,15 @@ import { ConfirmDialog } from "./ConfirmDialog"
 import { SortablePageTabs } from "./SortablePageTabs"
 import { RevisionHistoryPanel } from "./RevisionHistoryPanel"
 import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal"
+import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
+import { SectionsPanel } from "./zoho/SectionsPanel"
+import { SpeakersManager } from "./zoho/SpeakersManager"
+import { SessionsManager } from "./zoho/SessionsManager"
+import { TicketsManager } from "./zoho/TicketsManager"
+import { SponsorsManager } from "./zoho/SponsorsManager"
+import { PagesPanel } from "./zoho/PagesPanel"
+import { ThemePanel } from "./zoho/ThemePanel"
+import { SettingsPanel } from "./zoho/SettingsPanel"
 import {
   saveBuilderDraft,
   saveBuilderPageDraft,
@@ -87,6 +97,10 @@ export function PuckEventBuilder({
   const [historyOpen, setHistoryOpen] = useState(false)
   const [reverting, setReverting] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  /** Zoho-style primary-rail state. Default to "sections" so the user
+   *  always lands on the block catalog. Setting to null collapses the
+   *  secondary panel entirely. */
+  const [activeRail, setActiveRail] = useState<RailKey | null>("sections")
   /* ── Viewport + zoom (visual chrome only — Puck owns its own iframe
    *    width; we apply a wrapper class so the canvas reflects the choice). */
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop")
@@ -701,22 +715,46 @@ export function PuckEventBuilder({
           }))
         }} />}
 
-      <div className="flex-1 min-h-0">
-        <Puck
-          key={puckKey}
-          config={puckConfig}
-          data={currentData}
-          metadata={metadata as unknown as Record<string, unknown>}
-          onChange={(d) => scheduleSave(d as Data)}
-          onPublish={handlePublish}
-          overrides={overrides}
-          iframe={{ enabled: true }}
-          viewports={[
-            { label: "Desktop", width: 1280, height: "auto" },
-            { label: "Tablet",  width: 768,  height: "auto" },
-            { label: "Mobile",  width: 390,  height: "auto" },
-          ]}
+      {/* ── Zoho Backstage chrome: rail | secondary panel | Puck canvas ──
+          The rail + active panel sit OUTSIDE Puck so they survive iframe
+          re-mounts. Puck's own left sidebar remains as a fallback for
+          drag-to-add — wiring the SectionsPanel tiles to Puck's dispatch
+          is filed for Phase 4 because it requires the usePuck() hook
+          which is only available inside Puck's tree. */}
+      <div className="lf-admin-shell flex-1 min-h-0 flex">
+        <PrimaryRail
+          active={(activeRail ?? "sections") as RailKey}
+          onChange={(key) => setActiveRail((cur) => (cur === key ? null : key))}
         />
+        {activeRail && (
+          <ActiveRailPanel
+            railKey={activeRail}
+            eventId={eventId}
+            metadata={metadata}
+            pages={pages}
+            activePage={activePage}
+            onClose={() => setActiveRail(null)}
+            onJumpPage={(target) => setActivePage(target)}
+            onAddPage={() => setPageDialog({ open: true, mode: "create" })}
+          />
+        )}
+        <div className="flex-1 min-w-0 min-h-0">
+          <Puck
+            key={puckKey}
+            config={puckConfig}
+            data={currentData}
+            metadata={metadata as unknown as Record<string, unknown>}
+            onChange={(d) => scheduleSave(d as Data)}
+            onPublish={handlePublish}
+            overrides={overrides}
+            iframe={{ enabled: true }}
+            viewports={[
+              { label: "Desktop", width: 1280, height: "auto" },
+              { label: "Tablet",  width: 768,  height: "auto" },
+              { label: "Mobile",  width: 390,  height: "auto" },
+            ]}
+          />
+        </div>
       </div>
 
       {/* Modals (replace window.prompt / confirm) */}
@@ -844,6 +882,87 @@ function DataLink({
       <ExternalLink size={10} className="text-gray-300" />
     </Link>
   )
+}
+
+/**
+ * ActiveRailPanel — dispatches to the right Zoho-style panel based on
+ * which rail key is active. Each panel is self-contained (manages its
+ * own search/edit state).
+ */
+function ActiveRailPanel({
+  railKey, eventId, metadata, pages, activePage, onClose, onJumpPage, onAddPage,
+}: {
+  railKey: RailKey
+  eventId: string
+  metadata: BuilderMetadata
+  pages: BuilderPagesMap
+  activePage: string
+  onClose: () => void
+  onJumpPage: (target: string) => void
+  onAddPage: () => void
+}) {
+  switch (railKey) {
+    case "sections":
+      return (
+        <SectionsPanel
+          onClose={onClose}
+          onAddBlock={() => {
+            // Phase 4: wire to Puck's usePuck() dispatch. For now the
+            // tile click is a UX-only signal — admin still uses Puck's
+            // native sidebar for drag-to-canvas adding.
+            window.dispatchEvent(new CustomEvent("builder:tile-clicked"))
+          }}
+        />
+      )
+    case "pages":
+      return (
+        <PagesPanel
+          pages={pages}
+          activePage={activePage}
+          onJump={onJumpPage}
+          onAdd={onAddPage}
+          onClose={onClose}
+        />
+      )
+    case "theme":
+      return <ThemePanel onClose={onClose} />
+    case "speakers":
+      return (
+        <SpeakersManager
+          eventId={eventId}
+          speakers={metadata.speakers}
+          onClose={onClose}
+        />
+      )
+    case "sessions":
+      return (
+        <SessionsManager
+          eventId={eventId}
+          sessions={metadata.sessions}
+          onClose={onClose}
+        />
+      )
+    case "tickets":
+      return (
+        <TicketsManager
+          eventId={eventId}
+          tickets={metadata.tickets}
+          onClose={onClose}
+        />
+      )
+    case "sponsors":
+      return (
+        <SponsorsManager
+          eventId={eventId}
+          sponsors={metadata.sponsors}
+          onClose={onClose}
+        />
+      )
+    case "settings":
+      return <SettingsPanel onClose={onClose} />
+    default:
+      return null
+  }
 }
 
 /**

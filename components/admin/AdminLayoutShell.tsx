@@ -9,6 +9,7 @@ import { Menu, Grid3x3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { workspaceForPath } from "@/lib/admin-domains"
 import type { ProfilePermissions } from "@/app/actions/profileActions"
+import "./zoho-theme.css"
 
 export function AdminLayoutShell({
   userEmail,
@@ -44,7 +45,7 @@ export function AdminLayoutShell({
 
   return (
     <AdminPermissionsProvider role={userRole} permissions={profilePermissions}>
-    <div className="flex min-h-screen admin-scrollbar relative">
+    <div className="lf-admin-shell flex min-h-screen admin-scrollbar relative">
       {/* Desktop sidebar — always visible on lg+ */}
       <div className="hidden lg:block shrink-0">
         <AdminSidebar

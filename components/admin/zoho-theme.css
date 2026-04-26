@@ -1,0 +1,243 @@
+/* ── Zoho Backstage admin chrome theme tokens ─────────────────────────
+ *
+ * Scoped to `.lf-admin-shell` so the public event-page brand
+ * (gold/navy/SF Pro via Puck Root) is unaffected. Only the admin
+ * console + builder chrome use these vars.
+ *
+ * Apply on:
+ *   - app/admin/(console)/layout.tsx outer
+ *   - components/admin/puck/PuckEventBuilder.tsx outer
+ */
+
+.lf-admin-shell {
+  /* Backgrounds */
+  --z-bg:           #ffffff;
+  --z-bg-alt:       #f7f8fa;
+  --z-bg-canvas:    #eef0f3;
+  --z-bg-rail:      #ffffff;
+  --z-bg-rail-active: #fff1f0;
+
+  /* Borders */
+  --z-border:        #e5e7eb;
+  --z-border-strong: #d1d5db;
+
+  /* Text */
+  --z-text:        #1f2937;
+  --z-text-muted:  #6b7280;
+  --z-text-subtle: #9ca3af;
+
+  /* Accent (Zoho red) */
+  --z-accent:       #f0483e;
+  --z-accent-hover: #d63d33;
+
+  /* Semantic */
+  --z-info:    #3e7af7;
+  --z-success: #10b981;
+  --z-warning: #f59e0b;
+  --z-danger:  #dc2626;
+
+  /* Radii */
+  --z-radius-sm: 4px;
+  --z-radius:    6px;
+  --z-radius-lg: 8px;
+
+  /* Shadows */
+  --z-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --z-shadow:    0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --z-shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.10);
+
+  /* Type */
+  --z-font: -apple-system, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-family: var(--z-font);
+  color: var(--z-text);
+}
+
+/* Common rail item */
+.lf-admin-shell .z-rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--z-radius);
+  color: var(--z-text-muted);
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.lf-admin-shell .z-rail-item:hover {
+  color: var(--z-text);
+  background: var(--z-bg-alt);
+}
+.lf-admin-shell .z-rail-item.is-active {
+  color: var(--z-accent);
+  background: var(--z-bg-rail-active);
+}
+.lf-admin-shell .z-rail-item.is-active::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: -7px;
+  width: 3px;
+  border-radius: 0 var(--z-radius-sm) var(--z-radius-sm) 0;
+  background: var(--z-accent);
+}
+
+/* Inputs uniform */
+.lf-admin-shell .z-input {
+  height: 32px;
+  border-radius: var(--z-radius-lg);
+  border: 1px solid var(--z-border);
+  background: var(--z-bg);
+  color: var(--z-text);
+  padding: 0 10px;
+  font-size: 13px;
+  width: 100%;
+}
+.lf-admin-shell .z-input:focus {
+  outline: 2px solid var(--z-info);
+  outline-offset: 0;
+  border-color: var(--z-info);
+}
+.lf-admin-shell textarea.z-input,
+.lf-admin-shell .z-textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+/* Primary button */
+.lf-admin-shell .z-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 32px;
+  border-radius: var(--z-radius-lg);
+  background: var(--z-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 120ms ease;
+}
+.lf-admin-shell .z-btn-primary:hover { background: var(--z-accent-hover); }
+.lf-admin-shell .z-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Subtle button */
+.lf-admin-shell .z-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  height: 32px;
+  border-radius: var(--z-radius-lg);
+  color: var(--z-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.lf-admin-shell .z-btn:hover {
+  color: var(--z-text);
+  background: var(--z-bg-alt);
+}
+.lf-admin-shell .z-btn-icon {
+  width: 32px;
+  padding: 0;
+}
+
+/* Secondary panel item */
+.lf-admin-shell .z-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  height: 32px;
+  border-radius: var(--z-radius);
+  font-size: 13px;
+  color: var(--z-text);
+  border-left: 2px solid transparent;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.lf-admin-shell .z-panel-item:hover { background: var(--z-bg); }
+.lf-admin-shell .z-panel-item.is-active {
+  background: var(--z-bg);
+  border-left-color: var(--z-accent);
+  font-weight: 600;
+}
+
+/* Empty state */
+.lf-admin-shell .z-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 24px;
+  color: var(--z-text-muted);
+}
+.lf-admin-shell .z-empty-icon { color: var(--z-text-subtle); margin-bottom: 12px; }
+.lf-admin-shell .z-empty-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--z-text);
+  margin-bottom: 4px;
+}
+.lf-admin-shell .z-empty-desc {
+  font-size: 12px;
+  margin-bottom: 14px;
+  max-width: 200px;
+}
+
+/* Save / publish status pill */
+.lf-admin-shell .z-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--z-bg-alt);
+  color: var(--z-text-muted);
+}
+.lf-admin-shell .z-pill .z-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--z-text-subtle);
+}
+.lf-admin-shell .z-pill.z-pill-saving .z-dot { background: var(--z-info); animation: z-pulse 1.4s ease-in-out infinite; }
+.lf-admin-shell .z-pill.z-pill-saved .z-dot  { background: var(--z-success); }
+.lf-admin-shell .z-pill.z-pill-error .z-dot  { background: var(--z-danger); }
+@keyframes z-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+/* Section selection in canvas */
+.lf-admin-shell .z-section-hover {
+  outline: 2px solid var(--z-info);
+  outline-offset: 2px;
+}
+.lf-admin-shell .z-section-selected {
+  outline: 2px solid var(--z-info);
+  outline-offset: 2px;
+}
+
+/* Drop zones */
+.lf-admin-shell .z-dropzone {
+  position: relative;
+  height: 8px;
+  transition: height 120ms ease;
+}
+.lf-admin-shell .z-dropzone--over {
+  height: 24px;
+  outline: 2px dashed var(--z-info);
+  outline-offset: 0;
+  background: rgba(62, 122, 247, 0.05);
+}
