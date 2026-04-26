@@ -665,14 +665,17 @@ export function PuckEventBuilder({
   }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleDuplicatePage, handleReorderPages, handleRefreshData, refreshing, scrollTabs, handleRevert, reverting])
 
   /* Puck overrides:
-   * - `header`: replace with our Zoho-style header.
+   * - `header`: render NOTHING. Our Zoho top bar + page-tab strip live
+   *   OUTSIDE Puck (above the rail/panel/canvas row) so they span the
+   *   full viewport width — never cramped by Puck's right inspector
+   *   eating column width.
    * - `components`: replace Puck's left block-palette with the PuckBridge
    *   (renders nothing; just registers Puck's `dispatch` so SectionsPanel
    *   can call `insertBlockAtEnd()` from outside Puck's tree). Our own
    *   Zoho SectionsPanel is what the admin sees.
    */
   const overrides = useMemo(() => ({
-    header: Header,
+    header: () => <></>,
     components: () => <PuckBridge />,
     /* C12 — per-section overflow menu (Duplicate / Move / Hide / Lock /
      * Save as template / Delete) appended to Puck's existing action bar. */
@@ -708,6 +711,14 @@ export function PuckEventBuilder({
           </button>
         </div>
       )}
+
+      {/* Top bar + page-tab strip — rendered OUTSIDE Puck so they span
+          the full viewport width (rail + panel + canvas + Puck right
+          inspector). Previously this was inside Puck via overrides.header
+          and only spanned the canvas column, which crammed all buttons
+          into ~900px and visually overlapped Puck's right-inspector
+          breadcrumb. */}
+      <Header />
 
       {/* C11 — first-time onboarding card. Shown when the home page is
           empty AND the editor hasn't been used yet (no sub-pages). */}
