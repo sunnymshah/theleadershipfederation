@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { createHmac, timingSafeEqual } from "crypto"
+import { fireWebhooks } from "@/lib/webhooks"
 
 /**
  * Razorpay Webhook Handler
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
       // Check if attendee exists for this order
       const { data: attendee } = await supabase
         .from("attendees")
-        .select("id, payment_status")
+        .select("id, payment_status, event_id, name, email, phone")
         .eq("razorpay_order_id", orderId)
         .single()
 
@@ -119,6 +120,19 @@ export async function POST(request: NextRequest) {
           console.log(
             `[razorpay-webhook] Updated attendee ${attendee.id} to paid`
           )
+
+          // Fire microsite registration.created webhooks (Phase 3.8).
+          if (attendee.event_id) {
+            void fireWebhooks(attendee.event_id as string, "registration.created", {
+              attendee_id: attendee.id,
+              event_id: attendee.event_id,
+              name: attendee.name ?? null,
+              email: attendee.email ?? null,
+              phone: attendee.phone ?? null,
+              payment_id: paymentId,
+              order_id: orderId,
+            })
+          }
         }
       } else {
         // Attendee record doesn't exist yet — the verify endpoint

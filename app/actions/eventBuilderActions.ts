@@ -260,6 +260,19 @@ export async function publishBuilderAtomic(
       for (const s of Object.keys(pagesPayload)) {
         try { revalidatePath(`/events/${row.slug as string}/p/${s}`) } catch { /* ignore */ }
       }
+      // Revalidate every visible standard-page slug too so the new
+      // content shows up across the whole microsite immediately.
+      try {
+        const { data: stdRows } = await admin
+          .from("event_standard_pages")
+          .select("slug, kind, visible")
+          .eq("event_id", eventId)
+        for (const r of (stdRows ?? []) as Array<{ slug: string; kind: string; visible: boolean }>) {
+          if (!r.visible || r.kind === "home") continue
+          try { revalidatePath(`/events/${row.slug as string}/${r.slug}`) } catch {}
+        }
+      } catch {}
+      try { revalidatePath(`/sitemap.xml`) } catch {}
     }
 
     // Fire-and-forget webhooks. Failures shouldn't roll back the publish

@@ -12,7 +12,11 @@ import { createClient } from "@/utils/supabase/server"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
 import { EventTopNav } from "@/components/site/event-pages/EventTopNav"
 import { EventStructuredData } from "@/components/site/event-pages/EventStructuredData"
+import { Breadcrumbs } from "@/components/site/event-pages/Breadcrumbs"
+import { ABExposureRecorder } from "@/components/site/event-pages/ABExposureRecorder"
 import type { StandardPageKind } from "@/lib/standard-pages"
+import { DEFAULT_PAGE_LABELS } from "@/lib/standard-pages"
+import { listActiveTestsForEvent, applyVariantOverrides } from "@/lib/ab-testing"
 import type { Data as PuckData } from "@measured/puck"
 
 type EventLite = {
@@ -30,13 +34,48 @@ export async function StandardPageRender({
   event,
   pageKind,
   data,
+  locale,
 }: {
   event: EventLite
   pageKind: StandardPageKind
   data: PuckData
+  /** Optional locale — when set, EventTopNav links rewrite to /[lang]. */
+  locale?: string
 }) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
+
+  // Resolve A/B tests scoped to this event + page kind. The server-side
+  // bucket pick uses a per-visitor cookie ("lf-vid") so SSR + client agree.
+  const visitorCookie = cookieStore.get("lf-vid")?.value
+  // Anonymous visitors with no cookie get a stable per-request id derived
+  // from the page key — same visitor always sees the same variant on a
+  // given page. The client-side ABExposureRecorder upgrades this to a
+  // long-lived localStorage id once it loads.
+  const visitorId =
+    visitorCookie && visitorCookie.length >= 8
+      ? visitorCookie
+      : `v_anon_${event.id}_${pageKind}`
+  const allTests = await listActiveTestsForEvent(event.id)
+  const tests = allTests.filter((t) => t.page_kind === pageKind)
+  const exposures: Array<{ test_id: string; variant: string }> = []
+  let renderedData = data
+  if (tests.length > 0 && Array.isArray(data.content)) {
+    const overridden = applyVariantOverrides(
+      data.content as Array<{ type: string; props: Record<string, unknown> }>,
+      visitorId,
+      tests,
+    )
+    for (const b of overridden) {
+      if ((b as { __ab?: { test_id: string; variant: string } }).__ab) {
+        exposures.push((b as { __ab: { test_id: string; variant: string } }).__ab)
+      }
+    }
+    // Strip the __ab annotation before handing to Puck (it's not a valid Puck prop).
+    const cleaned = overridden.map((b) => ({ type: b.type, props: b.props })) as PuckData["content"]
+    renderedData = { ...data, content: cleaned }
+  }
+
   const [speakersRes, sessionsRes, sponsorsRes, ticketsRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
@@ -54,7 +93,7 @@ export async function StandardPageRender({
 
   return (
     <>
-      <EventTopNav eventId={event.id} eventSlug={event.slug} currentKind={pageKind} />
+      <EventTopNav eventId={event.id} eventSlug={event.slug} currentKind={pageKind} locale={locale} />
       {pageKind === "home" ? (
         <EventStructuredData
           event={event}
@@ -62,9 +101,16 @@ export async function StandardPageRender({
           sponsors={sponsors as Array<Record<string, unknown>>}
           tickets={tickets as Array<Record<string, unknown>>}
         />
-      ) : null}
+      ) : (
+        <Breadcrumbs
+          eventSlug={event.slug}
+          eventTitle={event.title}
+          pageLabel={DEFAULT_PAGE_LABELS[pageKind]}
+        />
+      )}
+      {exposures.length > 0 && <ABExposureRecorder exposures={exposures} />}
       <PuckPublicRenderer
-        data={data}
+        data={renderedData}
         metadata={{
           event: {
             id: event.id,

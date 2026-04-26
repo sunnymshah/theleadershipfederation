@@ -126,6 +126,12 @@ export type LayoutProps = {
   textColor?: string             // hex or empty
   textAlign?: "left" | "center" | "right"
   fullBleed?: boolean
+  /** Advanced — set the section's HTML id (anchor link target). */
+  anchor?: string
+  /** Advanced — append a custom className to the SectionShell wrapper. */
+  cssClass?: string
+  /** Advanced — when true, renders pointer-events:none for non-admin viewers. */
+  locked?: boolean
 }
 
 const padY = {
@@ -174,9 +180,18 @@ function SectionShell({
   // textColor gets nuked by `text-white` on the section.
   const forcesWhite = hasBgImage && !l.textColor
 
+  // Advanced: anchor + cssClass + locked. Anchor renders as the section
+  // id so #anchor links scroll to it. cssClass appends to className.
+  // locked gates pointer-events for non-admin viewers (admin Puck editor
+  // overrides this via its own click-blocker so editing still works).
+  const anchorId = (l.anchor ?? "").trim() || undefined
+  const extraClass = (l.cssClass ?? "").trim()
+  const lockedClass = l.locked ? "pointer-events-none select-none" : ""
+
   return (
     <section
-      className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""}`.trim()}
+      id={anchorId}
+      className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""} ${extraClass} ${lockedClass}`.trim()}
       style={style}
     >
       {children}
@@ -2194,5 +2209,384 @@ function SectionPlaceholder({ label, dark }: { label: string; dark?: boolean }) 
     >
       {label}
     </section>
+  )
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * NEW BLOCKS (Phase 4 missing-five)
+ * ──────────────────────────────────────────────────────────────────── */
+
+/* ── EMBED HTML ──────────────────────────────────────────────────────
+ * Lets admins paste an iframe / script for Calendly, Typeform, YouTube,
+ * Vimeo etc. We sanitise by whitelisting iframe src hosts and stripping
+ * <script> tags. Anything that isn't an iframe at all is dropped.
+ */
+const ALLOWED_EMBED_HOSTS = [
+  "calendly.com", "typeform.com", "mailchimp.com", "docs.google.com",
+  "airtable.com", "eventbrite.com", "hopin.com", "on24.com",
+  "youtube.com", "youtube-nocookie.com", "vimeo.com", "loom.com",
+  "soundcloud.com", "spotify.com", "open.spotify.com",
+]
+
+function sanitiseEmbedHtml(input: string): { html: string; error: string | null } {
+  const trimmed = (input ?? "").trim()
+  if (!trimmed) return { html: "", error: null }
+  // Reject explicit script tags outright.
+  if (/<script/i.test(trimmed)) {
+    return { html: "", error: "Inline <script> is not allowed. Use an <iframe> from a trusted host." }
+  }
+  // Pull every iframe src and verify the host is whitelisted.
+  const iframeRegex = /<iframe[^>]*\bsrc=["']([^"']+)["'][^>]*>([\s\S]*?)<\/iframe>/gi
+  const matches: Array<{ full: string; src: string }> = []
+  let m: RegExpExecArray | null
+  while ((m = iframeRegex.exec(trimmed)) !== null) {
+    matches.push({ full: m[0], src: m[1] })
+  }
+  if (matches.length === 0) {
+    return { html: "", error: "No <iframe> found. Paste the embed code your tool gives you." }
+  }
+  for (const { src } of matches) {
+    let host = ""
+    try { host = new URL(src).hostname.toLowerCase() } catch { return { html: "", error: `Invalid iframe src: ${src}` } }
+    const ok = ALLOWED_EMBED_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))
+    if (!ok) {
+      return { html: "", error: `Host not allowed: ${host}. Allowed: ${ALLOWED_EMBED_HOSTS.join(", ")}.` }
+    }
+  }
+  return { html: trimmed, error: null }
+}
+
+export type EmbedHtmlProps = {
+  code: string
+  height?: number
+  layout?: LayoutProps
+}
+
+export function EmbedHtml({ code, height, layout }: EmbedHtmlProps) {
+  const { html, error } = sanitiseEmbedHtml(code)
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-4xl mx-auto px-6">
+        {error ? (
+          <SectionPlaceholder label={`Embed HTML — ${error}`} />
+        ) : !html ? (
+          <SectionPlaceholder label="Embed HTML — paste an iframe from Calendly, YouTube, etc." />
+        ) : (
+          <div
+            className="lf-embed"
+            style={{ minHeight: height ? `${height}px` : undefined }}
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        )}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────────────
+ * Minimal multi-column footer with copyright + optional logo + social
+ * links. Auto-mounted at the bottom of every standard-page default tree
+ * via lib/standard-page-defaults.ts.
+ */
+export type FooterProps = {
+  columns: 1 | 2 | 3 | 4
+  copyright: string
+  logoUrl?: string
+  showPoweredBy?: boolean
+  socialLinks?: Array<{ label: string; url: string }>
+  links?: Array<{ label: string; url: string; group?: string }>
+  layout?: LayoutProps
+}
+
+export function Footer({
+  columns = 3, copyright, logoUrl, showPoweredBy, socialLinks, links, layout,
+}: FooterProps) {
+  const grouped = new Map<string, Array<{ label: string; url: string }>>()
+  for (const l of links ?? []) {
+    const g = l.group?.trim() || "Links"
+    const arr = grouped.get(g) ?? []
+    arr.push({ label: l.label, url: l.url })
+    grouped.set(g, arr)
+  }
+  const cols = Math.max(1, Math.min(4, columns))
+  const gridCls = cols === 1 ? "grid-cols-1" : cols === 2 ? "grid-cols-1 md:grid-cols-2" : cols === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4"
+  return (
+    <SectionShell layout={{ ...(layout ?? {}), paddingY: layout?.paddingY ?? "md", backgroundColor: layout?.backgroundColor || "#0a0a14", textColor: layout?.textColor || "#ffffff" }} dark>
+      <div className="max-w-6xl mx-auto px-6">
+        <div className={`grid gap-8 ${gridCls}`}>
+          <div>
+            {logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={logoUrl} alt="" className="h-8 w-auto mb-3" />
+            ) : (
+              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/65 mb-3">
+                Powered by The Leadership Federation
+              </p>
+            )}
+            <p className="text-[12px] text-white/55 leading-relaxed">{copyright}</p>
+            {socialLinks && socialLinks.length > 0 && (
+              <ul className="mt-4 flex flex-wrap gap-3">
+                {socialLinks.map((s) => (
+                  <li key={s.url}>
+                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-white/65 hover:text-white">
+                      {s.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {[...grouped.entries()].map(([group, items]) => (
+            <div key={group}>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 mb-3">{group}</p>
+              <ul className="space-y-2">
+                {items.map((it) => (
+                  <li key={it.url}>
+                    <a href={it.url} className="text-[13px] text-white/75 hover:text-white">{it.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        {showPoweredBy && (
+          <p className="mt-8 pt-6 border-t border-white/10 text-[11px] text-white/45">
+            Powered by The Leadership Federation event platform.
+          </p>
+        )}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── SPEAKER BIO CARD ───────────────────────────────────────────────
+ * Single-speaker spotlight: large photo, name, role, long bio, social.
+ * Picks the speaker by id from puck.metadata.speakers.
+ */
+export type SpeakerBioCardProps = {
+  speakerId: string
+  side?: "left" | "right"
+  size?: "md" | "lg"
+  layout?: LayoutProps
+}
+
+export function SpeakerBioCard({
+  speakerId, side, size, layout,
+  puck,
+}: SpeakerBioCardProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const meta = (puck.metadata ?? {}) as { speakers?: Array<SpeakerShape & { bio?: string; linkedin_url?: string; twitter_url?: string }> }
+  const sp = (meta.speakers ?? []).find((s) => s.id === speakerId)
+  if (!sp) return <SectionPlaceholder label="Speaker bio — pick a speaker in the inspector" />
+  const imgSize = size === "lg" ? "w-56 h-56" : "w-40 h-40"
+  const order = side === "right" ? "md:flex-row-reverse" : "md:flex-row"
+  return (
+    <SectionShell layout={layout}>
+      <div className={`max-w-5xl mx-auto px-6 flex flex-col gap-8 items-center ${order}`}>
+        {sp.image_url ? (
+          <Image
+            src={sp.image_url}
+            alt={sp.name}
+            width={224}
+            height={224}
+            className={`${imgSize} rounded-2xl object-cover shrink-0 ring-1 ring-[#1a1a2e]/10`}
+          />
+        ) : (
+          <div className={`${imgSize} rounded-2xl bg-[#1a1a2e]/5 flex items-center justify-center shrink-0`}>
+            <User size={48} className="text-[#1a1a2e]/30" />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-2xl sm:text-3xl font-bold text-[#1a1a2e]" style={sfFont}>{sp.name}</h3>
+          {(sp.designation || sp.company) && (
+            <p className="text-[15px] text-[#1a1a2e]/70 mt-1">
+              {[sp.designation, sp.company].filter(Boolean).join(" · ")}
+            </p>
+          )}
+          {(sp as { bio?: string }).bio && (
+            <p className="mt-4 text-[14px] leading-relaxed text-[#1a1a2e]/75 whitespace-pre-line">
+              {(sp as { bio?: string }).bio}
+            </p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-3">
+            {(sp as { linkedin_url?: string }).linkedin_url && (
+              <a href={(sp as { linkedin_url?: string }).linkedin_url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#0a66c2] hover:underline">LinkedIn</a>
+            )}
+            {(sp as { twitter_url?: string }).twitter_url && (
+              <a href={(sp as { twitter_url?: string }).twitter_url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#1d9bf0] hover:underline">X</a>
+            )}
+          </div>
+        </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── SCHEDULE SUMMARY ────────────────────────────────────────────────
+ * Compact alternative to Agenda — three modes: table, timeline, compact.
+ * Reads sessions from puck.metadata.sessions, formats times in the
+ * event's timezone (settings.general.timezone) when provided via
+ * puck.metadata.timezone.
+ */
+export type ScheduleSummaryProps = {
+  title: string
+  mode: "table" | "timeline" | "compact"
+  showSpeakers: boolean
+  layout?: LayoutProps
+}
+
+export function ScheduleSummary({
+  title, mode, showSpeakers, layout,
+  puck,
+}: ScheduleSummaryProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const meta = (puck.metadata ?? {}) as { sessions?: SessionShape[]; timezone?: string }
+  const sessions = (meta.sessions ?? []).slice().sort((a, b) =>
+    new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+  )
+  const tz = meta.timezone ?? "Asia/Kolkata"
+  if (sessions.length === 0) {
+    return <SectionPlaceholder label="Schedule summary — no sessions yet for this event" />
+  }
+  function fmtTime(iso: string) {
+    return new Date(iso).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: tz })
+  }
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: tz })
+  }
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-4xl mx-auto px-6">
+        {title && <h2 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight" style={sfFont}>{title}</h2>}
+        {mode === "table" && (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left border-b border-[#1a1a2e]/10 text-[11px] uppercase tracking-wider text-[#1a1a2e]/55">
+                <th className="py-2 pr-3 font-medium">Date</th>
+                <th className="py-2 pr-3 font-medium">Time</th>
+                <th className="py-2 pr-3 font-medium">Session</th>
+                {showSpeakers && <th className="py-2 font-medium">Speakers</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {sessions.map((s) => (
+                <tr key={s.id} className="border-b border-[#1a1a2e]/[0.06]">
+                  <td className="py-2 pr-3 text-[#1a1a2e]/65 tabular-nums">{fmtDate(s.starts_at)}</td>
+                  <td className="py-2 pr-3 text-[#1a1a2e]/65 font-mono text-[12px] tabular-nums">{fmtTime(s.starts_at)}{s.ends_at ? `–${fmtTime(s.ends_at)}` : ""}</td>
+                  <td className="py-2 pr-3 font-semibold text-[#1a1a2e]">{s.title}</td>
+                  {showSpeakers && (
+                    <td className="py-2 text-[12px] text-[#1a1a2e]/65">{(s.speaker_names ?? []).join(", ")}</td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {mode === "compact" && (
+          <ul className="space-y-1.5">
+            {sessions.map((s) => (
+              <li key={s.id} className="flex items-baseline gap-3">
+                <span className="font-mono text-[12px] text-[#1a1a2e]/55 tabular-nums w-32 shrink-0">{fmtDate(s.starts_at)} · {fmtTime(s.starts_at)}</span>
+                <span className="text-[14px] text-[#1a1a2e]">{s.title}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {mode === "timeline" && (
+          <ol className="relative border-l border-[#e7ab1c]/30 pl-6 space-y-5">
+            {sessions.map((s) => (
+              <li key={s.id} className="relative">
+                <span className="absolute -left-[34px] top-1 w-3 h-3 rounded-full bg-[#e7ab1c]" />
+                <div className="font-mono text-[11px] text-[#1a1a2e]/55 tabular-nums uppercase tracking-wider">
+                  {fmtDate(s.starts_at)} · {fmtTime(s.starts_at)}
+                </div>
+                <div className="text-[15px] font-semibold text-[#1a1a2e] mt-0.5">{s.title}</div>
+                {showSpeakers && (s.speaker_names?.length ?? 0) > 0 && (
+                  <div className="text-[12px] text-[#1a1a2e]/55 mt-0.5">{(s.speaker_names ?? []).join(", ")}</div>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── CTA WITH IMAGE ─────────────────────────────────────────────────
+ * Two-column hero variant: image on one side, copy + dual CTA on the
+ * other. Highest-converting CTA pattern.
+ */
+export type CtaWithImageProps = {
+  image: string
+  imageAlt?: string
+  title: string
+  body: string
+  ctaLabel: string
+  ctaUrl: string
+  secondaryCtaLabel?: string
+  secondaryCtaUrl?: string
+  imageSide: "left" | "right"
+  imageStyle: "rounded" | "square" | "rounded-full"
+  layout?: LayoutProps
+}
+
+export function CtaWithImage({
+  image, imageAlt, title, body, ctaLabel, ctaUrl,
+  secondaryCtaLabel, secondaryCtaUrl,
+  imageSide, imageStyle, layout,
+  puck,
+}: CtaWithImageProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const meta = (puck.metadata ?? {}) as { event?: { slug: string } }
+  const eventSlug = meta.event?.slug ?? ""
+  const order = imageSide === "left" ? "md:flex-row" : "md:flex-row-reverse"
+  const radius = imageStyle === "rounded-full" ? "rounded-full" : imageStyle === "rounded" ? "rounded-2xl" : ""
+  return (
+    <SectionShell layout={layout}>
+      <div className={`max-w-6xl mx-auto px-6 flex flex-col gap-10 items-center ${order}`}>
+        <div className="flex-1 min-w-0">
+          {image ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={image} alt={imageAlt ?? ""} className={`w-full h-auto object-cover ${radius}`} />
+          ) : (
+            <div className={`w-full aspect-[4/3] bg-[#1a1a2e]/5 ${radius} flex items-center justify-center text-[#1a1a2e]/30 text-sm`}>
+              Add an image in the inspector
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1a1a2e] tracking-tight" style={sfFont}>{title}</h2>
+          {body && <p className="mt-4 text-[15px] text-[#1a1a2e]/70 leading-relaxed whitespace-pre-line">{body}</p>}
+          <div className="mt-6 flex flex-wrap gap-3">
+            {ctaLabel && ctaUrl && (() => {
+              const href = resolveUrl(ctaUrl, eventSlug)
+              const ext = urlIsExternal(ctaUrl)
+              return (
+                <Link
+                  href={href}
+                  target={ext ? "_blank" : undefined}
+                  rel={ext ? "noopener noreferrer" : undefined}
+                  className="inline-flex items-center px-6 h-11 rounded-md text-[13px] font-bold uppercase tracking-wider bg-[#e7ab1c] text-white hover:bg-[#d49c10]"
+                >
+                  {ctaLabel}
+                </Link>
+              )
+            })()}
+            {secondaryCtaLabel && secondaryCtaUrl && (() => {
+              const href = resolveUrl(secondaryCtaUrl, eventSlug)
+              const ext = urlIsExternal(secondaryCtaUrl)
+              return (
+                <Link
+                  href={href}
+                  target={ext ? "_blank" : undefined}
+                  rel={ext ? "noopener noreferrer" : undefined}
+                  className="inline-flex items-center px-6 h-11 rounded-md text-[13px] font-bold uppercase tracking-wider bg-transparent text-[#1a1a2e] border border-[#1a1a2e]/15 hover:bg-[#1a1a2e]/5"
+                >
+                  {secondaryCtaLabel}
+                </Link>
+              )
+            })()}
+          </div>
+        </div>
+      </div>
+    </SectionShell>
   )
 }

@@ -35,6 +35,7 @@ import {
   Carousel, TabsBlock, AccordionBlock, ImageHotspots, EventCardGrid,
   TicketsPricing,
   FormBlock,
+  EmbedHtml, Footer, SpeakerBioCard, ScheduleSummary, CtaWithImage,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -49,6 +50,8 @@ import {
   type ImageHotspotsProps, type EventCardGridProps,
   type TicketsPricingProps,
   type FormBlockProps,
+  type EmbedHtmlProps, type FooterProps, type SpeakerBioCardProps,
+  type ScheduleSummaryProps, type CtaWithImageProps,
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
@@ -86,6 +89,11 @@ export type BuilderComponents = {
   EventCardGrid: EventCardGridProps
   TicketsPricing: TicketsPricingProps
   FormBlock: FormBlockProps
+  EmbedHtml: EmbedHtmlProps
+  Footer: FooterProps
+  SpeakerBioCard: SpeakerBioCardProps
+  ScheduleSummary: ScheduleSummaryProps
+  CtaWithImage: CtaWithImageProps
 }
 
 /* ── Shared layout field ─────────────────────────────────────────────
@@ -132,6 +140,16 @@ const layoutField = {
         { label: "Right",  value: "right" },
       ],
     },
+    anchor: { type: "text", label: "Anchor (advanced — renders as id=, used for #links)" },
+    cssClass: { type: "text", label: "CSS class (advanced — appended to wrapper)" },
+    locked: {
+      type: "radio",
+      label: "Locked (read-only on public site)",
+      options: [
+        { label: "No",  value: false },
+        { label: "Yes", value: true },
+      ],
+    },
   },
 } as unknown as Field<LayoutProps | undefined>
 
@@ -142,15 +160,16 @@ export const puckConfig: Config<BuilderComponents> = {
     Headers:  { title: "Headers",         components: ["Hero", "Countdown", "Carousel"] },
     Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial", "TabsBlock", "AccordionBlock"] },
     Discovery:{ title: "Discovery",       components: ["EventCardGrid"] },
-    Speakers: { title: "Speakers",        components: ["SpeakersGrid"] },
-    Program:  { title: "Program",         components: ["Agenda"] },
+    Speakers: { title: "Speakers",        components: ["SpeakersGrid", "SpeakerBioCard"] },
+    Program:  { title: "Program",         components: ["Agenda", "ScheduleSummary"] },
     Tickets:  { title: "Tickets",         components: ["TicketsCta", "TicketsPricing"] },
     Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip"] },
     Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock", "ImageHotspots"] },
     Venue:    { title: "Venue",           components: ["VenueMap"] },
-    CTAs:     { title: "Call-to-actions", components: ["CtaButton", "FormBlock", "Newsletter", "StickyCta", "SocialBar"] },
+    CTAs:     { title: "Call-to-actions", components: ["CtaButton", "CtaWithImage", "FormBlock", "Newsletter", "StickyCta", "SocialBar"] },
     FAQs:     { title: "FAQs",            components: ["Faqs"] },
-    Layout:   { title: "Layout",          components: ["Spacer", "Divider"] },
+    Layout:   { title: "Layout",          components: ["Spacer", "Divider", "Footer"] },
+    Advanced: { title: "Advanced",        components: ["EmbedHtml"] },
   },
 
   components: {
@@ -1296,6 +1315,197 @@ export const puckConfig: Config<BuilderComponents> = {
         layout:   layoutField,
       },
       render: (p) => <Newsletter {...p} />,
+    },
+
+    /* ── EMBED HTML (Phase 4.4) ──────────────────────────────────── */
+    EmbedHtml: {
+      label: "Embed HTML",
+      defaultProps: { code: "", height: 400, layout: defaultLayout },
+      fields: {
+        code: { type: "textarea", label: "Embed code (paste an iframe from Calendly, YouTube, Vimeo, Typeform…)" },
+        height: { type: "number", label: "Min height (px)", min: 100, max: 2000 },
+        layout: layoutField,
+      },
+      render: (p) => <EmbedHtml {...p} />,
+    },
+
+    /* ── FOOTER (Phase 4.4) ──────────────────────────────────────── */
+    Footer: {
+      label: "Footer",
+      defaultProps: {
+        columns: 3,
+        copyright: "© The Leadership Federation. All rights reserved.",
+        logoUrl: "",
+        showPoweredBy: true,
+        socialLinks: [],
+        links: [],
+        layout: { ...defaultLayout, paddingY: "md" },
+      },
+      fields: {
+        columns: {
+          type: "radio",
+          label: "Columns",
+          options: [
+            { label: "1", value: 1 }, { label: "2", value: 2 },
+            { label: "3", value: 3 }, { label: "4", value: 4 },
+          ],
+        },
+        copyright: { type: "text", label: "Copyright line" },
+        logoUrl: {
+          type: "custom",
+          label: "Logo (optional)",
+          render: (p) => (
+            <ImageField
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+              folder="general"
+            />
+          ),
+        },
+        showPoweredBy: {
+          type: "radio", label: "Show 'powered by' line",
+          options: [{ label: "No", value: false }, { label: "Yes", value: true }],
+        },
+        socialLinks: {
+          type: "array",
+          label: "Social links",
+          arrayFields: {
+            label: { type: "text", label: "Label" },
+            url:   { type: "text", label: "URL" },
+          },
+          getItemSummary: (item: unknown) =>
+            (item as { label?: string })?.label || "Social link",
+        },
+        links: {
+          type: "array",
+          label: "Footer links",
+          arrayFields: {
+            label: { type: "text", label: "Label" },
+            url:   { type: "text", label: "URL" },
+            group: { type: "text", label: "Group (column heading)" },
+          },
+          getItemSummary: (item: unknown) =>
+            (item as { label?: string })?.label || "Link",
+        },
+        layout: layoutField,
+      },
+      render: (p) => <Footer {...p} />,
+    },
+
+    /* ── SPEAKER BIO CARD (Phase 4.4) ────────────────────────────── */
+    SpeakerBioCard: {
+      label: "Speaker spotlight",
+      defaultProps: { speakerId: "", side: "left", size: "lg", layout: defaultLayout },
+      fields: {
+        speakerId: { type: "text", label: "Speaker ID (UUID — copy from Admin → Speakers)" },
+        side: {
+          type: "radio", label: "Image side",
+          options: [{ label: "Left", value: "left" }, { label: "Right", value: "right" }],
+        },
+        size: {
+          type: "radio", label: "Image size",
+          options: [{ label: "Medium", value: "md" }, { label: "Large", value: "lg" }],
+        },
+        layout: layoutField,
+      },
+      render: (p) => <SpeakerBioCard {...p} />,
+    },
+
+    /* ── SCHEDULE SUMMARY (Phase 4.4) ────────────────────────────── */
+    ScheduleSummary: {
+      label: "Schedule summary",
+      defaultProps: { title: "Schedule", mode: "compact", showSpeakers: true, layout: defaultLayout },
+      fields: {
+        title: { type: "text", label: "Heading" },
+        mode: {
+          type: "radio", label: "Layout",
+          options: [
+            { label: "Compact list",   value: "compact" },
+            { label: "Table",          value: "table" },
+            { label: "Vertical timeline", value: "timeline" },
+          ],
+        },
+        showSpeakers: {
+          type: "radio", label: "Show speaker names",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        layout: layoutField,
+      },
+      render: (p) => <ScheduleSummary {...p} />,
+    },
+
+    /* ── CTA WITH IMAGE (Phase 4.4) ──────────────────────────────── */
+    CtaWithImage: {
+      label: "CTA + Image",
+      defaultProps: {
+        image: "",
+        imageAlt: "",
+        title: "Reserve your seat",
+        body: "Curated room. Limited capacity. Apply to attend.",
+        ctaLabel: "Apply now",
+        ctaUrl: "/tickets",
+        secondaryCtaLabel: "",
+        secondaryCtaUrl: "",
+        imageSide: "left",
+        imageStyle: "rounded",
+        layout: defaultLayout,
+      },
+      fields: {
+        image: {
+          type: "custom",
+          label: "Image",
+          render: (p) => (
+            <ImageField
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+              folder="sections"
+            />
+          ),
+        },
+        imageAlt: { type: "text", label: "Image alt text" },
+        title: { type: "text", label: "Title" },
+        body:  { type: "textarea", label: "Body" },
+        ctaLabel: { type: "text", label: "Primary CTA label" },
+        ctaUrl: {
+          type: "custom",
+          label: "Primary CTA link",
+          render: (p) => (
+            <UrlPicker
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+            />
+          ),
+        },
+        secondaryCtaLabel: { type: "text", label: "Secondary CTA label (optional)" },
+        secondaryCtaUrl: {
+          type: "custom",
+          label: "Secondary CTA link",
+          render: (p) => (
+            <UrlPicker
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+            />
+          ),
+        },
+        imageSide: {
+          type: "radio", label: "Image side",
+          options: [{ label: "Left", value: "left" }, { label: "Right", value: "right" }],
+        },
+        imageStyle: {
+          type: "radio", label: "Image style",
+          options: [
+            { label: "Rounded",  value: "rounded" },
+            { label: "Square",   value: "square" },
+            { label: "Circle",   value: "rounded-full" },
+          ],
+        },
+        layout: layoutField,
+      },
+      render: (p) => <CtaWithImage {...p} />,
     },
   },
 
