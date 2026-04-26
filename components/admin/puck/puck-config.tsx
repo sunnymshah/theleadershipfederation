@@ -425,6 +425,7 @@ export const puckConfig: Config<BuilderComponents> = {
         gridLayout: "grid-4",
         frame: "circle",
         fit: "contain",
+        linkToDetailPages: false,
         layout: defaultLayout,
       },
       fields: {
@@ -454,6 +455,14 @@ export const puckConfig: Config<BuilderComponents> = {
           options: [
             { label: "Contain (whole face)", value: "contain" },
             { label: "Cover (crop to fill)", value: "cover" },
+          ],
+        },
+        linkToDetailPages: {
+          type: "radio",
+          label: "Link to speaker detail pages",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
           ],
         },
         layout: layoutField,

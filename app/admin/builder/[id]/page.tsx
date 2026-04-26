@@ -128,12 +128,12 @@ export default async function FullscreenBuilderPage({
       .maybeSingle(),
     admin
       .from("speakers")
-      .select("id, name, designation, company, image_url")
+      .select("id, name, designation, company, image_url, slug")
       .eq("event_id", id)
       .order("sort_order", { ascending: true }),
     admin
       .from("sessions")
-      .select("id, title, start_time, end_time, track")
+      .select("id, title, start_time, end_time, track, slug")
       .eq("event_id", id)
       .order("start_time", { ascending: true }),
     admin
@@ -170,6 +170,7 @@ export default async function FullscreenBuilderPage({
       designation: (s.designation as string | null) ?? null,
       company: (s.company as string | null) ?? null,
       image_url: (s.image_url as string | null) ?? null,
+      slug: (s.slug as string | null) ?? null,
     })),
     sessions: (sessionsRes.data ?? []).map((s) => ({
       id: s.id as string,
@@ -178,6 +179,7 @@ export default async function FullscreenBuilderPage({
       ends_at: (s.end_time as string | null) ?? null,
       speaker_names: null,
       track: (s.track as string | null) ?? null,
+      slug: (s.slug as string | null) ?? null,
     })),
     sponsors: (sponsorsRes.data ?? []).map((s) => ({
       id: s.id as string,
