@@ -49,6 +49,7 @@ import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
 import { PuckBridge, insertBlockAtEnd } from "./zoho/PuckBridge"
 import { SectionActionBarOverflow } from "./zoho/SectionContextMenu"
+import { InspectorTabs, ZohoFieldLabel } from "./zoho/InspectorTabs"
 import { SpeakersManager } from "./zoho/SpeakersManager"
 import { SessionsManager } from "./zoho/SessionsManager"
 import { TicketsManager } from "./zoho/TicketsManager"
@@ -710,6 +711,14 @@ export function PuckEventBuilder({
     /* C12 — per-section overflow menu (Duplicate / Move / Hide / Lock /
      * Save as template / Delete) appended to Puck's existing action bar. */
     actionBar: SectionActionBarOverflow,
+    /* B3 — wrap the right-inspector field list with Settings/Style/
+     * Visibility/Advanced tabs. CSS scoped via [data-z-tab] toggles
+     * which fields are visible. Visibility + Advanced are stubbed until
+     * Phase 5 extends each block's field schema. */
+    fields: InspectorTabs,
+    /* B3 — fieldLabel override stamps a data-z-cat attribute on each
+     * field wrapper so InspectorTabs's CSS can filter by category. */
+    fieldLabel: ZohoFieldLabel,
   }), [Header])
 
   return (
