@@ -104,6 +104,10 @@ export function PuckEventBuilder({
    *  always lands on the block catalog. Setting to null collapses the
    *  secondary panel entirely. */
   const [activeRail, setActiveRail] = useState<RailKey | null>("sections")
+  /** B14 — at <lg the rail+panel collapse into a slide-over drawer
+   *  toggled by a floating button on the canvas. Tracks whether the
+   *  drawer is open. Has no effect at lg+. */
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   /* ── Viewport + zoom (visual chrome only — Puck owns its own iframe
    *    width; we apply a wrapper class so the canvas reflects the choice). */
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop")
@@ -758,17 +762,53 @@ export function PuckEventBuilder({
         }} />}
 
       {/* ── Zoho Backstage chrome: rail | secondary panel | Puck canvas ──
-          The rail + active panel sit OUTSIDE Puck so they survive iframe
-          re-mounts. Puck's own left sidebar remains as a fallback for
-          drag-to-add — wiring the SectionsPanel tiles to Puck's dispatch
-          is filed for Phase 4 because it requires the usePuck() hook
-          which is only available inside Puck's tree. */}
-      <div className="lf-admin-shell flex-1 min-h-0 flex">
-        <PrimaryRail
-          active={(activeRail ?? "sections") as RailKey}
-          onChange={(key) => setActiveRail((cur) => (cur === key ? null : key))}
-        />
+          At lg+ the rail + active panel render inline. At <lg they
+          collapse into a slide-over drawer toggled by a floating button
+          (B14 responsive behaviour). Puck's own left sidebar is hidden
+          via overrides.components in either case. */}
+      <div className="lf-admin-shell flex-1 min-h-0 flex relative">
+        {/* Desktop rail (≥ lg) */}
+        <div className="hidden lg:flex">
+          <PrimaryRail
+            active={(activeRail ?? "sections") as RailKey}
+            onChange={(key) => setActiveRail((cur) => (cur === key ? null : key))}
+          />
+        </div>
+        {/* Mobile slide-over (< lg) */}
+        {mobileNavOpen && (
+          <div className="lg:hidden fixed inset-0 z-[60] flex">
+            <div
+              className="absolute inset-0 bg-[#1a1a2e]/40 backdrop-blur-sm"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            <div className="relative flex h-full max-w-[calc(100vw-3rem)] shadow-2xl bg-white animate-in fade-in">
+              <PrimaryRail
+                active={(activeRail ?? "sections") as RailKey}
+                onChange={(key) => setActiveRail((cur) => (cur === key ? null : key))}
+              />
+              {activeRail && (
+                <div className="border-r border-[var(--bs-border,#e5e7eb)]">
+                  <ActiveRailPanel
+                    railKey={activeRail}
+                    eventId={eventId}
+                    metadata={metadata}
+                    pages={pages}
+                    activePage={activePage}
+                    onClose={() => setMobileNavOpen(false)}
+                    onJumpPage={(target) => { setActivePage(target); setMobileNavOpen(false) }}
+                    onAddPage={() => { setPageDialog({ open: true, mode: "create" }); setMobileNavOpen(false) }}
+                    onRenamePage={(slug, nextTitle) => handleRenamePage(slug)}
+                    onDuplicatePage={handleDuplicatePage}
+                    onDeletePage={handleDeletePage}
+                    onReorderPages={handleReorderPages}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {activeRail && (
+          <div className="hidden lg:block">
           <ActiveRailPanel
             railKey={activeRail}
             eventId={eventId}
@@ -803,8 +843,18 @@ export function PuckEventBuilder({
             onDeletePage={handleDeletePage}
             onReorderPages={handleReorderPages}
           />
+          </div>
         )}
-        <div className="flex-1 min-w-0 min-h-0">
+        <div className="flex-1 min-w-0 min-h-0 relative">
+          {/* Mobile open-panels button — shown only < lg */}
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open builder navigation"
+            className="lg:hidden fixed bottom-4 left-4 z-40 inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--bs-accent,#f0483e)] text-white shadow-[var(--z-shadow-lg,0_8px_24px_rgba(15,23,42,0.10))] hover:brightness-110"
+          >
+            <Plus size={20} strokeWidth={2} />
+          </button>
           <Puck
             key={puckKey}
             config={puckConfig}
