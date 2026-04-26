@@ -426,11 +426,13 @@ export function PuckEventBuilder({
     const pageList = sortPages(pages)
     return (
       <div className="flex flex-col shrink-0 bg-white border-b border-[var(--bs-border,#e5e7eb)]">
-        {/* Row 1 — three-group layout: LEFT (flex-1 min-w-0) | CENTER
-            (absolute, true-centred) | RIGHT (shrink-0). The centre group
-            is positioned, not flex-laid, so it never overlaps either side. */}
-        <div className="relative h-14 w-full flex items-center px-4">
-          <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+        {/* Row 1 — single flex flow: LEFT (flex-1 min-w-0, truncates) +
+            CENTER (shrink-0, hidden below xl) + RIGHT (shrink-0). Each
+            group stays in its own flex slot so they can never overlap.
+            Previously CENTER was absolute-positioned, which let the
+            viewport icons collide with right-group buttons at lg/xl. */}
+        <div className="h-14 w-full flex items-center gap-3 px-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <Link
               href="/admin/builder"
               aria-label="Back to Page Builder hub"
@@ -440,14 +442,15 @@ export function PuckEventBuilder({
               <ArrowLeft size={16} strokeWidth={1.5} />
             </Link>
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] shrink-0" />
-            <span className="text-sm font-semibold truncate text-[var(--bs-text,#1f2937)] min-w-0 max-w-[280px]">
+            <span className="text-sm font-semibold truncate text-[var(--bs-text,#1f2937)] min-w-0 max-w-[200px]">
               {eventTitle}
             </span>
             <AutosaveBadge status={status} />
           </div>
 
-          {/* CENTER — viewport icons + zoom (hidden on < lg) */}
-          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 px-2 py-1 rounded-md">
+          {/* CENTER — viewport icons + zoom. Hidden on < xl because at
+              lg the right group already fills the row. */}
+          <div className="hidden xl:flex shrink-0 items-center gap-1 px-2 py-1 rounded-md">
             <ViewportButton
               active={viewport === "desktop"}
               onClick={() => setViewport("desktop")}
@@ -490,7 +493,7 @@ export function PuckEventBuilder({
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={handleRefreshData}
@@ -511,7 +514,7 @@ export function PuckEventBuilder({
                 title="Manage speakers, sessions, tickets, sponsors"
               >
                 <Database size={14} strokeWidth={1.5} />
-                <span className="hidden md:inline">Event data</span>
+                <span className="hidden xl:inline">Event data</span>
                 <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform ${dataMenuOpen ? "rotate-180" : ""}`} />
               </button>
               {dataMenuOpen && (
@@ -532,7 +535,7 @@ export function PuckEventBuilder({
               title="Show publish history"
             >
               <History size={14} strokeWidth={1.5} />
-              <span className="hidden lg:inline">History</span>
+              <span className="hidden 2xl:inline">History</span>
             </button>
             <button
               type="button"
@@ -542,7 +545,7 @@ export function PuckEventBuilder({
               title="Discard unpublished changes - revert draft to last published"
             >
               {reverting ? <Loader2 size={14} className="animate-spin" /> : <Undo2 size={14} strokeWidth={1.5} />}
-              <span className="hidden lg:inline">Revert</span>
+              <span className="hidden 2xl:inline">Revert</span>
             </button>
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
             <PreviewMenu eventSlug={eventSlug} activePage={activePage} />
@@ -1010,10 +1013,10 @@ function PreviewMenu({
         href={baseHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-l-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap border-y border-l border-transparent"
+        className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-l-md text-[12px] font-medium text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] whitespace-nowrap"
       >
         <ExternalLink size={14} strokeWidth={1.5} />
-        <span className="hidden lg:inline">Preview</span>
+        <span className="hidden 2xl:inline">Preview</span>
       </Link>
       <button
         type="button"
