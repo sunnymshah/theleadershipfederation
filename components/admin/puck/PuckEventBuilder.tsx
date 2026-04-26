@@ -48,6 +48,7 @@ import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal"
 import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
 import { PuckBridge, insertBlockAtEnd } from "./zoho/PuckBridge"
+import { SectionActionBarOverflow } from "./zoho/SectionContextMenu"
 import { SpeakersManager } from "./zoho/SpeakersManager"
 import { SessionsManager } from "./zoho/SessionsManager"
 import { TicketsManager } from "./zoho/TicketsManager"
@@ -706,6 +707,9 @@ export function PuckEventBuilder({
   const overrides = useMemo(() => ({
     header: Header,
     components: () => <PuckBridge />,
+    /* C12 — per-section overflow menu (Duplicate / Move / Hide / Lock /
+     * Save as template / Delete) appended to Puck's existing action bar. */
+    actionBar: SectionActionBarOverflow,
   }), [Header])
 
   return (
