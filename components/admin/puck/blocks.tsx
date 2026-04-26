@@ -50,8 +50,25 @@ export type EventShape = {
   description: string | null
   cover_image_url: string | null
 }
-export type SpeakerShape = { id: string; name: string; designation: string | null; company: string | null; image_url: string | null }
-export type SessionShape = { id: string; title: string; starts_at: string; ends_at: string | null; speaker_names: string[] | null; track: string | null }
+export type SpeakerShape = {
+  id: string
+  name: string
+  designation: string | null
+  company: string | null
+  image_url: string | null
+  /** Optional URL slug — when set, SpeakersGrid + Agenda can link to a detail page (B18). */
+  slug?: string | null
+}
+export type SessionShape = {
+  id: string
+  title: string
+  starts_at: string
+  ends_at: string | null
+  speaker_names: string[] | null
+  track: string | null
+  /** Optional slug for Agenda's linkToDetailPages (B19). */
+  slug?: string | null
+}
 export type SponsorShape = { id: string; name: string; logo_url: string | null; tier: string | null; website: string | null }
 export type TicketShape  = {
   id: string
@@ -568,13 +585,23 @@ export type SpeakersGridProps = {
   gridLayout: "grid-4" | "grid-3" | "row"
   frame: "circle" | "rounded" | "square"
   fit: "contain" | "cover"
+  /** Wrap each speaker card in a link to /events/<slug>/speakers/<speakerSlug>. */
+  linkToDetailPages?: boolean
 }
 
 export function SpeakersGrid({
-  title, subtitle, layout, gridLayout, frame, fit,
+  title, subtitle, layout, gridLayout, frame, fit, linkToDetailPages,
   puck,
 }: SpeakersGridProps & { puck: { metadata?: Record<string, unknown> } }) {
-  const { speakers } = getMeta(puck)
+  const { speakers, event } = getMeta(puck)
+  function wrap(sp: SpeakerShape, child: React.ReactNode): React.ReactNode {
+    if (!linkToDetailPages || !sp.slug) return child
+    return (
+      <Link href={`/events/${event.slug}/speakers/${sp.slug}`} className="block hover:opacity-90 transition-opacity">
+        {child}
+      </Link>
+    )
+  }
   if (speakers.length === 0) return <SectionPlaceholder label="Speakers grid (empty — add speakers to this event)" />
 
   const gridCls =
@@ -601,18 +628,22 @@ export function SpeakersGrid({
           <div className={gridCls}>
             {speakers.map((sp) => (
               <div key={sp.id} className="group flex flex-col items-center text-center">
-                <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-[#F4F8FF] border-4 border-white shadow-[0_8px_24px_rgba(26,26,46,0.12)]">
-                  {sp.image_url ? (
-                    <Image src={sp.image_url} alt={sp.name} fill className={fitCls} sizes="160px" />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <User size={56} className="text-[#1a1a2e]/20" />
+                {wrap(sp, (
+                  <>
+                    <div className="relative w-36 h-36 sm:w-40 sm:h-40 mx-auto rounded-full overflow-hidden bg-[#F4F8FF] border-4 border-white shadow-[0_8px_24px_rgba(26,26,46,0.12)]">
+                      {sp.image_url ? (
+                        <Image src={sp.image_url} alt={sp.name} fill className={fitCls} sizes="160px" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <User size={56} className="text-[#1a1a2e]/20" />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <h3 className="mt-4 text-sm font-bold leading-snug max-w-[180px]" style={sfFont}>{sp.name}</h3>
-                {sp.designation && <p className="text-xs opacity-70 mt-1 max-w-[180px]">{sp.designation}</p>}
-                {sp.company && <p className="text-[11px] font-semibold mt-0.5 max-w-[180px] truncate" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{sp.company}</p>}
+                    <h3 className="mt-4 text-sm font-bold leading-snug max-w-[180px]" style={sfFont}>{sp.name}</h3>
+                    {sp.designation && <p className="text-xs opacity-70 mt-1 max-w-[180px]">{sp.designation}</p>}
+                    {sp.company && <p className="text-[11px] font-semibold mt-0.5 max-w-[180px] truncate" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{sp.company}</p>}
+                  </>
+                ))}
               </div>
             ))}
           </div>
@@ -621,21 +652,25 @@ export function SpeakersGrid({
             {speakers.map((sp) => {
               const radius = frame === "square" ? "rounded-none" : "rounded-2xl"
               return (
-                <div key={sp.id} className={`bg-white border border-[#1a1a2e]/[0.06] overflow-hidden shadow-sm ${radius}`}>
-                  <div className="relative aspect-[4/5] bg-[#F4F8FF]">
-                    {sp.image_url ? (
-                      <Image src={sp.image_url} alt={sp.name} fill className={fitCls} sizes="(max-width: 640px) 50vw, 25vw" />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <User size={48} className="text-[#1a1a2e]/15" />
+                <div key={sp.id}>
+                  {wrap(sp, (
+                    <div className={`bg-white border border-[#1a1a2e]/[0.06] overflow-hidden shadow-sm ${radius}`}>
+                      <div className="relative aspect-[4/5] bg-[#F4F8FF]">
+                        {sp.image_url ? (
+                          <Image src={sp.image_url} alt={sp.name} fill className={fitCls} sizes="(max-width: 640px) 50vw, 25vw" />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <User size={48} className="text-[#1a1a2e]/15" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-sm font-bold text-[#1a1a2e] leading-snug truncate" style={sfFont}>{sp.name}</h3>
-                    {sp.designation && <p className="text-xs text-[#1a1a2e]/70 mt-0.5 truncate">{sp.designation}</p>}
-                    {sp.company && <p className="text-[11px] font-semibold mt-0.5 truncate" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{sp.company}</p>}
-                  </div>
+                      <div className="p-4">
+                        <h3 className="text-sm font-bold text-[#1a1a2e] leading-snug truncate" style={sfFont}>{sp.name}</h3>
+                        {sp.designation && <p className="text-xs text-[#1a1a2e]/70 mt-0.5 truncate">{sp.designation}</p>}
+                        {sp.company && <p className="text-[11px] font-semibold mt-0.5 truncate" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{sp.company}</p>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )
             })}

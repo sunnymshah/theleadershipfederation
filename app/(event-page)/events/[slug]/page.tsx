@@ -221,6 +221,7 @@ export default async function EventDetailPage({ params }: Props) {
             designation: s.designation ?? null,
             company: s.company ?? null,
             image_url: s.image_url ?? null,
+            slug: s.slug ?? null,
           })),
           sessions: sessions.map((s) => ({
             id: s.id,
@@ -229,7 +230,8 @@ export default async function EventDetailPage({ params }: Props) {
             ends_at: s.end_time ?? null,
             speaker_names: null,
             track: s.track ?? null,
-          })),
+          slug: s.slug ?? null,
+        })),
           sponsors: sponsors.map((s) => ({
             id: s.id,
             name: s.name,
