@@ -9,27 +9,52 @@
  *   - Uppercase tab labels, primary-color underline on active page
  *   - REGISTER NOW + SIGN IN pinned to the right with a separator
  *   - Mobile: hamburger collapses everything but Register
- *
- * Replaces the older `EventPageNav.tsx` (which only listed builder_pages
- * sub-pages). That component is preserved for back-compat with /p/<slug>.
+ *   - Optional language switcher when event.locales.length > 1
  */
 
 import Link from "next/link"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { listVisibleStandardPagesPublic } from "@/app/actions/standardPageActions"
 import { publicPageHref, RAIL_PAGE_KINDS, type StandardPageKind } from "@/lib/standard-pages"
 import { EventTopNavMobile } from "./EventTopNavMobile"
+import { LanguageSwitcher } from "./LanguageSwitcher"
+
+function withLocale(href: string, locale?: string): string {
+  if (!locale) return href
+  if (href.startsWith("/admin")) return href
+  if (href === "/") return `/${locale}`
+  return `/${locale}${href}`
+}
 
 export async function EventTopNav({
   eventId,
   eventSlug,
   currentKind = "home",
+  locale,
 }: {
   eventId: string
   eventSlug: string
   currentKind?: StandardPageKind
+  locale?: string
 }) {
   const pages = await listVisibleStandardPagesPublic(eventId)
   if (pages.length === 0) return null
+
+  // Pull event locales for the switcher (best-effort, anon-safe).
+  let locales: string[] = []
+  let defaultLocale = "en"
+  try {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from("events")
+      .select("locales, default_locale")
+      .eq("id", eventId)
+      .maybeSingle()
+    if (data) {
+      locales = ((data.locales as string[] | null) ?? []).filter(Boolean)
+      defaultLocale = (data.default_locale as string) ?? "en"
+    }
+  } catch {}
 
   const main = pages.filter((p) => !RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
   const rail = pages.filter((p) => RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
@@ -37,15 +62,17 @@ export async function EventTopNav({
   const items = main.map((p) => ({
     kind: p.kind as StandardPageKind,
     label: p.label,
-    href: publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }),
+    href: withLocale(publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }), locale),
     active: p.kind === currentKind,
   }))
   const railItems = rail.map((p) => ({
     kind: p.kind as StandardPageKind,
     label: p.label,
-    href: publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }),
+    href: withLocale(publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }), locale),
     active: p.kind === currentKind,
   }))
+
+  const showLangSwitcher = locales.length > 1
 
   return (
     <nav
@@ -72,30 +99,36 @@ export async function EventTopNav({
           ))}
         </ul>
 
-        {/* Desktop pinned-right slot (Register + Sign In) */}
-        {railItems.length > 0 && (
-          <div className="hidden md:flex items-center gap-3 shrink-0 pl-4 border-l border-[#1a1a2e]/[0.08]">
-            {railItems.map((it) =>
-              it.kind === "register" ? (
-                <Link
-                  key={it.kind}
-                  href={it.href}
-                  className="inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] bg-[var(--lf-primary,#e7ab1c)] text-white hover:bg-[#d49c10] transition-colors"
-                >
-                  {it.label}
-                </Link>
-              ) : (
-                <Link
-                  key={it.kind}
-                  href={it.href}
-                  className="text-[12px] font-bold uppercase tracking-[0.05em] text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
-                >
-                  {it.label}
-                </Link>
-              )
-            )}
-          </div>
-        )}
+        {/* Desktop pinned-right slot (Register + Sign In + lang switcher) */}
+        <div className="hidden md:flex items-center gap-3 shrink-0 pl-4 border-l border-[#1a1a2e]/[0.08]">
+          {showLangSwitcher && (
+            <LanguageSwitcher
+              eventSlug={eventSlug}
+              currentLocale={locale ?? defaultLocale}
+              available={locales}
+            />
+          )}
+          {railItems.map((it) =>
+            it.kind === "register" ? (
+              <Link
+                key={it.kind}
+                href={it.href}
+                data-ab-convert
+                className="inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] bg-[var(--lf-primary,#e7ab1c)] text-white hover:bg-[#d49c10] transition-colors"
+              >
+                {it.label}
+              </Link>
+            ) : (
+              <Link
+                key={it.kind}
+                href={it.href}
+                className="text-[12px] font-bold uppercase tracking-[0.05em] text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
+              >
+                {it.label}
+              </Link>
+            )
+          )}
+        </div>
 
         {/* Mobile menu */}
         <div className="md:hidden flex-1">

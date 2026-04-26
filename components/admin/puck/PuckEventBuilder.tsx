@@ -56,6 +56,10 @@ import { SessionsManager } from "./zoho/SessionsManager"
 import { TicketsManager } from "./zoho/TicketsManager"
 import { SponsorsManager } from "./zoho/SponsorsManager"
 import { PagesPanel } from "./zoho/PagesPanel"
+import { StandardPagesPanel } from "./zoho/StandardPagesPanel"
+import { LanguagesPanel } from "./zoho/LanguagesPanel"
+import { IntegrationsPanel } from "./zoho/IntegrationsPanel"
+import { CommentsPanel } from "./zoho/CommentsPanel"
 import { ThemePanel } from "./zoho/ThemePanel"
 import { SettingsPanel } from "./zoho/SettingsPanel"
 import {
@@ -1074,6 +1078,21 @@ function ActiveRailPanel({
           onClose={onClose}
         />
       )
+    case "stdpages":
+      return (
+        <StandardPagesPanel
+          eventId={eventId}
+          activeKind="home"
+          onJump={() => { /* editor switching for std pages is Part 2 */ }}
+          onClose={onClose}
+        />
+      )
+    case "languages":
+      return <LanguagesPanel eventId={eventId} onClose={onClose} />
+    case "integrations":
+      return <IntegrationsPanel eventId={eventId} onClose={onClose} />
+    case "comments":
+      return <CommentsPanel eventId={eventId} onClose={onClose} />
     case "settings":
       return <SettingsPanel eventId={eventId} onClose={onClose} />
     default:

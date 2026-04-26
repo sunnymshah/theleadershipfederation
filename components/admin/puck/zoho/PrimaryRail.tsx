@@ -14,12 +14,17 @@
 import { type ReactNode } from "react"
 import {
   Layout, FileText, Palette, Mic2, Clock, Ticket, Building2, Settings,
+  FolderTree, Globe, Puzzle, MessageSquare,
 } from "lucide-react"
 
 export type RailKey =
   | "sections"
   | "pages"
+  | "stdpages"
   | "theme"
+  | "languages"
+  | "integrations"
+  | "comments"
   | "speakers"
   | "sessions"
   | "tickets"
@@ -27,13 +32,17 @@ export type RailKey =
   | "settings"
 
 const PRIMARY_ITEMS: Array<{ key: RailKey; label: string; Icon: typeof Layout }> = [
-  { key: "sections", label: "Sections", Icon: Layout },
-  { key: "pages",    label: "Pages",    Icon: FileText },
-  { key: "theme",    label: "Theme",    Icon: Palette },
-  { key: "speakers", label: "Speakers", Icon: Mic2 },
-  { key: "sessions", label: "Sessions", Icon: Clock },
-  { key: "tickets",  label: "Tickets",  Icon: Ticket },
-  { key: "sponsors", label: "Sponsors", Icon: Building2 },
+  { key: "sections",     label: "Sections",     Icon: Layout },
+  { key: "stdpages",     label: "Pages",        Icon: FolderTree },
+  { key: "theme",        label: "Theme",        Icon: Palette },
+  { key: "languages",    label: "Languages",    Icon: Globe },
+  { key: "integrations", label: "Integrations", Icon: Puzzle },
+  { key: "comments",     label: "Comments",     Icon: MessageSquare },
+  { key: "pages",        label: "Sub-pages",    Icon: FileText },
+  { key: "speakers",     label: "Speakers",     Icon: Mic2 },
+  { key: "sessions",     label: "Sessions",     Icon: Clock },
+  { key: "tickets",      label: "Tickets",      Icon: Ticket },
+  { key: "sponsors",     label: "Sponsors",     Icon: Building2 },
 ]
 
 export function PrimaryRail({
