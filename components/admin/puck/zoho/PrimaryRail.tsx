@@ -31,18 +31,19 @@ export type RailKey =
   | "sponsors"
   | "settings"
 
+// Zoho-parity rail: exactly 5 primary items + Settings bottom-anchored.
+// The legacy items (Sections / Sub-pages / Speakers / Sessions / Tickets /
+// Sponsors) are still wired in ActiveRailPanel so deep-linking + existing
+// flows continue to work, but they're no longer surfaced in the rail.
+// Section-add is reachable via a "+ Add section" button that opens the
+// Sections palette; speaker/session/ticket/sponsor managers live in the
+// event admin pages (kebab menu in the top bar links there).
 const PRIMARY_ITEMS: Array<{ key: RailKey; label: string; Icon: typeof Layout }> = [
-  { key: "sections",     label: "Sections",     Icon: Layout },
+  { key: "theme",        label: "Themes",       Icon: Palette },
   { key: "stdpages",     label: "Pages",        Icon: FolderTree },
-  { key: "theme",        label: "Theme",        Icon: Palette },
   { key: "languages",    label: "Languages",    Icon: Globe },
   { key: "integrations", label: "Integrations", Icon: Puzzle },
   { key: "comments",     label: "Comments",     Icon: MessageSquare },
-  { key: "pages",        label: "Sub-pages",    Icon: FileText },
-  { key: "speakers",     label: "Speakers",     Icon: Mic2 },
-  { key: "sessions",     label: "Sessions",     Icon: Clock },
-  { key: "tickets",      label: "Tickets",      Icon: Ticket },
-  { key: "sponsors",     label: "Sponsors",     Icon: Building2 },
 ]
 
 export function PrimaryRail({

@@ -23,10 +23,17 @@ export function PuckPublicRenderer({
   data: Data
   metadata: BuilderMetadata
 }) {
-  // Identify the first content block — used by Hero to decide whether
-  // to mark its background image priority/fetchPriority. Only the very
-  // first LCP-eligible block should be marked.
-  const firstContent = Array.isArray(data?.content) ? data.content[0] : null
+  // Filter blocks marked as hidden via the Eye-toggle in the section
+  // context menu. Each block's __hidden prop is set by the editor's
+  // SectionContextMenu / per-instance hide control.
+  const visibleContent = Array.isArray(data?.content)
+    ? data.content.filter(
+        (b) => !((b as { props?: { __hidden?: boolean } }).props?.__hidden === true)
+      )
+    : data?.content
+  const visibleData = { ...data, content: visibleContent } as Data
+
+  const firstContent = Array.isArray(visibleData?.content) ? visibleData.content[0] : null
   const firstBlockId =
     firstContent && typeof firstContent === "object" && "props" in firstContent
       ? ((firstContent as unknown as { props?: { id?: string } }).props?.id ?? null)
@@ -36,7 +43,7 @@ export function PuckPublicRenderer({
     <main className="min-h-screen bg-white text-[#1a1a2e]">
       <Render
         config={puckConfig}
-        data={data}
+        data={visibleData}
         metadata={{
           ...(metadata as unknown as Record<string, unknown>),
           firstBlockId,

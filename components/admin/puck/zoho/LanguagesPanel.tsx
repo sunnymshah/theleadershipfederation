@@ -7,10 +7,11 @@
  */
 
 import { useEffect, useState, useTransition } from "react"
-import { Check, Loader2, Plus, X } from "lucide-react"
+import { Check, Loader2, Plus, X, Sparkles } from "lucide-react"
 import { SecondaryPanel } from "./SecondaryPanel"
 import { SUPPORTED_LOCALES, LOCALE_LABELS, LOCALE_FLAGS } from "@/lib/locales"
 import { getEventLanguages, setEventLanguages } from "@/app/actions/languagesActions"
+import { aiAutoTranslateEvent } from "@/app/actions/aiActions"
 
 export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?: () => void }) {
   const [active, setActive] = useState<string[]>(["en"])
@@ -18,6 +19,8 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
   const [loading, setLoading] = useState(true)
   const [pending, start] = useTransition()
   const [adding, setAdding] = useState(false)
+  const [translating, setTranslating] = useState<string | null>(null)
+  const [translateMsg, setTranslateMsg] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -47,6 +50,20 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
   function remove(lc: string) {
     if (lc === defaultLocale) return alert("Can't remove the default locale.")
     persist(active.filter((l) => l !== lc), defaultLocale)
+  }
+
+  async function autoTranslateAll(toLocale: string) {
+    if (!confirm(`Auto-translate all 12 standard pages from ${LOCALE_LABELS[defaultLocale] ?? defaultLocale} to ${LOCALE_LABELS[toLocale] ?? toLocale}? Existing content for that locale will be overwritten. AI translations may need editing.`)) return
+    setTranslating(toLocale)
+    setTranslateMsg(null)
+    const res = await aiAutoTranslateEvent({ eventId, fromLocale: defaultLocale, toLocale })
+    setTranslating(null)
+    const failed = res.results.filter((r) => !r.success)
+    setTranslateMsg(
+      failed.length === 0
+        ? `Translated all ${res.results.length} pages → ${LOCALE_LABELS[toLocale] ?? toLocale}.`
+        : `Translated ${res.results.length - failed.length}/${res.results.length} — ${failed.length} failed (${failed.map((f) => f.kind).join(", ")}).`
+    )
   }
 
   return (
@@ -80,6 +97,20 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
                   />
                   default
                 </label>
+                {lc !== defaultLocale && (
+                  <button
+                    type="button"
+                    onClick={() => autoTranslateAll(lc)}
+                    aria-label={`Auto-translate to ${lc}`}
+                    title={`Auto-translate from ${defaultLocale} → ${lc} (Gemini)`}
+                    disabled={translating === lc}
+                    className="z-btn z-btn-icon !w-6 !h-6"
+                  >
+                    {translating === lc
+                      ? <Loader2 size={11} className="animate-spin" />
+                      : <Sparkles size={11} className="text-[var(--lf-primary,#e7ab1c)]" />}
+                  </button>
+                )}
                 {lc !== defaultLocale && (
                   <button
                     type="button"
@@ -122,10 +153,19 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
               <Loader2 size={12} className="animate-spin" /> Saving…
             </p>
           )}
-          {!pending && (
+          {!pending && !translating && translateMsg === null && (
             <p className="mt-2 text-[11px] text-[var(--z-success,#10b981)] flex items-center gap-1.5">
               <Check size={12} /> Saved.
             </p>
+          )}
+          {translating && (
+            <p className="mt-2 text-[11px] text-[var(--z-text-muted,#6b7280)] flex items-center gap-1.5">
+              <Loader2 size={12} className="animate-spin" />
+              Translating all 12 pages → {LOCALE_LABELS[translating] ?? translating}…
+            </p>
+          )}
+          {translateMsg && (
+            <p className="mt-2 text-[11px] text-[var(--z-info,#3e7af7)]">{translateMsg}</p>
           )}
         </div>
       )}

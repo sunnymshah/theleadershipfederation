@@ -139,8 +139,13 @@ function SettingsForm({
     window.setTimeout(() => setSavedFlash(false), 1500)
   }
 
+  // Code + Webhooks groups need wider real estate for the textareas /
+  // dynamic rows; everything else stays in the standard 288px column.
+  const wideGroups = new Set<BuilderSettingsGroup>(["code", "webhooks", "domain"])
+  const widthCls = wideGroups.has(groupKey) ? "w-[420px]" : "w-72"
+
   return (
-    <aside className="w-72 shrink-0 h-full bg-[var(--z-bg-alt,#f7f8fa)] border-r border-[var(--z-border,#e5e7eb)] flex flex-col">
+    <aside className={`${widthCls} shrink-0 h-full bg-[var(--z-bg-alt,#f7f8fa)] border-r border-[var(--z-border,#e5e7eb)] flex flex-col`}>
       <div className="shrink-0 h-12 px-4 flex items-center gap-2 border-b border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg,#fff)]">
         <button type="button" onClick={onBack} aria-label="Back" className="z-btn z-btn-icon">
           <ArrowLeft size={14} strokeWidth={1.5} />
@@ -148,7 +153,7 @@ function SettingsForm({
         <groupDef.Icon size={14} strokeWidth={1.5} className="text-[var(--z-text-muted,#6b7280)]" />
         <h2 className="text-[13px] font-bold text-[var(--z-text,#1f2937)]">{groupDef.label}</h2>
       </div>
-      <form onSubmit={onSubmit} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+      <form onSubmit={onSubmit} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-3">
         <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">{groupDef.desc}</p>
         {renderGroupFields(groupKey, initial)}
         {error && (
@@ -240,34 +245,9 @@ function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unk
         <Field label="LinkedIn Insight ID"      name="linkedin"      defaultValue={s(init.linkedin)} placeholder="0000000" />
       </>
     )
-    case "webhooks": {
-      const hooks = Array.isArray(init.endpoints)
-        ? (init.endpoints as Array<Record<string, unknown>>)
-        : []
-      return (
-        <>
-          <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">
-            POST a JSON payload to each endpoint when a registration / form submission / publish happens.
-          </p>
-          <div data-name="endpoints" className="space-y-2">
-            {hooks.length === 0 ? (
-              <p className="text-[12px] text-[var(--z-text-subtle,#9ca3af)] italic">No webhooks yet.</p>
-            ) : null}
-            {hooks.map((w, i) => (
-              <WebhookRow key={i} index={i} initial={w} />
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={(e) => addWebhookRow(e.currentTarget)}
-            className="w-full inline-flex items-center justify-center gap-2 h-9 rounded-md border border-dashed border-[var(--z-border-strong,#d1d5db)] text-[12px] font-medium text-[var(--z-text-muted,#6b7280)] hover:text-[var(--z-info,#3e7af7)] hover:border-[var(--z-info,#3e7af7)]"
-          >
-            <Plus size={14} strokeWidth={1.5} />
-            Add webhook
-          </button>
-        </>
-      )
-    }
+    case "webhooks":
+      return <WebhooksSection init={init} />
+
     case "languages": {
       const langs = Array.isArray(init.locales) ? (init.locales as string[]) : ["en"]
       return (
@@ -284,17 +264,56 @@ function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unk
   }
 }
 
+function WebhooksSection({ init }: { init: Record<string, unknown> }) {
+  const initial = Array.isArray(init.endpoints) ? (init.endpoints as Array<Record<string, unknown>>) : []
+  // React-state-managed rows so adding/removing doesn't fight the DOM.
+  // Each row carries a stable client id so React can reconcile correctly.
+  const [rows, setRows] = useState<Array<{ key: string; initial: Record<string, unknown> }>>(
+    () => initial.map((w, i) => ({ key: `w-${i}-${Math.random().toString(36).slice(2, 8)}`, initial: w }))
+  )
+  function addRow() {
+    setRows((rs) => [...rs, { key: `w-${rs.length}-${Math.random().toString(36).slice(2, 8)}`, initial: {} }])
+  }
+  function removeRow(key: string) {
+    setRows((rs) => rs.filter((r) => r.key !== key))
+  }
+  return (
+    <>
+      <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">
+        POST a signed JSON payload to each endpoint when a registration / form submission / publish happens.
+        Set <code className="font-mono">SECRET</code> to enable HMAC-SHA256 in <code className="font-mono">X-LF-Signature</code>.
+      </p>
+      <div data-name="endpoints" className="space-y-2">
+        {rows.length === 0 && (
+          <p className="text-[12px] text-[var(--z-text-subtle,#9ca3af)] italic">No webhooks yet.</p>
+        )}
+        {rows.map((r, i) => (
+          <WebhookRow key={r.key} index={i} initial={r.initial} onRemove={() => removeRow(r.key)} />
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={addRow}
+        className="w-full inline-flex items-center justify-center gap-2 h-9 rounded-md border border-dashed border-[var(--z-border-strong,#d1d5db)] text-[12px] font-medium text-[var(--z-text-muted,#6b7280)] hover:text-[var(--z-info,#3e7af7)] hover:border-[var(--z-info,#3e7af7)]"
+      >
+        <Plus size={14} strokeWidth={1.5} />
+        Add webhook
+      </button>
+    </>
+  )
+}
+
 const TZ_OPTIONS = [
   "Asia/Kolkata", "Asia/Dubai", "Asia/Singapore", "Europe/London",
   "Europe/Berlin", "America/New_York", "America/Los_Angeles", "UTC",
 ]
 
-function WebhookRow({ index, initial }: { index: number; initial: Record<string, unknown> }) {
+function WebhookRow({ index, initial, onRemove }: { index: number; initial: Record<string, unknown>; onRemove: () => void }) {
   return (
-    <div className="rounded-md border border-[var(--z-border,#e5e7eb)] bg-white p-2.5 space-y-2 relative" data-webhook-row>
+    <div className="rounded-md border border-[var(--z-border,#e5e7eb)] bg-white p-2.5 space-y-2 relative">
       <button
         type="button"
-        onClick={(e) => removeWebhookRow(e.currentTarget)}
+        onClick={onRemove}
         aria-label="Remove webhook"
         className="absolute top-1.5 right-1.5 z-btn z-btn-icon !w-6 !h-6 hover:!bg-red-50 hover:!text-red-700"
       >
@@ -308,36 +327,9 @@ function WebhookRow({ index, initial }: { index: number; initial: Record<string,
         options={["publish", "registration", "form-submission"]}
       />
       <Field label="Header (Authorization)" name={`endpoint_auth_${index}`} defaultValue={s(initial.auth)} placeholder="Bearer …" />
+      <Field label="HMAC secret (optional)" name={`endpoint_secret_${index}`} defaultValue={s(initial.secret)} placeholder="leave blank to skip signature" />
     </div>
   )
-}
-
-function addWebhookRow(btn: HTMLButtonElement) {
-  // Append a fresh empty row by mutating the data-name="endpoints" container.
-  const container = btn.closest("form")?.querySelector('[data-name="endpoints"]')
-  if (!container) return
-  const i = container.querySelectorAll("[data-webhook-row]").length
-  const wrap = document.createElement("div")
-  wrap.dataset.webhookRow = "true"
-  wrap.className = "rounded-md border border-gray-200 bg-white p-2.5 space-y-2 relative"
-  wrap.innerHTML = `
-    <button type="button" data-remove aria-label="Remove webhook" class="absolute top-1.5 right-1.5 z-btn z-btn-icon !w-6 !h-6 hover:!bg-red-50 hover:!text-red-700">×</button>
-    <label class="block"><span class="block text-[11px] font-medium uppercase tracking-wider text-gray-500 mb-1">URL</span>
-      <input class="z-input" type="url" name="endpoint_url_${i}" placeholder="https://…" /></label>
-    <label class="block"><span class="block text-[11px] font-medium uppercase tracking-wider text-gray-500 mb-1">Event</span>
-      <select class="z-input" name="endpoint_event_${i}">
-        <option value="publish">publish</option>
-        <option value="registration">registration</option>
-        <option value="form-submission">form-submission</option>
-      </select></label>
-    <label class="block"><span class="block text-[11px] font-medium uppercase tracking-wider text-gray-500 mb-1">Header (Authorization)</span>
-      <input class="z-input" name="endpoint_auth_${i}" placeholder="Bearer …" /></label>`
-  wrap.querySelector("[data-remove]")?.addEventListener("click", () => wrap.remove())
-  container.appendChild(wrap)
-}
-
-function removeWebhookRow(btn: HTMLButtonElement) {
-  btn.closest("[data-webhook-row]")?.remove()
 }
 
 function collectFormValues(form: HTMLFormElement, group: BuilderSettingsGroup): Record<string, unknown> {
@@ -349,13 +341,15 @@ function collectFormValues(form: HTMLFormElement, group: BuilderSettingsGroup): 
     for (let i = 0; i < 200; i++) {
       const url = fd.get(`endpoint_url_${i}`)
       if (url === null) continue
-      const ev   = fd.get(`endpoint_event_${i}`)
-      const auth = fd.get(`endpoint_auth_${i}`)
+      const ev     = fd.get(`endpoint_event_${i}`)
+      const auth   = fd.get(`endpoint_auth_${i}`)
+      const secret = fd.get(`endpoint_secret_${i}`)
       if (typeof url === "string" && url.trim().length > 0) {
         endpoints.push({
-          url:   url.trim(),
-          event: typeof ev   === "string" ? ev   : "publish",
-          auth:  typeof auth === "string" ? auth : "",
+          url:    url.trim(),
+          event:  typeof ev     === "string" ? ev     : "publish",
+          auth:   typeof auth   === "string" ? auth   : "",
+          secret: typeof secret === "string" ? secret : "",
         })
       }
     }
