@@ -70,3 +70,79 @@ export function insertBlockAtEnd(componentType: string): boolean {
   })
   return true
 }
+
+/**
+ * Patch a subset of Root.props (theme preset / colours / font / etc.)
+ * without mutating the rest. Used by ThemePanel.
+ */
+export function patchRootProps(patch: Record<string, unknown>): boolean {
+  const dispatch = getPuckDispatch()
+  const data = getPuckData()
+  if (!dispatch || !data) return false
+  const root = (data.root ?? { props: {} }) as { props?: Record<string, unknown> }
+  const nextProps = { ...(root.props ?? {}), ...patch }
+  dispatch({
+    type: "replaceRoot",
+    // RootData type from Puck — we know our shape; cast to any to satisfy
+    // the union without dragging in Puck's deep generic types.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    root: { ...root, props: nextProps } as any,
+  })
+  return true
+}
+
+/**
+ * Remove the block with the given id (used by C12 context menu /
+ * keyboard Delete). Returns true when something was removed.
+ */
+export function removeBlockById(id: string): boolean {
+  const dispatch = getPuckDispatch()
+  const data = getPuckData()
+  if (!dispatch || !data) return false
+  const arr = Array.isArray(data.content) ? data.content : []
+  const idx = arr.findIndex((c) => (c as unknown as { props?: { id?: string } })?.props?.id === id)
+  if (idx === -1) return false
+  dispatch({
+    type: "remove",
+    index: idx,
+    zone: "default-zone",
+  })
+  return true
+}
+
+/**
+ * Duplicate the block with the given id at its current position + 1.
+ */
+export function duplicateBlockById(id: string): boolean {
+  const dispatch = getPuckDispatch()
+  const data = getPuckData()
+  if (!dispatch || !data) return false
+  const arr = Array.isArray(data.content) ? data.content : []
+  const idx = arr.findIndex((c) => (c as unknown as { props?: { id?: string } })?.props?.id === id)
+  if (idx === -1) return false
+  dispatch({
+    type: "duplicate",
+    sourceIndex: idx,
+    sourceZone: "default-zone",
+  })
+  return true
+}
+
+/** Move a block up/down by one within the root zone. */
+export function moveBlockById(id: string, delta: -1 | 1): boolean {
+  const dispatch = getPuckDispatch()
+  const data = getPuckData()
+  if (!dispatch || !data) return false
+  const arr = Array.isArray(data.content) ? data.content : []
+  const idx = arr.findIndex((c) => (c as unknown as { props?: { id?: string } })?.props?.id === id)
+  if (idx === -1) return false
+  const target = Math.max(0, Math.min(arr.length - 1, idx + delta))
+  if (target === idx) return false
+  dispatch({
+    type: "reorder",
+    sourceIndex: idx,
+    destinationIndex: target,
+    destinationZone: "default-zone",
+  })
+  return true
+}
