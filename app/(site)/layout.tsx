@@ -27,7 +27,7 @@ export default async function SiteLayout({
   const nextEvent = await getNextEvent()
 
   return (
-    <div className="text-[#1a1a2e] min-h-screen relative">
+    <div className="lf-clean text-[#1a1a2e] min-h-screen relative">
       <Navbar />
       {children}
       <Footer />

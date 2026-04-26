@@ -42,11 +42,23 @@ export function AnimateOnScroll({
   as?: "div" | "section" | "li" | "span"
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+  // Default visible — content is ALWAYS shown so there's no flash of
+  // opacity-0 on hard reloads or when JS hydrates slowly. The
+  // IntersectionObserver below only animates items genuinely below
+  // the fold (it sets invisible-then-visible when they scroll in).
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    const initialRect = el.getBoundingClientRect()
+    const inViewportNow =
+      initialRect.top < window.innerHeight && initialRect.bottom > 0
+    if (inViewportNow) {
+      setVisible(true)
+      return
+    }
+    setVisible(false)
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -93,11 +105,23 @@ export function StaggerChildren({
   as?: "div" | "section" | "ul"
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+  // Default visible — content is ALWAYS shown so there's no flash of
+  // opacity-0 on hard reloads or when JS hydrates slowly. The
+  // IntersectionObserver below only animates items genuinely below
+  // the fold (it sets invisible-then-visible when they scroll in).
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    const initialRect = el.getBoundingClientRect()
+    const inViewportNow =
+      initialRect.top < window.innerHeight && initialRect.bottom > 0
+    if (inViewportNow) {
+      setVisible(true)
+      return
+    }
+    setVisible(false)
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
