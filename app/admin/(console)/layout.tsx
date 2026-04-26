@@ -9,7 +9,7 @@ import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
-import { AdminLayoutShell } from "@/components/admin/AdminLayoutShell"
+import { AdminConsoleShell } from "@/components/admin/AdminConsoleShell"
 import { canAccessNavItem } from "@/lib/permissions"
 import type { ProfilePermissions } from "@/app/actions/profileActions"
 
@@ -127,12 +127,12 @@ export default async function ConsoleLayout({
   }
 
   return (
-    <AdminLayoutShell
+    <AdminConsoleShell
       userEmail={user.email ?? "admin"}
       userRole={userRole}
       profilePermissions={profilePermissions}
     >
       {children}
-    </AdminLayoutShell>
+    </AdminConsoleShell>
   )
 }
