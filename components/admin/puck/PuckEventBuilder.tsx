@@ -47,6 +47,7 @@ import { RevisionHistoryPanel } from "./RevisionHistoryPanel"
 import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal"
 import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
+import { PuckBridge, insertBlockAtEnd } from "./zoho/PuckBridge"
 import { SpeakersManager } from "./zoho/SpeakersManager"
 import { SessionsManager } from "./zoho/SessionsManager"
 import { TicketsManager } from "./zoho/TicketsManager"
@@ -446,7 +447,7 @@ export function PuckEventBuilder({
             Previously CENTER was absolute-positioned, which let the
             viewport icons collide with right-group buttons at lg/xl. */}
         <div className="h-14 w-full flex items-center gap-3 px-4">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Link
               href="/admin/builder"
               aria-label="Back to Page Builder hub"
@@ -456,7 +457,27 @@ export function PuckEventBuilder({
               <ArrowLeft size={16} strokeWidth={1.5} />
             </Link>
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] shrink-0" />
-            <span className="text-sm font-semibold truncate text-[var(--bs-text,#1f2937)] min-w-0 max-w-[200px]">
+            {/* Breadcrumbs (B13): Events / {Event title} / Microsite */}
+            <nav aria-label="Breadcrumb" className="hidden md:flex items-center gap-1.5 text-[12px] min-w-0">
+              <Link
+                href="/admin/events"
+                className="text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] shrink-0"
+              >
+                Events
+              </Link>
+              <span className="text-[var(--bs-text-subtle,#9ca3af)]">/</span>
+              <Link
+                href={`/admin/events/${eventId}`}
+                className="text-[var(--bs-text,#1f2937)] font-semibold truncate max-w-[180px]"
+                title={eventTitle}
+              >
+                {eventTitle}
+              </Link>
+              <span className="text-[var(--bs-text-subtle,#9ca3af)]">/</span>
+              <span className="text-[var(--bs-text-muted,#6b7280)] shrink-0">Microsite</span>
+            </nav>
+            {/* Compact title for < md */}
+            <span className="md:hidden text-sm font-semibold truncate text-[var(--bs-text,#1f2937)] min-w-0 max-w-[160px]">
               {eventTitle}
             </span>
             <AutosaveBadge status={status} />
@@ -675,8 +696,16 @@ export function PuckEventBuilder({
     )
   }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleDuplicatePage, handleReorderPages, handleRefreshData, refreshing, scrollTabs, handleRevert, reverting])
 
+  /* Puck overrides:
+   * - `header`: replace with our Zoho-style header.
+   * - `components`: replace Puck's left block-palette with the PuckBridge
+   *   (renders nothing; just registers Puck's `dispatch` so SectionsPanel
+   *   can call `insertBlockAtEnd()` from outside Puck's tree). Our own
+   *   Zoho SectionsPanel is what the admin sees.
+   */
   const overrides = useMemo(() => ({
     header: Header,
+    components: () => <PuckBridge />,
   }), [Header])
 
   return (
@@ -736,6 +765,30 @@ export function PuckEventBuilder({
             onClose={() => setActiveRail(null)}
             onJumpPage={(target) => setActivePage(target)}
             onAddPage={() => setPageDialog({ open: true, mode: "create" })}
+            onRenamePage={(slug, nextTitle) => {
+              const existing = pages[slug]
+              if (!existing) return
+              setPageDialog({ open: false })
+              // Reuse the existing rename action via the handler we already have.
+              void renameBuilderPage(eventId, slug, nextTitle).then((res) => {
+                if (res.success && res.slug) {
+                  setPages((prev) => {
+                    const copy: BuilderPagesMap = { ...prev }
+                    const row = copy[slug]
+                    if (!row) return copy
+                    delete copy[slug]
+                    copy[res.slug!] = { ...row, title: nextTitle }
+                    return copy
+                  })
+                  if (activePage === slug) setActivePage(res.slug)
+                } else if (res.error) {
+                  setErrorBanner(res.error)
+                }
+              })
+            }}
+            onDuplicatePage={handleDuplicatePage}
+            onDeletePage={handleDeletePage}
+            onReorderPages={handleReorderPages}
           />
         )}
         <div className="flex-1 min-w-0 min-h-0">
@@ -890,7 +943,8 @@ function DataLink({
  * own search/edit state).
  */
 function ActiveRailPanel({
-  railKey, eventId, metadata, pages, activePage, onClose, onJumpPage, onAddPage,
+  railKey, eventId, metadata, pages, activePage,
+  onClose, onJumpPage, onAddPage, onRenamePage, onDuplicatePage, onDeletePage, onReorderPages,
 }: {
   railKey: RailKey
   eventId: string
@@ -900,17 +954,25 @@ function ActiveRailPanel({
   onClose: () => void
   onJumpPage: (target: string) => void
   onAddPage: () => void
+  onRenamePage?: (slug: string, newTitle: string) => void
+  onDuplicatePage?: (slug: string) => void
+  onDeletePage?: (slug: string) => void
+  onReorderPages?: (slugs: string[]) => void
 }) {
   switch (railKey) {
     case "sections":
       return (
         <SectionsPanel
           onClose={onClose}
-          onAddBlock={() => {
-            // Phase 4: wire to Puck's usePuck() dispatch. For now the
-            // tile click is a UX-only signal — admin still uses Puck's
-            // native sidebar for drag-to-canvas adding.
-            window.dispatchEvent(new CustomEvent("builder:tile-clicked"))
+          onAddBlock={(blockType) => {
+            // Routes click → Puck's dispatch via the PuckBridge. Inserts
+            // the block at the end of the current page; admin can drag
+            // to reorder afterwards.
+            const ok = insertBlockAtEnd(blockType)
+            if (!ok) {
+              // Fallback when Puck hasn't mounted yet — extremely rare.
+              window.dispatchEvent(new CustomEvent("builder:tile-clicked"))
+            }
           }}
         />
       )
@@ -922,6 +984,10 @@ function ActiveRailPanel({
           onJump={onJumpPage}
           onAdd={onAddPage}
           onClose={onClose}
+          onRename={onRenamePage}
+          onDuplicate={onDuplicatePage}
+          onDelete={onDeletePage}
+          onReorder={onReorderPages}
         />
       )
     case "theme":
