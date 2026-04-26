@@ -825,6 +825,59 @@ export async function getPublishedPageAndNav(
   }
 }
 
+/* ── Microsite settings (B7) ─────────────────────────────────────────
+ *   events.builder_settings JSONB is the single source of truth.
+ *   Nine groups live under top-level keys; this action upserts a single
+ *   group at a time so saves are atomic and partial. */
+
+export type BuilderSettingsGroup =
+  | "general" | "seo" | "domain" | "privacy" | "cookies"
+  | "code" | "analytics" | "webhooks" | "languages"
+
+export async function getBuilderSettings(
+  eventId: string,
+): Promise<{ success: boolean; settings: Record<string, unknown>; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("events")
+      .select("builder_settings")
+      .eq("id", eventId)
+      .maybeSingle()
+    if (error) return { success: false, settings: {}, error: error.message }
+    return { success: true, settings: (data?.builder_settings ?? {}) as Record<string, unknown> }
+  } catch (err) {
+    return { success: false, settings: {}, error: (err as Error).message }
+  }
+}
+
+export async function saveBuilderSettingsGroup(
+  eventId: string,
+  group: BuilderSettingsGroup,
+  values: Record<string, unknown>,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data: row } = await admin
+      .from("events")
+      .select("builder_settings")
+      .eq("id", eventId)
+      .maybeSingle()
+    const current = (row?.builder_settings ?? {}) as Record<string, unknown>
+    const next = { ...current, [group]: values }
+    const { error } = await admin
+      .from("events")
+      .update({ builder_settings: next, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
 /** Public-side read: just the nav list. Used by the minimal event-page
  *  layout to render the links next to "Home". */
 export async function getPublicBuilderNav(
