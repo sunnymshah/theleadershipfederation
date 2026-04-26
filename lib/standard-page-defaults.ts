@@ -3,10 +3,10 @@
  * Returned when a page row's `settings.puckData` is empty (newly seeded
  * event, or after a "Reset to default" admin action).
  *
- * The block names below MUST match those registered in
- * `components/admin/puck/puck-config.tsx`. Block prop shapes mirror the
- * defaults in `components/admin/puck/blocks.tsx` so a fresh canvas
- * renders without runtime errors.
+ * Block names + prop shapes mirror those registered in
+ * `components/admin/puck/puck-config.tsx`. Keep them in sync — a missing
+ * key falls back to the block's defaultProps; an unknown block kind
+ * silently disappears at render time.
  */
 
 import type { Data as PuckData } from "@measured/puck"
@@ -22,214 +22,224 @@ function block(type: string, props: Record<string, unknown> = {}): Block {
   return { type, props: { id: uid(type.toLowerCase()), ...props } }
 }
 
-function tree(content: Block[], rootProps: Record<string, unknown> = {}): PuckData {
+function tree(content: Block[]): PuckData {
   return {
     content: content as unknown as PuckData["content"],
-    root: { props: { title: "", ...rootProps } },
+    root: { props: { title: "" } },
     zones: {},
   }
 }
+
+const FOOTER_BLOCK = block("RichText", {
+  title: "",
+  subtitle: "",
+  body:
+    "© The Leadership Federation. " +
+    "All rights reserved. For sponsorship and partnership enquiries, write to partnerships@leadershipfederation.com.",
+})
 
 export function defaultPuckDataForKind(kind: StandardPageKind): PuckData {
   switch (kind) {
     case "home":
       return tree([
         block("Hero", {
-          headline: "Where the world's most influential leaders meet.",
-          subheadline: "Two days of unmissable keynotes, debates, and the kind of conversations that change companies.",
-          ctaPrimaryLabel: "Register now",
-          ctaPrimaryUrl: "#register",
-          ctaSecondaryLabel: "View agenda",
-          ctaSecondaryUrl: "#agenda",
-          background: "gradient",
+          title: "",
+          subtitle:
+            "Two days of unmissable keynotes, debates, and the kind of conversations that change companies.",
+          ctaLabel: "Register Now",
+          ctaUrl: "/tickets",
+          secondaryCtaLabel: "View Agenda",
+          secondaryCtaUrl: "#agenda",
+          alignment: "left",
+          minHeight: "tall",
         }),
-        block("Countdown", { title: "Doors open in", showLabels: true }),
+        block("Countdown", {
+          title: "Doors open in",
+          subtitle: "",
+          pastMessage: "We're live!",
+        }),
         block("RichText", {
-          markdown:
-            "## About this event\n\nA carefully curated room of operators, founders and investors. " +
+          title: "About this event",
+          subtitle: "Why this room",
+          body:
+            "A carefully curated room of operators, founders and investors. " +
             "Every session is on-record, every conversation is off. We optimise for signal — short " +
             "talks, long lunches, and the rare permission to think out loud.",
         }),
         block("StatsRow", {
+          title: "By the numbers",
+          subtitle: "",
+          animated: false,
           stats: [
-            { value: "500+", label: "Delegates" },
-            { value: "60+",  label: "Speakers" },
-            { value: "30+",  label: "Sessions" },
-            { value: "20+",  label: "Sponsors" },
+            { value: "500+", label: "Delegates", icon: "" },
+            { value: "60+",  label: "Speakers",  icon: "" },
+            { value: "30+",  label: "Sessions",  icon: "" },
+            { value: "20+",  label: "Sponsors",  icon: "" },
           ],
         }),
-        block("SpeakersGrid", { columns: 3, limit: 9, linkToDetailPages: true }),
-        block("Agenda", { groupByDay: true, limit: 6, mode: "compact" }),
-        block("TicketsPricing", { columns: 3, layout: "card" }),
-        block("SponsorsGrid", { groupByTier: true }),
-        block("VenueMap", {}),
-        block("Footer", {
-          columns: 3,
-          copyright: "© The Leadership Federation",
-          showPoweredBy: true,
+        block("SpeakersGrid", {
+          title: "Featured Speakers",
+          subtitle: "",
+          gridLayout: "grid-3",
+          frame: "circle",
+          fit: "cover",
+          linkToDetailPages: true,
         }),
+        block("Agenda", {
+          title: "Agenda",
+          subtitle: "",
+          groupByDay: true,
+          showTracks: true,
+          showDuration: false,
+          showSpeakers: true,
+          linkToDetailPages: true,
+        }),
+        block("TicketsPricing", { title: "Choose your ticket", subtitle: "", mostPopular: "" }),
+        block("SponsorsGrid", { title: "Our Partners", groupByTier: true }),
+        block("VenueMap", { title: "Venue", address: "", height: "md" }),
+        FOOTER_BLOCK,
       ])
 
     case "agenda":
       return tree([
-        block("Hero", {
-          headline: "Agenda",
-          subheadline: "Two days of curated programming. Times in IST.",
-          background: "minimal",
+        block("Hero", { title: "Agenda", subtitle: "Two days of curated programming.", minHeight: "short" }),
+        block("Agenda", {
+          title: "",
+          subtitle: "",
+          groupByDay: true,
+          showTracks: true,
+          showDuration: true,
+          showSpeakers: true,
+          linkToDetailPages: true,
         }),
-        block("Agenda", { groupByDay: true, mode: "full" }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
 
     case "speakers":
       return tree([
-        block("Hero", {
-          headline: "Speakers",
-          subheadline: "The minds you came for.",
-          background: "minimal",
+        block("Hero", { title: "Speakers", subtitle: "The minds you came for.", minHeight: "short" }),
+        block("SpeakersGrid", {
+          title: "",
+          subtitle: "",
+          gridLayout: "grid-3",
+          frame: "circle",
+          fit: "cover",
+          linkToDetailPages: true,
         }),
-        block("SpeakersGrid", { columns: 3, layout: "grid", linkToDetailPages: true }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
 
     case "discussions":
       return tree([
-        block("Hero", {
-          headline: "Discussions",
-          subheadline: "Pick a track and dive in.",
-          background: "minimal",
-        }),
-        block("Tabs", {
-          tabs: [
-            { label: "Strategy",   content: "Operator-led conversations on growth, focus and resilience." },
-            { label: "Capital",    content: "How money is moving in 2026 — and what it means for builders." },
-            { label: "Technology", content: "Real-world AI deployments, infra trade-offs, and the talent question." },
+        block("Hero", { title: "Discussions", subtitle: "Pick a track and dive in.", minHeight: "short" }),
+        block("TabsBlock", {
+          items: [
+            { title: "Strategy",   body: "Operator-led conversations on growth, focus and resilience." },
+            { title: "Capital",    body: "How money is moving in 2026 — and what it means for builders." },
+            { title: "Technology", body: "Real-world AI deployments, infra trade-offs, and the talent question." },
           ],
         }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
 
     case "tickets":
       return tree([
-        block("Hero", {
-          headline: "Tickets",
-          subheadline: "Choose the experience that fits.",
-          background: "minimal",
-        }),
-        block("TicketsPricing", { columns: 3, layout: "card" }),
+        block("Hero", { title: "Tickets", subtitle: "Choose the experience that fits.", minHeight: "short" }),
+        block("TicketsPricing", { title: "", subtitle: "", mostPopular: "" }),
         block("Faqs", {
           title: "Payment & cancellations",
-          items: [
+          faqs: [
             { q: "What's included?", a: "Full access to keynotes, breakouts, networking lounges, lunch and tea service." },
             { q: "Can I get a refund?", a: "Yes — a full refund up to 14 days before the event. After that, transfers only." },
             { q: "Do you support invoicing?", a: "Yes. Choose 'Pay by invoice' at checkout and we'll email a 14-day invoice." },
           ],
         }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
 
     case "networking":
       return tree([
-        block("Hero", {
-          headline: "Networking",
-          subheadline: "The hallway is the conference.",
-          background: "minimal",
-        }),
+        block("Hero", { title: "Networking", subtitle: "The hallway is the conference.", minHeight: "short" }),
         block("RichText", {
-          markdown:
+          title: "Why we go deep on this",
+          subtitle: "",
+          body:
             "Curated meetups, an opt-in delegate directory, and the old-school equivalent " +
             "— a private speakers' lounge open to every paid delegate.",
         }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
 
     case "sponsors":
       return tree([
-        block("Hero", {
-          headline: "Sponsors",
-          subheadline: "Partners who make this possible.",
-          background: "minimal",
-        }),
-        block("SponsorsGrid", { groupByTier: true }),
-        block("Footer", { columns: 3 }),
+        block("Hero", { title: "Sponsors", subtitle: "Partners who make this possible.", minHeight: "short" }),
+        block("SponsorsGrid", { title: "", groupByTier: true }),
+        FOOTER_BLOCK,
       ])
 
     case "venue":
       return tree([
-        block("Hero", {
-          headline: "Venue",
-          subheadline: "How to get there, where to stay.",
-          background: "minimal",
-        }),
-        block("VenueMap", {}),
+        block("Hero", { title: "Venue", subtitle: "How to get there, where to stay.", minHeight: "short" }),
+        block("VenueMap", { title: "", address: "", height: "lg" }),
         block("RichText", {
-          markdown:
-            "## Getting here\n\nThe venue is a 25-minute drive from the international airport. " +
+          title: "Getting here",
+          subtitle: "",
+          body:
+            "The venue is a 25-minute drive from the international airport. " +
             "Recommended hotels within walking distance are listed below.",
         }),
-        block("Gallery", {}),
-        block("Footer", { columns: 3 }),
+        block("Gallery", { title: "", images: [], columns: 4, lightbox: false }),
+        FOOTER_BLOCK,
       ])
 
     case "exhibitors":
       return tree([
-        block("Hero", {
-          headline: "Exhibitors",
-          subheadline: "Discover the brands shaping the year ahead.",
-          background: "minimal",
-        }),
+        block("Hero", { title: "Exhibitors", subtitle: "Discover the brands shaping the year ahead.", minHeight: "short" }),
         block("RichText", {
-          markdown:
+          title: "",
+          subtitle: "",
+          body:
             "Booth visits, product demos, and a lounge open through the day. Pick up a map at registration.",
         }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
 
     case "gallery":
       return tree([
-        block("Hero", {
-          headline: "Gallery",
-          subheadline: "Captured moments.",
-          background: "minimal",
-        }),
-        block("Gallery", {}),
-        block("Footer", { columns: 3 }),
+        block("Hero", { title: "Gallery", subtitle: "Captured moments.", minHeight: "short" }),
+        block("Gallery", { title: "", images: [], columns: 4, lightbox: true }),
+        FOOTER_BLOCK,
       ])
 
     case "register":
       return tree([
-        block("Hero", {
-          headline: "Register",
-          subheadline: "Reserve your seat in under two minutes.",
-          background: "minimal",
-        }),
-        block("Form", {
-          formKey: "registration",
+        block("Hero", { title: "Register", subtitle: "Reserve your seat in under two minutes.", minHeight: "short" }),
+        block("FormBlock", {
+          title: "Your details",
+          subtitle: "Tell us a little about yourself.",
           fields: [
-            { name: "name",    label: "Full name",   type: "text",  required: true },
-            { name: "email",   label: "Email",       type: "email", required: true },
-            { name: "company", label: "Company",     type: "text",  required: false },
-            { name: "role",    label: "Job title",   type: "text",  required: false },
+            { id: "name",    label: "Full name", type: "text",  required: true },
+            { id: "email",   label: "Email",     type: "email", required: true },
+            { id: "company", label: "Company",   type: "text" },
+            { id: "role",    label: "Job title", type: "text" },
           ],
-          submitLabel: "Register",
+          ctaLabel: "Register",
           successMessage: "Thanks — you'll get a confirmation by email.",
         }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
 
     case "signin":
       return tree([
-        block("Hero", {
-          headline: "Sign in",
-          subheadline: "Sign in to access your tickets, badge and event materials.",
-          background: "minimal",
-        }),
+        block("Hero", { title: "Sign in", subtitle: "Sign in to access your tickets, badge and event materials.", minHeight: "short" }),
         block("CtaButton", {
-          label: "Go to admin sign-in",
-          url: "/admin/login",
+          title: "",
+          subtitle: "",
+          ctaLabel: "Go to admin sign-in",
+          ctaUrl: "/admin/login",
           variant: "primary",
         }),
-        block("Footer", { columns: 3 }),
+        FOOTER_BLOCK,
       ])
   }
 }

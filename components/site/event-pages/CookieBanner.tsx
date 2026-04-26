@@ -1,7 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore, useState } from "react"
 import { X } from "lucide-react"
+
+function subscribe() { return () => {} }
 
 export function CookieBanner({
   eventId,
@@ -15,26 +17,26 @@ export function CookieBanner({
   acceptLabel: string
 }) {
   const storageKey = `lf-cookies-${eventId}`
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    try {
-      if (typeof window === "undefined") return
-      if (window.localStorage.getItem(storageKey) === "1") return
-      setVisible(true)
-    } catch {
-      // localStorage may be blocked; show banner.
-      setVisible(true)
-    }
-  }, [storageKey])
-
-  if (!visible) return null
+  // Read localStorage via useSyncExternalStore so React doesn't fight us
+  // and we don't trigger setState-in-effect lint warnings. The snapshot
+  // returns "1" (dismissed) or null. SSR snapshot is null (banner shows
+  // briefly until hydration) — matches Zoho Backstage's behaviour.
+  const dismissed = useSyncExternalStore(
+    subscribe,
+    () => {
+      try { return typeof window !== "undefined" ? window.localStorage.getItem(storageKey) : null }
+      catch { return null }
+    },
+    () => null,
+  )
+  const [hidden, setHidden] = useState(false)
+  if (dismissed === "1" || hidden) return null
 
   function dismiss() {
     try {
       window.localStorage.setItem(storageKey, "1")
     } catch {}
-    setVisible(false)
+    setHidden(true)
   }
 
   return (
