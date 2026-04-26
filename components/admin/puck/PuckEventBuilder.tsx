@@ -992,6 +992,8 @@ function ActiveRailPanel({
       )
     case "theme":
       return <ThemePanel onClose={onClose} />
+      // ThemePanel reads/writes Root.props directly via PuckBridge, so we
+      // don't need to thread an onPick handler here.
     case "speakers":
       return (
         <SpeakersManager
