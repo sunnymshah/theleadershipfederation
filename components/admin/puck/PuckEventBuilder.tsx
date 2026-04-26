@@ -1040,7 +1040,7 @@ function ActiveRailPanel({
         />
       )
     case "settings":
-      return <SettingsPanel onClose={onClose} />
+      return <SettingsPanel eventId={eventId} onClose={onClose} />
     default:
       return null
   }
