@@ -20,7 +20,7 @@ html {
 }
 
 body {
-  background-color: #F4F8FF;
+  background-color: #ffffff;
   color: #1a1a2e;
   overflow-x: hidden;
 }
@@ -153,3 +153,111 @@ body {
 }
 
 /* Content is always visible — no opacity gating */
+
+
+/* ─── LF CLEAN MODE (temporary) ───────────────────────────────────────────
+ *
+ * Per the user's request: strip every background pattern / gradient /
+ * coloured wash on public marketing pages, and unify every heading to
+ * the Playfair Display serif used on the /events page.
+ *
+ * Scoped to .lf-clean (added by app/(site)/layout.tsx) so only the
+ * marketing surface is touched — admin chrome, builder chrome, and
+ * inside-iframe public-event renders are untouched.
+ *
+ * Strategy: use :where() selectors so specificity stays low (one
+ * Tailwind utility on a child can still win for genuine content
+ * imagery — e.g. an <img> inside an event card). For the loud
+ * decorative layers (radial gradients, noise patterns, hero glows)
+ * we use stronger overrides.
+ * ───────────────────────────────────────────────────────────────────── */
+
+.lf-clean {
+  background-color: #ffffff !important;
+}
+.lf-clean main {
+  background-color: #ffffff !important;
+}
+
+/* Strip every section / div / aside / header / footer background-image
+ * (gradients, patterns) — leave background-color alone so opt-in
+ * neutrals below still apply. */
+.lf-clean :where(section, div, aside, header, footer, nav, article, span) {
+  background-image: none !important;
+}
+
+/* Default every container to transparent, then re-allow common
+ * marketing neutrals (white / off-white / dark navy / soft blue) via
+ * explicit Tailwind class hooks so dark CTA bands and alt-band sections
+ * still read correctly. */
+.lf-clean :where(section, div, aside, header, footer, article) {
+  background-color: transparent !important;
+}
+.lf-clean :where([class*="bg-white"]) { background-color: #ffffff !important; }
+.lf-clean :where([class*="bg-[#fafafa]"], [class*="bg-[#fAFAFa]"]) {
+  background-color: #fafafa !important;
+}
+.lf-clean :where([class*="bg-[#1a1a2e]"]) { background-color: #1a1a2e !important; }
+.lf-clean :where([class*="bg-[#0a0a14]"]) { background-color: #0a0a14 !important; }
+.lf-clean :where([class*="bg-[#F4F8FF]"]) { background-color: #F4F8FF !important; }
+
+/* Kill decorative absolute-positioned background blobs / glows —
+ * they're typically aria-hidden + pointer-events-none + blur-3xl. */
+.lf-clean [aria-hidden="true"][class*="blur-3xl"],
+.lf-clean [aria-hidden="true"][class*="blur-2xl"],
+.lf-clean [aria-hidden="true"][class*="rounded-full"][class*="opacity"] {
+  display: none !important;
+}
+
+/* Inline-style decorative backgrounds — same hide treatment. */
+.lf-clean [aria-hidden="true"][style*="radial-gradient"],
+.lf-clean [aria-hidden="true"][style*="linear-gradient"],
+.lf-clean [aria-hidden="true"][style*="background-image"],
+.lf-clean [aria-hidden][style*="radial-gradient"],
+.lf-clean [aria-hidden][style*="linear-gradient"] {
+  display: none !important;
+}
+
+/* ─── Headings → Playfair Display (matches /events page) ───────────── */
+/* High-specificity with html prefix + attr selectors to beat both
+ * styled-jsx classes and inline style="font-family: ..." attributes. */
+html .lf-clean h1,
+html .lf-clean h2,
+html .lf-clean h3,
+html .lf-clean h4,
+html .lf-clean h5,
+html .lf-clean h6,
+html .lf-clean blockquote,
+html .lf-clean h1[style],
+html .lf-clean h2[style],
+html .lf-clean h3[style],
+html .lf-clean h4[style],
+html .lf-clean h5[style],
+html .lf-clean h6[style],
+html .lf-clean blockquote[style] {
+  font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Body / paragraph / list / inputs → SF Pro / system. */
+.lf-clean,
+.lf-clean p,
+.lf-clean li,
+.lf-clean a,
+.lf-clean label,
+.lf-clean input,
+.lf-clean textarea,
+.lf-clean select,
+.lf-clean button {
+  font-family: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Text-gradient headlines lose their visual treatment once backgrounds
+ * are stripped — restore them as solid navy for legibility. */
+.lf-clean :where([class*="bg-clip-text"][class*="text-transparent"]) {
+  -webkit-text-fill-color: #1a1a2e !important;
+  color: #1a1a2e !important;
+  background: transparent !important;
+}
+
