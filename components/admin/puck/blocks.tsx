@@ -33,6 +33,7 @@ import {
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { GalleryLightbox } from "./GalleryLightbox"
 import { CarouselInner } from "./CarouselInner"
+import { FormBlockClient, type FormField } from "./FormBlockClient"
 
 export const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -2137,6 +2138,44 @@ export function EventCardGrid({
             </Link>
           ))}
         </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── FORM BLOCK (B23) ─────────────────────────────────────────────── */
+
+export type FormBlockProps = {
+  title: string
+  subtitle?: string
+  fields: FormField[]
+  ctaLabel: string
+  successMessage: string
+  webhookUrl?: string
+  layout?: LayoutProps
+}
+
+export function FormBlock({
+  title, subtitle, fields, ctaLabel, successMessage, webhookUrl, layout,
+  puck,
+}: FormBlockProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { event } = getMeta(puck)
+  if (!fields || fields.length === 0) {
+    return <SectionPlaceholder label="Form (add at least one field in the inspector)" />
+  }
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-xl mx-auto px-6">
+        {title && <h2 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight" style={sfFont}>{title}</h2>}
+        {subtitle && <p className="opacity-75 mb-6">{subtitle}</p>}
+        <FormBlockClient
+          eventId={event.id}
+          sourcePage={event.slug}
+          fields={fields}
+          ctaLabel={ctaLabel || "Submit"}
+          successMessage={successMessage || "Thanks — we got your submission."}
+          webhookUrl={webhookUrl}
+        />
       </div>
     </SectionShell>
   )
