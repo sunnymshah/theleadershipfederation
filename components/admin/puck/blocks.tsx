@@ -28,7 +28,7 @@ import type { CSSProperties, ReactNode } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import {
-  Calendar, MapPin, User, Mic2, Ticket, ChevronRight, Building2, Quote,
+  Calendar, MapPin, User, Mic2, Ticket, ChevronRight, Building2, Quote, Check,
 } from "lucide-react"
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { GalleryLightbox } from "./GalleryLightbox"
@@ -53,7 +53,18 @@ export type EventShape = {
 export type SpeakerShape = { id: string; name: string; designation: string | null; company: string | null; image_url: string | null }
 export type SessionShape = { id: string; title: string; starts_at: string; ends_at: string | null; speaker_names: string[] | null; track: string | null }
 export type SponsorShape = { id: string; name: string; logo_url: string | null; tier: string | null; website: string | null }
-export type TicketShape  = { id: string; name: string; description: string | null; price_inr: number; sold: number; inventory_limit: number | null }
+export type TicketShape  = {
+  id: string
+  name: string
+  description: string | null
+  price_inr: number
+  sold: number
+  inventory_limit: number | null
+  /** Optional feature bullets (B16). */
+  features?: string[] | null
+  /** Optional early-bird countdown end (B16). */
+  early_bird_ends_at?: string | null
+}
 
 export type BuilderMetadata = {
   event: EventShape
@@ -1538,6 +1549,125 @@ export function TextBox({
       <div className={`${WIDTH[width]} mx-auto px-6`}>
         <div className={innerCls} style={boxStyle}>
           {content}
+        </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── TICKETS PRICING (B16) ────────────────────────────────────────── */
+
+export type TicketsPricingProps = {
+  title: string
+  subtitle?: string
+  /** Ticket id that should get the "Most popular" ribbon. */
+  mostPopular?: string
+  layout?: LayoutProps
+}
+
+function MiniCountdown({ targetIso }: { targetIso: string }) {
+  const target = new Date(targetIso).getTime()
+  const [now, setNow] = useState<number>(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  if (!Number.isFinite(target)) return null
+  const { days, hours, minutes, expired } = diffParts(target, now)
+  if (expired) return null
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full"
+      style={{
+        color: "var(--lf-primary, #e7ab1c)",
+        backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 12%, transparent)",
+      }}
+    >
+      Early bird ends in {days}d {hours}h {minutes}m
+    </span>
+  )
+}
+
+export function TicketsPricing({
+  title, subtitle, mostPopular, layout,
+  puck,
+}: TicketsPricingProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { tickets, event } = getMeta(puck)
+  if (!tickets || tickets.length === 0) {
+    return <SectionPlaceholder label="Pricing cards (add tickets to this event)" />
+  }
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight" style={sfFont}>
+            {title || "Choose your ticket"}
+          </h2>
+          {subtitle && <p className="mt-3 opacity-70 max-w-2xl mx-auto">{subtitle}</p>}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {tickets.map((t) => {
+            const isPopular = t.id === mostPopular
+            const remaining = t.inventory_limit !== null && t.inventory_limit !== undefined
+              ? Math.max(0, t.inventory_limit - (t.sold ?? 0))
+              : null
+            return (
+              <div
+                key={t.id}
+                className={`relative rounded-2xl p-6 bg-white border ${
+                  isPopular
+                    ? "border-[var(--lf-primary,#e7ab1c)] shadow-lg"
+                    : "border-[#1a1a2e]/[0.08]"
+                }`}
+              >
+                {isPopular && (
+                  <span
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#1a1a2e]"
+                    style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
+                  >
+                    Most popular
+                  </span>
+                )}
+                <h3 className="text-lg font-bold text-[#1a1a2e]">{t.name}</h3>
+                {t.description && <p className="text-sm opacity-70 mt-1 line-clamp-3">{t.description}</p>}
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="text-4xl font-bold tabular-nums" style={sfFont}>
+                    ₹{t.price_inr.toLocaleString("en-IN")}
+                  </span>
+                  {remaining !== null && remaining < 20 && remaining > 0 && (
+                    <span className="text-[11px] font-medium text-red-600">{remaining} left</span>
+                  )}
+                </div>
+                {t.early_bird_ends_at && (
+                  <div className="mt-3">
+                    <MiniCountdown targetIso={t.early_bird_ends_at} />
+                  </div>
+                )}
+                {t.features && t.features.length > 0 && (
+                  <ul className="mt-5 space-y-2">
+                    {t.features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <Check size={14} strokeWidth={2.5} className="mt-0.5 shrink-0" style={{ color: "var(--lf-primary, #e7ab1c)" }} />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link
+                  href={`/events/${event.slug}/tickets`}
+                  className={`mt-6 inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md text-sm font-bold transition-colors ${
+                    isPopular
+                      ? "text-[#1a1a2e] hover:brightness-95"
+                      : "bg-[#1a1a2e] text-white hover:bg-[#2a2a4e]"
+                  }`}
+                  style={isPopular ? { backgroundColor: "var(--lf-primary, #e7ab1c)" } : undefined}
+                >
+                  <Ticket size={14} />
+                  Buy {t.name}
+                </Link>
+              </div>
+            )
+          })}
         </div>
       </div>
     </SectionShell>
