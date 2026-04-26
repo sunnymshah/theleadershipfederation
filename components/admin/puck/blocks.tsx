@@ -32,6 +32,7 @@ import {
 } from "lucide-react"
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { GalleryLightbox } from "./GalleryLightbox"
+import { CarouselInner } from "./CarouselInner"
 
 export const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -1767,6 +1768,210 @@ export function SocialBar({ links, style, alignment, layout }: SocialBarProps) {
             </li>
           ))}
         </ul>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── CAROUSEL (B20) ───────────────────────────────────────────────── */
+
+export type CarouselSlide = {
+  image: string
+  heading?: string
+  body?: string
+  ctaLabel?: string
+  ctaUrl?: string
+}
+export type CarouselProps = {
+  slides: CarouselSlide[]
+  autoplay?: boolean
+  interval?: number
+  layout?: LayoutProps
+}
+
+export function Carousel({
+  slides, autoplay, interval, layout,
+  puck,
+}: CarouselProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { event } = getMeta(puck)
+  if (!slides || slides.length === 0) return <SectionPlaceholder label="Carousel (add at least one slide)" />
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        <CarouselInner slides={slides} autoplay={autoplay} interval={interval} eventSlug={event.slug} />
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── TABS (B21a) ──────────────────────────────────────────────────── */
+
+export type TabsBlockProps = {
+  items: Array<{ title: string; body: string }>
+  layout?: LayoutProps
+}
+
+export function TabsBlock({ items, layout }: TabsBlockProps) {
+  const [active, setActive] = useState<number>(0)
+  if (!items || items.length === 0) return <SectionPlaceholder label="Tabs (add at least one tab)" />
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-3xl mx-auto px-6">
+        <div role="tablist" className="flex flex-wrap gap-1 border-b border-[#1a1a2e]/[0.08] mb-6">
+          {items.map((it, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={active === i}
+              onClick={() => setActive(i)}
+              className={`inline-flex items-center px-4 h-10 -mb-px text-[13px] font-medium border-b-2 transition-colors ${
+                active === i
+                  ? "border-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e]"
+                  : "border-transparent text-[#1a1a2e]/65 hover:text-[#1a1a2e]"
+              }`}
+            >
+              {it.title || `Tab ${i + 1}`}
+            </button>
+          ))}
+        </div>
+        <div role="tabpanel" className="prose prose-neutral max-w-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{items[active]?.body ?? ""}</ReactMarkdown>
+        </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── ACCORDION (B21b) ─────────────────────────────────────────────── */
+
+export type AccordionBlockProps = {
+  items: Array<{ title: string; body: string }>
+  layout?: LayoutProps
+}
+
+export function AccordionBlock({ items, layout }: AccordionBlockProps) {
+  if (!items || items.length === 0) return <SectionPlaceholder label="Accordion (add at least one row)" />
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-3xl mx-auto px-6 space-y-2">
+        {items.map((it, i) => (
+          <details key={i} className="group bg-white border border-[#1a1a2e]/[0.06] rounded-xl px-5 py-4 open:bg-[#F4F8FF]">
+            <summary className="font-semibold cursor-pointer list-none flex justify-between items-center">
+              {it.title || "Untitled"}
+              <ChevronRight size={16} className="group-open:rotate-90 transition-transform" />
+            </summary>
+            <div className="mt-3 prose prose-neutral max-w-none text-sm">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{it.body ?? ""}</ReactMarkdown>
+            </div>
+          </details>
+        ))}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── IMAGE HOTSPOTS (B26) ─────────────────────────────────────────── */
+
+export type ImageHotspotsProps = {
+  image: string
+  alt?: string
+  hotspots: Array<{ x: number; y: number; label: string; description?: string }>
+  layout?: LayoutProps
+}
+
+export function ImageHotspots({ image, alt, hotspots, layout }: ImageHotspotsProps) {
+  const [active, setActive] = useState<number | null>(null)
+  if (!image) return <SectionPlaceholder label="Image hotspots (add an image)" />
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="relative w-full overflow-hidden rounded-2xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt={alt || ""} className="w-full h-auto block" />
+          {hotspots?.map((h, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setActive((a) => a === i ? null : i)}
+              onMouseEnter={() => setActive(i)}
+              onMouseLeave={() => setActive((a) => a === i ? null : a)}
+              className="absolute -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full text-white text-xs font-bold shadow-lg ring-2 ring-white/80"
+              style={{
+                left: `${Math.max(0, Math.min(100, h.x))}%`,
+                top:  `${Math.max(0, Math.min(100, h.y))}%`,
+                backgroundColor: "var(--lf-primary, #e7ab1c)",
+              }}
+              aria-label={h.label}
+            >
+              {i + 1}
+              {active === i && (
+                <span className="absolute left-1/2 top-full -translate-x-1/2 mt-2 w-56 bg-[#1a1a2e] text-white text-xs rounded-lg px-3 py-2 shadow-lg z-10">
+                  <span className="block font-semibold">{h.label}</span>
+                  {h.description && <span className="block opacity-80 mt-0.5 text-[11px] leading-snug">{h.description}</span>}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── EVENT-CARD GRID (B24) ────────────────────────────────────────── */
+
+export type EventCardGridProps = {
+  title?: string
+  mode?: "manual" | "upcoming-from-org"
+  /** Comma-separated event UUIDs (used when mode = "manual"). */
+  eventIds?: string
+  layout?: LayoutProps
+}
+
+export function EventCardGrid({
+  title, mode, eventIds, layout,
+  puck,
+}: EventCardGridProps & { puck: { metadata?: Record<string, unknown> } }) {
+  // The metadata builder only carries the active event's data — we don't
+  // ship a list of "other events" yet. This block renders a placeholder
+  // until the metadata pipeline carries them. Editors can preview by
+  // setting eventIds manually to see the layout.
+  const meta = (puck?.metadata ?? {}) as Record<string, unknown>
+  const otherEvents = Array.isArray(meta.otherEvents)
+    ? (meta.otherEvents as Array<{ id: string; slug: string; title: string; start_date: string; venue: string | null; cover_image_url: string | null }>)
+    : []
+  const ids = mode === "manual" && typeof eventIds === "string"
+    ? eventIds.split(/[,\s]+/).map((s) => s.trim()).filter(Boolean)
+    : []
+  const items = mode === "manual" && ids.length > 0
+    ? otherEvents.filter((e) => ids.includes(e.id))
+    : otherEvents
+  if (items.length === 0) {
+    return <SectionPlaceholder label="Event-card grid (no other published events to show — try 'Upcoming from org' once you have more events)" />
+  }
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        {title && <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-center tracking-tight" style={sfFont}>{title}</h2>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {items.map((ev) => (
+            <Link key={ev.id} href={`/events/${ev.slug}`} className="group rounded-2xl overflow-hidden border border-[#1a1a2e]/[0.06] bg-white hover:shadow-lg transition-shadow">
+              <div className="relative aspect-[16/10] bg-[#F4F8FF]">
+                {ev.cover_image_url
+                  ? <Image src={ev.cover_image_url} alt={ev.title} fill className="object-cover group-hover:scale-[1.02] transition-transform" sizes="(max-width:768px) 100vw, 33vw" />
+                  : null}
+              </div>
+              <div className="p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--lf-primary, #e7ab1c)" }}>
+                  {fmtDate(ev.start_date)}
+                </p>
+                <h3 className="font-semibold mt-1 line-clamp-2">{ev.title}</h3>
+                {ev.venue && <p className="text-xs opacity-70 mt-1">{ev.venue}</p>}
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </SectionShell>
   )
