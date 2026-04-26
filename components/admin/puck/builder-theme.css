@@ -194,3 +194,61 @@
 .lf-builder-shell ._SidebarSection {
   border-radius: 0 !important;
 }
+
+/* ─── Zoho-style hover toolbar pill (Phase 2) ───────────────────────
+ *
+ * Puck renders its <ActionBar> as a fixed-height bar at the top edge of
+ * the selected block. We transform it visually into a floating pill
+ * with a shadow + rounded corners + a small offset above the block, so
+ * it reads as a hover toolbar (like Zoho's eye/gear/drag/copy/trash).
+ */
+.lf-builder-shell ._ActionBar {
+  background: #1f2937 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.20), 0 2px 6px rgba(15, 23, 42, 0.10) !important;
+  padding: 4px 6px !important;
+  height: 32px !important;
+  transform: translateY(-46px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  gap: 2px !important;
+}
+
+.lf-builder-shell ._ActionBar button,
+.lf-builder-shell ._ActionBar [role="button"] {
+  color: rgba(255, 255, 255, 0.85) !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+  padding: 4px 6px !important;
+  height: 24px !important;
+  transition: background-color 80ms ease-out, color 80ms ease-out !important;
+}
+
+.lf-builder-shell ._ActionBar button:hover,
+.lf-builder-shell ._ActionBar [role="button"]:hover {
+  background: rgba(255, 255, 255, 0.10) !important;
+  color: #ffffff !important;
+}
+
+.lf-builder-shell ._ActionBar svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Action-bar label (the block-type chip on the left of the toolbar)
+ * gets the same treatment for visual harmony. */
+.lf-builder-shell ._ActionBar > [class*="ActionBar-label"] {
+  background: rgba(255, 255, 255, 0.10) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 10px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  margin-right: 4px !important;
+}
+
+/* Hide Puck's tiny corner-handle drag indicator — the toolbar's drag
+ * area is enough; the dotted handle clutters the canvas. */
+.lf-builder-shell ._DraggableComponent-dragIcon { display: none !important; }
