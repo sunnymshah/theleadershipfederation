@@ -24,6 +24,7 @@
  */
 
 import type { Config, Field, FieldProps } from "@measured/puck"
+import * as React from "react"
 import type { ReactElement } from "react"
 import {
   Root,
@@ -57,6 +58,7 @@ import {
 import { ImageField } from "./ImageField"
 import { UrlPicker } from "./UrlPicker"
 import { ThemePresetGrid } from "./ThemePresetGrid"
+import { makeSparklesField } from "./SparklesField"
 
 export type BuilderComponents = {
   Hero: HeroProps
@@ -188,8 +190,8 @@ export const puckConfig: Config<BuilderComponents> = {
         minHeight: "tall",
       },
       fields: {
-        title:    { type: "text",     label: "Title (leave blank to use event title)" },
-        subtitle: { type: "textarea", label: "Subtitle" },
+        title:    makeSparklesField({ label: "Title (leave blank to use event title)", hint: "title" }) as unknown as Field<string>,
+        subtitle: makeSparklesField({ label: "Subtitle", type: "textarea", hint: "subtitle", rows: 3 }) as unknown as Field<string>,
         ctaLabel: { type: "text",     label: "CTA label" },
         ctaUrl: {
           type: "custom",
@@ -245,9 +247,9 @@ export const puckConfig: Config<BuilderComponents> = {
       label: "Rich text",
       defaultProps: { title: "About this event", subtitle: "", body: "", layout: defaultLayout },
       fields: {
-        title:    { type: "text",     label: "Heading" },
+        title:    makeSparklesField({ label: "Heading", hint: "title" }) as unknown as Field<string>,
         subtitle: { type: "text",     label: "Eyebrow (small caps)" },
-        body:     { type: "textarea", label: "Body" },
+        body:     makeSparklesField({ label: "Body", type: "textarea", hint: "body", rows: 6 }) as unknown as Field<string>,
         layout:   layoutField,
       },
       render: (p) => <RichText {...p} />,
@@ -1465,8 +1467,8 @@ export const puckConfig: Config<BuilderComponents> = {
           ),
         },
         imageAlt: { type: "text", label: "Image alt text" },
-        title: { type: "text", label: "Title" },
-        body:  { type: "textarea", label: "Body" },
+        title: makeSparklesField({ label: "Title", hint: "title" }) as unknown as Field<string>,
+        body:  makeSparklesField({ label: "Body", type: "textarea", hint: "body", rows: 4 }) as unknown as Field<string>,
         ctaLabel: { type: "text", label: "Primary CTA label" },
         ctaUrl: {
           type: "custom",
@@ -1551,4 +1553,38 @@ export const puckConfig: Config<BuilderComponents> = {
     },
     render: (props) => <Root {...(props as unknown as RootProps & { children: React.ReactNode })} />,
   },
+}
+
+/**
+ * Post-process: wrap every block's render with a HOC that:
+ *   - When props.__hidden is true, mounts the rendered block inside a
+ *     <div data-lf-hidden="true"> so the editor CSS shows diagonal
+ *     stripes + a "Hidden element" pill.  (Public renderer filters
+ *     hidden blocks before they ever reach Puck — see PuckPublicRenderer.)
+ *   - Otherwise renders the block exactly as configured.
+ *
+ * We do this once at config-build time instead of touching every block
+ * component individually so the visual pattern works across all 30+
+ * block kinds with zero per-block plumbing.
+ */
+function withHiddenWrapper<P extends { __hidden?: boolean }>(
+  origRender: ((props: P) => React.ReactNode) | undefined,
+): ((props: P) => React.ReactNode) | undefined {
+  if (!origRender) return origRender
+  // eslint-disable-next-line react/display-name
+  return (props: P) => {
+    const child = origRender(props)
+    if (!props.__hidden) return child
+    return <div data-lf-hidden="true">{child}</div>
+  }
+}
+
+if (puckConfig.components) {
+  for (const k of Object.keys(puckConfig.components) as Array<keyof BuilderComponents>) {
+    const comp = puckConfig.components[k] as { render?: (props: never) => React.ReactNode }
+    if (comp?.render) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      comp.render = withHiddenWrapper(comp.render as any) as any
+    }
+  }
 }

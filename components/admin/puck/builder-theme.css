@@ -157,3 +157,40 @@
   pointer-events: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* ─── Section hover/select polish (Phase 2 Zoho parity) ────────────
+ *
+ * Puck wraps each rendered block in a node it controls. We can't
+ * replace its outline rules without breaking selection, but we CAN
+ * supplement them so hover gets a subtle blue ring and the selected
+ * block gets a stronger ring + persistent toolbar.
+ */
+
+.lf-builder-shell ._DropZone-item:hover > [data-puck-component]:not([data-lf-hidden="true"]) {
+  outline: 2px solid var(--bs-info, #3e7af7);
+  outline-offset: 2px;
+  outline-style: dashed;
+  border-radius: 4px;
+  transition: outline-color 80ms ease-out;
+}
+
+.lf-builder-shell ._DropZone-item._DropZone-item--isSelected > [data-puck-component] {
+  outline: 2px solid var(--bs-info, #3e7af7) !important;
+  outline-offset: 2px;
+  outline-style: solid !important;
+  border-radius: 4px;
+}
+
+/* Canvas background — Zoho uses a subtle off-white so the rendered
+ * page looks like content on a desk, not pinned to the chrome. */
+.lf-builder-shell ._Puck-frame,
+.lf-builder-shell ._Puck-frame > * {
+  background: #fafafa;
+}
+
+/* The native Puck right-side fields panel is currently the active
+ * inspector. Tightened the gutter so it stops feeling like a sidebar
+ * and more like an attached drawer. */
+.lf-builder-shell ._SidebarSection {
+  border-radius: 0 !important;
+}
