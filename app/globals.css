@@ -20,7 +20,11 @@ html {
 }
 
 body {
-  background-color: #ffffff;
+  /* Transparent so the fixed-position vanta CLOUDS canvas behind <body>
+   * shows through unbranded sections. Per-section opaque backgrounds
+   * (white cards, dark CTA bands, etc.) still cover the canvas where
+   * needed for legibility. */
+  background-color: transparent;
   color: #1a1a2e;
   overflow-x: hidden;
 }
@@ -173,10 +177,11 @@ body {
  * ───────────────────────────────────────────────────────────────────── */
 
 .lf-clean {
-  background-color: #ffffff !important;
+  /* Transparent — let the site-wide vanta CLOUDS canvas show through. */
+  background-color: transparent !important;
 }
 .lf-clean main {
-  background-color: #ffffff !important;
+  background-color: transparent !important;
 }
 
 /* Strip every section / div / aside / header / footer background-image
