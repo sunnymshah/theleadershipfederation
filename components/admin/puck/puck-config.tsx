@@ -33,6 +33,7 @@ import {
   TextBox,
   Countdown, VenueMap, StickyCta, SocialBar,
   Carousel, TabsBlock, AccordionBlock, ImageHotspots, EventCardGrid,
+  TicketsPricing,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -45,6 +46,7 @@ import {
   type CountdownProps, type VenueMapProps, type StickyCtaProps, type SocialBarProps,
   type CarouselProps, type TabsBlockProps, type AccordionBlockProps,
   type ImageHotspotsProps, type EventCardGridProps,
+  type TicketsPricingProps,
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
@@ -80,6 +82,7 @@ export type BuilderComponents = {
   AccordionBlock: AccordionBlockProps
   ImageHotspots: ImageHotspotsProps
   EventCardGrid: EventCardGridProps
+  TicketsPricing: TicketsPricingProps
 }
 
 /* ── Shared layout field ─────────────────────────────────────────────
@@ -138,7 +141,7 @@ export const puckConfig: Config<BuilderComponents> = {
     Discovery:{ title: "Discovery",       components: ["EventCardGrid"] },
     Speakers: { title: "Speakers",        components: ["SpeakersGrid"] },
     Program:  { title: "Program",         components: ["Agenda"] },
-    Tickets:  { title: "Tickets",         components: ["TicketsCta"] },
+    Tickets:  { title: "Tickets",         components: ["TicketsCta", "TicketsPricing"] },
     Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip"] },
     Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock", "ImageHotspots"] },
     Venue:    { title: "Venue",           components: ["VenueMap"] },
@@ -854,6 +857,19 @@ export const puckConfig: Config<BuilderComponents> = {
         layout: layoutField,
       },
       render: (p) => <LogosStrip {...p} />,
+    },
+
+    /* ── TICKETS PRICING (B16) ───────────────────────────────────── */
+    TicketsPricing: {
+      label: "Pricing cards",
+      defaultProps: { title: "Choose your ticket", subtitle: "", mostPopular: "", layout: defaultLayout },
+      fields: {
+        title: { type: "text", label: "Heading" },
+        subtitle: { type: "text", label: "Subtitle" },
+        mostPopular: { type: "text", label: "Ticket UUID to mark Most Popular (optional)" },
+        layout: layoutField,
+      },
+      render: (p) => <TicketsPricing {...p} />,
     },
 
     /* ── CAROUSEL (B20) ──────────────────────────────────────────── */

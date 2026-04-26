@@ -143,7 +143,7 @@ export default async function FullscreenBuilderPage({
       .order("sort_order", { ascending: true }),
     admin
       .from("tickets")
-      .select("id, name, description, price_inr, sold, inventory_limit")
+      .select("id, name, description, price_inr, sold, inventory_limit, features, early_bird_ends_at")
       .eq("event_id", id)
       .order("sort_order", { ascending: true }),
     getBuilderDraft(id),
@@ -193,6 +193,8 @@ export default async function FullscreenBuilderPage({
       price_inr: Number(t.price_inr ?? 0),
       sold: Number(t.sold ?? 0),
       inventory_limit: (t.inventory_limit as number | null) ?? null,
+      features: (t.features as string[] | null) ?? null,
+      early_bird_ends_at: (t.early_bird_ends_at as string | null) ?? null,
     })),
   }
 

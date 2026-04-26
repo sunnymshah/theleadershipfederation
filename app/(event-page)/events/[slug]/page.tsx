@@ -180,7 +180,7 @@ export default async function EventDetailPage({ params }: Props) {
     ),
     getGalleryImages(event.id),
     supabase.from("event_winners").select("*").eq("event_id", event.id).order("sort_order"),
-    supabase.from("tickets").select("id, name, description, price_inr, sold, inventory_limit").eq("event_id", event.id).order("sort_order"),
+    supabase.from("tickets").select("id, name, description, price_inr, sold, inventory_limit, features, early_bird_ends_at").eq("event_id", event.id).order("sort_order"),
     getEventSections(event.id),
   ])
 
@@ -244,6 +244,8 @@ export default async function EventDetailPage({ params }: Props) {
             price_inr: t.price_inr,
             sold: t.sold ?? 0,
             inventory_limit: t.inventory_limit ?? null,
+            features: t.features ?? null,
+            early_bird_ends_at: t.early_bird_ends_at ?? null,
           })),
         }}
       />
