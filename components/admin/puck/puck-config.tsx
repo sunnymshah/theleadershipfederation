@@ -32,6 +32,7 @@ import {
   Spacer, Divider, ImageBlock, TwoColumn, Testimonial, LogosStrip, Newsletter,
   TextBox,
   Countdown, VenueMap, StickyCta, SocialBar,
+  Carousel, TabsBlock, AccordionBlock, ImageHotspots, EventCardGrid,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -42,6 +43,8 @@ import {
   type NewsletterProps,
   type TextBoxProps,
   type CountdownProps, type VenueMapProps, type StickyCtaProps, type SocialBarProps,
+  type CarouselProps, type TabsBlockProps, type AccordionBlockProps,
+  type ImageHotspotsProps, type EventCardGridProps,
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
@@ -72,6 +75,11 @@ export type BuilderComponents = {
   VenueMap: VenueMapProps
   StickyCta: StickyCtaProps
   SocialBar: SocialBarProps
+  Carousel: CarouselProps
+  TabsBlock: TabsBlockProps
+  AccordionBlock: AccordionBlockProps
+  ImageHotspots: ImageHotspotsProps
+  EventCardGrid: EventCardGridProps
 }
 
 /* ── Shared layout field ─────────────────────────────────────────────
@@ -125,13 +133,14 @@ const defaultLayout: LayoutProps = { paddingY: "lg", backgroundColor: "", backgr
 
 export const puckConfig: Config<BuilderComponents> = {
   categories: {
-    Headers:  { title: "Headers",         components: ["Hero", "Countdown"] },
-    Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial"] },
+    Headers:  { title: "Headers",         components: ["Hero", "Countdown", "Carousel"] },
+    Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial", "TabsBlock", "AccordionBlock"] },
+    Discovery:{ title: "Discovery",       components: ["EventCardGrid"] },
     Speakers: { title: "Speakers",        components: ["SpeakersGrid"] },
     Program:  { title: "Program",         components: ["Agenda"] },
     Tickets:  { title: "Tickets",         components: ["TicketsCta"] },
     Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip"] },
-    Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock"] },
+    Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock", "ImageHotspots"] },
     Venue:    { title: "Venue",           components: ["VenueMap"] },
     CTAs:     { title: "Call-to-actions", components: ["CtaButton", "Newsletter", "StickyCta", "SocialBar"] },
     FAQs:     { title: "FAQs",            components: ["Faqs"] },
@@ -845,6 +854,176 @@ export const puckConfig: Config<BuilderComponents> = {
         layout: layoutField,
       },
       render: (p) => <LogosStrip {...p} />,
+    },
+
+    /* ── CAROUSEL (B20) ──────────────────────────────────────────── */
+    Carousel: {
+      label: "Carousel",
+      defaultProps: {
+        slides: [
+          { image: "", heading: "", body: "", ctaLabel: "", ctaUrl: "" },
+          { image: "", heading: "", body: "", ctaLabel: "", ctaUrl: "" },
+        ],
+        autoplay: false,
+        interval: 5,
+        layout: defaultLayout,
+      },
+      fields: {
+        autoplay: {
+          type: "radio",
+          label: "Autoplay",
+          options: [
+            { label: "Off", value: false },
+            { label: "On",  value: true },
+          ],
+        },
+        interval: { type: "number", label: "Autoplay interval (seconds)", min: 2, max: 30 },
+        slides: {
+          type: "array",
+          label: "Slides",
+          getItemSummary: (it, idx) => it?.heading || `Slide ${Number(idx ?? 0) + 1}`,
+          defaultItemProps: { image: "", heading: "", body: "", ctaLabel: "", ctaUrl: "" },
+          arrayFields: {
+            image: {
+              type: "custom",
+              label: "Image",
+              render: (p) => <ImageField {...p} folder="sections" />,
+            },
+            heading: { type: "text", label: "Heading" },
+            body:    { type: "textarea", label: "Body" },
+            ctaLabel: { type: "text", label: "CTA label" },
+            ctaUrl: {
+              type: "custom",
+              label: "CTA link",
+              render: (p) => (
+                <UrlPicker
+                  field={p.field as { label?: string }}
+                  value={(p.value as string) ?? ""}
+                  onChange={p.onChange as (v: string) => void}
+                />
+              ),
+            },
+          },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <Carousel {...p} />,
+    },
+
+    /* ── TABS (B21a) ─────────────────────────────────────────────── */
+    TabsBlock: {
+      label: "Tabs",
+      defaultProps: {
+        items: [
+          { title: "Overview",  body: "Tell us about the event." },
+          { title: "Schedule",  body: "Day-by-day breakdown." },
+        ],
+        layout: defaultLayout,
+      },
+      fields: {
+        items: {
+          type: "array",
+          label: "Tabs",
+          getItemSummary: (it, idx) => it?.title || `Tab ${Number(idx ?? 0) + 1}`,
+          defaultItemProps: { title: "Tab", body: "" },
+          arrayFields: {
+            title: { type: "text",     label: "Title" },
+            body:  { type: "textarea", label: "Body (Markdown)" },
+          },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <TabsBlock {...p} />,
+    },
+
+    /* ── ACCORDION (B21b) ────────────────────────────────────────── */
+    AccordionBlock: {
+      label: "Accordion",
+      defaultProps: {
+        items: [
+          { title: "What's included?", body: "Lunch, coffee, and an evening reception." },
+          { title: "Refund policy",     body: "Tickets are non-refundable but transferable up to 7 days before the event." },
+        ],
+        layout: defaultLayout,
+      },
+      fields: {
+        items: {
+          type: "array",
+          label: "Rows",
+          getItemSummary: (it, idx) => it?.title || `Row ${Number(idx ?? 0) + 1}`,
+          defaultItemProps: { title: "Untitled", body: "" },
+          arrayFields: {
+            title: { type: "text",     label: "Title" },
+            body:  { type: "textarea", label: "Body (Markdown)" },
+          },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <AccordionBlock {...p} />,
+    },
+
+    /* ── IMAGE HOTSPOTS (B26) ────────────────────────────────────── */
+    ImageHotspots: {
+      label: "Image hotspots",
+      defaultProps: {
+        image: "",
+        alt: "",
+        hotspots: [
+          { x: 25, y: 50, label: "Hotspot 1", description: "" },
+          { x: 75, y: 50, label: "Hotspot 2", description: "" },
+        ],
+        layout: defaultLayout,
+      },
+      fields: {
+        image: {
+          type: "custom",
+          label: "Image",
+          render: (p) => <ImageField {...p} folder="sections" />,
+        },
+        alt: { type: "text", label: "Alt text (recommended)" },
+        hotspots: {
+          type: "array",
+          label: "Hotspots",
+          getItemSummary: (it, idx) => it?.label || `Hotspot ${Number(idx ?? 0) + 1}`,
+          defaultItemProps: { x: 50, y: 50, label: "New hotspot", description: "" },
+          arrayFields: {
+            x: { type: "number", label: "X (% from left, 0-100)",  min: 0, max: 100 },
+            y: { type: "number", label: "Y (% from top, 0-100)",   min: 0, max: 100 },
+            label:       { type: "text",     label: "Label" },
+            description: { type: "textarea", label: "Description (optional)" },
+          },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <ImageHotspots {...p} />,
+    },
+
+    /* ── EVENT-CARD GRID (B24) ───────────────────────────────────── */
+    EventCardGrid: {
+      label: "Event-card grid",
+      defaultProps: {
+        title: "More events",
+        mode: "upcoming-from-org",
+        eventIds: "",
+        layout: defaultLayout,
+      },
+      fields: {
+        title: { type: "text", label: "Heading" },
+        mode: {
+          type: "radio",
+          label: "Source",
+          options: [
+            { label: "Upcoming from org", value: "upcoming-from-org" },
+            { label: "Manual list",       value: "manual" },
+          ],
+        },
+        eventIds: {
+          type: "textarea",
+          label: "Event UUIDs (comma-separated, used when Source = Manual)",
+        },
+        layout: layoutField,
+      },
+      render: (p) => <EventCardGrid {...p} />,
     },
 
     /* ── COUNTDOWN (B13) ─────────────────────────────────────────── */
