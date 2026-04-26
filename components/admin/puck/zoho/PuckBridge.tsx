@@ -29,24 +29,65 @@ type AppStateGetter = () => Data
  */
 const ROOT_ZONE = "root:default-zone"
 
+type HistoryHandle = {
+  back: () => void
+  forward: () => void
+  hasPast: boolean
+  hasFuture: boolean
+}
+
 /* Module-level ref so callers outside Puck can grab the latest. */
-const refs: { dispatch: DispatchFn | null; getState: AppStateGetter | null } = {
+const refs: {
+  dispatch: DispatchFn | null
+  getState: AppStateGetter | null
+  history: HistoryHandle | null
+} = {
   dispatch: null,
   getState: null,
+  history: null,
+}
+
+// External listeners for history-state changes — the top bar enables/
+// disables Undo/Redo buttons in real time without polling.
+const historyListeners = new Set<() => void>()
+function notifyHistory() {
+  for (const fn of historyListeners) {
+    try { fn() } catch {}
+  }
 }
 
 export function PuckBridge() {
-  const { dispatch, appState } = usePuck()
+  const { dispatch, appState, history } = usePuck()
   // Re-bind the ref every render so it always points at the latest closure.
   useEffect(() => {
     refs.dispatch = dispatch
     refs.getState = () => appState.data as unknown as Data
+    refs.history = {
+      back: history.back,
+      forward: history.forward,
+      hasPast: history.hasPast,
+      hasFuture: history.hasFuture,
+    }
+    notifyHistory()
     return () => {
       refs.dispatch = null
       refs.getState = null
+      refs.history = null
     }
-  }, [dispatch, appState])
+  }, [dispatch, appState, history.hasPast, history.hasFuture, history.back, history.forward])
   return null
+}
+
+/** Get current undo/redo state — returns null when Puck isn't mounted. */
+export function getPuckHistory(): HistoryHandle | null {
+  return refs.history
+}
+
+/** Subscribe to history-state changes. Fired on mount/unmount + every time
+ *  hasPast/hasFuture flips. Returns an unsubscribe function. */
+export function subscribePuckHistory(listener: () => void): () => void {
+  historyListeners.add(listener)
+  return () => { historyListeners.delete(listener) }
 }
 
 /** Try to obtain Puck's dispatch. Returns null when Puck hasn't mounted. */

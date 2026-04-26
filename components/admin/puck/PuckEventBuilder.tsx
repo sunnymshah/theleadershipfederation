@@ -35,7 +35,7 @@ import {
   Users, Ticket, ClipboardList, Building2, Settings, Database,
   Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
   History, Undo2, Monitor, Tablet, Smartphone, Minus,
-  HelpCircle, Calendar, X,
+  HelpCircle, Calendar, X, MoreHorizontal,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -48,6 +48,7 @@ import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal"
 import { SchedulePublishDialog } from "./SchedulePublishDialog"
 import { ABTestCreateDialog } from "./ABTestCreateDialog"
 import { AIWizardDialog } from "./AIWizardDialog"
+import { UndoRedoButtons } from "./UndoRedoButtons"
 import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
 import { PuckBridge, insertBlockAtEnd } from "./zoho/PuckBridge"
@@ -479,98 +480,54 @@ export function PuckEventBuilder({
             floating pill at the bottom-right of the canvas (see
             ViewportPill render below) — Figma's pattern, never crowds
             the top bar. */}
-        <div className="h-12 w-full flex items-center gap-2 px-3">
+        {/* Zoho-parity three-zone top bar.
+            LEFT  (flex-1)  : event color dot + title + Microsite breadcrumb
+                              + autosave dot + overflow menu (Refresh / Data /
+                              History / Revert).
+            CENTER (absolute): Undo + Redo (Puck history) — device viewport
+                              pill stays floating bottom-right of the canvas
+                              so it doesn't crowd the bar.
+            RIGHT (shrink-0): Preview · View Website · Schedule · Help ·
+                              Publish · Close X. */}
+        <div className="relative h-12 w-full flex items-center gap-2 px-3">
+          {/* LEFT zone */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span
+              aria-hidden
+              className="w-2 h-2 rounded-full bg-[var(--lf-primary,#e7ab1c)] shrink-0"
+              title="Event color"
+            />
             <Link
-              href="/admin/builder"
-              aria-label="Back to Page Builder hub"
-              title="Back to Page Builder hub"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] shrink-0"
+              href={`/admin/events/${eventId}`}
+              className="text-[13px] font-bold text-[var(--bs-text,#1f2937)] truncate max-w-[280px] hover:text-[var(--bs-text-muted,#6b7280)] transition-colors"
+              title={eventTitle}
             >
-              <ArrowLeft size={16} strokeWidth={1.5} />
+              {eventTitle}
             </Link>
-            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] shrink-0" />
-            {/* Breadcrumbs (B13). Tightened for the constrained column:
-                  - 2xl+ : "Events / Event title / Microsite"
-                  - lg-xl: "Event title / Microsite" (Events link dropped)
-                  - md   : just "Microsite" (event title in the back
-                            button's tooltip)
-                  - < md : nothing (just the autosave dot) */}
-            <nav aria-label="Breadcrumb" className="hidden md:flex items-center gap-1.5 text-[12px] min-w-0">
-              <Link
-                href="/admin/events"
-                className="hidden 2xl:inline text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] shrink-0"
-              >
-                Events
-              </Link>
-              <span className="hidden 2xl:inline text-[var(--bs-text-subtle,#9ca3af)]">/</span>
-              <Link
-                href={`/admin/events/${eventId}`}
-                className="hidden lg:inline text-[var(--bs-text,#1f2937)] font-semibold truncate max-w-[160px]"
-                title={eventTitle}
-              >
-                {eventTitle}
-              </Link>
-              <span className="hidden lg:inline text-[var(--bs-text-subtle,#9ca3af)]">/</span>
-              <span className="text-[var(--bs-text-muted,#6b7280)] shrink-0">Microsite</span>
-            </nav>
+            <span className="hidden sm:inline text-[11px] uppercase tracking-[0.18em] text-[var(--bs-text-muted,#6b7280)] shrink-0">
+              Microsite
+            </span>
             <AutosaveBadge status={status} />
+            <TopBarOverflowMenu
+              eventId={eventId}
+              refreshing={refreshing}
+              dataMenuOpen={dataMenuOpen}
+              setDataMenuOpen={setDataMenuOpen}
+              onRefreshData={handleRefreshData}
+              onOpenHistory={() => setHistoryOpen(true)}
+              onRevert={handleRevert}
+              reverting={reverting}
+            />
           </div>
 
+          {/* CENTER zone — absolutely centered so it stays put as
+              LEFT/RIGHT widths fluctuate with breadcrumb labels. */}
+          <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-0.5">
+            <UndoRedoButtons />
+          </div>
+
+          {/* RIGHT zone */}
           <div className="flex items-center gap-0.5 shrink-0">
-            <button
-              type="button"
-              onClick={handleRefreshData}
-              disabled={refreshing}
-              title="Re-fetch speakers, sessions, sponsors, tickets"
-              aria-label="Refresh event data"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-60"
-            >
-              <RefreshCw size={14} strokeWidth={1.5} className={refreshing ? "animate-spin" : ""} />
-            </button>
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
-              <button
-                type="button"
-                onClick={() => setDataMenuOpen((v) => !v)}
-                className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-                aria-expanded={dataMenuOpen}
-                aria-haspopup="menu"
-                aria-label="Event data"
-                title="Manage speakers, sessions, tickets, sponsors"
-              >
-                <Database size={14} strokeWidth={1.5} />
-              </button>
-              {dataMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-56 rounded-lg border border-[var(--bs-border,#e5e7eb)] bg-white shadow-lg py-1 z-50">
-                  <DataLink href={`/admin/events/${eventId}?tab=speakers`}     icon={Users}         label="Speakers" />
-                  <DataLink href={`/admin/events/${eventId}?tab=agenda`}       icon={ClipboardList} label="Sessions & Agenda" />
-                  <DataLink href={`/admin/events/${eventId}?tab=tickets`}      icon={Ticket}        label="Tickets" />
-                  <DataLink href={`/admin/events/${eventId}?tab=sponsors`}     icon={Building2}     label="Sponsors" />
-                  <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
-                  <DataLink href={`/admin/events/${eventId}?tab=settings`}     icon={Settings}      label="Event settings" />
-                </div>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setHistoryOpen(true)}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-              aria-label="Publish history"
-              title="Publish history"
-            >
-              <History size={14} strokeWidth={1.5} />
-            </button>
-            <button
-              type="button"
-              onClick={handleRevert}
-              disabled={reverting}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-50"
-              aria-label="Revert"
-              title="Discard unpublished changes — revert draft to last published"
-            >
-              {reverting ? <Loader2 size={14} className="animate-spin" /> : <Undo2 size={14} strokeWidth={1.5} />}
-            </button>
-            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
             <PreviewMenu eventSlug={eventSlug} activePage={activePage} />
             {(() => {
               const isPublishing = publishState === "publishing"
@@ -617,24 +574,6 @@ export function PuckEventBuilder({
                 </button>
               )
             })()}
-            <button
-              type="button"
-              onClick={() => setScheduleOpen(true)}
-              aria-label="Schedule publish"
-              title="Schedule publish"
-              className="ml-1 inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-            >
-              <Calendar size={15} strokeWidth={1.5} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setShortcutsOpen(true)}
-              aria-label="Keyboard shortcuts"
-              title="Keyboard shortcuts"
-              className="ml-1 inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-            >
-              <HelpCircle size={16} strokeWidth={1.5} />
-            </button>
             <a
               href={`/events/${eventSlug}`}
               target="_blank"
@@ -645,6 +584,24 @@ export function PuckEventBuilder({
             >
               <ExternalLink size={14} strokeWidth={1.5} />
             </a>
+            <button
+              type="button"
+              onClick={() => setShortcutsOpen(true)}
+              aria-label="Keyboard shortcuts"
+              title="Keyboard shortcuts (?)"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+            >
+              <HelpCircle size={16} strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setScheduleOpen(true)}
+              aria-label="Schedule publish"
+              title="Schedule publish"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+            >
+              <Calendar size={15} strokeWidth={1.5} />
+            </button>
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
             <Link
               href="/admin/builder"
@@ -1235,6 +1192,124 @@ function BuilderOnboarding({ onDismiss, onAiGenerate }: { onDismiss: () => void;
         onCancel={() => setImportOpen(false)}
         onConfirm={() => setImportOpen(false)}
       />
+    </div>
+  )
+}
+
+/**
+ * Top-bar LEFT-zone overflow kebab. Hosts the legacy actions that the
+ * Zoho-style 3-zone layout doesn't have direct slots for: Refresh data,
+ * Event data submenu (Speakers / Sessions / Tickets / Sponsors / Event
+ * settings), Publish history, Revert draft.
+ */
+function TopBarOverflowMenu({
+  eventId,
+  refreshing,
+  dataMenuOpen,
+  setDataMenuOpen,
+  onRefreshData,
+  onOpenHistory,
+  onRevert,
+  reverting,
+}: {
+  eventId: string
+  refreshing: boolean
+  dataMenuOpen: boolean
+  setDataMenuOpen: React.Dispatch<React.SetStateAction<boolean>>
+  onRefreshData: () => void
+  onOpenHistory: () => void
+  onRevert: () => void
+  reverting: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+        setDataMenuOpen(false)
+      }
+    }
+    window.addEventListener("mousedown", close)
+    return () => window.removeEventListener("mousedown", close)
+  }, [open, setDataMenuOpen])
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="More actions"
+        title="More actions"
+        className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+      >
+        <MoreHorizontal size={14} strokeWidth={1.5} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute left-0 top-full mt-1 w-56 rounded-md bg-white shadow-lg border border-[var(--bs-border,#e5e7eb)] py-1 z-50"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onRefreshData() }}
+            disabled={refreshing}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-50"
+          >
+            <RefreshCw size={13} strokeWidth={1.5} className={refreshing ? "animate-spin" : ""} />
+            Refresh event data
+          </button>
+          <div className="relative">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => setDataMenuOpen((v) => !v)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+              aria-expanded={dataMenuOpen}
+              aria-haspopup="menu"
+            >
+              <Database size={13} strokeWidth={1.5} />
+              <span className="flex-1 text-left">Event data</span>
+              <ChevronRight size={12} className="opacity-50" />
+            </button>
+            {dataMenuOpen && (
+              <div className="absolute left-full top-0 ml-1 w-56 rounded-md bg-white shadow-lg border border-[var(--bs-border,#e5e7eb)] py-1">
+                <DataLink href={`/admin/events/${eventId}?tab=speakers`}     icon={Users}         label="Speakers" />
+                <DataLink href={`/admin/events/${eventId}?tab=agenda`}       icon={ClipboardList} label="Sessions & Agenda" />
+                <DataLink href={`/admin/events/${eventId}?tab=tickets`}      icon={Ticket}        label="Tickets" />
+                <DataLink href={`/admin/events/${eventId}?tab=sponsors`}     icon={Building2}     label="Sponsors" />
+                <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
+                <DataLink href={`/admin/events/${eventId}?tab=settings`}     icon={Settings}      label="Event settings" />
+              </div>
+            )}
+          </div>
+          <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenHistory() }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+          >
+            <History size={13} strokeWidth={1.5} />
+            Publish history
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onRevert() }}
+            disabled={reverting}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-50"
+          >
+            {reverting
+              ? <Loader2 size={13} className="animate-spin" />
+              : <Undo2 size={13} strokeWidth={1.5} />}
+            Revert to last published
+          </button>
+        </div>
+      )}
     </div>
   )
 }

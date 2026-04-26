@@ -34,6 +34,7 @@ import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { GalleryLightbox } from "./GalleryLightbox"
 import { CarouselInner } from "./CarouselInner"
 import { FormBlockClient, type FormField } from "./FormBlockClient"
+import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
 
 export const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -405,17 +406,21 @@ export function Hero({
 
   return (
     <section className={`relative ${height} flex items-end overflow-hidden bg-[#1a1a2e]`}>
-      {bg && (
-        <Image
-          src={bg}
-          alt={shownTitle || "Event"}
-          fill
-          priority={isFirstBlock}
-          fetchPriority={isFirstBlock ? "high" : "auto"}
-          className="object-cover opacity-60"
-          sizes="100vw"
-        />
-      )}
+      {bg && (() => {
+        const { src, objectPosition } = parseFocalPoint(bg)
+        return (
+          <Image
+            src={src}
+            alt={shownTitle || "Event"}
+            fill
+            priority={isFirstBlock}
+            fetchPriority={isFirstBlock ? "high" : "auto"}
+            className="object-cover opacity-60"
+            style={{ objectPosition }}
+            sizes="100vw"
+          />
+        )
+      })()}
       <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent" />
       <div className={`relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pb-16 pt-28 w-full ${centered ? "text-center" : ""}`}>
         {event.start_date && (
@@ -1325,12 +1330,13 @@ export function ImageBlock({ imageUrl, alt, caption, width, rounded, layout }: I
     width === "narrow" ? "max-w-2xl" :
     "max-w-5xl"
   const r = rounded === false ? "" : "rounded-2xl"
+  const fp = parseFocalPoint(imageUrl)
   return (
     <SectionShell layout={layout}>
       <div className={`${max} mx-auto px-6`}>
         <div className={`relative w-full overflow-hidden ${r} shadow-lg`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt={alt || caption || ""} className="w-full h-auto object-cover" />
+          <img src={fp.src} alt={alt || caption || ""} className="w-full h-auto object-cover" style={{ objectPosition: fp.objectPosition }} />
         </div>
         {caption && (
           <p className="mt-3 text-center text-xs opacity-60 italic">{caption}</p>
@@ -2388,15 +2394,19 @@ export function SpeakerBioCard({
   return (
     <SectionShell layout={layout}>
       <div className={`max-w-5xl mx-auto px-6 flex flex-col gap-8 items-center ${order}`}>
-        {sp.image_url ? (
-          <Image
-            src={sp.image_url}
-            alt={sp.name}
-            width={224}
-            height={224}
-            className={`${imgSize} rounded-2xl object-cover shrink-0 ring-1 ring-[#1a1a2e]/10`}
-          />
-        ) : (
+        {sp.image_url ? (() => {
+          const fp = parseFocalPoint(sp.image_url)
+          return (
+            <Image
+              src={fp.src}
+              alt={sp.name}
+              width={224}
+              height={224}
+              className={`${imgSize} rounded-2xl object-cover shrink-0 ring-1 ring-[#1a1a2e]/10`}
+              style={{ objectPosition: fp.objectPosition }}
+            />
+          )
+        })() : (
           <div className={`${imgSize} rounded-2xl bg-[#1a1a2e]/5 flex items-center justify-center shrink-0`}>
             <User size={48} className="text-[#1a1a2e]/30" />
           </div>
@@ -2549,10 +2559,18 @@ export function CtaWithImage({
     <SectionShell layout={layout}>
       <div className={`max-w-6xl mx-auto px-6 flex flex-col gap-10 items-center ${order}`}>
         <div className="flex-1 min-w-0">
-          {image ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={image} alt={imageAlt ?? ""} className={`w-full h-auto object-cover ${radius}`} />
-          ) : (
+          {image ? (() => {
+            const fp = parseFocalPoint(image)
+            return (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={fp.src}
+                alt={imageAlt ?? ""}
+                className={`w-full h-auto object-cover ${radius}`}
+                style={{ objectPosition: fp.objectPosition }}
+              />
+            )
+          })() : (
             <div className={`w-full aspect-[4/3] bg-[#1a1a2e]/5 ${radius} flex items-center justify-center text-[#1a1a2e]/30 text-sm`}>
               Add an image in the inspector
             </div>
