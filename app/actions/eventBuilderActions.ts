@@ -28,6 +28,7 @@ import { requirePermission } from "@/lib/server-permissions"
 import { legacyToPuck, type PuckDataLike } from "@/lib/event-puck-migrate"
 import type { BuilderPagesMap, BuilderPage } from "@/lib/event-builder-pages"
 import { slugifyPage } from "@/lib/event-builder-pages"
+import { fireWebhooks } from "@/lib/webhooks"
 
 /* ── Revision history ─────────────────────────────────────────────────── */
 
@@ -260,6 +261,17 @@ export async function publishBuilderAtomic(
         try { revalidatePath(`/events/${row.slug as string}/p/${s}`) } catch { /* ignore */ }
       }
     }
+
+    // Fire-and-forget webhooks. Failures shouldn't roll back the publish
+    // — they're logged in event_webhook_deliveries for inspection.
+    void fireWebhooks(eventId, "page.published", {
+      event_id: eventId,
+      slug: row?.slug ?? null,
+      published_at: now,
+      revision_id: revisionId ?? null,
+      label: label ?? null,
+    })
+
     return { success: true, revisionId }
   } catch (err) {
     return { success: false, error: (err as Error).message }

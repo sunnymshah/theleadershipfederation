@@ -12,6 +12,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { isValidUUID } from "@/lib/security"
+import { fireWebhooks } from "@/lib/webhooks"
 
 export const runtime = "nodejs"
 
@@ -59,7 +60,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to record submission" }, { status: 500 })
   }
 
-  // Optional webhook fan-out (fire and forget, 5s timeout).
+  // Fan out to all microsite webhooks subscribed to form.submitted.
+  void fireWebhooks(eventId, "form.submitted", {
+    event_id: eventId,
+    source_page: sourcePage ?? null,
+    fields: cleanFields,
+  })
+
+  // Optional per-block webhook fan-out (fire and forget, 5s timeout).
   if (webhookUrl) {
     const ctrl = new AbortController()
     const t = setTimeout(() => ctrl.abort(), 5000)

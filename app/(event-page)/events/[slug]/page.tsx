@@ -11,6 +11,10 @@ import { getEventSections } from "@/app/actions/eventSectionActions"
 import { EventSectionsRenderer } from "@/components/site/EventSections"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
 import { EventPageNav } from "@/components/site/event-pages/EventPageNav"
+import { EventTopNav } from "@/components/site/event-pages/EventTopNav"
+import { StandardPageRender } from "@/components/site/event-pages/StandardPageRender"
+import { getStandardPagePublicData } from "@/app/actions/standardPageActions"
+import { getMicrositeSettings, buildSeoMetadata } from "@/lib/microsite-settings"
 import type { Data as PuckData } from "@measured/puck"
 
 // Short revalidate interval so admin edits appear on the public page quickly.
@@ -27,10 +31,15 @@ export async function generateMetadata({ params }: Props) {
   // Uses React cache() — shared with the page component so only one DB call
   const event = await getEvent(slug)
   if (!event) return { title: "Event Not Found" }
-  return {
-    title: `${event.title} | The Leadership Federation`,
-    description: event.description ?? `${event.title} at ${event.venue}`,
-  }
+  const settings = await getMicrositeSettings(event.id)
+  return buildSeoMetadata({
+    fallback: {
+      title: `${event.title} | The Leadership Federation`,
+      description: event.description ?? `${event.title} at ${event.venue}`,
+      ogImage: event.cover_image_url,
+    },
+    settings,
+  })
 }
 
 function fmtDate(d: string) {
@@ -193,7 +202,36 @@ export default async function EventDetailPage({ params }: Props) {
   const tickets = ticketsRes.data ?? []
   const sections = sectionsRes.sections ?? []
 
-  // ── Puck-based builder (new) ──────────────────────────────────────
+  // ── Standard-pages (Phase 5) — preferred path ────────────────────
+  // If the event has a home row in event_standard_pages with non-empty
+  // puckData, render that. Otherwise we fall through to the legacy
+  // builder_data path below for back-compat.
+  const stdHome = await getStandardPagePublicData(event.id, "home")
+  const stdHasContent =
+    stdHome.row !== null &&
+    Array.isArray(stdHome.data.content) &&
+    stdHome.data.content.length > 0 &&
+    !!(stdHome.row.settings as Record<string, unknown> | null)?.puckData
+  if (stdHasContent) {
+    return (
+      <StandardPageRender
+        event={{
+          id: event.id,
+          slug: event.slug,
+          title: event.title,
+          start_date: event.start_date,
+          end_date: event.end_date,
+          venue: event.venue,
+          description: event.description,
+          cover_image_url: event.cover_image_url,
+        }}
+        pageKind="home"
+        data={stdHome.data}
+      />
+    )
+  }
+
+  // ── Puck-based builder (legacy) ──────────────────────────────────
   // If the admin has published via the Puck editor, render that first.
   // `event.builder_data` is written by `publishBuilder` in
   // eventBuilderActions.ts — a Puck `Data` object with content + root.
@@ -201,6 +239,7 @@ export default async function EventDetailPage({ params }: Props) {
   if (builderData && Array.isArray(builderData.content) && builderData.content.length > 0) {
     return (
       <>
+        <EventTopNav eventId={event.id} eventSlug={event.slug} currentKind="home" />
         <EventPageNav eventId={event.id} eventSlug={event.slug} currentPageSlug={null} />
         <PuckPublicRenderer
         data={builderData}

@@ -1,26 +1,21 @@
 /**
  * ── /events/[slug] layout ──────────────────────────────────────────────
  *
- * Renders the minimal per-event chrome (EventPageNav) around every route
- * under /events/[slug]/*. Lives one level DEEPER than the (event-page)
- * route-group layout because Next.js 16 gives dynamic-segment layouts
- * native access to `params`; the outer layout would need a hack
- * (x-pathname header) that only works for /admin/* thanks to proxy.ts.
- *
- * Why this layout exists at all:
- *   - The (event-page) route group escapes the marketing navbar/footer.
- *   - THIS file supplies the lightweight replacement nav with
- *     Home + any published sub-pages + a TLF escape link.
- *   - Works for /events/[slug], /events/[slug]/tickets, /events/[slug]/p/*,
- *     /events/[slug]/schedule, /events/[slug]/live, /events/[slug]/delegates.
- *
- * If the event can't be resolved (bad slug), EventPageNav falls back to a
- * bare "← TLF" bar so visitors still have an exit.
+ * Renders the minimal per-event chrome around every route under
+ * /events/[slug]/*. Reads `events.builder_settings` so analytics scripts,
+ * cookie banner, custom <head>/<body> code and the privacy notice
+ * all flow from the Microsite Settings panel onto every public page.
  */
 
+import Script from "next/script"
 import { getEvent } from "@/lib/get-event"
 import { getPublicBuilderNav } from "@/app/actions/eventBuilderActions"
 import { EventPageNav } from "@/components/site/EventPageNav"
+import { AnalyticsScripts } from "@/components/site/event-pages/AnalyticsScripts"
+import { CookieBanner } from "@/components/site/event-pages/CookieBanner"
+import { CustomBodyCode } from "@/components/site/event-pages/CustomCodeInject"
+import { PrivacyFooter } from "@/components/site/event-pages/PrivacyFooter"
+import { getMicrositeSettings } from "@/lib/microsite-settings"
 
 export default async function EventSlugLayout({
   children,
@@ -32,13 +27,13 @@ export default async function EventSlugLayout({
   const { slug } = await params
   const event = await getEvent(slug)
 
-  // Resolve nav pages only when the slug maps to a real event. No event =>
-  // EventPageNav renders its fallback state (bare brand + exit link).
   const pages = event ? await getPublicBuilderNav(event.id) : []
+  const settings = event ? await getMicrositeSettings(event.id) : {}
 
-  // Trim stored slug — legacy rows sometimes have a trailing space
-  // (e.g. "mumbai ") that would otherwise break every link.
   const safeSlug = event?.slug?.trim() ?? null
+  const cookies = settings.cookies ?? {}
+  const showCookieBanner = !!event && cookies.show !== false
+  const headCode = settings.code?.headCode ?? ""
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -47,7 +42,29 @@ export default async function EventSlugLayout({
         eventTitle={event?.title ?? null}
         pages={pages}
       />
+      {/* Admin-controlled <head> code. Rendered as an afterInteractive
+          script so it lands in the document but doesn't block paint. */}
+      {headCode ? (
+        <Script
+          id={`event-head-code-${event?.id ?? "x"}`}
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: headCode }}
+        />
+      ) : null}
+      {event ? (
+        <AnalyticsScripts analytics={settings.analytics} privacy={settings.privacy} />
+      ) : null}
       <main className="flex-1">{children}</main>
+      <PrivacyFooter notice={settings.privacy?.notice} />
+      <CustomBodyCode code={settings.code?.bodyCode} />
+      {showCookieBanner && event ? (
+        <CookieBanner
+          eventId={event.id}
+          copy={cookies.copy ?? "We use cookies to improve your experience."}
+          policyUrl={cookies.policyUrl}
+          acceptLabel={cookies.acceptLabel ?? "Accept"}
+        />
+      ) : null}
     </div>
   )
 }
