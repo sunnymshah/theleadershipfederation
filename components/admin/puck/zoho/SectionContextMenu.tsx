@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react"
 import { ActionBar, usePuck } from "@measured/puck"
 import {
   Copy, ArrowUp, ArrowDown, Eye, EyeOff, Lock, Unlock, BookmarkPlus,
-  Trash2, MoreHorizontal, Beaker,
+  Trash2, MoreHorizontal, Beaker, SlidersHorizontal,
 } from "lucide-react"
 import {
   duplicateBlockById, moveBlockById, removeBlockById,
@@ -32,14 +32,47 @@ export function SectionActionBarOverflow({
   children?: React.ReactNode
   parentAction?: React.ReactNode
 }) {
-  const { appState } = usePuck()
-  const selectedId = appState.ui.itemSelector
-    ? findIdAt(appState.data.content as Array<{ props?: { id?: string } }>, appState.ui.itemSelector.index)
+  const { appState, dispatch } = usePuck()
+  const selectedIndex = appState.ui.itemSelector?.index
+  const selectedId = selectedIndex !== undefined
+    ? findIdAt(appState.data.content as Array<{ props?: { id?: string } }>, selectedIndex)
     : null
+  const selectedBlock = selectedIndex !== undefined
+    ? (appState.data.content[selectedIndex] as { type: string; props: Record<string, unknown> } | undefined)
+    : undefined
+  const isHidden = !!(selectedBlock?.props as { __hidden?: boolean } | undefined)?.__hidden
+
+  function toggleHidden() {
+    if (selectedIndex === undefined || !selectedBlock) return
+    dispatch({
+      type: "replace",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: {
+        type: selectedBlock.type,
+        props: { ...selectedBlock.props, __hidden: !isHidden },
+      } as any,
+      destinationIndex: selectedIndex,
+      destinationZone: "root:default-zone",
+    })
+  }
+
+  function openInspector() {
+    window.dispatchEvent(new CustomEvent("builder:open-inspector"))
+  }
 
   return (
     <ActionBar label={label}>
       {parentAction}
+      {selectedId && (
+        <ActionBar.Group>
+          <ActionBar.Action label={isHidden ? "Show" : "Hide"} onClick={toggleHidden}>
+            {isHidden ? <EyeOff size={14} strokeWidth={1.5} /> : <Eye size={14} strokeWidth={1.5} />}
+          </ActionBar.Action>
+          <ActionBar.Action label="Settings" onClick={openInspector}>
+            <SlidersHorizontal size={14} strokeWidth={1.5} />
+          </ActionBar.Action>
+        </ActionBar.Group>
+      )}
       {children}
       {selectedId && (
         <ActionBar.Group>

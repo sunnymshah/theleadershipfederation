@@ -16,7 +16,7 @@
 
 import { useState, type ReactNode } from "react"
 import {
-  Settings as SettingsIcon, Palette, Eye, EyeOff, Sliders, Lock, Unlock, Beaker,
+  Settings as SettingsIcon, Palette, Eye, EyeOff, Sliders, Lock, Unlock, Beaker, X,
 } from "lucide-react"
 import { usePuck } from "@measured/puck"
 
@@ -58,6 +58,9 @@ export function InspectorTabs({
   itemSelector?: { index: number; zone?: string } | null | undefined
 }) {
   const [tab, setTab] = useState<TabKey>("settings")
+  // Hooks must be called unconditionally — read selected block here so
+  // we don't violate rules-of-hooks below.
+  const { appState } = usePuck()
 
   // Empty-state when nothing selected.
   if (!itemSelector) {
@@ -74,8 +77,35 @@ export function InspectorTabs({
     )
   }
 
+  // Read selected block's type so the overlay header shows what we're editing.
+  const selBlock = appState.data.content[itemSelector.index] as { type?: string } | undefined
+  const blockType = selBlock?.type ?? "Section"
+
+  function closeOverlay() {
+    window.dispatchEvent(new CustomEvent("builder:close-inspector"))
+  }
+
   return (
     <div className="lf-zoho-inspector flex flex-col h-full">
+      {/* Overlay header — shown only when the shell has lf-inspector-open
+          (CSS in builder-theme.css positions the whole inspector as a
+          slide-in when that class is set; otherwise the inspector is
+          hidden and this header doesn't render anywhere visible). */}
+      <div className="shrink-0 flex items-center gap-2 px-3 h-11 border-b border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg,#fff)]">
+        <span className="inline-flex items-center px-2 h-5 rounded text-[10px] font-bold uppercase tracking-[0.06em] bg-[var(--z-bg-alt,#f7f8fa)] text-[var(--z-text-muted,#6b7280)]">
+          {blockType}
+        </span>
+        <span className="text-[12px] text-[var(--z-text-muted,#6b7280)]">settings</span>
+        <button
+          type="button"
+          onClick={closeOverlay}
+          aria-label="Close inspector"
+          title="Close (Esc)"
+          className="ml-auto inline-flex items-center justify-center w-7 h-7 rounded-md text-[var(--z-text-muted,#6b7280)] hover:text-[var(--z-text,#1f2937)] hover:bg-[var(--z-bg-alt,#f7f8fa)]"
+        >
+          <X size={14} strokeWidth={1.5} />
+        </button>
+      </div>
       {/* Tab bar */}
       <div role="tablist" className="shrink-0 flex items-center border-b border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg,#fff)] px-2">
         {TABS.map(({ key, label, Icon }) => (

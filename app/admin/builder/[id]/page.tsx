@@ -123,7 +123,7 @@ export default async function FullscreenBuilderPage({
   ] = await Promise.all([
     admin
       .from("events")
-      .select("id, slug, title, start_date, end_date, venue, description, cover_image_url")
+      .select("id, slug, title, start_date, end_date, venue, description, cover_image_url, status, locales, default_locale, builder_settings")
       .eq("id", id)
       .maybeSingle(),
     admin
@@ -204,11 +204,37 @@ export default async function FullscreenBuilderPage({
     ? draftRes.data
     : emptyBuilderSeed((event.title as string) ?? "Event")) as unknown as Data
 
+  // Defensive read: locales/default_locale/builder_settings columns are
+  // added by the standard-pages migration. If the migration hasn't run
+  // yet we get null/undefined; pass safe fallbacks.
+  const settings = (event.builder_settings ?? {}) as Record<string, unknown>
+  const general = (settings.general ?? {}) as Record<string, unknown>
+  const eventLocales = (() => {
+    const v = (event as { locales?: unknown }).locales
+    return Array.isArray(v) && v.every((x) => typeof x === "string")
+      ? (v as string[])
+      : ["en"]
+  })()
+  const defaultLocale = (() => {
+    const v = (event as { default_locale?: unknown }).default_locale
+    return typeof v === "string" && v.length > 0 ? v : "en"
+  })()
+  const eventStatus = (event.status as string | null) ?? "draft"
+  const eventTimezone = typeof general.timezone === "string" && general.timezone.length > 0
+    ? general.timezone
+    : "Asia/Kolkata"
+
   return (
     <PuckEventBuilder
       eventId={event.id as string}
       eventTitle={(event.title as string) ?? "Event"}
       eventSlug={(event.slug as string) ?? ""}
+      eventStatus={eventStatus}
+      eventStartDate={(event.start_date as string) ?? null}
+      eventEndDate={(event.end_date as string | null) ?? null}
+      eventLocales={eventLocales}
+      defaultLocale={defaultLocale}
+      eventTimezone={eventTimezone}
       initialData={initialData}
       initialPages={pagesRes.success ? pagesRes.pages : {}}
       metadata={metadata}
