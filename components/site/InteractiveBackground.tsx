@@ -242,10 +242,15 @@ export function InteractiveBackground() {
   return (
     <canvas
       ref={canvasRef}
-      // -z-10 keeps it behind every page; pointer-events-none means it
-      // never steals clicks from buttons or links sitting above it.
-      // aria-hidden because it carries no information for screen readers.
-      className="fixed inset-0 -z-10 pointer-events-none"
+      // Inline zIndex:-1 mirrors the old SiteBackground component this
+      // replaces — the public-site CSS architecture (transparent body /
+      // .lf-clean) was hand-tuned for a fixed -1 backdrop and switching
+      // to a Tailwind -z-10 created a stacking-context fight with
+      // sibling elements at root layout. Stay on the proven layer.
+      // pointer-events-none = never steals clicks. aria-hidden = silent
+      // for screen readers.
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: -1 }}
       aria-hidden="true"
     />
   )
