@@ -183,17 +183,10 @@
 }
 
 /* Canvas background — Zoho uses a subtle off-white so the rendered
- * page looks like content on a desk, not pinned to the chrome. */
-.lf-builder-shell ._Puck-frame,
-.lf-builder-shell ._Puck-frame > * {
-  background: #fafafa;
-}
-
-/* The native Puck right-side fields panel is currently the active
- * inspector. Tightened the gutter so it stops feeling like a sidebar
- * and more like an attached drawer. */
-.lf-builder-shell ._SidebarSection {
-  border-radius: 0 !important;
+ * page looks like content on a desk. The actual canvas class is
+ * _PuckCanvas_18jay_1 (verified empirically). */
+.lf-builder-shell [class*="PuckCanvas"] {
+  background: #fafafa !important;
 }
 
 /* ─── Zoho-style hover toolbar pill ─────────────────────────────────
@@ -392,87 +385,15 @@
  * reads as a sheet of paper on a desk — Zoho's pattern. Full-width
  * (no horizontal margin/padding) so blocks touch edge to edge.
  */
-.lf-builder-shell ._Puck-frame,
-.lf-builder-shell ._Puck-frame > * {
-  background: #eef0f3 !important; /* matches --z-bg-canvas */
+/* Canvas surface: subtle off-white so the rendered page reads as a
+ * sheet of paper on a desk. Verified canvas class is _PuckCanvas_<hash>. */
+.lf-builder-shell [class*="PuckCanvas-inner"],
+.lf-builder-shell [class*="PuckCanvas-root"] {
+  background: #eef0f3 !important;
 }
-.lf-builder-shell ._Puck-frame > [class*="DropZone"] {
+.lf-builder-shell [class*="PuckCanvas"] [class*="DropZone"] {
   margin: 0 !important;
   padding: 0 !important;
-}
-
-/* ─── Layout fix: kill Puck's native left + right chrome ─────────────
- *
- * Puck v0.20 ships a default UI:
- *   • LEFT  : Components palette + Outline/Layer-tree panel
- *   • RIGHT : Field-edit inspector
- *
- * We replace both with our Zoho-style rail + secondary panels + Eye/
- * Gear toolbar overlay, so the native chrome must NOT render. Even
- * with overrides set to empty fragments, Puck still wraps things in
- * sidebar containers that take up width — kill them at the CSS level.
- *
- * NOTE: Puck's class names start with `_` and contain hashes. The
- * `[class*="…"]` matchers are deliberately broad to survive minor
- * version bumps without breaking.
- */
-.lf-builder-shell ._SidebarSection--left,
-.lf-builder-shell [class*="SidebarSection"][class*="--left"],
-.lf-builder-shell [class*="SidebarSection-title"][class*="--left"],
-.lf-builder-shell [class*="ComponentList"],
-.lf-builder-shell [class*="LayerTree"],
-.lf-builder-shell [class*="Outline"],
-.lf-builder-shell [class*="Sidebar-leftSidebar"],
-.lf-builder-shell [class*="Layout-leftSideBar"],
-.lf-builder-shell [class*="Layout-leftSidebar"] {
-  display: none !important;
-}
-
-/* Puck's overall layout grid often uses three columns — left sidebar /
- * canvas / right inspector. With the left and right columns hidden via
- * display:none, force the centre canvas to expand to full width. */
-.lf-builder-shell [class*="Layout-inner"],
-.lf-builder-shell [class*="Layout-mainContent"],
-.lf-builder-shell [class*="Puck-frame"] {
-  width: 100% !important;
-  max-width: 100% !important;
-  flex: 1 1 100% !important;
-}
-
-/* The right inspector container — slid out by default, slid in when
- * `.lf-inspector-open` is on the shell (gear-click on a section). */
-.lf-builder-shell [class*="SidebarSection"][class*="--right"],
-.lf-builder-shell [class*="Sidebar-rightSidebar"],
-.lf-builder-shell [class*="Layout-rightSideBar"],
-.lf-builder-shell [class*="Layout-rightSidebar"] {
-  position: fixed !important;
-  top: 96px !important;        /* below 56px top bar + 44px page-tab strip */
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 384px !important;
-  background: #ffffff !important;
-  border-left: 1px solid var(--bs-border, #e5e7eb) !important;
-  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.08), -2px 0 6px rgba(15, 23, 42, 0.04) !important;
-  z-index: 50 !important;
-  transition: transform 200ms ease-out !important;
-}
-
-.lf-builder-shell.lf-inspector-closed [class*="SidebarSection"][class*="--right"],
-.lf-builder-shell.lf-inspector-closed [class*="Sidebar-rightSidebar"],
-.lf-builder-shell.lf-inspector-closed [class*="Layout-rightSideBar"],
-.lf-builder-shell.lf-inspector-closed [class*="Layout-rightSidebar"],
-.lf-builder-shell.lf-inspector-closed [class*="FieldsList"],
-.lf-builder-shell.lf-inspector-closed [class*="SidebarSection-fields"] {
-  transform: translateX(100%) !important;
-  pointer-events: none !important;
-}
-
-.lf-builder-shell.lf-inspector-open [class*="SidebarSection"][class*="--right"],
-.lf-builder-shell.lf-inspector-open [class*="Sidebar-rightSidebar"],
-.lf-builder-shell.lf-inspector-open [class*="Layout-rightSideBar"],
-.lf-builder-shell.lf-inspector-open [class*="Layout-rightSidebar"] {
-  transform: translateX(0) !important;
-  pointer-events: auto !important;
 }
 
 /* parentAction anchor — Puck passes a hidden lifecycle node we keep in
@@ -481,72 +402,77 @@
   display: none !important;
 }
 
-/* ─── Puck chrome nuke (Right Panel Fix — empirical) ────────────────
+/* (NOTE: the previous "Layout fix" block that lived here used class
+ * patterns that don't exist in Puck v0.20 — _Layout-mainContent_,
+ * _Puck-frame_, _SidebarSection--right etc. The actual class names are
+ * _PuckCanvas_, _PuckLayout-inner_, _Sidebar--right_. The empirical
+ * Canvas Restore block below replaces every rule with the correct
+ * selectors targeting verified Puck classes.) */
+
+/* ─── Puck chrome nuke (Canvas Restore — verified empirically) ──────
  *
- * KEY FINDING from grepping node_modules/@measured/puck/dist/index.css:
+ * VERIFIED via node_modules/@measured/puck/dist/index.css:
  *
- *   ._PuckLayout-inner_<hash> uses CSS Grid with three named areas:
- *     grid-template-columns: var(--puck-left-side-bar-width)
- *                            var(--puck-frame-width)
- *                            var(--puck-right-side-bar-width)
- *     grid-template-areas: "left frame right"
+ *   _PuckLayout-inner_1yxlw_38 (the layout grid)
+ *     display: grid;
+ *     grid-template-areas: "header header header" "left editor right";
+ *     grid-template-columns: 0 var(--puck-frame-width) 0;
  *
- *   Sidebars: ._Sidebar--left_<hash>  (grid-area: left)
- *             ._Sidebar--right_<hash> (grid-area: right)
+ *   _PuckCanvas_18jay_1 (THE CANVAS)
+ *     grid-area: editor;
+ *     ^^^^^^^^^^^^^^^^^^ ← the prior round renamed "editor" to "frame"
+ *                         which broke this declaration and dropped the
+ *                         canvas out of the grid into a 600×300px box.
  *
- * Previous turns hid the sidebar contents but the GRID still reserved
- * column tracks — that's the "dead space" on either side.
+ *   _Sidebar--left_1xksb_8     grid-area: left
+ *   _Sidebar--right_1xksb_14   grid-area: right
  *
- * Fix: override grid-template-columns so the left + right tracks are 0,
- * collapsing the canvas to fill 100% horizontally. Then HIDE the
- * sidebar elements themselves. Toggle the right sidebar back on as a
- * fixed-position overlay when `.lf-inspector-open` is on the shell.
+ *   When Puck adds _PuckLayout--rightSideBarVisible_<hash> it sets:
+ *     grid-template-columns: 0 var(--puck-frame-width) var(--puck-right-side-bar-width)
+ *
+ *   At idle (no --Visible classes), columns are already 0 auto 0, so
+ *   the canvas naturally fills the row.
+ *
+ * SAFE FIX: never override grid-template-areas. Only override the
+ * column widths AND only when Puck's *--Visible classes are applied,
+ * forcing those columns back to 0. The canvas's grid-area: editor
+ * stays untouched, so Puck keeps it positioned correctly.
  */
 
-/* Force the layout grid to collapse left/right tracks to 0. Both
- * sidebars are styled as floating overlays (or hidden) below — they
- * never live IN the grid in our editor. */
+/* Even when Puck adds the *--rightSideBarVisible class, keep the right
+ * column 0 so the canvas remains full-width. The right sidebar pops
+ * back as a fixed-position overlay (rule below) when our shell has
+ * `.lf-inspector-open`. */
+.lf-builder-shell [class*="PuckLayout--rightSideBarVisible"] [class*="PuckLayout-inner"],
 .lf-builder-shell [class*="PuckLayout-inner"] {
-  grid-template-columns: 0 1fr 0 !important;
-  grid-template-areas: "left frame right" !important;
+  grid-template-columns: 0 var(--puck-frame-width, auto) 0 !important;
 }
 
-/* LEFT sidebar — always hidden. Our own rail + secondary panels render
- * outside Puck's frame entirely. */
+/* Same for left — our own rail + secondary panels live outside Puck's
+ * frame entirely, so Puck's left grid track stays 0 even when its
+ * *--leftSideBarVisible class is applied. */
+.lf-builder-shell [class*="PuckLayout--leftSideBarVisible"] [class*="PuckLayout-inner"] {
+  grid-template-columns: 0 var(--puck-frame-width, auto) 0 !important;
+}
+
+/* LEFT sidebar element — always hidden. */
 .lf-builder-shell [class*="_Sidebar--left"],
-.lf-builder-shell [class*="_Sidebar-leftSidebar"],
 .lf-builder-shell [class*="ComponentList"],
-.lf-builder-shell [class*="LayerTree"],
-.lf-builder-shell [class*="Outline"]:not([data-outline-keep]) {
+.lf-builder-shell [class*="LayerTree"] {
   display: none !important;
-  visibility: hidden !important;
-  width: 0 !important;
-  height: 0 !important;
-  pointer-events: none !important;
 }
 
-/* RIGHT sidebar — hidden by default. Puck applies _Sidebar--right_<hash>
- * to the right-grid container. We target it via [class*="_Sidebar--right"]
- * which is the actual generated class pattern. */
-.lf-builder-shell.lf-inspector-closed [class*="_Sidebar--right"],
-.lf-builder-shell.lf-inspector-closed [class*="_Sidebar-rightSidebar"],
-.lf-builder-shell.lf-inspector-closed [class*="SidebarSection-fields"],
-.lf-builder-shell.lf-inspector-closed [class*="FieldsList"] {
+/* RIGHT sidebar element — hidden at idle. */
+.lf-builder-shell.lf-inspector-closed [class*="_Sidebar--right"] {
   display: none !important;
-  visibility: hidden !important;
-  width: 0 !important;
-  height: 0 !important;
-  pointer-events: none !important;
 }
 
-/* RIGHT sidebar — gear-click slide-in overlay. Becomes a 384px fixed
- * panel anchored to the viewport's right edge, ABOVE the canvas
- * (z-index: 50). The grid track stays 0 so the canvas doesn't shift.
- */
-.lf-builder-shell.lf-inspector-open [class*="_Sidebar--right"],
-.lf-builder-shell.lf-inspector-open [class*="_Sidebar-rightSidebar"] {
+/* RIGHT sidebar element — gear-click slide-in overlay. Becomes a
+ * 384px fixed panel anchored to the viewport's right edge, ABOVE the
+ * canvas (z-index 50). Grid column stays 0 so the canvas doesn't
+ * shift underneath. */
+.lf-builder-shell.lf-inspector-open [class*="_Sidebar--right"] {
   display: block !important;
-  visibility: visible !important;
   position: fixed !important;
   top: 56px !important;
   right: 0 !important;
@@ -564,16 +490,9 @@
   transition: transform 200ms ease-out !important;
 }
 
-/* Force the canvas (frame area) to fill width 100%. */
-.lf-builder-shell [class*="PuckFrame"],
-.lf-builder-shell [class*="Puck-frame"],
-.lf-builder-shell [class*="Layout-mainContent"] {
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  flex: 1 1 0% !important;
-  min-width: 0 !important;
-  grid-area: frame !important;
-}
+/* Don't touch the canvas — Puck's `grid-area: editor` declaration
+ * positions it correctly inside the grid. The previous turn's
+ * `[class*="PuckFrame"]` / `[class*="Puck-frame"]` selectors didn't
+ * match anything in v0.20 anyway (the actual class is _PuckCanvas_).
+ * The canvas naturally fills the centre column once the side tracks
+ * are forced to 0 above. */
