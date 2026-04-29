@@ -25,6 +25,7 @@ import {
   resetStandardPage,
 } from "@/app/actions/standardPageActions"
 import type { StandardPageKind, StandardPageRow } from "@/lib/standard-pages"
+import { normalizeSlug } from "@/lib/slug"
 
 const KIND_ICONS: Record<StandardPageKind, typeof Home> = {
   home: Home,
@@ -311,13 +312,37 @@ function PageRow({
               }}
               className="flex-1 h-7 px-1.5 rounded border border-[var(--z-border-strong,#d1d5db)] text-[11px]"
             />
-            <button onClick={commitSlug} aria-label="Save slug" className="z-btn z-btn-icon !w-6 !h-6">
+            <button
+              onClick={commitSlug}
+              aria-label="Save slug"
+              disabled={normalizeSlug(draftSlug).length === 0}
+              className="z-btn z-btn-icon !w-6 !h-6 disabled:opacity-40"
+            >
               <Check size={11} strokeWidth={2} />
             </button>
             <button onClick={() => { setDraftSlug(row.slug); setEditing("none") }} aria-label="Cancel" className="z-btn z-btn-icon !w-6 !h-6">
               <X size={11} strokeWidth={2} />
             </button>
           </div>
+          {/* Live preview of the canonical (normalised) slug. */}
+          {(() => {
+            const cleaned = normalizeSlug(draftSlug)
+            if (cleaned.length === 0) {
+              return (
+                <p className="mt-1.5 text-[10px] text-red-600">
+                  Slug must contain at least one letter or digit.
+                </p>
+              )
+            }
+            if (cleaned !== draftSlug) {
+              return (
+                <p className="mt-1.5 text-[10px] text-[var(--z-text-muted,#6b7280)]">
+                  → Will be saved as <span className="font-mono text-[var(--z-text,#1f2937)]">{cleaned}</span>
+                </p>
+              )
+            }
+            return null
+          })()}
         </div>
       )}
     </div>

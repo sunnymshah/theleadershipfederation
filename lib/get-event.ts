@@ -2,6 +2,7 @@ import { cache } from "react"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
+import { normalizeSlug } from "@/lib/slug"
 
 /**
  * Request-scoped cached fetch of an event by slug.
@@ -20,7 +21,31 @@ import { createAdminClient } from "@/utils/supabase/admin"
  *      page that shows the attempted slug.
  */
 export const getEvent = cache(async (slug: string) => {
-  const trimmed = (slug ?? "").trim()
+  // Step 0: decode + normalise. Strips trailing whitespace, %20, mixed
+  // case — every fix-up that the route-level redirect (page.tsx) also
+  // performs, so direct callers (sitemap, OG image) get the same
+  // tolerance as URL-driven loads.
+  const decoded = (() => {
+    try { return decodeURIComponent(slug ?? "") } catch { return slug ?? "" }
+  })()
+  const trimmed = decoded.trim()
+  const canonical = normalizeSlug(trimmed)
+  // Try the canonical form first when it differs — most "mumbai " 404s
+  // are the canonical "mumbai" anyway.
+  if (canonical && canonical !== trimmed) {
+    try {
+      const cookieStore = await cookies()
+      const supabase = createClient(cookieStore)
+      const { data } = await supabase
+        .from("events")
+        .select("*")
+        .eq("slug", canonical)
+        .maybeSingle()
+      if (data) return data
+    } catch (err) {
+      console.error("[getEvent] canonical lookup threw:", err)
+    }
+  }
 
   // 1. Anon client, exact match
   try {

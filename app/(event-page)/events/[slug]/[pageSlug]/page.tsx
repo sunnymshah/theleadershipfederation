@@ -21,6 +21,7 @@ import {
 } from "@/app/actions/eventBuilderActions"
 import { defaultPuckDataForKind } from "@/lib/standard-page-defaults"
 import type { StandardPageKind } from "@/lib/standard-pages"
+import { normalizeSlug } from "@/lib/slug"
 import type { Data as PuckData } from "@measured/puck"
 
 interface Props {
@@ -44,6 +45,20 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function EventStandardPage({ params }: Props) {
   const { slug, pageSlug } = await params
+
+  // Slug whitespace fix (Layout-Fix Section 5c): redirect uncanonical
+  // /events/<slug>/<pageSlug> to the canonical form before lookup.
+  const decodedSlug = (() => { try { return decodeURIComponent(slug) } catch { return slug } })()
+  const decodedPage = (() => { try { return decodeURIComponent(pageSlug) } catch { return pageSlug } })()
+  const canonicalSlug = normalizeSlug(decodedSlug)
+  const canonicalPage = normalizeSlug(decodedPage)
+  if (
+    (canonicalSlug && canonicalSlug !== decodedSlug) ||
+    (canonicalPage && canonicalPage !== decodedPage)
+  ) {
+    redirect(`/events/${canonicalSlug}/${canonicalPage}`)
+  }
+
   const event = await getEvent(slug)
   if (!event) notFound()
 

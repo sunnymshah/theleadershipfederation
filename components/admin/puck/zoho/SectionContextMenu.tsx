@@ -40,7 +40,11 @@ function getActiveKind(): StandardPageKind {
 }
 
 export function SectionActionBarOverflow({
-  label, children, parentAction,
+  label,
+  // `children` is the Puck-native action set (drag, delete, etc.) — we
+  // intentionally don't render it; Eye/Gear/chevron cover everything.
+  // children: _ignoredChildren,
+  parentAction,
 }: {
   label?: string
   children?: React.ReactNode
@@ -80,9 +84,16 @@ export function SectionActionBarOverflow({
     window.dispatchEvent(new CustomEvent("builder:open-inspector"))
   }
 
+  // Zoho's section toolbar pill is icon-only and tight — it shows
+  // exactly Eye + Gear + an overflow chevron. Puck's native action bar
+  // children (drag handle, native delete, etc.) are intentionally NOT
+  // rendered here — every action lives in either the visible Eye / Gear
+  // pair or the chevron menu. parentAction is kept (Puck uses it as a
+  // hidden anchor for the selection lifecycle) but visually hidden via
+  // CSS in builder-theme.css.
   return (
     <ActionBar label={label}>
-      {parentAction}
+      <span className="lf-actionbar-anchor" aria-hidden>{parentAction}</span>
       {selectedId && (
         <ActionBar.Group>
           <ActionBar.Action label={isHidden ? "Show" : "Hide"} onClick={toggleHidden}>
@@ -101,10 +112,10 @@ export function SectionActionBarOverflow({
           )}
         </ActionBar.Group>
       )}
-      {/* Suppress Puck's native drag/delete bits when the block is core
-       * — hiding `children` strips Puck's built-in actions out of the
-       * toolbar rendering. */}
-      {!isCore && children}
+      {/* Puck-native children (drag, native delete, etc.) are skipped —
+       * Eye + Gear cover visibility + settings; everything else lives
+       * in the chevron menu below. */}
+      {/* {children} — intentionally suppressed for Zoho 1:1 toolbar */}
       {selectedId && (
         <ActionBar.Group>
           <SectionMenu id={selectedId} isCore={isCore} pageLabel={pageLabel} />
