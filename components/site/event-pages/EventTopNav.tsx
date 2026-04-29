@@ -64,6 +64,10 @@ export async function EventTopNav({
     label: p.label,
     href: withLocale(publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }), locale),
     active: p.kind === currentKind,
+    children: p.children?.map((c) => ({
+      label: c.label,
+      href: withLocale(`/events/${eventSlug}/${c.slug}`, locale),
+    })) ?? undefined,
   }))
   const railItems = rail.map((p) => ({
     kind: p.kind as StandardPageKind,
@@ -82,21 +86,44 @@ export async function EventTopNav({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
         {/* Desktop main tabs */}
         <ul className="hidden md:flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
-          {items.map((it) => (
-            <li key={it.kind} className="shrink-0">
-              <Link
-                href={it.href}
-                aria-current={it.active ? "page" : undefined}
-                className={`inline-flex items-center px-3.5 h-14 -mb-px text-[12px] font-bold uppercase tracking-[0.05em] border-b-2 transition-colors whitespace-nowrap ${
-                  it.active
-                    ? "border-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e]"
-                    : "border-transparent text-[#1a1a2e]/65 hover:text-[#1a1a2e] hover:border-[#1a1a2e]/15"
-                }`}
-              >
-                {it.label}
-              </Link>
-            </li>
-          ))}
+          {items.map((it) => {
+            const cls = `inline-flex items-center px-3.5 h-14 -mb-px text-[12px] font-bold uppercase tracking-[0.05em] border-b-2 transition-colors whitespace-nowrap ${
+              it.active
+                ? "border-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e]"
+                : "border-transparent text-[#1a1a2e]/65 hover:text-[#1a1a2e] hover:border-[#1a1a2e]/15"
+            }`
+            if (it.children && it.children.length > 0) {
+              return (
+                <li key={it.kind} className="shrink-0 relative group">
+                  <Link href={it.href} aria-current={it.active ? "page" : undefined} className={`${cls} gap-1`}>
+                    {it.label}
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden className="opacity-60">
+                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                  <ul className="absolute left-0 top-full hidden group-hover:block group-focus-within:block min-w-[220px] bg-white border border-[#1a1a2e]/10 shadow-lg z-50">
+                    {it.children.map((c) => (
+                      <li key={c.href}>
+                        <Link
+                          href={c.href}
+                          className="block px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1a2e]/80 hover:bg-[#1a1a2e]/[0.04] hover:text-[#1a1a2e]"
+                        >
+                          {c.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              )
+            }
+            return (
+              <li key={it.kind} className="shrink-0">
+                <Link href={it.href} aria-current={it.active ? "page" : undefined} className={cls}>
+                  {it.label}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
 
         {/* Desktop pinned-right slot (Register + Sign In + lang switcher) */}

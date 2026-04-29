@@ -109,8 +109,21 @@ export function insertBlockAtEnd(componentType: string): boolean {
   const data = getPuckData()
   if (!dispatch || !data) return false
   const idx = Array.isArray(data.content) ? data.content.length : 0
+  return insertBlockAtIndex(componentType, idx)
+}
+
+/**
+ * Insert a block at a specific index in the root content. Used by the
+ * "+ Add optional section" button between sections. When `index` is
+ * negative or beyond the array length, falls back to append.
+ */
+export function insertBlockAtIndex(componentType: string, index: number): boolean {
+  const dispatch = getPuckDispatch()
+  const data = getPuckData()
+  if (!dispatch || !data) return false
+  const len = Array.isArray(data.content) ? data.content.length : 0
+  const idx = index < 0 || index > len ? len : index
   const id = `${componentType}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-  // The default zone for the root canvas in Puck v0.20 is ROOT_ZONE.
   dispatch({
     type: "insert",
     componentType,

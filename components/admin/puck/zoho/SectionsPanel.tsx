@@ -82,10 +82,15 @@ const TILES: Tile[] = [
 export function SectionsPanel({
   onClose,
   onAddBlock,
+  allowedTypes,
 }: {
   onClose?: () => void
   /** Caller dispatches a Puck addItem with this block type. */
   onAddBlock: (blockType: string) => void
+  /** When provided, the palette is filtered to ONLY these block types
+   *  + the always-allowed building blocks (Spacer / Divider). When
+   *  omitted, every registered block type is shown. */
+  allowedTypes?: string[]
 }) {
   const [search, setSearch] = useState("")
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
@@ -100,18 +105,27 @@ export function SectionsPanel({
     return () => window.removeEventListener("builder:focus-search", onFocusSearch)
   }, [])
 
+  const allowedSet = useMemo(() => {
+    if (!allowedTypes) return null
+    // Always permit the most general layout blocks regardless of page kind.
+    return new Set([...allowedTypes, "Spacer", "Divider"])
+  }, [allowedTypes])
+
   const grouped = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const visible = q
-      ? TILES.filter((t) => t.label.toLowerCase().includes(q) || t.description.toLowerCase().includes(q))
+    const filtered = allowedSet
+      ? TILES.filter((t) => allowedSet.has(t.type))
       : TILES
+    const visible = q
+      ? filtered.filter((t) => t.label.toLowerCase().includes(q) || t.description.toLowerCase().includes(q))
+      : filtered
     const byCat = new Map<Tile["category"], Tile[]>()
     for (const t of visible) {
       if (!byCat.has(t.category)) byCat.set(t.category, [])
       byCat.get(t.category)!.push(t)
     }
     return byCat
-  }, [search])
+  }, [search, allowedSet])
 
   return (
     <SecondaryPanel

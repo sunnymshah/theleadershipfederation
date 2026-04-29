@@ -10,7 +10,7 @@ import { useEffect, useState, useTransition } from "react"
 import { Check, Loader2, Plus, X, Sparkles } from "lucide-react"
 import { SecondaryPanel } from "./SecondaryPanel"
 import { SUPPORTED_LOCALES, LOCALE_LABELS, LOCALE_FLAGS } from "@/lib/locales"
-import { getEventLanguages, setEventLanguages } from "@/app/actions/languagesActions"
+import { getEventLanguages, setEventLanguages, getLocaleCoverage } from "@/app/actions/languagesActions"
 import { aiAutoTranslateEvent } from "@/app/actions/aiActions"
 
 export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?: () => void }) {
@@ -21,17 +21,19 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
   const [adding, setAdding] = useState(false)
   const [translating, setTranslating] = useState<string | null>(null)
   const [translateMsg, setTranslateMsg] = useState<string | null>(null)
+  const [coverage, setCoverage] = useState<Record<string, "full" | "partial" | "empty">>({})
 
   useEffect(() => {
     let cancelled = false
-    void getEventLanguages(eventId).then((res) => {
+    void Promise.all([getEventLanguages(eventId), getLocaleCoverage(eventId)]).then(([langs, cov]) => {
       if (cancelled) return
-      setActive(res.locales.length > 0 ? res.locales : ["en"])
-      setDefaultLocale(res.default_locale ?? "en")
+      setActive(langs.locales.length > 0 ? langs.locales : ["en"])
+      setDefaultLocale(langs.default_locale ?? "en")
+      setCoverage(cov.coverage)
       setLoading(false)
     })
     return () => { cancelled = true }
-  }, [eventId])
+  }, [eventId, translateMsg])
 
   function persist(nextActive: string[], nextDefault: string) {
     setActive(nextActive)
@@ -85,8 +87,24 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
                 className="flex items-center gap-2 rounded-md px-2.5 py-1.5 hover:bg-[var(--z-bg-alt,#f7f8fa)]"
               >
                 <span className="text-base leading-none">{LOCALE_FLAGS[lc] ?? "🌐"}</span>
-                <span className="flex-1 text-[13px] font-medium text-[var(--z-text,#1f2937)]">
-                  {LOCALE_LABELS[lc] ?? lc}
+                <span className="flex-1 text-[13px] font-medium text-[var(--z-text,#1f2937)] flex items-center gap-1.5">
+                  <span className="font-mono uppercase text-[10px] text-[var(--z-text-muted,#6b7280)]">{lc}</span>
+                  <span>{LOCALE_LABELS[lc] ?? lc}</span>
+                  {(() => {
+                    const status = coverage[lc] ?? "empty"
+                    const cls = status === "full"
+                      ? "bg-emerald-500"
+                      : status === "partial"
+                        ? "bg-amber-400"
+                        : "bg-gray-300"
+                    return (
+                      <span
+                        title={status === "full" ? "All 12 pages translated" : status === "partial" ? "Some pages translated" : "No translations yet"}
+                        className={`inline-block w-1.5 h-1.5 rounded-full ${cls}`}
+                        aria-label={`Translation status: ${status}`}
+                      />
+                    )
+                  })()}
                 </span>
                 <label className="flex items-center gap-1 text-[11px] text-[var(--z-text-muted,#6b7280)]">
                   <input

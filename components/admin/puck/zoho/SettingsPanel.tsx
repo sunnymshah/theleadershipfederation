@@ -13,8 +13,8 @@
 
 import { useEffect, useState } from "react"
 import {
-  ArrowLeft, ChevronRight, Globe, Search, Lock, Cookie,
-  Code2, BarChart3, Webhook, Languages, Loader2, Check, Plus, Trash2,
+  ArrowLeft, Globe, Search, Lock, Cookie,
+  Code2, Loader2, Check, Plus, Trash2,
 } from "lucide-react"
 import { SecondaryPanel } from "./SecondaryPanel"
 import {
@@ -24,38 +24,49 @@ import {
 
 type GroupDef = { key: BuilderSettingsGroup; label: string; desc: string; Icon: typeof Globe }
 
+// Six groups laid out as a 3×2 grid of cards. Analytics + Webhooks live
+// in the Integrations rail item; Languages is its own rail item.
 const GROUPS: GroupDef[] = [
-  { key: "general",   label: "General",       desc: "Microsite name, tagline, time zone",       Icon: Globe },
-  { key: "seo",       label: "SEO",           desc: "Title, description, OG card",              Icon: Search },
-  { key: "domain",    label: "Custom domain", desc: "events.yourdomain.com",                    Icon: Globe },
-  { key: "privacy",   label: "Privacy",       desc: "GDPR notices, data-retention",             Icon: Lock },
-  { key: "cookies",   label: "Cookie banner", desc: "Show / hide, copy, link to policy",        Icon: Cookie },
-  { key: "code",      label: "Custom code",   desc: "Inject head + body scripts",               Icon: Code2 },
-  { key: "analytics", label: "Analytics",     desc: "GA4 / Plausible / GTM IDs",                Icon: BarChart3 },
-  { key: "webhooks",  label: "Webhooks",      desc: "POST notifications on key events",         Icon: Webhook },
-  { key: "languages", label: "Languages",     desc: "Multi-language sub-pages",                 Icon: Languages },
+  { key: "general", label: "General",       desc: "Microsite name, tagline, time zone",   Icon: Globe },
+  { key: "seo",     label: "SEO",           desc: "Title, description, OG card",          Icon: Search },
+  { key: "domain",  label: "Custom domain", desc: "events.yourdomain.com",                Icon: Globe },
+  { key: "privacy", label: "Privacy",       desc: "GDPR notices, data-retention",         Icon: Lock },
+  { key: "cookies", label: "Cookie banner", desc: "Show / hide, copy, link to policy",   Icon: Cookie },
+  { key: "code",    label: "Custom code",   desc: "Inject head + body scripts",           Icon: Code2 },
 ]
 
 export function SettingsPanel({
   eventId,
   onClose,
+  initialGroup = null,
 }: {
   eventId: string
   onClose?: () => void
+  /** Pre-select a sub-form on mount. Used by IntegrationsPanel cards
+   *  that route directly into Analytics / Webhooks / Domain forms. */
+  initialGroup?: BuilderSettingsGroup | null
 }) {
-  const [active, setActive] = useState<BuilderSettingsGroup | null>(null)
+  const [active, setActive] = useState<BuilderSettingsGroup | null>(initialGroup)
   const [loading, setLoading] = useState(true)
   const [settings, setSettings] = useState<Record<string, unknown>>({})
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     void getBuilderSettings(eventId).then((res) => {
       if (cancelled) return
       setSettings(res.settings)
       setLoading(false)
     })
-    return () => { cancelled = true }
+    // Cross-panel hook so IntegrationsPanel cards open a settings form.
+    const onOpenGroup = (e: Event) => {
+      const detail = (e as CustomEvent<{ group: BuilderSettingsGroup }>).detail
+      if (detail?.group) setActive(detail.group)
+    }
+    window.addEventListener("builder:open-settings-group", onOpenGroup)
+    return () => {
+      cancelled = true
+      window.removeEventListener("builder:open-settings-group", onOpenGroup)
+    }
   }, [eventId])
 
   if (active) {
@@ -81,29 +92,35 @@ export function SettingsPanel({
           <p className="z-empty-desc mt-2">Loading…</p>
         </div>
       ) : (
-        <ul className="px-2 py-2 space-y-1">
+        <div className="px-3 py-3 grid grid-cols-2 gap-2">
           {GROUPS.map((g) => {
             const cfg = settings[g.key]
             const has = !!cfg && typeof cfg === "object" && Object.keys(cfg as Record<string, unknown>).length > 0
             return (
-              <li key={g.key}>
-                <button
-                  type="button"
-                  onClick={() => setActive(g.key)}
-                  className="z-panel-item w-full"
-                >
-                  <g.Icon size={14} strokeWidth={1.5} className="text-[var(--z-text-muted,#6b7280)]" />
-                  <span className="flex-1 text-left">
-                    <span className="block text-[13px] font-semibold text-[var(--z-text,#1f2937)]">{g.label}</span>
-                    <span className="block text-[11px] text-[var(--z-text-muted,#6b7280)]">{g.desc}</span>
+              <button
+                key={g.key}
+                type="button"
+                onClick={() => setActive(g.key)}
+                className="group relative flex flex-col items-start gap-1.5 p-3 rounded-lg border border-[var(--z-border,#e5e7eb)] bg-white text-left hover:border-[var(--z-info,#3e7af7)]/40 hover:shadow-sm hover:-translate-y-px transition-all"
+              >
+                <span className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-indigo-50 text-indigo-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                  <g.Icon size={20} strokeWidth={1.5} />
+                </span>
+                <span className="block text-[13px] font-semibold text-[var(--z-text,#1f2937)]">{g.label}</span>
+                <span className="block text-[11px] leading-snug text-[var(--z-text-muted,#6b7280)]">{g.desc}</span>
+                {has && (
+                  <span
+                    aria-label="Configured"
+                    title="Configured"
+                    className="absolute top-2 right-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white"
+                  >
+                    <Check size={10} strokeWidth={2.5} />
                   </span>
-                  {has && <Check size={12} strokeWidth={1.5} className="text-[var(--z-success,#10b981)]" />}
-                  <ChevronRight size={14} strokeWidth={1.5} className="text-[var(--z-text-subtle,#9ca3af)]" />
-                </button>
-              </li>
+                )}
+              </button>
             )
           })}
-        </ul>
+        </div>
       )}
     </SecondaryPanel>
   )

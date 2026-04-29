@@ -1567,16 +1567,72 @@ export const puckConfig: Config<BuilderComponents> = {
  * component individually so the visual pattern works across all 30+
  * block kinds with zero per-block plumbing.
  */
-function withHiddenWrapper<P extends { __hidden?: boolean }>(
+function withHiddenWrapper<P extends { __hidden?: boolean; id?: string }>(
   origRender: ((props: P) => React.ReactNode) | undefined,
 ): ((props: P) => React.ReactNode) | undefined {
   if (!origRender) return origRender
   // eslint-disable-next-line react/display-name
   return (props: P) => {
     const child = origRender(props)
-    if (!props.__hidden) return child
-    return <div data-lf-hidden="true">{child}</div>
+    const blockId = (props as { id?: string }).id ?? ""
+    const hidden = (props as { __hidden?: boolean }).__hidden
+    return (
+      <>
+        {hidden ? <div data-lf-hidden="true">{child}</div> : child}
+        <OptionalSectionInserter blockId={blockId} />
+      </>
+    )
   }
+}
+
+/**
+ * "+ Add optional section" button rendered after every block in the
+ * editor canvas. Clicking it opens the LEFT-side Sections palette
+ * positioned to insert a new block immediately below the clicked one.
+ *
+ * The button uses MutationObserver-free positioning — it just walks
+ * the rendered DOM at click time to find its index inside the root
+ * drop zone, then dispatches `builder:open-sections-at-index` with
+ * that index + 1.
+ *
+ * Only renders inside the editor (`.lf-builder-shell`) — public
+ * renderer never mounts the inserter because PuckPublicRenderer
+ * filters before reaching this layer.
+ */
+function OptionalSectionInserter({ blockId }: { blockId: string }) {
+  // The inserter button is hidden by default and revealed via CSS
+  // (.lf-builder-shell ._DropZone-item:hover .lf-add-optional-section).
+  // This keeps the canvas clean unless the user is hovering between
+  // two sections.
+  return (
+    <div
+      className="lf-add-optional-section"
+      data-block-id={blockId}
+      onClick={(e) => {
+        e.stopPropagation()
+        // The clicked button lives in a DropZone-item wrapper; count
+        // siblings to figure out the insertion index.
+        const wrapper = (e.currentTarget as HTMLElement).closest("[data-puck-component]")?.parentElement
+        const root = wrapper?.parentElement
+        if (root) {
+          const items = Array.from(root.children)
+          const myIndex = items.indexOf(wrapper as Element)
+          window.dispatchEvent(new CustomEvent("builder:open-sections-at-index", {
+            detail: { index: myIndex + 1 },
+          }))
+        } else {
+          // Fallback — append at end.
+          window.dispatchEvent(new CustomEvent("builder:open-sections-at-index", {
+            detail: { index: -1 },
+          }))
+        }
+      }}
+    >
+      <span className="lf-add-optional-section-line" />
+      <span className="lf-add-optional-section-pill">+ Add optional section</span>
+      <span className="lf-add-optional-section-line" />
+    </div>
+  )
 }
 
 if (puckConfig.components) {

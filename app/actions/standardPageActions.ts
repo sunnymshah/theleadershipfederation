@@ -108,20 +108,35 @@ export async function listStandardPages(
   }
 }
 
-/** Public read — only visible pages, anon-bound (RLS enforces). */
+/** Public read — only visible pages, anon-bound (RLS enforces).
+ *  Includes settings.children for the Exhibitors dropdown in EventTopNav. */
+export type PublicNavRow = Pick<StandardPageRow, "id" | "kind" | "label" | "slug" | "sort_order"> & {
+  children?: Array<{ label: string; slug: string }>
+}
+
 export async function listVisibleStandardPagesPublic(
   eventId: string,
-): Promise<Array<Pick<StandardPageRow, "id" | "kind" | "label" | "slug" | "sort_order">>> {
+): Promise<PublicNavRow[]> {
   try {
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
     const { data } = await supabase
       .from("event_standard_pages")
-      .select("id, kind, label, slug, sort_order")
+      .select("id, kind, label, slug, sort_order, settings")
       .eq("event_id", eventId)
       .eq("visible", true)
       .order("sort_order", { ascending: true })
-    return (data ?? []) as Array<Pick<StandardPageRow, "id" | "kind" | "label" | "slug" | "sort_order">>
+    return ((data ?? []) as Array<StandardPageRow>).map((r) => {
+      const settings = (r.settings ?? {}) as Record<string, unknown>
+      const rawChildren = Array.isArray(settings.children) ? settings.children as Array<Record<string, unknown>> : []
+      const children = rawChildren
+        .filter((c) => typeof c.label === "string" && typeof c.slug === "string")
+        .map((c) => ({ label: c.label as string, slug: c.slug as string }))
+      return {
+        id: r.id, kind: r.kind, label: r.label, slug: r.slug, sort_order: r.sort_order,
+        children: children.length > 0 ? children : undefined,
+      }
+    })
   } catch {
     return []
   }
