@@ -5,6 +5,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { requirePermission } from "@/lib/server-permissions"
+import { normalizeSlug } from "@/lib/slug"
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies()
@@ -100,10 +101,13 @@ export async function createEvent(formData: FormData) {
     const { supabase, user } = await getAuthenticatedClient()
 
     const title       = formData.get("title") as string
-    // Trim slug — stray leading/trailing whitespace from copy-paste breaks
-    // the /events/[slug] route (URL param arrives without the whitespace,
-    // so the `WHERE slug = ?` lookup misses).
-    const slug        = ((formData.get("slug") as string) ?? "").trim()
+    // Every slug write passes through normalizeSlug — kebab-case, lower-
+    // case, no whitespace, no exotic characters. This is what makes
+    // /events/<slug> URL lookups always match the DB row.
+    const slug        = normalizeSlug((formData.get("slug") as string) ?? "")
+    if (!slug) {
+      return { success: false, error: "Slug is required and must contain at least one letter or digit." }
+    }
     const startDate   = formData.get("startDate") as string
     const endDate     = formData.get("endDate") as string
     const venue       = formData.get("venue") as string
@@ -190,8 +194,11 @@ export async function updateEvent(eventId: string, formData: FormData) {
       .single()
 
     const title       = formData.get("title") as string
-    // Trim slug — see createEvent for rationale.
-    const slug        = ((formData.get("slug") as string) ?? "").trim()
+    // Slug always passes through normalizeSlug — see createEvent.
+    const slug        = normalizeSlug((formData.get("slug") as string) ?? "")
+    if (!slug) {
+      return { success: false, error: "Slug is required and must contain at least one letter or digit." }
+    }
     const startDate   = formData.get("startDate") as string
     const endDate     = formData.get("endDate") as string
     const venue       = formData.get("venue") as string
@@ -302,13 +309,14 @@ export async function deleteEvent(eventId: string) {
  * The cloned event is created as a draft with new title and slug.
  * Speaker-session links are preserved by mapping old IDs to new ones.
  */
-export async function cloneEvent(eventId: string, newTitle: string, newSlug: string) {
+export async function cloneEvent(eventId: string, newTitle: string, newSlugRaw: string) {
   try {
     await requirePermission("events", "create")
     const { supabase, user } = await getAuthenticatedClient()
 
+    const newSlug = normalizeSlug(newSlugRaw)
     if (!newTitle || !newSlug) {
-      return { success: false, error: "New title and slug are required." }
+      return { success: false, error: "New title and a valid slug are required." }
     }
 
     // 1. Fetch the source event

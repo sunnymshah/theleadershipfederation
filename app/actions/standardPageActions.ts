@@ -37,13 +37,12 @@ import type { Data as PuckData } from "@measured/puck"
 
 /* ── helpers ──────────────────────────────────────────────────────── */
 
+// Delegate to the canonical lib/slug.ts so every slug-writing action
+// runs the same rules. Re-export at module scope for back-compat —
+// existing call sites expect a sync function returning string.
+import { normalizeSlug as canonicalNormalize } from "@/lib/slug"
 function slugifyPageSlug(input: string): string {
-  return (input || "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48)
+  return canonicalNormalize(input)
 }
 
 async function ensureSeeded(eventId: string): Promise<void> {

@@ -15,6 +15,7 @@ import { EventTopNav } from "@/components/site/event-pages/EventTopNav"
 import { StandardPageRender } from "@/components/site/event-pages/StandardPageRender"
 import { getStandardPagePublicData } from "@/app/actions/standardPageActions"
 import { getMicrositeSettings, buildSeoMetadata } from "@/lib/microsite-settings"
+import { normalizeSlug } from "@/lib/slug"
 import type { Data as PuckData } from "@measured/puck"
 
 // Short revalidate interval so admin edits appear on the public page quickly.
@@ -118,6 +119,14 @@ function groupSessionsByDate(sessions: Array<{ start_time: string; [key: string]
 
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
+
+  // Slug whitespace fix (Layout-Fix Section 5c): if the URL slug is
+  // not the canonical kebab-case form, 301 to the fixed URL.
+  const decoded = (() => { try { return decodeURIComponent(slug) } catch { return slug } })()
+  const canonical = normalizeSlug(decoded)
+  if (canonical && canonical !== decoded) {
+    redirect(`/events/${canonical}`)
+  }
 
   // Uses React cache() — shared with generateMetadata so only one DB call
   const event = await getEvent(slug)

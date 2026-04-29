@@ -317,7 +317,10 @@ export function PuckEventBuilder({
     const onOpenInspector = () => setInspectorOverlayOpen(true)
     const onCloseInspector = () => setInspectorOverlayOpen(false)
     const onEscClose = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setInspectorOverlayOpen(false)
+      if (e.key === "Escape") {
+        setInspectorOverlayOpen(false)
+        setActiveRail(null)
+      }
     }
     const onOpenRail = (e: Event) => {
       const detail = (e as CustomEvent<{ rail: RailKey }>).detail
@@ -735,17 +738,22 @@ export function PuckEventBuilder({
    */
   const overrides = useMemo(() => ({
     header: () => <></>,
+    /* Puck's left "components" sidebar — empty fragment + PuckBridge.
+     * The bridge renders nothing visible but registers Puck's dispatch
+     * so our own SectionsPanel can call insertBlockAtEnd() / etc. */
     components: () => <PuckBridge />,
-    /* C12 — per-section overflow menu (Duplicate / Move / Hide / Lock /
-     * Save as template / Delete) appended to Puck's existing action bar. */
+    /* Puck's left "outline / layer tree" — render nothing.
+     * Our Pages rail panel covers this need at a higher abstraction. */
+    outline: () => <></>,
+    /* Per-section action bar — restyled into Zoho's pill (eye + gear +
+     * chevron overflow). See SectionContextMenu. */
     actionBar: SectionActionBarOverflow,
-    /* B3 — wrap the right-inspector field list with Settings/Style/
-     * Visibility/Advanced tabs. CSS scoped via [data-z-tab] toggles
-     * which fields are visible. Visibility + Advanced are stubbed until
-     * Phase 5 extends each block's field schema. */
+    /* Right-inspector field list wrapped with Settings/Style/Visibility/
+     * Advanced tabs. The whole inspector is hidden until the user clicks
+     * the gear icon on a section toolbar (see CSS .lf-inspector-closed). */
     fields: InspectorTabs,
-    /* B3 — fieldLabel override stamps a data-z-cat attribute on each
-     * field wrapper so InspectorTabs's CSS can filter by category. */
+    /* fieldLabel override stamps a data-z-cat attribute on each field
+     * so InspectorTabs's CSS rule can filter by category. */
     fieldLabel: ZohoFieldLabel,
   }), [Header])
 
@@ -852,8 +860,22 @@ export function PuckEventBuilder({
             </div>
           </div>
         )}
+        {/* Floating secondary panel — anchored to the rail's right edge,
+            absolute-positioned so the canvas underneath stays full-width.
+            Click-outside (on the canvas) closes via the backdrop layer. */}
         {activeRail && (
-          <div className="hidden lg:block">
+          <>
+            {/* Invisible click-outside catcher, BEHIND the panel + ABOVE
+                the canvas, so the user can dismiss by clicking the canvas
+                without triggering a Puck selection on accident. */}
+            <div
+              className="hidden lg:block fixed left-14 top-[100px] right-0 bottom-0 z-20"
+              onClick={() => setActiveRail(null)}
+              aria-hidden
+            />
+            <div
+              className="hidden lg:block absolute left-14 top-0 bottom-0 z-30 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+            >
           <ActiveRailPanel
             railKey={activeRail}
             eventId={eventId}
@@ -890,7 +912,8 @@ export function PuckEventBuilder({
             onDeletePage={handleDeletePage}
             onReorderPages={handleReorderPages}
           />
-          </div>
+            </div>
+          </>
         )}
         <div className="flex-1 min-w-0 min-h-0 relative">
           {/* Mobile open-panels button — shown only < lg */}

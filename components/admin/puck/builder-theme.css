@@ -364,3 +364,83 @@
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* ─── Layout fix: kill Puck's native left + right chrome ─────────────
+ *
+ * Puck v0.20 ships a default UI:
+ *   • LEFT  : Components palette + Outline/Layer-tree panel
+ *   • RIGHT : Field-edit inspector
+ *
+ * We replace both with our Zoho-style rail + secondary panels + Eye/
+ * Gear toolbar overlay, so the native chrome must NOT render. Even
+ * with overrides set to empty fragments, Puck still wraps things in
+ * sidebar containers that take up width — kill them at the CSS level.
+ *
+ * NOTE: Puck's class names start with `_` and contain hashes. The
+ * `[class*="…"]` matchers are deliberately broad to survive minor
+ * version bumps without breaking.
+ */
+.lf-builder-shell ._SidebarSection--left,
+.lf-builder-shell [class*="SidebarSection"][class*="--left"],
+.lf-builder-shell [class*="SidebarSection-title"][class*="--left"],
+.lf-builder-shell [class*="ComponentList"],
+.lf-builder-shell [class*="LayerTree"],
+.lf-builder-shell [class*="Outline"],
+.lf-builder-shell [class*="Sidebar-leftSidebar"],
+.lf-builder-shell [class*="Layout-leftSideBar"],
+.lf-builder-shell [class*="Layout-leftSidebar"] {
+  display: none !important;
+}
+
+/* Puck's overall layout grid often uses three columns — left sidebar /
+ * canvas / right inspector. With the left and right columns hidden via
+ * display:none, force the centre canvas to expand to full width. */
+.lf-builder-shell [class*="Layout-inner"],
+.lf-builder-shell [class*="Layout-mainContent"],
+.lf-builder-shell [class*="Puck-frame"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 1 100% !important;
+}
+
+/* The right inspector container — slid out by default, slid in when
+ * `.lf-inspector-open` is on the shell (gear-click on a section). */
+.lf-builder-shell [class*="SidebarSection"][class*="--right"],
+.lf-builder-shell [class*="Sidebar-rightSidebar"],
+.lf-builder-shell [class*="Layout-rightSideBar"],
+.lf-builder-shell [class*="Layout-rightSidebar"] {
+  position: fixed !important;
+  top: 96px !important;        /* below 56px top bar + 44px page-tab strip */
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 384px !important;
+  background: #ffffff !important;
+  border-left: 1px solid var(--bs-border, #e5e7eb) !important;
+  box-shadow: -8px 0 24px rgba(15, 23, 42, 0.08), -2px 0 6px rgba(15, 23, 42, 0.04) !important;
+  z-index: 50 !important;
+  transition: transform 200ms ease-out !important;
+}
+
+.lf-builder-shell.lf-inspector-closed [class*="SidebarSection"][class*="--right"],
+.lf-builder-shell.lf-inspector-closed [class*="Sidebar-rightSidebar"],
+.lf-builder-shell.lf-inspector-closed [class*="Layout-rightSideBar"],
+.lf-builder-shell.lf-inspector-closed [class*="Layout-rightSidebar"],
+.lf-builder-shell.lf-inspector-closed [class*="FieldsList"],
+.lf-builder-shell.lf-inspector-closed [class*="SidebarSection-fields"] {
+  transform: translateX(100%) !important;
+  pointer-events: none !important;
+}
+
+.lf-builder-shell.lf-inspector-open [class*="SidebarSection"][class*="--right"],
+.lf-builder-shell.lf-inspector-open [class*="Sidebar-rightSidebar"],
+.lf-builder-shell.lf-inspector-open [class*="Layout-rightSideBar"],
+.lf-builder-shell.lf-inspector-open [class*="Layout-rightSidebar"] {
+  transform: translateX(0) !important;
+  pointer-events: auto !important;
+}
+
+/* parentAction anchor — Puck passes a hidden lifecycle node we keep in
+ * the DOM but never show visually. */
+.lf-builder-shell .lf-actionbar-anchor {
+  display: none !important;
+}
