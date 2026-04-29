@@ -213,8 +213,18 @@ body {
   background-color: #fafafa !important;
 }
 .lf-clean :where([class~="bg-[#1a1a2e]"]) { background-color: #1a1a2e !important; }
+.lf-clean :where([class~="bg-[#2a2a4e]"]) { background-color: #2a2a4e !important; }
 .lf-clean :where([class~="bg-[#0a0a14]"]) { background-color: #0a0a14 !important; }
 .lf-clean :where([class~="bg-[#F4F8FF]"]) { background-color: #F4F8FF !important; }
+/* LF gold (and its hover variant) — used as the bg of badges, icon
+ * tiles, edition pills, and various inline accent <div>s. Without
+ * these rules the surrounding `:where(div, ...)` cleanup forces them
+ * transparent, and the white text/icons sitting on them become
+ * invisible against the page wash. */
+.lf-clean :where([class~="bg-[#e7ab1c]"]) { background-color: #e7ab1c !important; }
+.lf-clean :where([class~="bg-[#d49c10]"]) { background-color: #d49c10 !important; }
+/* WhatsApp brand green for the floating chat button. */
+.lf-clean :where([class~="bg-[#25D366]"]) { background-color: #25D366 !important; }
 
 /* Kill decorative absolute-positioned background blobs / glows —
  * they're typically aria-hidden + pointer-events-none + blur-3xl. */
