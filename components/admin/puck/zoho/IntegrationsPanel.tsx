@@ -68,7 +68,6 @@ export function IntegrationsPanel({ eventId, onOpenSettings, onClose }: {
                 <button
                   type="button"
                   onClick={() => {
-                    // Notify the SettingsPanel + flip the rail to it.
                     window.dispatchEvent(new CustomEvent("builder:open-settings-group", {
                       detail: { group: c.group },
                     }))
@@ -77,22 +76,28 @@ export function IntegrationsPanel({ eventId, onOpenSettings, onClose }: {
                     }))
                     onOpenSettings?.(c.group)
                   }}
-                  className="z-panel-item w-full"
+                  // NB: don't use `.z-panel-item` here — that's a single-line
+                  // 32px tall row; integrations have a 2-line label+desc and
+                  // were stacking on top of each other. Custom layout below.
+                  className="group w-full flex items-start gap-2.5 px-2.5 py-2.5 rounded-md text-left border-l-2 border-transparent hover:bg-[var(--z-bg-alt,#f7f8fa)] hover:border-[var(--z-info,#3e7af7)]/40 transition-colors"
                 >
-                  <c.Icon size={14} strokeWidth={1.5} className="text-[var(--z-text-muted,#6b7280)]" />
-                  <span className="flex-1 text-left">
-                    <span className="block text-[13px] font-semibold text-[var(--z-text,#1f2937)]">{c.label}</span>
-                    <span className="block text-[11px] text-[var(--z-text-muted,#6b7280)]">{c.desc}</span>
+                  <span className="shrink-0 mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-md bg-indigo-50 text-indigo-500 group-hover:bg-indigo-100">
+                    <c.Icon size={14} strokeWidth={1.5} />
                   </span>
-                  <span
-                    aria-label={configured ? "Configured" : "Not configured"}
-                    title={configured ? "Configured" : "Not configured"}
-                    className={`shrink-0 w-2 h-2 rounded-full ${configured ? "bg-emerald-500" : "bg-gray-300"}`}
-                  />
-                  <span className="inline-flex items-center px-2 h-6 rounded text-[10px] font-bold uppercase tracking-wider border border-[var(--z-border,#e5e7eb)] text-[var(--z-text-muted,#6b7280)] hover:bg-[var(--z-bg-alt,#f7f8fa)]">
-                    Configure
+                  <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-[12px] font-semibold text-[var(--z-text,#1f2937)] leading-tight truncate">{c.label}</span>
+                      <span
+                        aria-label={configured ? "Configured" : "Not configured"}
+                        title={configured ? "Configured" : "Not configured"}
+                        className={`shrink-0 w-1.5 h-1.5 rounded-full ${configured ? "bg-emerald-500" : "bg-gray-300"}`}
+                      />
+                    </span>
+                    <span className="block text-[10.5px] text-[var(--z-text-muted,#6b7280)] leading-snug">
+                      {c.desc}
+                    </span>
                   </span>
-                  <ChevronRight size={14} strokeWidth={1.5} className="text-[var(--z-text-subtle,#9ca3af)]" />
+                  <ChevronRight size={13} strokeWidth={1.5} className="shrink-0 mt-1 text-[var(--z-text-subtle,#9ca3af)] group-hover:text-[var(--z-info,#3e7af7)]" />
                 </button>
               </li>
             )
