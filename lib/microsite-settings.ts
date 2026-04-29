@@ -33,6 +33,17 @@ export type PrivacySettings = {
   notice?: string
   retentionDays?: string
   honourDNT?: boolean
+  /** Public-page visibility gate.
+   *   public      — anyone can view (default)
+   *   coming_soon — show a holding page with countdown
+   *   password    — require a shared password (cookie-persisted) */
+  visibility?: "public" | "coming_soon" | "password"
+  /** Plain-text password for "password" mode. NOT a security boundary —
+   *  this is "soft" gating for pre-launch teasers. The cookie just
+   *  records that the visitor entered SOMETHING matching this value. */
+  password?: string
+  /** Optional copy shown above the password input or on the holding page. */
+  visibilityMessage?: string
 }
 export type CookieSettings = {
   show?: boolean

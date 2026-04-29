@@ -15,6 +15,7 @@ import { AnalyticsScripts } from "@/components/site/event-pages/AnalyticsScripts
 import { CookieBanner } from "@/components/site/event-pages/CookieBanner"
 import { CustomBodyCode } from "@/components/site/event-pages/CustomCodeInject"
 import { PrivacyFooter } from "@/components/site/event-pages/PrivacyFooter"
+import { MicrositeVisibilityGate } from "@/components/site/event-pages/MicrositeVisibilityGate"
 import { getMicrositeSettings } from "@/lib/microsite-settings"
 
 export default async function EventSlugLayout({
@@ -54,7 +55,22 @@ export default async function EventSlugLayout({
       {event ? (
         <AnalyticsScripts analytics={settings.analytics} privacy={settings.privacy} />
       ) : null}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        {event && (settings.privacy?.visibility ?? "public") !== "public" ? (
+          <MicrositeVisibilityGate
+            eventId={event.id}
+            eventTitle={event.title}
+            eventStartDate={event.start_date ?? null}
+            visibility={settings.privacy?.visibility}
+            password={settings.privacy?.password}
+            message={settings.privacy?.visibilityMessage}
+          >
+            {children}
+          </MicrositeVisibilityGate>
+        ) : (
+          children
+        )}
+      </main>
       <PrivacyFooter notice={settings.privacy?.notice} />
       <CustomBodyCode code={settings.code?.bodyCode} />
       {showCookieBanner && event ? (
