@@ -91,19 +91,25 @@ export function InteractiveBackground() {
     // ── Initial orb seed ──────────────────────────────────────────
     // Six big orbs spread across the viewport. Each gets a slightly
     // different pulse speed/phase so the scene feels organic.
+    // Alphas dialled WAY down (~0.2-0.3 vs previous 0.5-0.68). User
+    // feedback: keep the warm honey/apricot palette but make the orbs
+    // "slightly noticeable" — subtle whispers of warmth on cream, not
+    // bold blobs. We can keep them this faint because we're on default
+    // source-over blend (not 'lighter'), so even at 0.2 alpha the warm
+    // tint registers cleanly on the cream wash.
     orbsRef.current = [
       // Top-left apricot — anchors the navbar area with the warmest tone
-      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.58, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
+      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.24, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
       // Right side warm amber — orange-leaning balance against the hero
-      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.52, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
+      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.20, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
       // Centre-low toasted gold — pulls the eye into the page
-      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.50, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
+      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.18, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
       // Bottom-left honey — fills the lower-left corner
-      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.55, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
+      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.22, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
       // Top-right peach — softest highlight, lifts the CTA corner
-      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.68, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
+      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.30, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
       // Mid-left sunrise — pale warm fill, secondary warmth
-      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.50, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
+      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.26, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
     ]
 
     // ── Sizing ────────────────────────────────────────────────────
@@ -223,7 +229,10 @@ export function InteractiveBackground() {
         w / 2, h / 2, Math.hypot(w, h) * 0.7
       )
       vignette.addColorStop(0, "rgba(26, 26, 46, 0)")
-      vignette.addColorStop(1, "rgba(26, 26, 46, 0.10)")
+      // Softer corner shadow (0.05 instead of 0.10) to match the
+      // dialled-back orb opacity — the whole composition stays
+      // gently noticeable rather than dramatic.
+      vignette.addColorStop(1, "rgba(26, 26, 46, 0.05)")
       ctx.fillStyle = vignette
       ctx.fillRect(0, 0, w, h)
     }
