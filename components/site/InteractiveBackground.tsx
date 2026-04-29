@@ -30,13 +30,15 @@
 import { useEffect, useRef } from "react"
 
 // ─── Brand-tuned palette ──────────────────────────────────────────
-// Hex values mirror the ones in Navbar.tsx and tailwind.config so the
-// background harmonises with foreground UI accents.
+// Gold hex values mirror Navbar.tsx + tailwind.config; cream base tones
+// mirror NewsletterSection's `linear-gradient(135deg, #fdf6e3, #fef9ed,
+// #f8f0da)` so the canvas tonally matches the rest of the marketing
+// surface — warm ivory with gold accents, not cold blue-white.
 type OrbColor = readonly [number, number, number]
 const GOLD_BRIGHT: OrbColor = [231, 171, 28]   // #e7ab1c — primary gold
 const GOLD_WARM:   OrbColor = [201, 168, 76]   // #c9a84c — muted brass
 const GOLD_DEEP:   OrbColor = [212, 156, 16]   // #d49c10 — saturated gold
-const NAVY_HINT:   OrbColor = [26, 26, 46]     // #1a1a2e — barely-there depth
+const GOLD_PALE:   OrbColor = [243, 220, 130]  // #f3dc82 — soft champagne, replaces the cool navy depth orb
 
 interface Orb {
   // Position in normalised viewport coords (0..1) so we can resize
@@ -81,17 +83,21 @@ export function InteractiveBackground() {
     // composition feels balanced on first paint instead of clumpy.
     // Five orbs is the sweet spot — fewer feels empty, more starts
     // looking busy and tanks fill rate on low-end GPUs.
+    // Alphas roughly doubled vs first cut. The previous values (0.28–0.42)
+    // looked great on a pure white test, but vanished on the live cream
+    // base because cream + low-alpha-gold reads as "barely warm cream"
+    // instead of a visible orb. These need to actually be gold.
     orbsRef.current = [
       // Top-left bright gold — anchors the navbar area
-      { x: 0.18, y: 0.22, vx: 0.00012, vy: 0.00009, radiusFactor: 0.55, radius: 0, parallax: 0.025, color: GOLD_BRIGHT, alpha: 0.42 },
+      { x: 0.18, y: 0.22, vx: 0.00012, vy: 0.00009, radiusFactor: 0.55, radius: 0, parallax: 0.025, color: GOLD_BRIGHT, alpha: 0.78 },
       // Right side warm brass — balances the hero CTA
-      { x: 0.82, y: 0.35, vx: -0.00009, vy: 0.00011, radiusFactor: 0.50, radius: 0, parallax: 0.020, color: GOLD_WARM, alpha: 0.36 },
+      { x: 0.82, y: 0.35, vx: -0.00009, vy: 0.00011, radiusFactor: 0.50, radius: 0, parallax: 0.020, color: GOLD_WARM, alpha: 0.68 },
       // Centre-low deep gold — pulls the eye into the page
-      { x: 0.50, y: 0.78, vx: 0.00008, vy: -0.00010, radiusFactor: 0.60, radius: 0, parallax: 0.030, color: GOLD_DEEP, alpha: 0.32 },
+      { x: 0.50, y: 0.78, vx: 0.00008, vy: -0.00010, radiusFactor: 0.60, radius: 0, parallax: 0.030, color: GOLD_DEEP, alpha: 0.62 },
       // Bottom-left soft warm — fills the lower-left corner
-      { x: 0.12, y: 0.85, vx: 0.00010, vy: -0.00007, radiusFactor: 0.45, radius: 0, parallax: 0.018, color: GOLD_WARM, alpha: 0.28 },
-      // Top-right navy depth — keeps it from looking like a sunrise
-      { x: 0.92, y: 0.08, vx: -0.00007, vy: 0.00008, radiusFactor: 0.40, radius: 0, parallax: 0.015, color: NAVY_HINT, alpha: 0.05 },
+      { x: 0.12, y: 0.85, vx: 0.00010, vy: -0.00007, radiusFactor: 0.45, radius: 0, parallax: 0.018, color: GOLD_WARM, alpha: 0.55 },
+      // Top-right pale champagne — adds depth without going blue/cold
+      { x: 0.92, y: 0.08, vx: -0.00007, vy: 0.00008, radiusFactor: 0.40, radius: 0, parallax: 0.015, color: GOLD_PALE, alpha: 0.45 },
     ]
 
     // ── Sizing ────────────────────────────────────────────────────
@@ -156,12 +162,17 @@ export function InteractiveBackground() {
       const w = canvas.width / (Math.min(window.devicePixelRatio || 1, 2))
       const h = canvas.height / (Math.min(window.devicePixelRatio || 1, 2))
 
-      // Cream-on-cream base wash. Two-stop linear gradient gives a
-      // subtle "light comes from upper-left" feel without looking
-      // like a stock template.
+      // Warm cream base wash — colours mirror the LF cream gradient used
+      // on NewsletterSection so the canvas tonally belongs to the rest of
+      // the brand. Diagonal 135° feel: light comes from upper-left.
+      // Earlier draft used #FBFCFF → #F0F4FB which technically ARE
+      // "light" but have more blue than red/green, so they rendered as
+      // cool blue-white — visually indistinguishable from the previous
+      // soft-blue gradient that the canvas was supposed to replace.
       const base = ctx.createLinearGradient(0, 0, w, h)
-      base.addColorStop(0, "#FBFCFF")
-      base.addColorStop(1, "#F0F4FB")
+      base.addColorStop(0,    "#fef9ed")  // softest cream
+      base.addColorStop(0.5,  "#fdf6e3")  // warm ivory mid-stop
+      base.addColorStop(1,    "#f8f0da")  // toasted cream
       ctx.fillStyle = base
       ctx.fillRect(0, 0, w, h)
 
@@ -209,11 +220,11 @@ export function InteractiveBackground() {
       // Reset composite mode so subsequent frames start clean.
       ctx.globalCompositeOperation = "source-over"
 
-      // Whisper-thin film grain — a single low-alpha noise pass at the
-      // top-left disguises gradient banding on some monitors and adds
-      // the "depth-of-field" haze that good Spline scenes have.
-      // We keep it gentle (alpha 0.012) so it doesn't read as TV static.
-      ctx.fillStyle = "rgba(26, 26, 46, 0.012)"
+      // Whisper-thin warm-toned haze — disguises gradient banding on
+      // some monitors and adds depth-of-field. Tinted with the brand
+      // navy at near-zero alpha for a hint of cool contrast against
+      // the cream wash without ever turning the surface blue.
+      ctx.fillStyle = "rgba(26, 26, 46, 0.008)"
       ctx.fillRect(0, 0, w, h)
     }
 
