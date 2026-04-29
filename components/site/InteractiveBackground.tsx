@@ -91,18 +91,25 @@ export function InteractiveBackground() {
     // ── Initial orb seed ──────────────────────────────────────────
     // Six big orbs spread across the viewport. Each gets a slightly
     // different pulse speed/phase so the scene feels organic.
-    // Alphas slashed to ~0.04-0.06 per user feedback — the previous
-    // 0.10-0.16 pass still rendered the page as visibly peach/orange,
-    // which the user explicitly didn't want. At these alphas the orbs
-    // are barely-there hints of warmth, and the surface reads as
-    // near-white with a whisper of yellow rather than tinted cream.
+    // Alphas tuned to "you can see them drifting but they don't tint
+    // the surface". 0.04-0.06 (previous pass) made the orbs vanish
+    // against the white wash; 0.10-0.16 (two passes ago) tinted the
+    // whole page peach. The 0.07-0.10 range hits the sweet spot — the
+    // orbs are perceptible warm patches when you look for them and
+    // their motion is clearly visible, but the page still reads as
+    // white at a glance.
+    //
+    // Drift velocities also bumped ~30% so the motion is genuinely
+    // noticeable even with low-saturation colours. A faint orb that
+    // doesn't move reads as a stain; a faint orb that drifts reads as
+    // an orb.
     orbsRef.current = [
-      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.05, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
-      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.04, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
-      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.04, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
-      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.05, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
-      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.06, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
-      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.05, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
+      { x: 0.15, y: 0.20, vx: 0.00024, vy: 0.00016, radiusFactor: 1.05, radius: 0, parallax: 0.045, color: APRICOT_GLOW, alpha: 0.09, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
+      { x: 0.85, y: 0.28, vx: -0.00019, vy: 0.00021, radiusFactor: 0.95, radius: 0, parallax: 0.034, color: WARM_AMBER,   alpha: 0.08, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
+      { x: 0.50, y: 0.78, vx: 0.00016, vy: -0.00020, radiusFactor: 1.15, radius: 0, parallax: 0.055, color: GOLD_TOAST,   alpha: 0.07, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
+      { x: 0.10, y: 0.88, vx: 0.00020, vy: -0.00013, radiusFactor: 0.85, radius: 0, parallax: 0.032, color: HONEY_LIGHT,  alpha: 0.08, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
+      { x: 0.92, y: 0.10, vx: -0.00014, vy: 0.00017, radiusFactor: 0.75, radius: 0, parallax: 0.026, color: PEACH_SOFT,   alpha: 0.10, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
+      { x: 0.30, y: 0.55, vx: 0.00012, vy: 0.00011, radiusFactor: 0.70, radius: 0, parallax: 0.040, color: SUNRISE_PALE,  alpha: 0.08, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
     ]
 
     // ── Sizing ────────────────────────────────────────────────────
@@ -164,14 +171,15 @@ export function InteractiveBackground() {
       // `linear-gradient(135deg, #fdf6e3, #fef9ed, #f8f0da)` so the
       // canvas tonally belongs to the rest of the brand.
       const base = ctx.createLinearGradient(0, 0, w, h)
-      // Near-white base with only a whisper of warmth (was full cream
-      // tones #fef9ed → #f8f0da, which when combined with even subtle
-      // orbs rendered the page as visibly peach/orange). These values
-      // are nearly white but R is still slightly above B so there's a
-      // hint of warmth rather than a cold blue-white tilt.
-      base.addColorStop(0,    "#fffefb")
-      base.addColorStop(0.5,  "#fefdf8")
-      base.addColorStop(1,    "#fcfaf3")
+      // Pure white at the top-left fading to a barely-perceptible warm
+      // tint at the bottom-right. The previous version (#fffefb →
+      // #fcfaf3) still had measurable warmth across the whole canvas,
+      // which competed with the orbs and made it hard to see them
+      // drifting. Pure-white-with-hint gives the orbs a clean canvas
+      // to register against.
+      base.addColorStop(0,    "#ffffff")
+      base.addColorStop(0.6,  "#fffefc")
+      base.addColorStop(1,    "#fefcf6")
       ctx.fillStyle = base
       ctx.fillRect(0, 0, w, h)
 
