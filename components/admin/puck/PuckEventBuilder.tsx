@@ -666,62 +666,13 @@ export function PuckEventBuilder({
           </div>
         </div>
 
-        {/* Row 2 — page tab strip. "Home" is always first and can't be moved. */}
-        <div className="relative h-11 w-full border-t border-[#1a1a2e]/5 bg-[#fafafa]">
-          {/* Left chevron */}
-          <button
-            type="button"
-            onClick={() => scrollTabs(-220)}
-            aria-label="Scroll tabs left"
-            className="absolute left-0 top-0 h-full w-8 flex items-center justify-center bg-gradient-to-r from-[#fafafa] via-[#fafafa] to-transparent z-10 text-[#1a1a2e]/60 hover:text-[#1a1a2e]"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          {/* Right chevron */}
-          <button
-            type="button"
-            onClick={() => scrollTabs(220)}
-            aria-label="Scroll tabs right"
-            className="absolute right-0 top-0 h-full w-8 flex items-center justify-center bg-gradient-to-l from-[#fafafa] via-[#fafafa] to-transparent z-10 text-[#1a1a2e]/60 hover:text-[#1a1a2e]"
-          >
-            <ChevronRight size={14} />
-          </button>
-          <div
-            ref={tabStripRef}
-            className="h-full flex items-center gap-1 px-9 overflow-x-auto scrollbar-none scroll-smooth"
-            style={{ scrollbarWidth: "none" }}
-          >
-            <PageTab
-              active={activePage === "home"}
-              onClick={() => setActivePage("home")}
-              icon={<Home size={12} />}
-              label="Home"
-            />
-            <SortablePageTabs
-              tabs={pageList.map(([slug, p]) => ({ slug, title: p.title }))}
-              onReorder={handleReorderPages}
-              renderTab={(tab) => (
-                <PageTab
-                  active={activePage === tab.slug}
-                  onClick={() => setActivePage(tab.slug)}
-                  icon={<FileText size={12} />}
-                  label={tab.title}
-                  onRename={() => handleRenamePage(tab.slug)}
-                  onDelete={() => handleDeletePage(tab.slug)}
-                  onDuplicate={() => handleDuplicatePage(tab.slug)}
-                />
-              )}
-            />
-            <button
-              type="button"
-              onClick={handleAddPage}
-              className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-[#1a1a2e]/70 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/5 border border-dashed border-[#1a1a2e]/20 whitespace-nowrap shrink-0"
-              title="Add a new page"
-            >
-              <Plus size={11} /> Add page
-            </button>
-          </div>
-        </div>
+        {/* Row 2 — page tab strip REMOVED (Chrome Cleanup §3).
+            Standard-pages model: the 12 canonical pages live in the
+            Pages rail panel. activePage state stays — clicking a row in
+            StandardPagesPanel still calls setActivePage. There is no
+            longer a way to add arbitrary user-created sub-pages from
+            the editor; legacy builder_pages rows in the DB are kept
+            for back-compat but invisible in the UI. */}
       </div>
     )
   }, [eventId, eventSlug, eventTitle, status, publishState, handlePublish, dataMenuOpen, activePage, pages, handleAddPage, handleRenamePage, handleDeletePage, handleDuplicatePage, handleReorderPages, handleRefreshData, refreshing, scrollTabs, handleRevert, reverting])
@@ -869,12 +820,12 @@ export function PuckEventBuilder({
                 the canvas, so the user can dismiss by clicking the canvas
                 without triggering a Puck selection on accident. */}
             <div
-              className="hidden lg:block fixed left-14 top-[100px] right-0 bottom-0 z-20"
+              className="hidden lg:block fixed left-16 top-[100px] right-0 bottom-0 z-20"
               onClick={() => setActiveRail(null)}
               aria-hidden
             />
             <div
-              className="hidden lg:block absolute left-14 top-0 bottom-0 z-30 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+              className="hidden lg:block absolute left-16 top-0 bottom-0 z-30 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
             >
           <ActiveRailPanel
             railKey={activeRail}

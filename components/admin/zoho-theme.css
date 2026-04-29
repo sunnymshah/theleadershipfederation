@@ -83,6 +83,30 @@
   background: var(--z-accent);
 }
 
+/* Stacked variant — Zoho's icon-on-top + label-below pattern.
+ * Used by PrimaryRail (themes / pages / languages / integrations /
+ * settings) so the rail reads at a glance without a tooltip. */
+.lf-admin-shell .z-rail-item--stacked {
+  flex-direction: column;
+  width: 56px;
+  height: 52px;
+  padding: 6px 4px 4px;
+  gap: 2px;
+}
+.lf-admin-shell .z-rail-item--stacked.is-active::before {
+  top: 6px;
+  bottom: 6px;
+  left: -9px;
+}
+.lf-admin-shell .z-rail-item__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: inherit; /* tracks .is-active / hover via parent color */
+}
+
 /* Inputs uniform */
 .lf-admin-shell .z-input {
   height: 32px;
