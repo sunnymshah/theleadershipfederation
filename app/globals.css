@@ -25,12 +25,7 @@ body {
    * dark CTA bands, etc.) still cover the canvas where needed for
    * legibility. */
   background-color: transparent;
-  /* Warm-shifted dark text — was #1a1a2e (cold navy, R<G<B). New value
-   * is #1d1a23 (R>G, very slight warm cast) so dark text harmonises
-   * with the warm cream + honey orbs of the InteractiveBackground.
-   * The shift is intentionally tiny so the LF navy brand identity
-   * still reads correctly; it just stops fighting the warm backdrop. */
-  color: #1d1a23;
+  color: #1a1a2e;
   overflow-x: hidden;
 }
 
@@ -273,39 +268,11 @@ html .lf-clean blockquote[style] {
   font-family: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* ─── Warm dark-text override ─────────────────────────────────────
- * Components across the site use `text-[#1a1a2e]` (cold LF navy) for
- * body and heading text. To make the typography visually intentional
- * with the warm cream + honey-orb background, we warm-shift those
- * arbitrary-value Tailwind utilities to #1d1a23 (R 29 / G 26 / B 35)
- * — same hue family, just a touch warmer.
- *
- * We have to enumerate the opacity variants explicitly because
- * Tailwind generates a separate class per opacity step, and the
- * earlier `[class*="text-[#1a1a2e]"]` substring-style selector would
- * be the same footgun we just removed for the bg-white case (it would
- * force a solid !important colour over the rgba opacity values).
- *
- * If we add new opacity variants later, append them here. */
-.lf-clean .text-\[\#1a1a2e\]               { color: #1d1a23 !important; }
-.lf-clean .text-\[\#1a1a2e\]\/95           { color: rgba(29, 26, 35, 0.95) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/90           { color: rgba(29, 26, 35, 0.90) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/85           { color: rgba(29, 26, 35, 0.85) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/80           { color: rgba(29, 26, 35, 0.80) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/75           { color: rgba(29, 26, 35, 0.75) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/70           { color: rgba(29, 26, 35, 0.70) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/65           { color: rgba(29, 26, 35, 0.65) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/60           { color: rgba(29, 26, 35, 0.60) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/55           { color: rgba(29, 26, 35, 0.55) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/50           { color: rgba(29, 26, 35, 0.50) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/45           { color: rgba(29, 26, 35, 0.45) !important; }
-.lf-clean .text-\[\#1a1a2e\]\/40           { color: rgba(29, 26, 35, 0.40) !important; }
-
 /* Text-gradient headlines lose their visual treatment once backgrounds
- * are stripped — restore them as solid warm-navy for legibility. */
+ * are stripped — restore them as solid navy for legibility. */
 .lf-clean :where([class*="bg-clip-text"][class*="text-transparent"]) {
-  -webkit-text-fill-color: #1d1a23 !important;
-  color: #1d1a23 !important;
+  -webkit-text-fill-color: #1a1a2e !important;
+  color: #1a1a2e !important;
   background: transparent !important;
 }
 
