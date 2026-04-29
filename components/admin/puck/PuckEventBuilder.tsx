@@ -35,7 +35,7 @@ import {
   Users, Ticket, ClipboardList, Building2, Settings, Database,
   Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
   History, Undo2, Monitor, Tablet, Smartphone, Minus,
-  HelpCircle, Calendar, X, MoreHorizontal,
+  HelpCircle, Calendar, X, MoreHorizontal, MessageSquare,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -85,6 +85,12 @@ export function PuckEventBuilder({
   eventId,
   eventTitle,
   eventSlug,
+  eventStatus = "draft",
+  eventStartDate = null,
+  eventEndDate = null,
+  eventLocales = ["en"],
+  defaultLocale = "en",
+  eventTimezone = "Asia/Kolkata",
   initialData,
   initialPages,
   metadata,
@@ -92,6 +98,12 @@ export function PuckEventBuilder({
   eventId: string
   eventTitle: string
   eventSlug: string
+  eventStatus?: string
+  eventStartDate?: string | null
+  eventEndDate?: string | null
+  eventLocales?: string[]
+  defaultLocale?: string
+  eventTimezone?: string
   initialData: Data | null
   initialPages: BuilderPagesMap
   metadata: BuilderMetadata
@@ -111,6 +123,11 @@ export function PuckEventBuilder({
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [aiWizardOpen, setAiWizardOpen] = useState(false)
+  // Section 6 — inspector overlay. By default the inspector is HIDDEN
+  // (selection just shows the floating toolbar pill); it slides in from
+  // the right ONLY when the gear icon in the toolbar is clicked. The
+  // gear dispatches "builder:open-inspector"; Esc + close-X close it.
+  const [inspectorOverlayOpen, setInspectorOverlayOpen] = useState(false)
   const [abDialog, setAbDialog] = useState<null | {
     blockId: string
     blockType: string
@@ -283,10 +300,21 @@ export function PuckEventBuilder({
       if (!detail?.blockId) return
       setAbDialog(detail)
     }
+    const onOpenInspector = () => setInspectorOverlayOpen(true)
+    const onCloseInspector = () => setInspectorOverlayOpen(false)
+    const onEscClose = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setInspectorOverlayOpen(false)
+    }
     window.addEventListener("builder:open-ab-dialog", onAbDialog)
+    window.addEventListener("builder:open-inspector", onOpenInspector)
+    window.addEventListener("builder:close-inspector", onCloseInspector)
+    window.addEventListener("keydown", onEscClose)
     return () => {
       window.removeEventListener("keydown", onKey)
       window.removeEventListener("builder:open-ab-dialog", onAbDialog)
+      window.removeEventListener("builder:open-inspector", onOpenInspector)
+      window.removeEventListener("builder:close-inspector", onCloseInspector)
+      window.removeEventListener("keydown", onEscClose)
     }
   // We intentionally re-create the handler each render so it sees fresh
   // state — the deps are exhaustive.
@@ -489,35 +517,42 @@ export function PuckEventBuilder({
                               so it doesn't crowd the bar.
             RIGHT (shrink-0): Preview · View Website · Schedule · Help ·
                               Publish · Close X. */}
-        <div className="relative h-12 w-full flex items-center gap-2 px-3">
-          {/* LEFT zone */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span
-              aria-hidden
-              className="w-2 h-2 rounded-full bg-[var(--lf-primary,#e7ab1c)] shrink-0"
-              title="Event color"
-            />
-            <Link
-              href={`/admin/events/${eventId}`}
-              className="text-[13px] font-bold text-[var(--bs-text,#1f2937)] truncate max-w-[280px] hover:text-[var(--bs-text-muted,#6b7280)] transition-colors"
-              title={eventTitle}
-            >
-              {eventTitle}
-            </Link>
-            <span className="hidden sm:inline text-[11px] uppercase tracking-[0.18em] text-[var(--bs-text-muted,#6b7280)] shrink-0">
-              Microsite
-            </span>
-            <AutosaveBadge status={status} />
-            <TopBarOverflowMenu
-              eventId={eventId}
-              refreshing={refreshing}
-              dataMenuOpen={dataMenuOpen}
-              setDataMenuOpen={setDataMenuOpen}
-              onRefreshData={handleRefreshData}
-              onOpenHistory={() => setHistoryOpen(true)}
-              onRevert={handleRevert}
-              reverting={reverting}
-            />
+        <div className="relative h-14 w-full flex items-center gap-2 px-3">
+          {/* LEFT zone — two-line Zoho layout. */}
+          <div className="flex flex-col min-w-0 flex-1 justify-center gap-0.5">
+            {/* Row A: dot + title + status pill */}
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                aria-hidden
+                className="w-2 h-2 rounded-full bg-[var(--lf-primary,#e7ab1c)] shrink-0"
+                title="Event color"
+              />
+              <Link
+                href={`/admin/events/${eventId}`}
+                className="text-[14px] font-bold text-[var(--bs-text,#1f2937)] truncate max-w-[360px] hover:text-[var(--bs-text-muted,#6b7280)] transition-colors leading-[18px]"
+                title={eventTitle}
+              >
+                {eventTitle}
+              </Link>
+              <StatusPill status={eventStatus} />
+            </div>
+            {/* Row B: date + locale + autosave */}
+            <div className="flex items-center gap-3 text-[11px] text-[var(--bs-text-muted,#6b7280)] leading-[16px]">
+              <span className="inline-flex items-center gap-1.5 shrink-0">
+                <Calendar size={12} strokeWidth={1.5} />
+                <span className="tabular-nums">
+                  {formatEventDateTZ(eventStartDate, eventTimezone)}
+                </span>
+              </span>
+              <span className="opacity-40 shrink-0">·</span>
+              <LocaleSwitcher
+                locales={eventLocales}
+                defaultLocale={defaultLocale}
+              />
+              <span className="ml-auto pr-1">
+                <AutosaveBadge status={status} />
+              </span>
+            </div>
           </div>
 
           {/* CENTER zone — absolutely centered so it stays put as
@@ -526,64 +561,51 @@ export function PuckEventBuilder({
             <UndoRedoButtons />
           </div>
 
-          {/* RIGHT zone */}
+          {/* RIGHT zone \u2014 Zoho 1:1 order:
+              Preview \u00b7 | \u00b7 View Website \u00b7 History \u00b7 Comments \u00b7 Help \u00b7
+              Publish + chevron (combined) \u00b7 | \u00b7 Close X */}
           <div className="flex items-center gap-0.5 shrink-0">
             <PreviewMenu eventSlug={eventSlug} activePage={activePage} />
+            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-1" />
             {(() => {
-              const isPublishing = publishState === "publishing"
-              const justPublished = publishState === "published"
-              const dirtyCount = dirtyPages.size
-              const isDirty = dirtyCount > 0 && !isPublishing
-              const isClean = !isDirty && !isPublishing && !justPublished
-
-              const cls = isClean
-                ? "border border-[var(--bs-border,#e5e7eb)] bg-white text-[var(--bs-text,#1f2937)] cursor-default"
-                : "bg-[var(--bs-accent,#f0483e)] text-white hover:bg-[var(--bs-accent-hover,#d63d33)]"
-
-              const labelShort = isPublishing
-                ? "Publishing\u2026"
-                : justPublished
-                  ? "Published"
-                  : isDirty
-                    ? `Publish ${dirtyCount}`
-                    : "Published"
-              const labelFull = isDirty
-                ? `Publish ${dirtyCount} change${dirtyCount === 1 ? "" : "s"}`
-                : labelShort
+              const isPublished = ["published", "live", "completed"].includes((eventStatus ?? "").toLowerCase())
+              const cls = isPublished
+                ? "text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+                : "text-[var(--bs-text-subtle,#9ca3af)] cursor-not-allowed opacity-50"
               return (
-                <button
-                  type="button"
-                  onClick={handlePublish}
-                  disabled={isPublishing || isClean}
-                  className={`relative inline-flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[12px] font-semibold transition-colors disabled:opacity-80 whitespace-nowrap ${cls}`}
-                  title={isClean ? "No unpublished changes" : "Publish all dirty pages"}
+                <a
+                  href={isPublished ? `/events/${eventSlug}` : undefined}
+                  target={isPublished ? "_blank" : undefined}
+                  rel={isPublished ? "noopener noreferrer" : undefined}
+                  aria-label="View website"
+                  aria-disabled={!isPublished}
+                  title={isPublished ? "Open published microsite in a new tab" : "Publish first to view the live site"}
+                  onClick={(e) => { if (!isPublished) e.preventDefault() }}
+                  className={`inline-flex items-center gap-1.5 h-8 px-2 rounded-md text-[12px] font-medium ${cls}`}
                 >
-                  {isPublishing
-                    ? <Loader2 size={14} className="animate-spin" />
-                    : justPublished
-                      ? <Check size={14} strokeWidth={1.5} />
-                      : <Globe size={14} strokeWidth={1.5} />}
-                  <span className="2xl:hidden">{labelShort}</span>
-                  <span className="hidden 2xl:inline">{labelFull}</span>
-                  {isDirty && (
-                    <span
-                      aria-hidden
-                      className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-white ring-2 ring-[var(--bs-accent,#f0483e)]"
-                    />
-                  )}
-                </button>
+                  <Globe size={14} strokeWidth={1.5} />
+                  <span className="hidden lg:inline">View Website</span>
+                </a>
               )
             })()}
-            <a
-              href={`/events/${eventSlug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="View website"
-              title="Open published microsite in a new tab"
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              aria-label="Publish history"
+              title="Publish history"
               className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
             >
-              <ExternalLink size={14} strokeWidth={1.5} />
-            </a>
+              <History size={14} strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveRail("comments")}
+              aria-label="Comments"
+              title="Comments"
+              className="relative inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+            >
+              <MessageSquare size={14} strokeWidth={1.5} />
+            </button>
             <button
               type="button"
               onClick={() => setShortcutsOpen(true)}
@@ -593,20 +615,18 @@ export function PuckEventBuilder({
             >
               <HelpCircle size={16} strokeWidth={1.5} />
             </button>
-            <button
-              type="button"
-              onClick={() => setScheduleOpen(true)}
-              aria-label="Schedule publish"
-              title="Schedule publish"
-              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-            >
-              <Calendar size={15} strokeWidth={1.5} />
-            </button>
-            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-0.5" />
+            <PublishCombo
+              publishState={publishState}
+              dirtyCount={dirtyPages.size}
+              onPublish={handlePublish}
+              onSchedule={() => setScheduleOpen(true)}
+              onRevert={handleRevert}
+            />
+            <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-1" />
             <Link
               href="/admin/builder"
               aria-label="Close builder"
-              title="Close — back to Builder hub"
+              title="Close \u2014 back to Builder hub"
               className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
             >
               <X size={15} strokeWidth={1.5} />
@@ -701,7 +721,7 @@ export function PuckEventBuilder({
   }), [Header])
 
   return (
-    <div className="lf-builder-shell fixed inset-0 flex flex-col bg-white text-[var(--bs-text,#1f2937)]">
+    <div className={`lf-builder-shell fixed inset-0 flex flex-col bg-white text-[var(--bs-text,#1f2937)] ${inspectorOverlayOpen ? "lf-inspector-open" : "lf-inspector-closed"}`}>
       {publishMsg && (
         <div className={`shrink-0 px-4 py-1.5 text-[11px] font-medium text-center ${
           publishState === "error" ? "bg-red-900/10 text-red-700" : "bg-emerald-900/10 text-emerald-700"
@@ -1308,6 +1328,222 @@ function TopBarOverflowMenu({
               : <Undo2 size={13} strokeWidth={1.5} />}
             Revert to last published
           </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Publish + chevron combined unit. The button publishes immediately;
+ * the attached chevron opens a small menu with: Publish now / Schedule
+ * publish / Revert to last published.
+ */
+function PublishCombo({
+  publishState,
+  dirtyCount,
+  onPublish,
+  onSchedule,
+  onRevert,
+}: {
+  publishState: "idle" | "publishing" | "published" | "error"
+  dirtyCount: number
+  onPublish: () => void
+  onSchedule: () => void
+  onRevert: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    window.addEventListener("mousedown", close)
+    return () => window.removeEventListener("mousedown", close)
+  }, [open])
+
+  const isPublishing = publishState === "publishing"
+  const justPublished = publishState === "published"
+  const isDirty = dirtyCount > 0 && !isPublishing
+  const isClean = !isDirty && !isPublishing && !justPublished
+
+  const baseCls = isClean
+    ? "border border-[var(--bs-border,#e5e7eb)] bg-white text-[var(--bs-text,#1f2937)]"
+    : "bg-[var(--bs-accent,#f0483e)] text-white hover:bg-[var(--bs-accent-hover,#d63d33)]"
+
+  const labelShort = isPublishing
+    ? "Publishing…"
+    : justPublished
+      ? "Published"
+      : isDirty
+        ? `Publish ${dirtyCount}`
+        : "Published"
+  const labelFull = isDirty
+    ? `Publish ${dirtyCount} change${dirtyCount === 1 ? "" : "s"}`
+    : labelShort
+
+  return (
+    <div className="relative inline-flex items-stretch shrink-0" ref={ref}>
+      <button
+        type="button"
+        onClick={onPublish}
+        disabled={isPublishing || isClean}
+        className={`inline-flex items-center gap-1.5 px-2.5 h-8 rounded-l-md text-[12px] font-semibold transition-colors disabled:opacity-80 whitespace-nowrap ${baseCls}`}
+        title={isClean ? "No unpublished changes" : "Publish all dirty pages"}
+      >
+        {isPublishing
+          ? <Loader2 size={14} className="animate-spin" />
+          : justPublished
+            ? <Check size={14} strokeWidth={1.5} />
+            : <Globe size={14} strokeWidth={1.5} />}
+        <span className="2xl:hidden">{labelShort}</span>
+        <span className="hidden 2xl:inline">{labelFull}</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Publish options"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={`inline-flex items-center justify-center w-7 h-8 rounded-r-md text-[12px] font-semibold transition-colors ${baseCls} ${
+          isClean ? "border-l border-[var(--bs-border,#e5e7eb)]" : "border-l border-white/30"
+        }`}
+        title="Publish options"
+      >
+        <ChevronDown size={12} strokeWidth={1.5} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1 w-52 rounded-md bg-white shadow-lg border border-[var(--bs-border,#e5e7eb)] py-1 z-50"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onPublish() }}
+            disabled={isPublishing || isClean}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)] disabled:opacity-50"
+          >
+            <Globe size={13} strokeWidth={1.5} />
+            Publish now
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onSchedule() }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+          >
+            <Calendar size={13} strokeWidth={1.5} />
+            Schedule publish…
+          </button>
+          <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onRevert() }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+          >
+            <Undo2 size={13} strokeWidth={1.5} />
+            Revert to last published
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Status pill — shown next to the event title in the top bar.
+ *  Live      → green   (event is currently in progress)
+ *  Published → green-light (status === "published" but not live yet)
+ *  Draft     → gray
+ *  Completed → blue
+ */
+function StatusPill({ status }: { status: string }) {
+  const s = (status ?? "draft").toLowerCase()
+  let label = "Draft"
+  let cls = "bg-gray-500 text-white"
+  if (s === "published" || s === "live") { label = "LIVE"; cls = "bg-emerald-500 text-white" }
+  else if (s === "completed") { label = "COMPLETED"; cls = "bg-blue-500 text-white" }
+  else { label = "DRAFT"; cls = "bg-gray-500 text-white" }
+  return (
+    <span className={`inline-flex items-center px-2 h-[18px] rounded-full text-[10px] font-bold uppercase tracking-[0.08em] ${cls}`}>
+      {label}
+    </span>
+  )
+}
+
+/**
+ * Format a datetime for the event-timezone display in the top bar.
+ * "Thu May 21, 2026 — 08:00 AM (IST)"
+ */
+function formatEventDateTZ(iso: string | null | undefined, tz: string): string {
+  if (!iso) return "Date not set"
+  try {
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return "Date not set"
+    const date = new Intl.DateTimeFormat("en-US", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: tz,
+    }).format(d)
+    const time = new Intl.DateTimeFormat("en-US", {
+      hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz, timeZoneName: "short",
+    }).format(d)
+    return `${date} — ${time}`
+  } catch {
+    return new Date(iso).toLocaleString()
+  }
+}
+
+/**
+ * Locale switcher popover for the top bar's row B. Clicking the chip
+ * toggles a small dropdown of every locale on the event.
+ */
+function LocaleSwitcher({ locales, defaultLocale }: { locales: string[]; defaultLocale: string }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [active, setActive] = useState<string>(defaultLocale)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    window.addEventListener("mousedown", close)
+    return () => window.removeEventListener("mousedown", close)
+  }, [open])
+  const list = locales.length > 0 ? locales : [defaultLocale]
+  const labelFor = (lc: string) =>
+    new Intl.DisplayNames(["en"], { type: "language" }).of(lc) ?? lc.toUpperCase()
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 rounded px-1.5 hover:bg-[var(--bs-bg-alt,#f7f8fa)] text-[var(--bs-text-muted,#6b7280)] hover:text-[var(--bs-text,#1f2937)]"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title={`Editing in ${labelFor(active)}`}
+      >
+        <Globe size={12} strokeWidth={1.5} />
+        <span>{labelFor(active)}</span>
+        <ChevronDown size={10} className="opacity-60" />
+      </button>
+      {open && (
+        <div role="listbox" className="absolute top-full mt-1 left-0 z-50 min-w-[160px] rounded-md bg-white shadow-lg border border-[var(--bs-border,#e5e7eb)] py-1">
+          {list.map((lc) => (
+            <button
+              key={lc}
+              type="button"
+              role="option"
+              aria-selected={lc === active}
+              onClick={() => { setActive(lc); setOpen(false) }}
+              className={`w-full text-left px-3 py-1.5 text-[12px] hover:bg-[var(--bs-bg-alt,#f7f8fa)] ${
+                lc === active ? "font-semibold text-[var(--bs-text,#1f2937)]" : "text-[var(--bs-text-muted,#6b7280)]"
+              }`}
+            >
+              {labelFor(lc)} · <span className="font-mono text-[10px] uppercase">{lc}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>

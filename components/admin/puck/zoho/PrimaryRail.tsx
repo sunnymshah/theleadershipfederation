@@ -14,7 +14,7 @@
 import { type ReactNode } from "react"
 import {
   Layout, FileText, Palette, Mic2, Clock, Ticket, Building2, Settings,
-  FolderTree, Globe, Puzzle, MessageSquare,
+  FolderTree, Globe, Puzzle,
 } from "lucide-react"
 
 export type RailKey =
@@ -31,19 +31,16 @@ export type RailKey =
   | "sponsors"
   | "settings"
 
-// Zoho-parity rail: exactly 5 primary items + Settings bottom-anchored.
-// The legacy items (Sections / Sub-pages / Speakers / Sessions / Tickets /
-// Sponsors) are still wired in ActiveRailPanel so deep-linking + existing
-// flows continue to work, but they're no longer surfaced in the rail.
-// Section-add is reachable via a "+ Add section" button that opens the
-// Sections palette; speaker/session/ticket/sponsor managers live in the
-// event admin pages (kebab menu in the top bar links there).
+// Zoho-parity rail: exactly 4 primary items + Settings bottom-anchored.
+// Comments now lives in the top bar (next to History). The legacy items
+// (Sections / Sub-pages / Speakers / Sessions / Tickets / Sponsors)
+// stay wired in ActiveRailPanel for existing flows but are no longer
+// surfaced in the rail.
 const PRIMARY_ITEMS: Array<{ key: RailKey; label: string; Icon: typeof Layout }> = [
   { key: "theme",        label: "Themes",       Icon: Palette },
   { key: "stdpages",     label: "Pages",        Icon: FolderTree },
   { key: "languages",    label: "Languages",    Icon: Globe },
   { key: "integrations", label: "Integrations", Icon: Puzzle },
-  { key: "comments",     label: "Comments",     Icon: MessageSquare },
 ]
 
 export function PrimaryRail({
