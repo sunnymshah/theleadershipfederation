@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
-import { SiteBackground } from "@/components/ui/SiteBackground"
+import { InteractiveBackground } from "@/components/site/InteractiveBackground"
 import "./globals.css"
 
 const inter = Inter({
@@ -38,7 +38,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
       <body className="min-h-full text-[#1a1a2e] font-sans relative">
-        <SiteBackground />
+        {/* Site-wide interactive backdrop. Lives at the root so it sits
+            behind everything (public site + admin); admin pages have
+            their own opaque dark chrome so it only reads on the
+            marketing surface, where body/.lf-clean are transparent. */}
+        <InteractiveBackground />
         {children}
       </body>
     </html>
