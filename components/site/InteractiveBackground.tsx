@@ -33,17 +33,17 @@
 import { useEffect, useRef } from "react"
 
 // ─── Brand-tuned palette ──────────────────────────────────────────
-// Tuned warm — every orb sits on the orange/amber side of LF gold so
-// the background reads as honeyed sunlight rather than flat yellow.
-// All colours stay LIGHT (high R+G values) so the surface remains on
-// the "lighter side" rather than looking like a sunset.
+// Yellow-shifted from the previous orange-leaning set per user feedback —
+// every R/G/B has a touch more G and a touch less R, pushing the hue
+// from "orange" to "honey-yellow" without going full sunshine. Still
+// light enough to keep the surface on the "lighter side".
 type OrbColor = readonly [number, number, number]
-const HONEY_LIGHT:   OrbColor = [248, 197, 122]  // #f8c57a — pale honey-gold (lifts pure white)
-const APRICOT_GLOW:  OrbColor = [245, 173, 95]   // #f5ad5f — soft apricot, the "main" orb tone
-const WARM_AMBER:    OrbColor = [237, 152, 70]   // #ed9846 — clear warm amber, more orange
-const PEACH_SOFT:    OrbColor = [248, 209, 161]  // #f8d1a1 — pale peach for highlights
-const GOLD_TOAST:    OrbColor = [231, 165, 78]   // #e7a54e — toasted gold, deepest in the set
-const SUNRISE_PALE:  OrbColor = [251, 220, 168]  // #fbdca8 — palest sunrise, lifts the corners
+const HONEY_LIGHT:   OrbColor = [248, 211, 130]  // #f8d382 — pale honey-yellow
+const APRICOT_GLOW:  OrbColor = [245, 195, 102]  // #f5c366 — soft golden honey (was apricot)
+const WARM_AMBER:    OrbColor = [237, 181, 87]   // #edb557 — warm honey-gold (was orange-amber)
+const PEACH_SOFT:    OrbColor = [248, 220, 168]  // #f8dca8 — palest cream-yellow highlight
+const GOLD_TOAST:    OrbColor = [231, 184, 94]   // #e7b85e — toasted honey-gold (was orange-toast)
+const SUNRISE_PALE:  OrbColor = [251, 229, 184]  // #fbe5b8 — palest yellow-cream
 
 interface Orb {
   // Position in normalised viewport coords (0..1) so we can resize
@@ -91,25 +91,24 @@ export function InteractiveBackground() {
     // ── Initial orb seed ──────────────────────────────────────────
     // Six big orbs spread across the viewport. Each gets a slightly
     // different pulse speed/phase so the scene feels organic.
-    // Alphas dialled WAY down (~0.2-0.3 vs previous 0.5-0.68). User
-    // feedback: keep the warm honey/apricot palette but make the orbs
-    // "slightly noticeable" — subtle whispers of warmth on cream, not
-    // bold blobs. We can keep them this faint because we're on default
-    // source-over blend (not 'lighter'), so even at 0.2 alpha the warm
-    // tint registers cleanly on the cream wash.
+    // Alphas dialled down again per user feedback — even subtler than
+    // the previous 0.18-0.30 pass. Goal is "extremely slight" tint, just
+    // enough to register warmth without anything reading as a "blob".
+    // Also halved pulseAmount globally below in the draw loop so the
+    // breathing matches the new restraint.
     orbsRef.current = [
-      // Top-left apricot — anchors the navbar area with the warmest tone
-      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.24, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
-      // Right side warm amber — orange-leaning balance against the hero
-      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.20, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
-      // Centre-low toasted gold — pulls the eye into the page
-      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.18, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
+      // Top-left honey-gold — anchors the navbar area
+      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.13, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
+      // Right side warm honey — soft balance against the hero photo
+      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.11, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
+      // Centre-low toasted honey — gentle pull into the page
+      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.10, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
       // Bottom-left honey — fills the lower-left corner
-      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.22, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
-      // Top-right peach — softest highlight, lifts the CTA corner
-      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.30, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
+      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.12, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
+      // Top-right cream-yellow — softest highlight, lifts the CTA corner
+      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.16, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
       // Mid-left sunrise — pale warm fill, secondary warmth
-      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.26, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
+      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.14, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
     ]
 
     // ── Sizing ────────────────────────────────────────────────────
@@ -229,10 +228,10 @@ export function InteractiveBackground() {
         w / 2, h / 2, Math.hypot(w, h) * 0.7
       )
       vignette.addColorStop(0, "rgba(26, 26, 46, 0)")
-      // Softer corner shadow (0.05 instead of 0.10) to match the
-      // dialled-back orb opacity — the whole composition stays
-      // gently noticeable rather than dramatic.
-      vignette.addColorStop(1, "rgba(26, 26, 46, 0.05)")
+      // Vignette dropped to a near-imperceptible 0.025 navy alpha to
+      // match the toned-down orbs. Just enough to hint at depth at
+      // the corners without darkening the cream.
+      vignette.addColorStop(1, "rgba(26, 26, 46, 0.025)")
       ctx.fillStyle = vignette
       ctx.fillRect(0, 0, w, h)
     }
