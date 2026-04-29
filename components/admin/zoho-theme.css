@@ -85,26 +85,35 @@
 
 /* Stacked variant — Zoho's icon-on-top + label-below pattern.
  * Used by PrimaryRail (themes / pages / languages / integrations /
- * settings) so the rail reads at a glance without a tooltip. */
-.lf-admin-shell .z-rail-item--stacked {
+ * settings) so the rail reads at a glance without a tooltip. The
+ * width matches --lf-rail-width minus a 4px gutter on each side
+ * so the label has room — INTEGRATIONS at 10px font is ~62px wide.
+ */
+.lf-admin-shell .z-rail-item--stacked,
+.z-rail-item--stacked {
   flex-direction: column;
-  width: 56px;
-  height: 52px;
-  padding: 6px 4px 4px;
-  gap: 2px;
+  width: 64px;             /* 72px rail - 4px each side gutter */
+  height: 54px;
+  padding: 6px 2px 4px;
+  gap: 3px;
 }
-.lf-admin-shell .z-rail-item--stacked.is-active::before {
+.lf-admin-shell .z-rail-item--stacked.is-active::before,
+.z-rail-item--stacked.is-active::before {
   top: 6px;
   bottom: 6px;
-  left: -9px;
+  left: -3px;
 }
-.lf-admin-shell .z-rail-item__label {
-  font-size: 10px;
+.lf-admin-shell .z-rail-item__label,
+.z-rail-item__label {
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   line-height: 1;
   color: inherit; /* tracks .is-active / hover via parent color */
+  white-space: nowrap;
+  text-align: center;
+  width: 100%;
 }
 
 /* Inputs uniform */

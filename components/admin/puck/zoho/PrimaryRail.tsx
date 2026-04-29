@@ -57,7 +57,8 @@ export function PrimaryRail({
   return (
     <nav
       aria-label="Builder navigation"
-      className="w-16 shrink-0 h-full bg-[var(--z-bg-rail,#fff)] border-r border-[var(--z-border,#e5e7eb)] flex flex-col items-center py-1.5 gap-0.5 relative"
+      style={{ width: "var(--lf-rail-width, 72px)" }}
+      className="shrink-0 h-full bg-[var(--z-bg-rail,#fff)] border-r border-[var(--z-border,#e5e7eb)] flex flex-col items-center py-1.5 gap-0.5 relative"
     >
       {topSlot}
       {PRIMARY_ITEMS.map((item) => (
