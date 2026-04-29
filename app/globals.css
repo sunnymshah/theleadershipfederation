@@ -198,13 +198,23 @@ body {
 .lf-clean :where(section, div, aside, header, footer, article) {
   background-color: transparent !important;
 }
-.lf-clean :where([class*="bg-white"]) { background-color: #ffffff !important; }
-.lf-clean :where([class*="bg-[#fafafa]"], [class*="bg-[#fAFAFa]"]) {
+/* Use [class~="..."] (whitespace-separated word match) NOT [class*="..."]
+ * (substring match). The substring form was a footgun — it matched
+ * `hover:bg-white/10`, `bg-white/40`, `bg-[#1a1a2e]/85` etc. as if they
+ * were the literal opaque class, forcing semi-transparent Tailwind
+ * variants to fully opaque !important. That broke:
+ *   • <Navbar/>'s `bg-white/40` frosted-glass (wanted translucent, got opaque)
+ *   • FeaturedEventCallout's secondary "View Details" button — `text-white
+ *     hover:bg-white/10` rendered as solid white-on-white text
+ * The `~=` form matches a single whitespace-delimited token exactly,
+ * so `bg-white/40` and `hover:bg-white/10` are correctly skipped. */
+.lf-clean :where([class~="bg-white"]) { background-color: #ffffff !important; }
+.lf-clean :where([class~="bg-[#fafafa]"], [class~="bg-[#fAFAFa]"]) {
   background-color: #fafafa !important;
 }
-.lf-clean :where([class*="bg-[#1a1a2e]"]) { background-color: #1a1a2e !important; }
-.lf-clean :where([class*="bg-[#0a0a14]"]) { background-color: #0a0a14 !important; }
-.lf-clean :where([class*="bg-[#F4F8FF]"]) { background-color: #F4F8FF !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]"]) { background-color: #1a1a2e !important; }
+.lf-clean :where([class~="bg-[#0a0a14]"]) { background-color: #0a0a14 !important; }
+.lf-clean :where([class~="bg-[#F4F8FF]"]) { background-color: #F4F8FF !important; }
 
 /* Kill decorative absolute-positioned background blobs / glows —
  * they're typically aria-hidden + pointer-events-none + blur-3xl. */

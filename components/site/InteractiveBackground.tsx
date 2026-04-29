@@ -33,12 +33,17 @@
 import { useEffect, useRef } from "react"
 
 // ─── Brand-tuned palette ──────────────────────────────────────────
+// Tuned warm — every orb sits on the orange/amber side of LF gold so
+// the background reads as honeyed sunlight rather than flat yellow.
+// All colours stay LIGHT (high R+G values) so the surface remains on
+// the "lighter side" rather than looking like a sunset.
 type OrbColor = readonly [number, number, number]
-const GOLD_BRIGHT: OrbColor = [231, 171, 28]   // #e7ab1c — primary gold
-const GOLD_WARM:   OrbColor = [201, 168, 76]   // #c9a84c — muted brass
-const GOLD_DEEP:   OrbColor = [212, 156, 16]   // #d49c10 — saturated gold
-const GOLD_AMBER:  OrbColor = [218, 140, 34]   // #da8c22 — orange-leaning amber for variation
-const GOLD_PALE:   OrbColor = [243, 220, 130]  // #f3dc82 — soft champagne
+const HONEY_LIGHT:   OrbColor = [248, 197, 122]  // #f8c57a — pale honey-gold (lifts pure white)
+const APRICOT_GLOW:  OrbColor = [245, 173, 95]   // #f5ad5f — soft apricot, the "main" orb tone
+const WARM_AMBER:    OrbColor = [237, 152, 70]   // #ed9846 — clear warm amber, more orange
+const PEACH_SOFT:    OrbColor = [248, 209, 161]  // #f8d1a1 — pale peach for highlights
+const GOLD_TOAST:    OrbColor = [231, 165, 78]   // #e7a54e — toasted gold, deepest in the set
+const SUNRISE_PALE:  OrbColor = [251, 220, 168]  // #fbdca8 — palest sunrise, lifts the corners
 
 interface Orb {
   // Position in normalised viewport coords (0..1) so we can resize
@@ -87,18 +92,18 @@ export function InteractiveBackground() {
     // Six big orbs spread across the viewport. Each gets a slightly
     // different pulse speed/phase so the scene feels organic.
     orbsRef.current = [
-      // Top-left bright gold — anchors the navbar area
-      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: GOLD_BRIGHT, alpha: 0.55, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
-      // Right side warm brass — balances the hero photo
-      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: GOLD_WARM,   alpha: 0.50, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
-      // Centre-low deep gold — pulls the eye into the page
-      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_DEEP,   alpha: 0.48, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
-      // Bottom-left soft warm — fills the lower-left corner
-      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: GOLD_AMBER,  alpha: 0.45, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
-      // Top-right pale champagne — lifts the corner near the CTA
-      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: GOLD_PALE,   alpha: 0.65, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
-      // Mid-left amber — secondary warmth
-      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: GOLD_AMBER,  alpha: 0.42, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
+      // Top-left apricot — anchors the navbar area with the warmest tone
+      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.58, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
+      // Right side warm amber — orange-leaning balance against the hero
+      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.52, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
+      // Centre-low toasted gold — pulls the eye into the page
+      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.50, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
+      // Bottom-left honey — fills the lower-left corner
+      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.55, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
+      // Top-right peach — softest highlight, lifts the CTA corner
+      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.68, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
+      // Mid-left sunrise — pale warm fill, secondary warmth
+      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.50, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
     ]
 
     // ── Sizing ────────────────────────────────────────────────────
