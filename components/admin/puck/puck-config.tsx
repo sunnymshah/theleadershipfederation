@@ -1576,10 +1576,16 @@ function withHiddenWrapper<P extends { __hidden?: boolean; id?: string }>(
     const child = origRender(props)
     const blockId = (props as { id?: string }).id ?? ""
     const hidden = (props as { __hidden?: boolean }).__hidden
+    // Only render the editor-only "+ Add optional section" inserter when
+    // Puck's metadata.editor flag is set (PuckEventBuilder passes it;
+    // PuckPublicRenderer doesn't). Without this guard the inserter HTML
+    // leaks onto every public microsite page.
+    const meta = (props as { puck?: { metadata?: Record<string, unknown> } }).puck?.metadata ?? {}
+    const isEditor = meta.editor === true
     return (
       <>
         {hidden ? <div data-lf-hidden="true">{child}</div> : child}
-        <OptionalSectionInserter blockId={blockId} />
+        {isEditor && <OptionalSectionInserter blockId={blockId} />}
       </>
     )
   }

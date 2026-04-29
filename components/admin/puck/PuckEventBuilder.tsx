@@ -820,12 +820,14 @@ export function PuckEventBuilder({
                 the canvas, so the user can dismiss by clicking the canvas
                 without triggering a Puck selection on accident. */}
             <div
-              className="hidden lg:block fixed left-16 top-[100px] right-0 bottom-0 z-20"
+              className="hidden lg:block fixed top-[56px] right-0 bottom-0 z-20"
+              style={{ left: "var(--lf-rail-width, 72px)" }}
               onClick={() => setActiveRail(null)}
               aria-hidden
             />
             <div
-              className="hidden lg:block absolute left-16 top-0 bottom-0 z-30 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+              className="hidden lg:block absolute top-0 bottom-0 z-30 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+              style={{ left: "var(--lf-rail-width, 72px)" }}
             >
           <ActiveRailPanel
             railKey={activeRail}
@@ -891,7 +893,13 @@ export function PuckEventBuilder({
             key={puckKey}
             config={puckConfig}
             data={currentData}
-            metadata={metadata as unknown as Record<string, unknown>}
+            metadata={{
+              ...(metadata as unknown as Record<string, unknown>),
+              // Marker so config-level wrappers (e.g. OptionalSectionInserter)
+              // can short-circuit to null on the public renderer where this
+              // flag is undefined.
+              editor: true,
+            }}
             onChange={(d) => scheduleSave(d as Data)}
             onPublish={handlePublish}
             overrides={overrides}
