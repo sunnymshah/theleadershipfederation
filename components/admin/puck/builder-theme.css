@@ -296,3 +296,71 @@
 .lf-builder-shell.lf-inspector-open [class*="Sidebar"][class*="--right"] {
   width: 384px !important;
 }
+
+/* ─── "+ Add optional section" inserter ─────────────────────────────
+ * Rendered after every block via puck-config's withHiddenWrapper.
+ * Hidden by default; appears on hover between two sections.
+ */
+.lf-builder-shell .lf-add-optional-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  margin: 4px 0;
+  padding: 0 24px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 100ms ease-out;
+}
+
+.lf-builder-shell ._DropZone-item:hover + .lf-add-optional-section,
+.lf-builder-shell .lf-add-optional-section:hover {
+  opacity: 1;
+}
+
+.lf-builder-shell .lf-add-optional-section-line {
+  flex: 1;
+  height: 0;
+  border-top: 2px dashed var(--bs-info, #3e7af7);
+  opacity: 0.4;
+}
+
+.lf-builder-shell .lf-add-optional-section:hover .lf-add-optional-section-line {
+  opacity: 0.8;
+}
+
+.lf-builder-shell .lf-add-optional-section-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  border: 2px dashed var(--bs-info, #3e7af7);
+  color: var(--bs-info, #3e7af7);
+  background: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.lf-builder-shell .lf-add-optional-section:hover .lf-add-optional-section-pill {
+  background: var(--bs-info, #3e7af7);
+  color: #ffffff;
+  border-style: solid;
+}
+
+/* ─── Canvas surface (Section 4) ───────────────────────────────────
+ *
+ * The canvas frame uses --z-bg-canvas (#eef0f3) so the rendered page
+ * reads as a sheet of paper on a desk — Zoho's pattern. Full-width
+ * (no horizontal margin/padding) so blocks touch edge to edge.
+ */
+.lf-builder-shell ._Puck-frame,
+.lf-builder-shell ._Puck-frame > * {
+  background: #eef0f3 !important; /* matches --z-bg-canvas */
+}
+.lf-builder-shell ._Puck-frame > [class*="DropZone"] {
+  margin: 0 !important;
+  padding: 0 !important;
+}

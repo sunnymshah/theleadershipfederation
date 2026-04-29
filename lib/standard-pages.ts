@@ -113,3 +113,62 @@ export function publicPageHref(eventSlug: string, page: { kind: StandardPageKind
 export function isStandardPageKind(s: string): s is StandardPageKind {
   return (STANDARD_PAGE_KINDS as readonly string[]).includes(s)
 }
+
+/* ── Per-kind UX rules for the editor ───────────────────────────────
+ *
+ * `allowedOptionalSections`  — block types the user is allowed to add
+ *                              into a standard page via the "+ Add
+ *                              optional section" affordance. Empty
+ *                              means the page is locked (e.g. agenda,
+ *                              register, signin — those have a single
+ *                              canonical purpose).
+ *
+ * `coreSections`             — block types that are part of the page's
+ *                              canonical structure. The editor hides
+ *                              the trash icon, drag handle, and Move/
+ *                              Delete menu entries for them, and
+ *                              shows a small Lock badge instead.
+ *                              Eye / Gear / Copy / Save-as-template /
+ *                              A-B-test remain available.
+ */
+export const ALLOWED_OPTIONAL_SECTIONS: Record<StandardPageKind, string[]> = {
+  home:        ["Carousel", "Testimonial", "CtaWithImage", "RichText", "VenueMap", "Faqs", "StatsRow"],
+  speakers:    ["RichText", "CtaWithImage", "Testimonial"],
+  venue:       ["Gallery", "RichText", "CtaWithImage"],
+  agenda:      [],          // locked
+  tickets:     ["RichText", "Faqs", "Testimonial"],
+  sponsors:    ["RichText", "CtaWithImage", "LogosStrip"],
+  discussions: ["RichText", "TabsBlock", "Faqs"],
+  networking:  ["RichText", "CtaWithImage", "SocialBar"],
+  exhibitors:  ["RichText", "LogosStrip", "CtaWithImage"],
+  gallery:     ["RichText"],
+  register:    [],          // locked
+  signin:      [],          // locked
+}
+
+export const CORE_SECTIONS: Record<StandardPageKind, string[]> = {
+  home:        ["Hero", "Countdown"],
+  speakers:    ["Hero", "SpeakersGrid"],
+  agenda:      ["Hero", "Agenda"],
+  tickets:     ["Hero", "TicketsPricing"],
+  sponsors:    ["Hero", "SponsorsGrid"],
+  venue:       ["Hero", "VenueMap"],
+  gallery:     ["Hero", "Gallery"],
+  register:    ["Hero", "FormBlock"],
+  discussions: ["Hero"],
+  networking:  ["Hero"],
+  exhibitors:  ["Hero"],
+  signin:      ["Hero"],
+}
+
+/** Convenience — true when the block type can't be deleted/moved on
+ *  the given standard page. */
+export function isCoreSection(pageKind: StandardPageKind, blockType: string): boolean {
+  return (CORE_SECTIONS[pageKind] ?? []).includes(blockType)
+}
+
+/** Convenience — true when the block type is allowed as an optional
+ *  add on the given standard page. */
+export function isAllowedOptionalSection(pageKind: StandardPageKind, blockType: string): boolean {
+  return (ALLOWED_OPTIONAL_SECTIONS[pageKind] ?? []).includes(blockType)
+}

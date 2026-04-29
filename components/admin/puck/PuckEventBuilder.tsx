@@ -51,7 +51,8 @@ import { AIWizardDialog } from "./AIWizardDialog"
 import { UndoRedoButtons } from "./UndoRedoButtons"
 import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
-import { PuckBridge, insertBlockAtEnd } from "./zoho/PuckBridge"
+import { PuckBridge, insertBlockAtEnd, insertBlockAtIndex } from "./zoho/PuckBridge"
+import { ALLOWED_OPTIONAL_SECTIONS, isStandardPageKind } from "@/lib/standard-pages"
 import { SectionActionBarOverflow } from "./zoho/SectionContextMenu"
 import { InspectorTabs, ZohoFieldLabel } from "./zoho/InspectorTabs"
 import { DevicePreviewModal } from "./zoho/DevicePreviewModal"
@@ -128,6 +129,10 @@ export function PuckEventBuilder({
   // the right ONLY when the gear icon in the toolbar is clicked. The
   // gear dispatches "builder:open-inspector"; Esc + close-X close it.
   const [inspectorOverlayOpen, setInspectorOverlayOpen] = useState(false)
+  // Section 1 — when the user clicks "+ Add optional section" between
+  // sections, we remember the insertion index so SectionsPanel can
+  // place the new block there. -1 means "append at end" (default).
+  const [sectionInsertIndex, setSectionInsertIndex] = useState<number>(-1)
   const [abDialog, setAbDialog] = useState<null | {
     blockId: string
     blockType: string
@@ -180,6 +185,15 @@ export function PuckEventBuilder({
       : ({ content: [], root: { props: { title: eventTitle } } } as Data)),
   )
   const [activePage, setActivePage] = useState<ActivePage>("home")
+  // Mirror the active page kind onto window so SectionContextMenu (which
+  // mounts inside Puck overrides without React context) can read it
+  // synchronously. Sub-page slugs fall back to "home" until the editor
+  // data-plane refactor lands.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const w = window as unknown as { __lfActiveKind?: string }
+    w.__lfActiveKind = isStandardPageKind(activePage) ? activePage : "home"
+  }, [activePage])
 
   /* The `puckKey` forces Puck to remount when the active page changes —
    * otherwise undo history / selected block from the previous tab would
@@ -305,15 +319,30 @@ export function PuckEventBuilder({
     const onEscClose = (e: KeyboardEvent) => {
       if (e.key === "Escape") setInspectorOverlayOpen(false)
     }
+    const onOpenRail = (e: Event) => {
+      const detail = (e as CustomEvent<{ rail: RailKey }>).detail
+      if (detail?.rail) setActiveRail(detail.rail)
+    }
+    const onOpenSectionsAtIndex = (e: Event) => {
+      const detail = (e as CustomEvent<{ index: number }>).detail
+      if (typeof detail?.index === "number") {
+        setSectionInsertIndex(detail.index)
+        setActiveRail("sections")
+      }
+    }
     window.addEventListener("builder:open-ab-dialog", onAbDialog)
     window.addEventListener("builder:open-inspector", onOpenInspector)
     window.addEventListener("builder:close-inspector", onCloseInspector)
+    window.addEventListener("builder:open-rail", onOpenRail)
+    window.addEventListener("builder:open-sections-at-index", onOpenSectionsAtIndex)
     window.addEventListener("keydown", onEscClose)
     return () => {
       window.removeEventListener("keydown", onKey)
       window.removeEventListener("builder:open-ab-dialog", onAbDialog)
       window.removeEventListener("builder:open-inspector", onOpenInspector)
       window.removeEventListener("builder:close-inspector", onCloseInspector)
+      window.removeEventListener("builder:open-rail", onOpenRail)
+      window.removeEventListener("builder:open-sections-at-index", onOpenSectionsAtIndex)
       window.removeEventListener("keydown", onEscClose)
     }
   // We intentionally re-create the handler each render so it sees fresh
@@ -808,6 +837,8 @@ export function PuckEventBuilder({
                     metadata={metadata}
                     pages={pages}
                     activePage={activePage}
+                    insertIndex={sectionInsertIndex}
+                    onAfterInsert={() => { setSectionInsertIndex(-1); setMobileNavOpen(false); setActiveRail(null) }}
                     onClose={() => setMobileNavOpen(false)}
                     onJumpPage={(target) => { setActivePage(target); setMobileNavOpen(false) }}
                     onAddPage={() => { setPageDialog({ open: true, mode: "create" }); setMobileNavOpen(false) }}
@@ -829,6 +860,8 @@ export function PuckEventBuilder({
             metadata={metadata}
             pages={pages}
             activePage={activePage}
+            insertIndex={sectionInsertIndex}
+            onAfterInsert={() => { setSectionInsertIndex(-1); setActiveRail(null) }}
             onClose={() => setActiveRail(null)}
             onJumpPage={(target) => setActivePage(target)}
             onAddPage={() => setPageDialog({ open: true, mode: "create" })}
@@ -1049,6 +1082,7 @@ function DataLink({
  */
 function ActiveRailPanel({
   railKey, eventId, metadata, pages, activePage,
+  insertIndex, onAfterInsert,
   onClose, onJumpPage, onAddPage, onRenamePage, onDuplicatePage, onDeletePage, onReorderPages,
 }: {
   railKey: RailKey
@@ -1056,6 +1090,8 @@ function ActiveRailPanel({
   metadata: BuilderMetadata
   pages: BuilderPagesMap
   activePage: string
+  insertIndex: number
+  onAfterInsert: () => void
   onClose: () => void
   onJumpPage: (target: string) => void
   onAddPage: () => void
@@ -1064,20 +1100,28 @@ function ActiveRailPanel({
   onDeletePage?: (slug: string) => void
   onReorderPages?: (slugs: string[]) => void
 }) {
+  // For Section 1's filtered palette: detect the active standard-page
+  // kind. Falls back to "home" — most events live on the home page.
+  const activeKind = isStandardPageKind(activePage) ? activePage : "home"
+  const allowedTypes = ALLOWED_OPTIONAL_SECTIONS[activeKind] ?? []
+
   switch (railKey) {
     case "sections":
       return (
         <SectionsPanel
           onClose={onClose}
+          allowedTypes={allowedTypes.length > 0 ? allowedTypes : undefined}
           onAddBlock={(blockType) => {
-            // Routes click → Puck's dispatch via the PuckBridge. Inserts
-            // the block at the end of the current page; admin can drag
-            // to reorder afterwards.
-            const ok = insertBlockAtEnd(blockType)
+            // If the user launched the panel via "+ Add optional section",
+            // insertIndex points at the slot the new block should occupy.
+            // Otherwise we append.
+            const ok = insertIndex >= 0
+              ? insertBlockAtIndex(blockType, insertIndex)
+              : insertBlockAtEnd(blockType)
             if (!ok) {
-              // Fallback when Puck hasn't mounted yet — extremely rare.
               window.dispatchEvent(new CustomEvent("builder:tile-clicked"))
             }
+            onAfterInsert()
           }}
         />
       )

@@ -24,6 +24,20 @@ import {
 } from "./PuckBridge"
 import { ABTestCreateDialog } from "../ABTestCreateDialog"
 import { saveAsTemplate as saveTemplateAction } from "@/app/actions/templateActions"
+import { CORE_SECTIONS, isStandardPageKind, DEFAULT_PAGE_LABELS, type StandardPageKind } from "@/lib/standard-pages"
+
+/** Detect the active standard page kind from the URL. The builder URL
+ *  is /admin/builder/{eventId}; the active page is in PuckEventBuilder
+ *  state but not exposed here. We accept "home" as default — most
+ *  users edit the home page. The Pages panel sets a window-level hint
+ *  via `lf-active-kind` whenever it changes the active page. */
+function getActiveKind(): StandardPageKind {
+  if (typeof window !== "undefined") {
+    const hint = (window as unknown as { __lfActiveKind?: string }).__lfActiveKind
+    if (typeof hint === "string" && isStandardPageKind(hint)) return hint
+  }
+  return "home"
+}
 
 export function SectionActionBarOverflow({
   label, children, parentAction,
@@ -41,6 +55,12 @@ export function SectionActionBarOverflow({
     ? (appState.data.content[selectedIndex] as { type: string; props: Record<string, unknown> } | undefined)
     : undefined
   const isHidden = !!(selectedBlock?.props as { __hidden?: boolean } | undefined)?.__hidden
+  // Section 2: core-section protection. If the selected block's type is
+  // listed in CORE_SECTIONS for the active page kind, the toolbar
+  // hides the trash icon + drag handle and shows a Lock badge instead.
+  const activeKind = getActiveKind()
+  const isCore = !!selectedBlock && (CORE_SECTIONS[activeKind] ?? []).includes(selectedBlock.type)
+  const pageLabel = DEFAULT_PAGE_LABELS[activeKind] ?? "this"
 
   function toggleHidden() {
     if (selectedIndex === undefined || !selectedBlock) return
@@ -71,12 +91,23 @@ export function SectionActionBarOverflow({
           <ActionBar.Action label="Settings" onClick={openInspector}>
             <SlidersHorizontal size={14} strokeWidth={1.5} />
           </ActionBar.Action>
+          {isCore && (
+            <ActionBar.Action
+              label={`Part of the ${pageLabel} page — can't be removed`}
+              onClick={() => { /* informational only */ }}
+            >
+              <Lock size={14} strokeWidth={1.5} />
+            </ActionBar.Action>
+          )}
         </ActionBar.Group>
       )}
-      {children}
+      {/* Suppress Puck's native drag/delete bits when the block is core
+       * — hiding `children` strips Puck's built-in actions out of the
+       * toolbar rendering. */}
+      {!isCore && children}
       {selectedId && (
         <ActionBar.Group>
-          <SectionMenu id={selectedId} />
+          <SectionMenu id={selectedId} isCore={isCore} pageLabel={pageLabel} />
         </ActionBar.Group>
       )}
     </ActionBar>
@@ -88,7 +119,13 @@ function findIdAt(content: Array<{ props?: { id?: string } }>, index: number | u
   return content[index]?.props?.id ?? null
 }
 
-function SectionMenu({ id }: { id: string }) {
+function SectionMenu({
+  id, isCore = false, pageLabel = "this",
+}: {
+  id: string
+  isCore?: boolean
+  pageLabel?: string
+}) {
   const { appState, dispatch } = usePuck()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
@@ -174,9 +211,19 @@ function SectionMenu({ id }: { id: string }) {
           role="menu"
           className="absolute right-0 top-full mt-1 w-48 rounded-md bg-white border border-[var(--z-border,#e5e7eb)] shadow-[var(--z-shadow-lg,0_8px_24px_rgba(15,23,42,0.10))] py-1 z-[2000] text-[var(--z-text,#1f2937)]"
         >
+          {isCore && (
+            <div className="px-3 py-2 text-[11px] text-[var(--z-text-muted,#6b7280)] flex items-start gap-1.5 bg-[var(--z-bg-alt,#f7f8fa)] border-b border-[var(--z-border,#e5e7eb)]">
+              <Lock size={11} strokeWidth={1.5} className="mt-0.5 shrink-0 text-[var(--z-text-muted,#6b7280)]" />
+              <span>This section is part of the {pageLabel} page and can&apos;t be removed.</span>
+            </div>
+          )}
           <MenuItem icon={Copy}    label="Duplicate"  onClick={() => { duplicateBlockById(id); setOpen(false) }} />
-          <MenuItem icon={ArrowUp} label="Move up"    onClick={() => { moveBlockById(id, -1);   setOpen(false) }} />
-          <MenuItem icon={ArrowDown} label="Move down" onClick={() => { moveBlockById(id,  1);   setOpen(false) }} />
+          {!isCore && (
+            <>
+              <MenuItem icon={ArrowUp} label="Move up"    onClick={() => { moveBlockById(id, -1);   setOpen(false) }} />
+              <MenuItem icon={ArrowDown} label="Move down" onClick={() => { moveBlockById(id,  1);   setOpen(false) }} />
+            </>
+          )}
           <Divider />
           <MenuItem
             icon={hidden ? Eye : EyeOff}
@@ -193,8 +240,6 @@ function SectionMenu({ id }: { id: string }) {
             icon={Beaker}
             label="A/B test"
             onClick={() => {
-              // Fire a global event — PuckEventBuilder owns the dialog
-              // because it already has eventId + activePage in scope.
               const event = new CustomEvent("builder:open-ab-dialog", {
                 detail: {
                   blockId: id,
@@ -206,18 +251,22 @@ function SectionMenu({ id }: { id: string }) {
               setOpen(false)
             }}
           />
-          <Divider />
-          <MenuItem
-            icon={Trash2}
-            label="Delete"
-            tone="danger"
-            onClick={() => {
-              if (window.confirm("Delete this section?")) {
-                removeBlockById(id)
-              }
-              setOpen(false)
-            }}
-          />
+          {!isCore && (
+            <>
+              <Divider />
+              <MenuItem
+                icon={Trash2}
+                label="Delete"
+                tone="danger"
+                onClick={() => {
+                  if (window.confirm("Delete this section?")) {
+                    removeBlockById(id)
+                  }
+                  setOpen(false)
+                }}
+              />
+            </>
+          )}
         </div>
       )}
     </div>
