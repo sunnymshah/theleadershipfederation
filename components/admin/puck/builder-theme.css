@@ -444,3 +444,79 @@
 .lf-builder-shell .lf-actionbar-anchor {
   display: none !important;
 }
+
+/* ─── Aggressive Puck-chrome nuke (Chrome Cleanup) ───────────────────
+ *
+ * Round 1 hid the panel CONTENTS but left the containers + their
+ * "COMPONENTS" / "OUTLINE" / "PAGE" headers rendering and consuming
+ * width. Round 2 nukes the containers themselves AT IDLE.
+ *
+ * Strategy: display:none + force-zero geometry + position off-screen
+ * as a belt-and-braces fallback in case Puck overrides display via
+ * inline style.
+ */
+
+/* LEFT chrome — always hidden. Rail + secondary panels replace it. */
+.lf-builder-shell ._Sidebar,
+.lf-builder-shell ._Sidebar-section,
+.lf-builder-shell ._SidebarSection,
+.lf-builder-shell [class*="_Sidebar-leftSidebar"],
+.lf-builder-shell [class*="_Sidebar"][class*="--left"],
+.lf-builder-shell [class*="Sidebar-leftSidebar"],
+.lf-builder-shell [class*="Layout-leftSideBar"],
+.lf-builder-shell [class*="Layout-leftSidebar"],
+.lf-builder-shell [class*="ComponentList"],
+.lf-builder-shell [class*="LayerTree"],
+.lf-builder-shell [class*="Outline"]:not([data-outline-keep]),
+.lf-builder-shell [class*="SidebarSection"][class*="components"],
+.lf-builder-shell [class*="SidebarSection"][class*="outline"],
+.lf-builder-shell [class*="SidebarSection"][class*="--left"] {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* RIGHT chrome — hidden whenever shell has lf-inspector-closed (which
+ * is the idle state — only opens on gear-click). All known right-side
+ * class variants targeted with the same belt-and-braces. */
+.lf-builder-shell.lf-inspector-closed [class*="SidebarSection"][class*="--right"],
+.lf-builder-shell.lf-inspector-closed [class*="Sidebar-rightSidebar"],
+.lf-builder-shell.lf-inspector-closed [class*="Layout-rightSideBar"],
+.lf-builder-shell.lf-inspector-closed [class*="Layout-rightSidebar"],
+.lf-builder-shell.lf-inspector-closed [class*="FieldsList"],
+.lf-builder-shell.lf-inspector-closed [class*="SidebarSection-fields"],
+.lf-builder-shell.lf-inspector-closed [class*="SidebarSection-title"][class*="--right"] {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  right: -9999px !important;
+  top: -9999px !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* Force the canvas to expand into the freed width. Puck's flex parent
+ * sometimes leaves implicit min-width on the canvas container that
+ * prevents it from filling. */
+.lf-builder-shell ._Frame,
+.lf-builder-shell [class*="Layout-inner"],
+.lf-builder-shell [class*="Layout-mainContent"],
+.lf-builder-shell [class*="Puck-frame"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 1 100% !important;
+  min-width: 0 !important;
+}
