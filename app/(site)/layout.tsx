@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CountdownBar } from "@/components/site/CountdownBar"
+import { InteractiveBackground } from "@/components/site/InteractiveBackground"
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton"
 import { createStaticClient } from "@/utils/supabase/static"
 
@@ -28,6 +29,10 @@ export default async function SiteLayout({
 
   return (
     <div className="lf-clean text-[#1a1a2e] min-h-screen relative">
+      {/* Interactive gold-orb backdrop. Sits at -z-10, pointer-events-none,
+          so it shines through the navbar's frosted glass without ever
+          intercepting clicks. */}
+      <InteractiveBackground />
       <Navbar />
       {children}
       <Footer />
