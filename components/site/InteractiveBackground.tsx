@@ -91,24 +91,18 @@ export function InteractiveBackground() {
     // ── Initial orb seed ──────────────────────────────────────────
     // Six big orbs spread across the viewport. Each gets a slightly
     // different pulse speed/phase so the scene feels organic.
-    // Alphas dialled down again per user feedback — even subtler than
-    // the previous 0.18-0.30 pass. Goal is "extremely slight" tint, just
-    // enough to register warmth without anything reading as a "blob".
-    // Also halved pulseAmount globally below in the draw loop so the
-    // breathing matches the new restraint.
+    // Alphas slashed to ~0.04-0.06 per user feedback — the previous
+    // 0.10-0.16 pass still rendered the page as visibly peach/orange,
+    // which the user explicitly didn't want. At these alphas the orbs
+    // are barely-there hints of warmth, and the surface reads as
+    // near-white with a whisper of yellow rather than tinted cream.
     orbsRef.current = [
-      // Top-left honey-gold — anchors the navbar area
-      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.13, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
-      // Right side warm honey — soft balance against the hero photo
-      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.11, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
-      // Centre-low toasted honey — gentle pull into the page
-      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.10, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
-      // Bottom-left honey — fills the lower-left corner
-      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.12, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
-      // Top-right cream-yellow — softest highlight, lifts the CTA corner
-      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.16, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
-      // Mid-left sunrise — pale warm fill, secondary warmth
-      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.14, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
+      { x: 0.15, y: 0.20, vx: 0.00018, vy: 0.00012, radiusFactor: 1.05, radius: 0, parallax: 0.040, color: APRICOT_GLOW, alpha: 0.05, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
+      { x: 0.85, y: 0.28, vx: -0.00014, vy: 0.00016, radiusFactor: 0.95, radius: 0, parallax: 0.030, color: WARM_AMBER,   alpha: 0.04, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
+      { x: 0.50, y: 0.78, vx: 0.00012, vy: -0.00015, radiusFactor: 1.15, radius: 0, parallax: 0.050, color: GOLD_TOAST,   alpha: 0.04, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
+      { x: 0.10, y: 0.88, vx: 0.00015, vy: -0.00010, radiusFactor: 0.85, radius: 0, parallax: 0.028, color: HONEY_LIGHT,  alpha: 0.05, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
+      { x: 0.92, y: 0.10, vx: -0.00011, vy: 0.00013, radiusFactor: 0.75, radius: 0, parallax: 0.022, color: PEACH_SOFT,   alpha: 0.06, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
+      { x: 0.30, y: 0.55, vx: 0.00009, vy: 0.00008, radiusFactor: 0.70, radius: 0, parallax: 0.035, color: SUNRISE_PALE,  alpha: 0.05, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
     ]
 
     // ── Sizing ────────────────────────────────────────────────────
@@ -170,9 +164,14 @@ export function InteractiveBackground() {
       // `linear-gradient(135deg, #fdf6e3, #fef9ed, #f8f0da)` so the
       // canvas tonally belongs to the rest of the brand.
       const base = ctx.createLinearGradient(0, 0, w, h)
-      base.addColorStop(0,    "#fef9ed")
-      base.addColorStop(0.5,  "#fdf6e3")
-      base.addColorStop(1,    "#f8f0da")
+      // Near-white base with only a whisper of warmth (was full cream
+      // tones #fef9ed → #f8f0da, which when combined with even subtle
+      // orbs rendered the page as visibly peach/orange). These values
+      // are nearly white but R is still slightly above B so there's a
+      // hint of warmth rather than a cold blue-white tilt.
+      base.addColorStop(0,    "#fffefb")
+      base.addColorStop(0.5,  "#fefdf8")
+      base.addColorStop(1,    "#fcfaf3")
       ctx.fillStyle = base
       ctx.fillRect(0, 0, w, h)
 
@@ -219,21 +218,10 @@ export function InteractiveBackground() {
         ctx.fillRect(px - radius, py - radius, radius * 2, radius * 2)
       }
 
-      // ── Vignette ────────────────────────────────────────────────
-      // Subtle radial dim at the corners — pulls attention to centre
-      // and adds the depth-of-field that 3D scenes get for free.
-      // Tinted with brand navy at very low alpha for a hint of cool.
-      const vignette = ctx.createRadialGradient(
-        w / 2, h / 2, Math.min(w, h) * 0.4,
-        w / 2, h / 2, Math.hypot(w, h) * 0.7
-      )
-      vignette.addColorStop(0, "rgba(26, 26, 46, 0)")
-      // Vignette dropped to a near-imperceptible 0.025 navy alpha to
-      // match the toned-down orbs. Just enough to hint at depth at
-      // the corners without darkening the cream.
-      vignette.addColorStop(1, "rgba(26, 26, 46, 0.025)")
-      ctx.fillStyle = vignette
-      ctx.fillRect(0, 0, w, h)
+      // Vignette removed — it was adding subtle navy darkening at the
+      // corners that, combined with the warm orbs, made the surface
+      // feel busier than the user wanted. The clean cream wash + barely
+      // there orbs read more confidently without it.
     }
 
     function loop() {
