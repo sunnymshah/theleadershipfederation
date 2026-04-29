@@ -1164,8 +1164,10 @@ export function Gallery({ title, images, columns, lightbox, layout }: GalleryPro
           </h2>
         )}
         <div className={`grid gap-3 ${grid}`}>
-          {images.map((img, i) =>
-            img.url ? (
+          {images.map((img, i) => {
+            if (!img.url) return null
+            const fp = parseFocalPoint(img.url)
+            return (
               <figure key={i} className="m-0">
                 <button
                   type="button"
@@ -1174,12 +1176,19 @@ export function Gallery({ title, images, columns, lightbox, layout }: GalleryPro
                   aria-label={img.caption || img.alt || `Image ${i + 1}`}
                   disabled={!lightbox}
                 >
-                  <Image src={img.url} alt={img.alt || ""} fill className="object-cover" sizes="(max-width:768px) 50vw, 25vw" />
+                  <Image
+                    src={fp.src}
+                    alt={img.alt || ""}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width:768px) 50vw, 25vw"
+                    style={{ objectPosition: fp.objectPosition }}
+                  />
                 </button>
                 {img.caption && <figcaption className="mt-1.5 text-[11px] opacity-60 italic text-center">{img.caption}</figcaption>}
               </figure>
-            ) : null,
-          )}
+            )
+          })}
         </div>
         {lightbox && openIdx !== null && (
           <GalleryLightbox

@@ -230,6 +230,24 @@ function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unk
     )
     case "privacy": return (
       <>
+        <SelectField
+          label="Page visibility"
+          name="visibility"
+          defaultValue={s(init.visibility) || "public"}
+          options={["public", "coming_soon", "password"]}
+        />
+        <Field
+          label="Password (only for 'password' mode)"
+          name="password"
+          defaultValue={s(init.password)}
+          placeholder="visitors enter this to view"
+        />
+        <FieldArea
+          label="Visibility message (optional)"
+          name="visibilityMessage"
+          defaultValue={s(init.visibilityMessage)}
+          placeholder="Shown on the holding page or above the password input"
+        />
         <FieldArea label="Privacy notice"       name="notice"        defaultValue={s(init.notice)}
           placeholder="Shown in the page footer. Markdown OK." />
         <Field label="Data retention (days)"    name="retentionDays" type="number" defaultValue={n(init.retentionDays)} placeholder="0 for indefinite" />

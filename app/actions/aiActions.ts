@@ -82,10 +82,34 @@ export async function aiAssistField(input: {
 
 /* ─── 2. Translate Puck data ──────────────────────────────────────── */
 
+// Every key in this set is treated as user-visible copy → translated.
+// Keep deliberately broad: missing a key means the translation skips
+// that field, which is a worse failure than translating something
+// that shouldn't have been translated (admins can revert a string
+// faster than they can spot a missing one).
 const TRANSLATABLE_KEYS = new Set<string>([
-  "title", "subtitle", "body", "headline", "subheadline", "ctaLabel",
-  "secondaryCtaLabel", "tagline", "label", "successMessage", "copy",
-  "description", "pastMessage", "name", "imageAlt",
+  // Hero / RichText / generic
+  "title", "subtitle", "body", "headline", "subheadline",
+  "tagline", "description", "label",
+  // CTAs
+  "ctaLabel", "secondaryCtaLabel", "ctaPrimaryLabel", "ctaSecondaryLabel",
+  // Buttons / forms
+  "successMessage", "submitLabel", "placeholder", "errorMessage",
+  // Social / cookie / countdown
+  "copy", "acceptLabel", "dismissLabel", "policyLabel",
+  "pastMessage",
+  // Names / image alt / content
+  "name", "imageAlt", "alt", "caption",
+  // FAQ items
+  "q", "a", "question", "answer",
+  // Tabs
+  "heading", "content",
+  // Address / venue
+  "address", "directions",
+  // Stats
+  "value", "unit",
+  // Footer
+  "copyright",
 ])
 
 function walkAndCollectStrings(input: unknown, path: string[] = [], out: Array<{ path: string[]; value: string }> = []): Array<{ path: string[]; value: string }> {

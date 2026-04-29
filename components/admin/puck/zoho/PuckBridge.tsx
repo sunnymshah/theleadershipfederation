@@ -75,6 +75,22 @@ export function PuckBridge() {
       refs.history = null
     }
   }, [dispatch, appState, history.hasPast, history.hasFuture, history.back, history.forward])
+
+  // Mirror the currently-selected block id onto window so keyboard
+  // handlers in PuckEventBuilder (Cmd+D / Delete) can act on it
+  // without subscribing to Puck's React tree.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const w = window as unknown as { __lfSelectedBlockId?: string }
+    const sel = appState.ui.itemSelector
+    if (sel && typeof sel.index === "number") {
+      const block = appState.data.content[sel.index] as { props?: { id?: string } } | undefined
+      w.__lfSelectedBlockId = block?.props?.id ?? undefined
+    } else {
+      w.__lfSelectedBlockId = undefined
+    }
+  }, [appState.ui.itemSelector, appState.data.content])
+
   return null
 }
 

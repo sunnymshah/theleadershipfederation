@@ -301,9 +301,26 @@ export function PuckEventBuilder({
         return
       }
       if (mod && e.key.toLowerCase() === "d" && !inField) {
-        if (activePage !== "home") {
-          e.preventDefault()
+        // ⌘D: duplicate the currently SELECTED block. Falls back to
+        // duplicating the active sub-page if nothing is selected.
+        e.preventDefault()
+        const selId = (window as unknown as { __lfSelectedBlockId?: string }).__lfSelectedBlockId
+        if (selId) {
+          // Use the bridge action — the import is at the top of this file.
+          import("./zoho/PuckBridge").then((m) => m.duplicateBlockById(selId))
+        } else if (activePage !== "home") {
           void handleDuplicatePage(activePage)
+        }
+        return
+      }
+      // Delete / Backspace when a block is selected → remove it.
+      if (!inField && (e.key === "Delete" || e.key === "Backspace")) {
+        const selId = (window as unknown as { __lfSelectedBlockId?: string }).__lfSelectedBlockId
+        if (selId) {
+          e.preventDefault()
+          if (window.confirm("Delete this section?")) {
+            import("./zoho/PuckBridge").then((m) => m.removeBlockById(selId))
+          }
         }
         return
       }
