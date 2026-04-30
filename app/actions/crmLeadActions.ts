@@ -130,6 +130,29 @@ async function getServerClient() {
   return createClient(cookieStore)
 }
 
+/**
+ * Extract a useful error message from anything thrown inside a server
+ * action — including Supabase's PostgrestError shape (which is a plain
+ * object with `.message`, NOT an `Error` instance, so the previous
+ * `e instanceof Error ? e.message : "fallback"` pattern always hit
+ * the fallback branch and hid the real root cause).
+ */
+function extractError(e: unknown, fallback: string): string {
+  if (e instanceof Error) return e.message
+  if (e && typeof e === "object") {
+    const obj = e as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
+    if (typeof obj.message === "string" && obj.message.length > 0) {
+      // Surface RLS / constraint hints when the DB returned them.
+      const parts = [obj.message]
+      if (typeof obj.details === "string" && obj.details) parts.push(obj.details)
+      if (typeof obj.hint === "string" && obj.hint) parts.push(`(hint: ${obj.hint})`)
+      if (typeof obj.code === "string" && obj.code) parts.push(`[${obj.code}]`)
+      return parts.join(" ")
+    }
+  }
+  return fallback
+}
+
 function snakeifyInput(input: LeadInput): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   if (input.firstName !== undefined)   out.first_name = input.firstName.trim()
@@ -165,14 +188,21 @@ async function logActivity(
   payload: Record<string, unknown> = {},
   actorId: string | null = null,
 ) {
-  const supabase = await getServerClient()
-  await supabase.from("crm_lead_activities").insert({
-    lead_id: leadId,
-    type,
-    summary,
-    payload,
-    actor_id: actorId,
-  })
+  // Activity log writes also use the admin client — same RLS-lockdown
+  // story as the main lead writes. Wrapped in a try/catch so a logging
+  // failure never breaks the actual lead create/update path.
+  try {
+    const supabase = createAdminClient()
+    await supabase.from("crm_lead_activities").insert({
+      lead_id: leadId,
+      type,
+      summary,
+      payload,
+      actor_id: actorId,
+    })
+  } catch (e) {
+    console.error("[crm-leads] activity log failed:", e)
+  }
 }
 
 function revalidate() {
@@ -301,7 +331,13 @@ export async function createLead(
     const ctx = await requirePermission("leads", "create")
     if (!input.firstName?.trim()) return { success: false, error: "First name is required" }
 
-    const supabase = await getServerClient()
+    // Use the service-role admin client for the write. The cookie-backed
+    // client respects RLS, and the user's RLS lockdown migration drops the
+    // permissive `crm_leads_auth_all` policy without replacing it, which
+    // made every authenticated insert fail with a confusing "Failed to
+    // create lead" error. requirePermission() above is the access gate;
+    // the DB is the storage layer.
+    const supabase = createAdminClient()
     const row = {
       ...snakeifyInput(input),
       created_by: ctx.userId,
@@ -321,7 +357,7 @@ export async function createLead(
     revalidate()
     return { success: true, lead: data as CrmLead }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to create lead" }
+    return { success: false, error: extractError(e, "Failed to create lead") }
   }
 }
 
@@ -335,7 +371,10 @@ export async function updateLead(
     if (patch.ownerId !== undefined) {
       await requirePermission("leads", "assign")
     }
-    const supabase = await getServerClient()
+    // Same admin-client switch as createLead — the user's RLS lockdown
+    // dropped the permissive crm_leads policies, so cookie-backed writes
+    // fail. requirePermission() above is the access gate.
+    const supabase = createAdminClient()
 
     const { data: before } = await supabase
       .from("crm_leads")
@@ -372,7 +411,7 @@ export async function updateLead(
     revalidate()
     return { success: true, lead: data as CrmLead }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to update lead" }
+    return { success: false, error: extractError(e, "Failed to update lead") }
   }
 }
 
@@ -381,13 +420,13 @@ export async function deleteLead(
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
     await requirePermission("leads", "delete")
-    const supabase = await getServerClient()
+    const supabase = createAdminClient()
     const { error } = await supabase.from("crm_leads").delete().eq("id", id)
     if (error) throw error
     revalidate()
     return { success: true }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to delete lead" }
+    return { success: false, error: extractError(e, "Failed to delete lead") }
   }
 }
 
@@ -402,7 +441,7 @@ export async function bulkUpdate(
     if (patch.ownerId !== undefined) await requirePermission("leads", "assign")
     if (!ids.length) return { success: true, count: 0 }
 
-    const supabase = await getServerClient()
+    const supabase = createAdminClient()
     const update: Record<string, unknown> = {}
     if (patch.status) update.status = patch.status
     if (patch.ownerId !== undefined) update.owner_id = patch.ownerId
@@ -433,7 +472,7 @@ export async function bulkUpdate(
     revalidate()
     return { success: true, count: ids.length }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Bulk update failed" }
+    return { success: false, error: extractError(e, "Bulk update failed") }
   }
 }
 
@@ -443,13 +482,13 @@ export async function bulkDelete(
   try {
     await requirePermission("leads", "delete")
     if (!ids.length) return { success: true, count: 0 }
-    const supabase = await getServerClient()
+    const supabase = createAdminClient()
     const { error } = await supabase.from("crm_leads").delete().in("id", ids)
     if (error) throw error
     revalidate()
     return { success: true, count: ids.length }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Bulk delete failed" }
+    return { success: false, error: extractError(e, "Bulk delete failed") }
   }
 }
 
