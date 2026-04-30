@@ -115,7 +115,10 @@ export type BuilderComponents = {
  * `fields.layout` keeps the inspector consistent.                     */
 const layoutField = {
   type: "object",
-  label: "Section settings",
+  // ITEM 12 — Zoho-style "Style" group housing the four background
+  // fields (color / image / overlay opacity / overlay color) plus
+  // padding / text colour / alignment / anchor / advanced toggles.
+  label: "Style",
   objectFields: {
     paddingY: {
       type: "select",

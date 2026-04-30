@@ -28,6 +28,7 @@ export function NotificationBanner({
   displayUntil?: string
 }) {
   const [hidden, setHidden] = useState<boolean | null>(null)
+  const [expired, setExpired] = useState(false)
   const storageKey = `lf-notif:${eventId}:${message.slice(0, 40)}`
 
   useEffect(() => {
@@ -40,13 +41,15 @@ export function NotificationBanner({
     }
   }, [storageKey, dismissable])
 
-  // Display-until cutoff (if set, hide once the date passes).
-  const expired = (() => {
-    if (!displayUntil) return false
+  // Display-until cutoff (if set, hide once the date passes). Reading
+  // Date.now() in render is impure; do it inside an effect.
+  useEffect(() => {
+    if (!displayUntil) { setExpired(false); return }
     const t = new Date(displayUntil).getTime()
-    if (!Number.isFinite(t)) return false
-    return Date.now() > t + 24 * 3600_000
-  })()
+    if (!Number.isFinite(t)) { setExpired(false); return }
+    setExpired(Date.now() > t + 24 * 3600_000)
+  }, [displayUntil])
+
   if (expired || hidden === null || hidden) return null
 
   function dismiss() {
