@@ -123,7 +123,7 @@ export default async function FullscreenBuilderPage({
   ] = await Promise.all([
     admin
       .from("events")
-      .select("id, slug, title, start_date, end_date, venue, description, cover_image_url, status, locales, default_locale, builder_settings")
+      .select("id, slug, title, start_date, end_date, venue, description, cover_image_url, logo_url, status, locales, default_locale, builder_settings")
       .eq("id", id)
       .maybeSingle(),
     admin
@@ -163,6 +163,7 @@ export default async function FullscreenBuilderPage({
       venue: (event.venue as string | null) ?? null,
       description: (event.description as string | null) ?? null,
       cover_image_url: (event.cover_image_url as string | null) ?? null,
+      logo_url: (event.logo_url as string | null) ?? null,
     },
     speakers: (speakersRes.data ?? []).map((s) => ({
       id: s.id as string,

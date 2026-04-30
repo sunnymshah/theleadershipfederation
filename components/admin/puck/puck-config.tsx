@@ -188,10 +188,19 @@ export const puckConfig: Config<BuilderComponents> = {
         backgroundImage: "",
         alignment: "left",
         minHeight: "tall",
+        useEventLogo: false,
       },
       fields: {
         title:    makeSparklesField({ label: "Title (leave blank to use event title)", hint: "title" }) as unknown as Field<string>,
         subtitle: makeSparklesField({ label: "Subtitle", type: "textarea", hint: "subtitle", rows: 3 }) as unknown as Field<string>,
+        useEventLogo: {
+          type: "radio",
+          label: "Show event logo above title",
+          options: [
+            { label: "No",  value: false as unknown as string },
+            { label: "Yes", value: true  as unknown as string },
+          ],
+        },
         ctaLabel: { type: "text",     label: "CTA label" },
         ctaUrl: {
           type: "custom",
@@ -1338,6 +1347,7 @@ export const puckConfig: Config<BuilderComponents> = {
         columns: 3,
         copyright: "© The Leadership Federation. All rights reserved.",
         logoUrl: "",
+        useEventLogo: true,
         showPoweredBy: true,
         socialLinks: [],
         links: [],
@@ -1353,9 +1363,13 @@ export const puckConfig: Config<BuilderComponents> = {
           ],
         },
         copyright: { type: "text", label: "Copyright line" },
+        useEventLogo: {
+          type: "radio", label: "Use event logo (Settings → General)",
+          options: [{ label: "No", value: false }, { label: "Yes", value: true }],
+        },
         logoUrl: {
           type: "custom",
-          label: "Logo (optional)",
+          label: "Logo (override — only used when 'Use event logo' is No)",
           render: (p) => (
             <ImageField
               field={p.field as { label?: string }}

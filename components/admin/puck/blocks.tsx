@@ -51,6 +51,9 @@ export type EventShape = {
   venue: string | null
   description: string | null
   cover_image_url: string | null
+  /** A2: optional event logo (with optional ?fp=x,y focal point suffix).
+   *  Powers EventTopNav left-edge logo, Hero useEventLogo, Footer logo. */
+  logo_url?: string | null
 }
 export type SpeakerShape = {
   id: string
@@ -107,6 +110,7 @@ export function getMeta(puck: { metadata?: Record<string, unknown> }): BuilderMe
       venue: null,
       description: null,
       cover_image_url: null,
+      logo_url: null,
     },
     speakers: m.speakers ?? [],
     sessions: m.sessions ?? [],
@@ -378,16 +382,19 @@ export type HeroProps = {
   backgroundImage: string
   alignment?: "left" | "center"
   minHeight?: "short" | "tall" | "full"
+  /** A2: when true, render the event logo (events.logo_url) above the title. */
+  useEventLogo?: boolean
 }
 
 export function Hero({
   title, subtitle, ctaLabel, ctaUrl, secondaryCtaLabel, secondaryCtaUrl,
-  backgroundImage, alignment, minHeight,
+  backgroundImage, alignment, minHeight, useEventLogo,
   puck,
 }: HeroProps & { puck: { metadata?: Record<string, unknown>; dragRef?: unknown; id?: string } }) {
   const { event } = getMeta(puck)
   const bg = backgroundImage || event.cover_image_url
   const shownTitle = title || event.title
+  const logo = useEventLogo ? event.logo_url ?? null : null
   if (typeof window !== "undefined" && bg && !shownTitle) {
     console.warn("[Hero] background image present but no title for alt text — provide a Title or event.title")
   }
@@ -423,6 +430,17 @@ export function Hero({
       })()}
       <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent" />
       <div className={`relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pb-16 pt-28 w-full ${centered ? "text-center" : ""}`}>
+        {logo && (() => {
+          const { src } = parseFocalPoint(logo)
+          return (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={src}
+              alt={`${event.title || "Event"} logo`}
+              className={`h-14 sm:h-16 w-auto mb-6 drop-shadow-md ${centered ? "mx-auto" : ""}`}
+            />
+          )
+        })()}
         {event.start_date && (
           <div
             className={`flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] mb-4 ${centered ? "justify-center" : ""}`}
@@ -2313,6 +2331,9 @@ export type FooterProps = {
   columns: 1 | 2 | 3 | 4
   copyright: string
   logoUrl?: string
+  /** A2: when true and events.logo_url is set, render that instead of
+   *  logoUrl. Useful when the same logo lives in nav + footer. */
+  useEventLogo?: boolean
   showPoweredBy?: boolean
   socialLinks?: Array<{ label: string; url: string }>
   links?: Array<{ label: string; url: string; group?: string }>
@@ -2320,8 +2341,13 @@ export type FooterProps = {
 }
 
 export function Footer({
-  columns = 3, copyright, logoUrl, showPoweredBy, socialLinks, links, layout,
-}: FooterProps) {
+  columns = 3, copyright, logoUrl, useEventLogo, showPoweredBy, socialLinks, links, layout, puck,
+}: FooterProps & { puck?: { metadata?: Record<string, unknown> } }) {
+  const meta = puck ? getMeta(puck) : null
+  const eventLogo = useEventLogo && meta ? meta.event.logo_url ?? null : null
+  const resolvedLogo = eventLogo
+    ? parseFocalPoint(eventLogo).src
+    : (logoUrl ?? "")
   const grouped = new Map<string, Array<{ label: string; url: string }>>()
   for (const l of links ?? []) {
     const g = l.group?.trim() || "Links"
@@ -2336,9 +2362,9 @@ export function Footer({
       <div className="max-w-6xl mx-auto px-6">
         <div className={`grid gap-8 ${gridCls}`}>
           <div>
-            {logoUrl ? (
+            {resolvedLogo ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={logoUrl} alt="" className="h-8 w-auto mb-3" />
+              <img src={resolvedLogo} alt="" className="h-8 w-auto mb-3" />
             ) : (
               <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/65 mb-3">
                 Powered by The Leadership Federation

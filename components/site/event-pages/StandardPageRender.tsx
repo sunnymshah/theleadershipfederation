@@ -28,6 +28,8 @@ type EventLite = {
   venue: string
   description: string | null
   cover_image_url: string | null
+  /** A2: optional event logo (with optional ?fp= focal-point suffix). */
+  logo_url?: string | null
 }
 
 export async function StandardPageRender({
@@ -121,6 +123,7 @@ export async function StandardPageRender({
             venue: event.venue,
             description: event.description,
             cover_image_url: event.cover_image_url,
+            logo_url: event.logo_url ?? null,
           },
           speakers: speakers.map((s) => ({
             id: s.id,

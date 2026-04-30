@@ -233,6 +233,7 @@ export default async function EventDetailPage({ params }: Props) {
           venue: event.venue,
           description: event.description,
           cover_image_url: event.cover_image_url,
+          logo_url: (event as { logo_url?: string | null }).logo_url ?? null,
         }}
         pageKind="home"
         data={stdHome.data}
@@ -262,6 +263,7 @@ export default async function EventDetailPage({ params }: Props) {
             venue: event.venue,
             description: event.description,
             cover_image_url: event.cover_image_url,
+            logo_url: (event as { logo_url?: string | null }).logo_url ?? null,
           },
           speakers: speakers.map((s) => ({
             id: s.id,
