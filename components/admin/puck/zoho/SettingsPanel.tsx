@@ -205,18 +205,26 @@ function SettingsForm({
 
 function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unknown>, eventId: string) {
   switch (group) {
-    case "general": return (
-      <>
-        {/* A2: event logo. Persists to events.logo_url (separate column,
-            not part of builder_settings JSONB) so EventTopNav / Hero /
-            Footer can read it cheaply. Saves immediately on change —
-            independent of the form's Save button below. */}
-        <LogoField eventId={eventId} />
-        <Field label="Microsite name"           name="name"          defaultValue={s(init.name)} />
-        <Field label="Tagline"                  name="tagline"       defaultValue={s(init.tagline)} />
-        <SelectField label="Time zone"          name="timezone"      defaultValue={s(init.timezone) || "Asia/Kolkata"} options={TZ_OPTIONS} />
-      </>
-    )
+    case "general": {
+      const sh = (init.socialHandles ?? {}) as Record<string, unknown>
+      return (
+        <>
+          {/* A2: event logo. */}
+          <LogoField eventId={eventId} />
+          <Field label="Microsite name"           name="name"          defaultValue={s(init.name)} />
+          <Field label="Tagline"                  name="tagline"       defaultValue={s(init.tagline)} />
+          <SelectField label="Time zone"          name="timezone"      defaultValue={s(init.timezone) || "Asia/Kolkata"} options={TZ_OPTIONS} />
+          {/* ITEM 2.4 — Social handles (read by Hero inline + Footer). */}
+          <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)]">Social handles</p>
+          <Field label="X / Twitter URL"   name="social_twitter"   type="url" defaultValue={s(sh.twitter)}   placeholder="https://x.com/…" />
+          <Field label="LinkedIn URL"      name="social_linkedin"  type="url" defaultValue={s(sh.linkedin)}  placeholder="https://www.linkedin.com/…" />
+          <Field label="Instagram URL"     name="social_instagram" type="url" defaultValue={s(sh.instagram)} placeholder="https://www.instagram.com/…" />
+          <Field label="Facebook URL"      name="social_facebook"  type="url" defaultValue={s(sh.facebook)}  placeholder="https://www.facebook.com/…" />
+          <Field label="YouTube URL"       name="social_youtube"   type="url" defaultValue={s(sh.youtube)}   placeholder="https://www.youtube.com/…" />
+          <Field label="Website URL"       name="social_website"   type="url" defaultValue={s(sh.website)}   placeholder="https://…" />
+        </>
+      )
+    }
     case "seo": return (
       <>
         <Field label="Page title"               name="title"         defaultValue={s(init.title)} />
@@ -419,6 +427,17 @@ function collectFormValues(form: HTMLFormElement, group: BuilderSettingsGroup): 
     if (el instanceof HTMLInputElement && el.type === "checkbox" && el.name) {
       out[el.name] = el.checked
     }
+  }
+  // ITEM 2.4 — re-shape social_* keys into a nested socialHandles object.
+  if (group === "general") {
+    const sh: Record<string, string> = {}
+    const keys = ["twitter", "linkedin", "instagram", "facebook", "youtube", "website"]
+    for (const k of keys) {
+      const v = out[`social_${k}`]
+      if (typeof v === "string" && v.trim().length > 0) sh[k] = v.trim()
+      delete out[`social_${k}`]
+    }
+    out.socialHandles = sh
   }
   return out
 }

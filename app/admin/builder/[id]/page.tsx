@@ -118,6 +118,9 @@ export default async function FullscreenBuilderPage({
     sessionsRes,
     sponsorsRes,
     ticketsRes,
+    exhibitorsRes,
+    exhibitorCategoriesRes,
+    hotelsRes,
     draftRes,
     pagesRes,
   ] = await Promise.all([
@@ -146,6 +149,27 @@ export default async function FullscreenBuilderPage({
       .select("id, name, description, price_inr, sold, inventory_limit, features, early_bird_ends_at")
       .eq("event_id", id)
       .order("sort_order", { ascending: true }),
+    // ITEM 6 — exhibitors + categories. Tables are added by the gap-pass
+    // migration; on un-migrated DBs the rows array stays empty.
+    admin
+      .from("exhibitors")
+      .select("id, name, logo_url, category, booth, description, website")
+      .eq("event_id", id)
+      .order("sort_order", { ascending: true })
+      .then((r) => r, () => ({ data: [] as Array<Record<string, unknown>>, error: null })),
+    admin
+      .from("event_exhibitor_categories")
+      .select("id, name, color")
+      .eq("event_id", id)
+      .order("sort_order", { ascending: true })
+      .then((r) => r, () => ({ data: [] as Array<Record<string, unknown>>, error: null })),
+    // ITEM 7 — hotels.
+    admin
+      .from("event_hotels")
+      .select("id, name, image_url, address, distance_km, price_range, booking_url, description")
+      .eq("event_id", id)
+      .order("sort_order", { ascending: true })
+      .then((r) => r, () => ({ data: [] as Array<Record<string, unknown>>, error: null })),
     getBuilderDraft(id),
     getBuilderPagesDraft(id),
   ])
@@ -198,6 +222,34 @@ export default async function FullscreenBuilderPage({
       inventory_limit: (t.inventory_limit as number | null) ?? null,
       features: (t.features as string[] | null) ?? null,
       early_bird_ends_at: (t.early_bird_ends_at as string | null) ?? null,
+    })),
+    socialHandles: (() => {
+      const general = ((event.builder_settings as Record<string, unknown> | null)?.general ?? {}) as Record<string, unknown>
+      return (general.socialHandles ?? {}) as Record<string, string>
+    })(),
+    exhibitors: ((exhibitorsRes.data ?? []) as Array<Record<string, unknown>>).map((e) => ({
+      id: e.id as string,
+      name: (e.name as string) ?? "",
+      logo_url: (e.logo_url as string | null) ?? null,
+      category: (e.category as string | null) ?? null,
+      booth: (e.booth as string | null) ?? null,
+      description: (e.description as string | null) ?? null,
+      website: (e.website as string | null) ?? null,
+    })),
+    exhibitorCategories: ((exhibitorCategoriesRes.data ?? []) as Array<Record<string, unknown>>).map((c) => ({
+      id: c.id as string,
+      name: (c.name as string) ?? "",
+      color: (c.color as string | null) ?? null,
+    })),
+    hotels: ((hotelsRes.data ?? []) as Array<Record<string, unknown>>).map((h) => ({
+      id: h.id as string,
+      name: (h.name as string) ?? "",
+      image_url: (h.image_url as string | null) ?? null,
+      address: (h.address as string | null) ?? null,
+      distance_km: (h.distance_km as number | null) ?? null,
+      price_range: (h.price_range as string | null) ?? null,
+      booking_url: (h.booking_url as string | null) ?? null,
+      description: (h.description as string | null) ?? null,
     })),
   }
 

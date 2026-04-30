@@ -160,6 +160,10 @@ export function getMeta(puck: { metadata?: Record<string, unknown> }): BuilderMe
     sessions: m.sessions ?? [],
     sponsors: m.sponsors ?? [],
     tickets: m.tickets ?? [],
+    socialHandles: m.socialHandles ?? {},
+    exhibitors: m.exhibitors ?? [],
+    exhibitorCategories: m.exhibitorCategories ?? [],
+    hotels: m.hotels ?? [],
   }
 }
 
