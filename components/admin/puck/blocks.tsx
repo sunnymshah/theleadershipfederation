@@ -2827,3 +2827,397 @@ export function CtaWithImage({
     </SectionShell>
   )
 }
+
+/* ── ITEM 3 — MEDIA WITH TEXT GROUP ──────────────────────────────────
+ *
+ * Series of two-column rows (image + heading + body + optional CTA).
+ * Each row picks left or right for the image; "alternate" mode flips
+ * automatically for visual rhythm.
+ */
+export type MediaWithTextItem = {
+  id: string
+  image: string
+  heading: string
+  body: string
+  ctaLabel?: string
+  ctaUrl?: string
+  side: "left" | "right" | "alternate"
+}
+export type MediaWithTextGroupProps = {
+  title?: string
+  subtitle?: string
+  items: MediaWithTextItem[]
+  layout?: LayoutProps
+}
+export function MediaWithTextGroup({ title, subtitle, items, layout, puck }: MediaWithTextGroupProps & { puck?: { metadata?: Record<string, unknown> } }) {
+  const meta = puck ? getMeta(puck) : null
+  const eventSlug = meta?.event.slug ?? ""
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        {(subtitle || title) && (
+          <div className="mb-10">
+            {subtitle && <p className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{subtitle}</p>}
+            {title && <h2 className="mt-2 text-3xl sm:text-4xl font-bold" style={sfFont}>{title}</h2>}
+          </div>
+        )}
+        <div className="space-y-14">
+          {items.map((it, i) => {
+            const side: "left" | "right" =
+              it.side === "alternate" ? (i % 2 === 0 ? "left" : "right") : it.side
+            const imageOnLeft = side === "left"
+            const { src: imgSrc, objectPosition } = parseFocalPoint(it.image)
+            return (
+              <div key={it.id || i} className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div className={`relative aspect-[4/3] rounded-xl overflow-hidden bg-[#1a1a2e]/5 ${imageOnLeft ? "" : "md:order-2"}`}>
+                  {it.image && (
+                    <Image src={imgSrc} alt={it.heading || ""} fill className="object-cover" style={{ objectPosition }} sizes="(max-width:768px) 100vw, 50vw" />
+                  )}
+                </div>
+                <div className={imageOnLeft ? "" : "md:order-1"}>
+                  {it.heading && <h3 className="text-2xl sm:text-3xl font-bold mb-3" style={sfFont}>{it.heading}</h3>}
+                  {it.body && (
+                    <div className="prose prose-sm max-w-none text-[#1a1a2e]/75 leading-relaxed">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{it.body}</ReactMarkdown>
+                    </div>
+                  )}
+                  {it.ctaLabel && it.ctaUrl && (
+                    <Link
+                      href={resolveUrl(it.ctaUrl, eventSlug)}
+                      target={urlIsExternal(it.ctaUrl) ? "_blank" : undefined}
+                      rel={urlIsExternal(it.ctaUrl) ? "noopener noreferrer" : undefined}
+                      className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold"
+                      style={{ color: "var(--lf-primary, #e7ab1c)" }}
+                    >
+                      {it.ctaLabel} <ChevronRight size={14} />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── ITEM 4 — TESTIMONIALS GROUP ─────────────────────────────────────
+ * Carousel / Grid / List multi-testimonial display.
+ */
+export type TestimonialItem = {
+  id: string
+  quote: string
+  attribution: string
+  role: string
+  avatar: string
+  rating?: number
+}
+export type TestimonialsGroupProps = {
+  title?: string
+  subtitle?: string
+  items: TestimonialItem[]
+  displayStyle: "carousel" | "grid" | "list"
+  layout?: LayoutProps
+}
+export function TestimonialsGroup({ title, subtitle, items, displayStyle, layout }: TestimonialsGroupProps) {
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        {(subtitle || title) && (
+          <div className="mb-10 text-center">
+            {subtitle && <p className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: "var(--lf-primary, #e7ab1c)" }}>{subtitle}</p>}
+            {title && <h2 className="mt-2 text-3xl sm:text-4xl font-bold" style={sfFont}>{title}</h2>}
+          </div>
+        )}
+        {displayStyle === "carousel" && <TestimonialCarousel items={items} />}
+        {displayStyle === "grid" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((t, i) => <TestimonialCard key={t.id || i} t={t} />)}
+          </div>
+        )}
+        {displayStyle === "list" && (
+          <div className="space-y-5 max-w-3xl mx-auto">
+            {items.map((t, i) => <TestimonialCard key={t.id || i} t={t} />)}
+          </div>
+        )}
+      </div>
+    </SectionShell>
+  )
+}
+function TestimonialCard({ t }: { t: TestimonialItem }) {
+  const r = Math.max(0, Math.min(5, t.rating ?? 0))
+  return (
+    <div className="rounded-xl border border-[#1a1a2e]/10 bg-white p-6">
+      <Quote size={20} className="text-[#1a1a2e]/15 mb-3" />
+      <p className="text-[14px] text-[#1a1a2e]/80 leading-relaxed">{t.quote}</p>
+      <div className="mt-5 flex items-center gap-3">
+        {t.avatar && (
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-[#1a1a2e]/5 relative shrink-0">
+            <Image src={parseFocalPoint(t.avatar).src} alt="" fill className="object-cover" sizes="40px" />
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="text-[13px] font-bold text-[#1a1a2e] truncate">{t.attribution}</p>
+          {t.role && <p className="text-[11px] text-[#1a1a2e]/55 truncate">{t.role}</p>}
+        </div>
+      </div>
+      {r > 0 && (
+        <div className="mt-3 flex items-center gap-1" aria-label={`${r} of 5`}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <span key={i} className={i < r ? "text-amber-400" : "text-[#1a1a2e]/15"}>★</span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+function TestimonialCarousel({ items }: { items: TestimonialItem[] }) {
+  const [idx, setIdx] = useState(0)
+  useEffect(() => {
+    if (items.length <= 1) return
+    const t = setInterval(() => setIdx((n) => (n + 1) % items.length), 6000)
+    return () => clearInterval(t)
+  }, [items.length])
+  if (items.length === 0) return null
+  const cur = items[idx]
+  return (
+    <div className="relative max-w-3xl mx-auto">
+      <TestimonialCard t={cur} />
+      {items.length > 1 && (
+        <div className="mt-5 flex justify-center gap-2">
+          {items.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setIdx(i)}
+              aria-label={`Go to testimonial ${i + 1}`}
+              className={`w-2.5 h-2.5 rounded-full ${i === idx ? "bg-[#1a1a2e]" : "bg-[#1a1a2e]/20 hover:bg-[#1a1a2e]/40"}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── ITEM 5 — FLOOR PLAN ─────────────────────────────────────────────
+ * Single image + optional clickable hotspots.
+ */
+export type FloorPlanHotspot = { x: number; y: number; label: string; description?: string }
+export type FloorPlanProps = {
+  title?: string
+  image: string
+  caption?: string
+  hotspots?: FloorPlanHotspot[]
+  layout?: LayoutProps
+}
+export function FloorPlan({ title, image, caption, hotspots, layout }: FloorPlanProps) {
+  const { src, objectPosition } = parseFocalPoint(image)
+  const list = hotspots ?? []
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        {title && <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-center" style={sfFont}>{title}</h2>}
+        <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-[#1a1a2e]/5">
+          {image ? (
+            <Image src={src} alt={title || "Floor plan"} fill className="object-cover" style={{ objectPosition }} sizes="100vw" />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center text-[#1a1a2e]/40 text-sm">
+              Add a floor plan image
+            </div>
+          )}
+          {list.map((h, i) => (
+            <div
+              key={i}
+              className="absolute -translate-x-1/2 -translate-y-1/2 group"
+              style={{ left: `${h.x * 100}%`, top: `${h.y * 100}%` }}
+            >
+              <div className="w-7 h-7 rounded-full bg-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e] text-[12px] font-bold grid place-items-center shadow-lg ring-2 ring-white">
+                {i + 1}
+              </div>
+              {(h.label || h.description) && (
+                <div className="absolute left-1/2 -translate-x-1/2 mt-2 min-w-[180px] hidden group-hover:block bg-[#1a1a2e] text-white text-[12px] px-3 py-2 rounded-md shadow-xl">
+                  <p className="font-bold">{h.label}</p>
+                  {h.description && <p className="opacity-75 mt-0.5">{h.description}</p>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {caption && <p className="mt-4 text-center text-[13px] text-[#1a1a2e]/60">{caption}</p>}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── ITEM 6 — EXHIBITORS LISTING ─────────────────────────────────────
+ * Reads metadata.exhibitors + metadata.exhibitorCategories. When
+ * groupByCategory is true, sections render per category.
+ */
+export type ExhibitorsListingProps = {
+  title?: string
+  groupByCategory: boolean
+  layout?: LayoutProps
+}
+export function ExhibitorsListing({ title, groupByCategory, layout, puck }: ExhibitorsListingProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { exhibitors = [], exhibitorCategories = [] } = getMeta(puck)
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        {title && <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-center" style={sfFont}>{title}</h2>}
+        {exhibitors.length === 0 ? (
+          <p className="text-center text-[#1a1a2e]/55 italic">Exhibitor list coming soon.</p>
+        ) : groupByCategory ? (
+          (() => {
+            // Group by category name; uncategorised at the end.
+            const buckets = new Map<string, ExhibitorShape[]>()
+            for (const e of exhibitors) {
+              const k = (e.category ?? "").trim() || "Other"
+              const arr = buckets.get(k) ?? []
+              arr.push(e); buckets.set(k, arr)
+            }
+            const ordered = exhibitorCategories
+              .map((c) => [c.name, buckets.get(c.name) ?? []] as const)
+              .filter(([, arr]) => arr.length > 0)
+            const seen = new Set(ordered.map(([k]) => k))
+            for (const [k, arr] of buckets) if (!seen.has(k)) ordered.push([k, arr])
+            return (
+              <div className="space-y-12">
+                {ordered.map(([cat, list]) => (
+                  <div key={cat}>
+                    <h3 className="text-xl font-bold mb-5" style={sfFont}>{cat}</h3>
+                    <ExhibitorGrid list={list} />
+                  </div>
+                ))}
+              </div>
+            )
+          })()
+        ) : (
+          <ExhibitorGrid list={exhibitors} />
+        )}
+      </div>
+    </SectionShell>
+  )
+}
+function ExhibitorGrid({ list }: { list: ExhibitorShape[] }) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+      {list.map((e) => (
+        <a
+          key={e.id}
+          href={e.website || "#"}
+          target={e.website ? "_blank" : undefined}
+          rel={e.website ? "noopener noreferrer" : undefined}
+          className="group flex flex-col rounded-xl border border-[#1a1a2e]/10 bg-white p-5 hover:border-[var(--lf-primary,#e7ab1c)] hover:shadow-md transition"
+        >
+          <div className="h-16 mb-3 flex items-center justify-center">
+            {e.logo_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={parseFocalPoint(e.logo_url).src} alt={e.name} className="max-h-16 w-auto object-contain" />
+            ) : (
+              <Briefcase size={28} className="text-[#1a1a2e]/30" />
+            )}
+          </div>
+          <p className="text-[13px] font-bold text-[#1a1a2e] truncate text-center">{e.name}</p>
+          {e.booth && <p className="mt-0.5 text-[11px] text-[#1a1a2e]/55 text-center">Booth {e.booth}</p>}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+/* ── ITEM 6 — EXHIBITOR CATEGORY ─────────────────────────────────────
+ * Renders a single category subset.
+ */
+export type ExhibitorCategoryProps = {
+  categoryId: string
+  layout?: LayoutProps
+}
+export function ExhibitorCategoryBlock({ categoryId, layout, puck }: ExhibitorCategoryProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { exhibitors = [], exhibitorCategories = [] } = getMeta(puck)
+  const cat = exhibitorCategories.find((c) => c.id === categoryId)
+  if (!cat) {
+    return (
+      <SectionShell layout={layout}>
+        <div className="max-w-6xl mx-auto px-6 text-center text-[#1a1a2e]/55 italic">
+          Pick a category in the inspector.
+        </div>
+      </SectionShell>
+    )
+  }
+  const list = exhibitors.filter((e) => (e.category ?? "").trim() === cat.name)
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        <h3 className="text-2xl font-bold mb-6" style={sfFont}>{cat.name}</h3>
+        {list.length === 0 ? (
+          <p className="text-[#1a1a2e]/55 italic">No exhibitors in this category yet.</p>
+        ) : (
+          <ExhibitorGrid list={list} />
+        )}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── ITEM 7 — HOTELS LISTING ─────────────────────────────────────────
+ * Reads metadata.hotels. Card renders image + name + distance + price
+ * + Book button (links to booking_url).
+ */
+export type HotelsListingProps = {
+  title?: string
+  columns: 2 | 3 | 4
+  layout?: LayoutProps
+}
+export function HotelsListing({ title, columns, layout, puck }: HotelsListingProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { hotels = [] } = getMeta(puck)
+  const cols = Math.max(2, Math.min(4, columns))
+  const gridCls = cols === 2 ? "grid-cols-1 md:grid-cols-2" : cols === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4"
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-6xl mx-auto px-6">
+        {title && <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-center" style={sfFont}>{title}</h2>}
+        {hotels.length === 0 ? (
+          <p className="text-center text-[#1a1a2e]/55 italic">Hotels coming soon.</p>
+        ) : (
+          <div className={`grid gap-6 ${gridCls}`}>
+            {hotels.map((h) => (
+              <div key={h.id} className="rounded-xl overflow-hidden border border-[#1a1a2e]/10 bg-white flex flex-col">
+                <div className="relative aspect-[16/10] bg-[#1a1a2e]/5">
+                  {h.image_url && (
+                    <Image src={parseFocalPoint(h.image_url).src} alt={h.name} fill className="object-cover" sizes="(max-width:768px) 100vw, 33vw" />
+                  )}
+                </div>
+                <div className="p-5 flex-1 flex flex-col">
+                  <p className="text-[15px] font-bold text-[#1a1a2e]">{h.name}</p>
+                  <div className="mt-1 flex items-center gap-3 text-[12px] text-[#1a1a2e]/65">
+                    {typeof h.distance_km === "number" && <span>{h.distance_km.toFixed(1)} km away</span>}
+                    {h.price_range && <span className="font-semibold">{h.price_range}</span>}
+                  </div>
+                  {h.address && <p className="mt-2 text-[12px] text-[#1a1a2e]/60 line-clamp-2">{h.address}</p>}
+                  {h.description && <p className="mt-2 text-[13px] text-[#1a1a2e]/75 line-clamp-3">{h.description}</p>}
+                  <div className="mt-auto pt-4">
+                    {h.booking_url ? (
+                      <a
+                        href={h.booking_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[#1a1a2e] text-[13px] font-bold"
+                        style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
+                      >
+                        Book <ChevronRight size={12} />
+                      </a>
+                    ) : (
+                      <span className="text-[12px] text-[#1a1a2e]/40 italic">No booking link</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </SectionShell>
+  )
+}
