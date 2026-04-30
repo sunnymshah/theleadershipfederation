@@ -1511,16 +1511,28 @@ export const puckConfig: Config<BuilderComponents> = {
     Footer: {
       label: "Footer",
       defaultProps: {
-        columns: 3,
+        columns: 4,
         copyright: "© The Leadership Federation. All rights reserved.",
         logoUrl: "",
         useEventLogo: true,
         showPoweredBy: true,
         socialLinks: [],
         links: [],
+        // ITEM 9
+        mediaImage: "",
+        mediaHref: "",
+        terms: [],
+        useEventSocialHandles: true,
+        navButtons: [],
+        textField: "",
+        showMedia: true,
+        showTerms: true,
+        showSocial: true,
+        showNavButtons: true,
         layout: { ...defaultLayout, paddingY: "md" },
       },
       fields: {
+        // ── Setup tab ─────────────────────────────────────────────
         columns: {
           type: "radio",
           label: "Columns",
@@ -1530,6 +1542,7 @@ export const puckConfig: Config<BuilderComponents> = {
           ],
         },
         copyright: { type: "text", label: "Copyright line" },
+        textField: { type: "textarea", label: "Free text (Markdown OK)" },
         useEventLogo: {
           type: "radio", label: "Use event logo (Settings → General)",
           options: [{ label: "No", value: false }, { label: "Yes", value: true }],
@@ -1546,30 +1559,96 @@ export const puckConfig: Config<BuilderComponents> = {
             />
           ),
         },
+        mediaImage: {
+          type: "custom",
+          label: "Media image (overrides logo when set)",
+          render: (p) => (
+            <ImageField
+              field={p.field as { label?: string }}
+              value={(p.value as string) ?? ""}
+              onChange={p.onChange as (v: string) => void}
+              folder="general"
+              aspectRatio={0}
+            />
+          ),
+        },
+        mediaHref: {
+          type: "custom", label: "Media link (optional)",
+          render: (p) => (
+            <UrlPicker field={p.field as { label?: string }} value={(p.value as string) ?? ""} onChange={p.onChange as (v: string) => void} />
+          ),
+        },
         showPoweredBy: {
           type: "radio", label: "Show 'powered by' line",
           options: [{ label: "No", value: false }, { label: "Yes", value: true }],
         },
-        socialLinks: {
-          type: "array",
-          label: "Social links",
+        // ── Terms ─────────────────────────────────────────────────
+        terms: {
+          type: "array", label: "Terms & policies",
           arrayFields: {
             label: { type: "text", label: "Label" },
             url:   { type: "text", label: "URL" },
           },
-          getItemSummary: (item: unknown) =>
-            (item as { label?: string })?.label || "Social link",
+          getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Term",
         },
+        // ── Social ────────────────────────────────────────────────
+        useEventSocialHandles: {
+          type: "radio", label: "Use event social handles (Settings → General)",
+          options: [{ label: "No", value: false }, { label: "Yes", value: true }],
+        },
+        socialLinks: {
+          type: "array",
+          label: "Social links (used when 'Use event social handles' is No)",
+          arrayFields: {
+            label: { type: "text", label: "Label" },
+            url:   { type: "text", label: "URL" },
+          },
+          getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Social link",
+        },
+        // ── Nav buttons ───────────────────────────────────────────
+        navButtons: {
+          type: "array", label: "Navigation buttons",
+          arrayFields: {
+            label: { type: "text", label: "Label" },
+            url:   { type: "text", label: "URL" },
+            style: {
+              type: "radio", label: "Style",
+              options: [
+                { label: "Primary",   value: "primary" },
+                { label: "Secondary", value: "secondary" },
+                { label: "Outline",   value: "outline" },
+              ],
+            },
+          },
+          getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Button",
+        },
+        // ── Legacy links (groups) ────────────────────────────────
         links: {
           type: "array",
-          label: "Footer links",
+          label: "Grouped link columns (legacy)",
           arrayFields: {
             label: { type: "text", label: "Label" },
             url:   { type: "text", label: "URL" },
             group: { type: "text", label: "Group (column heading)" },
           },
-          getItemSummary: (item: unknown) =>
-            (item as { label?: string })?.label || "Link",
+          getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Link",
+        },
+        // ── Visibility tab ───────────────────────────────────────
+        showMedia: {
+          type: "radio", label: "Show media column",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showTerms: {
+          type: "radio", label: "Show terms column",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showNavButtons: {
+          type: "radio", label: "Show nav buttons column",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showSocial: {
+          type: "radio", label: "Show social column",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
         },
         layout: layoutField,
       },
