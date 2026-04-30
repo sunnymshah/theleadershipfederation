@@ -122,7 +122,7 @@ export default async function EventsPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, external_url, speakers(id), tickets(id)",
+      "id, title, slug, start_date, end_date, venue, description, cover_image_url, thumbnail_url, status, external_url, speakers(id), tickets(id)",
     )
     .eq("status", "published")
     // Exclude the seeded legacy events — those carry an external_url
@@ -508,6 +508,8 @@ type EventRow = {
   venue: string | null
   description: string | null
   cover_image_url: string | null
+  /** ITEM 10.5 — preferred over cover for the listing thumbnail. */
+  thumbnail_url?: string | null
   status: string
   speakers?: Array<{ id: string }> | null
   tickets?: Array<{ id: string }> | null
@@ -534,11 +536,11 @@ function FeaturedEventCard({ event }: { event: EventRow }) {
       href={`/events/${slug}`}
       className="group block rounded-[24px] overflow-hidden bg-white border border-[#1a1a2e]/[0.08] shadow-[0_24px_60px_-24px_rgba(26,26,46,0.18)] hover:shadow-[0_32px_80px_-24px_rgba(26,26,46,0.28)] hover:-translate-y-0.5 transition-all duration-300"
     >
-      {/* Cover */}
+      {/* Cover — ITEM 10.5: prefer thumbnail_url for listing card. */}
       <div className="relative aspect-[5/4] bg-[#1a1a2e]">
-        {event.cover_image_url && (
+        {(event.thumbnail_url || event.cover_image_url) && (
           <Image
-            src={event.cover_image_url}
+            src={(event.thumbnail_url || event.cover_image_url) as string}
             alt={event.title}
             fill
             priority
@@ -614,10 +616,10 @@ function UpcomingEventCard({ event }: { event: EventRow }) {
       href={`/events/${slug}`}
       className="group block rounded-[20px] overflow-hidden bg-white border border-[#1a1a2e]/[0.08] hover:border-[#1a1a2e]/20 hover:shadow-[0_20px_60px_-20px_rgba(26,26,46,0.16)] transition-all duration-300"
     >
-      {event.cover_image_url && (
+      {(event.thumbnail_url || event.cover_image_url) && (
         <div className="relative aspect-[16/9] bg-[#1a1a2e] overflow-hidden">
           <Image
-            src={event.cover_image_url}
+            src={(event.thumbnail_url || event.cover_image_url) as string}
             alt={event.title}
             fill
             className="object-cover opacity-90 group-hover:scale-105 transition-transform duration-700 ease-out"

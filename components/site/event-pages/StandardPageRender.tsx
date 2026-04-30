@@ -102,6 +102,8 @@ export async function StandardPageRender({
   const builderSettings = (builderRes.data?.builder_settings ?? {}) as Record<string, unknown>
   const general = (builderSettings.general ?? {}) as Record<string, unknown>
   const socialHandles = (general.socialHandles ?? {}) as Record<string, string>
+  const timeFormat = (builderSettings.timeFormat ?? {}) as Record<string, unknown>
+  const mapSettings = (builderSettings.map ?? {}) as Record<string, unknown>
   const exhibitors = (exhibRes.data ?? []) as Array<Record<string, unknown>>
   const exhibitorCategories = (catRes.data ?? []) as Array<Record<string, unknown>>
   const hotels = (hotelRes.data ?? []) as Array<Record<string, unknown>>
@@ -197,6 +199,16 @@ export async function StandardPageRender({
             booking_url: (h.booking_url as string | null) ?? null,
             description: (h.description as string | null) ?? null,
           })),
+          timeFormat: {
+            dateFormat: typeof timeFormat.dateFormat === "string" ? timeFormat.dateFormat : undefined,
+            timeFormat: typeof timeFormat.timeFormat === "string" ? timeFormat.timeFormat : undefined,
+            showTimezone: timeFormat.showTimezone !== false,
+          },
+          mapSettings: {
+            provider: (mapSettings.provider === "openstreetmap" ? "openstreetmap" : "google") as "google" | "openstreetmap",
+            defaultZoom: Number(mapSettings.defaultZoom ?? 14),
+            showDirectionsButton: mapSettings.showDirectionsButton !== false,
+          },
         }}
       />
     </>

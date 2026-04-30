@@ -1782,7 +1782,7 @@ export const puckConfig: Config<BuilderComponents> = {
         layout: defaultLayout,
       },
       fields: {
-        title:    makeSparklesField({ label: "Heading", hint: "title" }) as unknown as Field<string>,
+        title:    makeSparklesField({ label: "Heading", hint: "title" }) as unknown as Field<string | undefined>,
         subtitle: { type: "text", label: "Eyebrow" },
         items: {
           type: "array",
@@ -1832,7 +1832,7 @@ export const puckConfig: Config<BuilderComponents> = {
         layout: defaultLayout,
       },
       fields: {
-        title:    makeSparklesField({ label: "Heading", hint: "title" }) as unknown as Field<string>,
+        title:    makeSparklesField({ label: "Heading", hint: "title" }) as unknown as Field<string | undefined>,
         subtitle: { type: "text", label: "Eyebrow" },
         displayStyle: {
           type: "radio", label: "Display style",

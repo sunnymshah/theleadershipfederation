@@ -1277,11 +1277,14 @@ function TopBarOverflowMenu({
   onOpenHistory,
   onRevert,
   reverting,
+  onOpenRail,
 }: {
   eventId: string
   refreshing: boolean
   dataMenuOpen: boolean
   setDataMenuOpen: React.Dispatch<React.SetStateAction<boolean>>
+  /** ITEM 6 + 7 — open in-builder data managers from the dropdown. */
+  onOpenRail?: (rail: "exhibitors" | "hotels") => void
   onRefreshData: () => void
   onOpenHistory: () => void
   onRevert: () => void
@@ -1351,7 +1354,7 @@ function TopBarOverflowMenu({
                 <button
                   type="button"
                   role="menuitem"
-                  onClick={() => { setActiveRail("exhibitors"); setDataMenuOpen(false); setMoreMenuOpen(false) }}
+                  onClick={() => { onOpenRail?.("exhibitors"); setDataMenuOpen(false); setOpen(false) }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
                 >
                   <Briefcase size={13} strokeWidth={1.5} />
@@ -1360,7 +1363,7 @@ function TopBarOverflowMenu({
                 <button
                   type="button"
                   role="menuitem"
-                  onClick={() => { setActiveRail("hotels"); setDataMenuOpen(false); setMoreMenuOpen(false) }}
+                  onClick={() => { onOpenRail?.("hotels"); setDataMenuOpen(false); setOpen(false) }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
                 >
                   <BedDouble size={13} strokeWidth={1.5} />
