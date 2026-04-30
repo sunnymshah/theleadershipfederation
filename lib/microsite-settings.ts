@@ -78,8 +78,37 @@ export type LanguageSettings = {
   locales?: string[]
 }
 
+/* ── ITEM 10 add-ons ────────────────────────────────────────────── */
+export type GeneralSocialHandles = {
+  twitter?: string; linkedin?: string; instagram?: string;
+  facebook?: string; youtube?: string; website?: string;
+}
+export type NotificationSettings = {
+  enabled?: boolean
+  message?: string
+  link?: string
+  linkLabel?: string
+  dismissable?: boolean
+  displayUntil?: string
+}
+export type TimeFormatSettings = {
+  dateFormat?: "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD"
+  timeFormat?: "12h" | "24h"
+  showTimezone?: boolean
+}
+export type MapDisplaySettings = {
+  provider?: "google" | "openstreetmap"
+  defaultZoom?: number | string
+  showDirectionsButton?: boolean
+}
+export type SearchVisSettings = {
+  indexable?: boolean
+  customRobotsRules?: string
+  sitemapEnabled?: boolean
+}
+
 export type MicrositeSettings = {
-  general?: GeneralSettings
+  general?: GeneralSettings & { socialHandles?: GeneralSocialHandles }
   seo?: SeoSettings
   domain?: DomainSettings
   privacy?: PrivacySettings
@@ -88,6 +117,11 @@ export type MicrositeSettings = {
   analytics?: AnalyticsSettings
   webhooks?: WebhookSettings
   languages?: LanguageSettings
+  // ITEM 10
+  notification?: NotificationSettings
+  timeFormat?: TimeFormatSettings
+  map?: MapDisplaySettings
+  searchVis?: SearchVisSettings
 }
 
 const EMPTY: MicrositeSettings = {}

@@ -227,6 +227,18 @@ export default async function FullscreenBuilderPage({
       const general = ((event.builder_settings as Record<string, unknown> | null)?.general ?? {}) as Record<string, unknown>
       return (general.socialHandles ?? {}) as Record<string, string>
     })(),
+    timeFormat: (() => {
+      const tf = ((event.builder_settings as Record<string, unknown> | null)?.timeFormat ?? {}) as Record<string, unknown>
+      return { dateFormat: typeof tf.dateFormat === "string" ? tf.dateFormat : undefined,
+               timeFormat: typeof tf.timeFormat === "string" ? tf.timeFormat : undefined,
+               showTimezone: tf.showTimezone !== false }
+    })(),
+    mapSettings: (() => {
+      const ms = ((event.builder_settings as Record<string, unknown> | null)?.map ?? {}) as Record<string, unknown>
+      return { provider: (ms.provider === "openstreetmap" ? "openstreetmap" : "google") as "google" | "openstreetmap",
+               defaultZoom: Number(ms.defaultZoom ?? 14),
+               showDirectionsButton: ms.showDirectionsButton !== false }
+    })(),
     exhibitors: ((exhibitorsRes.data ?? []) as Array<Record<string, unknown>>).map((e) => ({
       id: e.id as string,
       name: (e.name as string) ?? "",

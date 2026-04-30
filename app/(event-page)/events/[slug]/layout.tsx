@@ -16,6 +16,7 @@ import { CookieBanner } from "@/components/site/event-pages/CookieBanner"
 import { CustomBodyCode } from "@/components/site/event-pages/CustomCodeInject"
 import { PrivacyFooter } from "@/components/site/event-pages/PrivacyFooter"
 import { MicrositeVisibilityGate } from "@/components/site/event-pages/MicrositeVisibilityGate"
+import { NotificationBanner } from "@/components/site/event-pages/NotificationBanner"
 import { getMicrositeSettings } from "@/lib/microsite-settings"
 
 export default async function EventSlugLayout({
@@ -36,8 +37,42 @@ export default async function EventSlugLayout({
   const showCookieBanner = !!event && cookies.show !== false
   const headCode = settings.code?.headCode ?? ""
 
+  // ITEM 10.1 — notification banner
+  const notif = settings.notification
+  const notifEnabled = !!notif?.enabled && !!(notif?.message ?? "").trim()
+
+  // ITEM 10.4 — search visibility / robots
+  const searchVis = settings.searchVis ?? {}
+  const noindex = searchVis.indexable === false
+
+  // ITEM 10.6 — favicon (anon-readable column on events)
+  const faviconUrl = (event as { favicon_url?: string | null } | null)?.favicon_url ?? null
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      {/* ITEM 10.6 — per-event favicon override. Next App Router hoists
+          link/meta tags from any component into <head>. */}
+      {faviconUrl && <link rel="icon" href={faviconUrl} />}
+      {/* ITEM 10.4 — robots noindex when search visibility is off. */}
+      {noindex && <meta name="robots" content="noindex,nofollow" />}
+      {searchVis.customRobotsRules && (
+        <Script
+          id={`event-robots-${event?.id ?? "x"}`}
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: `/* custom robots rules — embedded for reference only:\n${searchVis.customRobotsRules}\n*/` }}
+        />
+      )}
+      {/* ITEM 10.1 — sticky notification banner above the nav. */}
+      {event && notifEnabled && (
+        <NotificationBanner
+          eventId={event.id}
+          message={notif!.message!}
+          link={notif!.link}
+          linkLabel={notif!.linkLabel}
+          dismissable={notif!.dismissable !== false}
+          displayUntil={notif!.displayUntil}
+        />
+      )}
       <EventPageNav
         eventSlug={safeSlug}
         eventTitle={event?.title ?? null}

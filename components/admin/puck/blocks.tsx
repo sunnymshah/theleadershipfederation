@@ -29,6 +29,7 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import {
   Calendar, MapPin, User, Mic2, Ticket, ChevronRight, Building2, Quote, Check,
+  Briefcase,
 } from "lucide-react"
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { GalleryLightbox } from "./GalleryLightbox"
@@ -138,6 +139,10 @@ export type BuilderMetadata = {
   exhibitorCategories?: ExhibitorCategoryShape[]
   /** ITEM 7 — populated for the Hotels block. */
   hotels?: HotelShape[]
+  /** ITEM 10.2 — Agenda + Footer copyright year reads this. */
+  timeFormat?: { dateFormat?: string; timeFormat?: string; showTimezone?: boolean }
+  /** ITEM 10.3 — VenueMap reads provider/zoom/directions. */
+  mapSettings?: { provider?: "google" | "openstreetmap"; defaultZoom?: number; showDirectionsButton?: boolean }
 }
 
 /** Pull metadata off the puck context. Components receive `puck.metadata`
@@ -164,6 +169,8 @@ export function getMeta(puck: { metadata?: Record<string, unknown> }): BuilderMe
     exhibitors: m.exhibitors ?? [],
     exhibitorCategories: m.exhibitorCategories ?? [],
     hotels: m.hotels ?? [],
+    timeFormat: m.timeFormat ?? {},
+    mapSettings: m.mapSettings ?? {},
   }
 }
 
@@ -289,9 +296,25 @@ function fmtDate(d: string, end?: string | null) {
   const endDate = new Date(end)
   return `${start.toLocaleDateString("en-IN", { day: "numeric", month: "long" })} – ${endDate.toLocaleDateString("en-IN", opts)}`
 }
-function fmtTime(iso: string) {
+function fmtTime(iso: string, opts?: { timeFormat?: string; showTimezone?: boolean; tz?: string }) {
   if (!iso) return ""
-  return new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true })
+  const hour12 = (opts?.timeFormat ?? "12h") === "12h"
+  const out: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit", hour12 }
+  if (opts?.tz) out.timeZone = opts.tz
+  if (opts?.showTimezone) out.timeZoneName = "short"
+  return new Date(iso).toLocaleTimeString("en-IN", out)
+}
+function fmtDateWith(iso: string, format?: string): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  const dd = String(d.getDate()).padStart(2, "0")
+  const mm = String(d.getMonth() + 1).padStart(2, "0")
+  const yyyy = String(d.getFullYear())
+  if (format === "MM/DD/YYYY") return `${mm}/${dd}/${yyyy}`
+  if (format === "YYYY-MM-DD") return `${yyyy}-${mm}-${dd}`
+  // Default DD/MM/YYYY
+  return `${dd}/${mm}/${yyyy}`
 }
 function extractYouTubeId(url: string): string | null {
   if (!url) return null
@@ -938,10 +961,12 @@ export function Agenda({
   title, subtitle, layout, groupByDay, showTracks, showDuration, showSpeakers, linkToDetailPages,
   puck,
 }: AgendaProps & { puck: { metadata?: Record<string, unknown> } }) {
-  const { sessions, event } = getMeta(puck)
+  const { sessions, event, timeFormat: tf = {} } = getMeta(puck)
   if (sessions.length === 0) return <SectionPlaceholder label="Agenda (empty — add sessions to this event)" dark />
   const hasOverride = layout?.backgroundColor || layout?.backgroundImage
   const baseBg = hasOverride ? "" : "bg-[#1a1a2e] text-white"
+  // ITEM 10.2 — local time helper that honours timeFormat settings.
+  const fmtT = (iso: string) => fmtTime(iso, { timeFormat: tf.timeFormat, showTimezone: tf.showTimezone })
 
   // Day grouping
   const dayKeys: string[] = []
@@ -987,6 +1012,7 @@ export function Agenda({
             showSpeakers: showSpeakers ?? true,
             linkToDetailPages: linkToDetailPages ?? false,
           }}
+          timeOpts={{ timeFormat: tf.timeFormat, showTimezone: tf.showTimezone }}
         />
       </div>
     </SectionShell>
@@ -995,7 +1021,7 @@ export function Agenda({
 
 /** Client-only inner with the interactive day tabs / track chips. */
 function AgendaInteractive({
-  dayKeys, byDay, tracks, eventSlug, options,
+  dayKeys, byDay, tracks, eventSlug, options, timeOpts,
 }: {
   dayKeys: string[]
   byDay: Map<string, SessionShape[]>
@@ -1008,11 +1034,14 @@ function AgendaInteractive({
     showSpeakers: boolean
     linkToDetailPages: boolean
   }
+  /** ITEM 10.2 — honours timeFormat builder setting. */
+  timeOpts?: { timeFormat?: string; showTimezone?: boolean }
 }) {
   // For non-interactive use we still render correctly. The "use client" at
   // the top of this module makes the hooks below safe.
   const [activeDay, setActiveDay] = useState<string>(dayKeys[0] ?? "")
   const [activeTrack, setActiveTrack] = useState<string>("")
+  const fmtT = (iso: string) => fmtTime(iso, timeOpts)
 
   const visible = options.groupByDay
     ? (byDay.get(activeDay) ?? [])
@@ -1081,7 +1110,7 @@ function AgendaInteractive({
           return (
             <div key={sess.id} className="flex gap-5 p-5 rounded-xl bg-white/[0.04] border border-white/[0.08]">
               <div className="shrink-0 font-mono text-sm w-20" style={{ color: "var(--lf-primary, #e7ab1c)" }}>
-                {fmtTime(sess.starts_at)}
+                {fmtT(sess.starts_at)}
                 {options.showDuration && dur ? <div className="text-[10px] opacity-70 mt-0.5">{dur} min</div> : null}
               </div>
               <div className="flex-1 min-w-0">
@@ -2017,15 +2046,30 @@ export type VenueMapProps = {
   layout?: LayoutProps
 }
 
-export function VenueMap({ title, address, lat, lng, height, layout }: VenueMapProps) {
+export function VenueMap({ title, address, lat, lng, height, layout, puck }: VenueMapProps & { puck?: { metadata?: Record<string, unknown> } }) {
   if (!address && (lat === undefined || lng === undefined)) {
     return <SectionPlaceholder label="Venue map (add an address or lat/lng)" />
   }
+  // ITEM 10.3 — pull provider / zoom / directions toggle from settings.
+  const meta = puck ? getMeta(puck) : null
+  const map = (meta?.mapSettings ?? {}) as {
+    provider?: "google" | "openstreetmap"; defaultZoom?: number; showDirectionsButton?: boolean
+  }
+  const provider = map.provider ?? "google"
+  const zoom = Math.max(8, Math.min(18, Number(map.defaultZoom ?? 14)))
+  const showDirections = map.showDirectionsButton !== false
+
   const q = lat !== undefined && lng !== undefined && (lat || lng)
     ? `${lat},${lng}`
     : encodeURIComponent(address || "")
-  const src = `https://www.google.com/maps?q=${q}&output=embed`
-  const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${q}`
+  const src = provider === "openstreetmap"
+    ? (lat !== undefined && lng !== undefined && (lat || lng)
+        ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`
+        : `https://www.openstreetmap.org/export/embed.html?bbox=72.7,18.9,72.9,19.1&layer=mapnik`)
+    : `https://www.google.com/maps?q=${q}&z=${zoom}&output=embed`
+  const directionsHref = provider === "openstreetmap"
+    ? `https://www.openstreetmap.org/directions?to=${q}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${q}`
   const h = height === "sm" ? "h-64" : height === "lg" ? "h-[520px]" : "h-96"
   return (
     <SectionShell layout={layout}>
@@ -2043,16 +2087,18 @@ export function VenueMap({ title, address, lat, lng, height, layout }: VenueMapP
             title={title || "Venue map"}
           />
         </div>
-        <a
-          href={directionsHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium hover:underline"
-          style={{ color: "var(--lf-primary, #e7ab1c)" }}
-        >
-          Get directions
-          <ChevronRight size={14} />
-        </a>
+        {showDirections && (
+          <a
+            href={directionsHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium hover:underline"
+            style={{ color: "var(--lf-primary, #e7ab1c)" }}
+          >
+            Get directions
+            <ChevronRight size={14} />
+          </a>
+        )}
       </div>
     </SectionShell>
   )
