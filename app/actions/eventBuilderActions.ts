@@ -858,6 +858,9 @@ export async function getPublishedPageAndNav(
 export type BuilderSettingsGroup =
   | "general" | "seo" | "domain" | "privacy" | "cookies"
   | "code" | "analytics" | "webhooks" | "languages"
+  // ITEM 8 / 10
+  | "navigation" | "notification" | "timeFormat" | "map"
+  | "searchVis" | "thumbnail" | "favicon"
 
 export async function getBuilderSettings(
   eventId: string,
@@ -936,6 +939,115 @@ export async function saveEventLogoUrl(
       if (slug) {
         try { revalidatePath(`/events/${slug}`) } catch {}
       }
+    } catch {}
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── ITEM 10.5 / 10.6 — single-column image setters ──────────────── */
+export async function saveEventImageColumn(
+  eventId: string,
+  column: "thumbnail_url" | "favicon_url" | "logo_url",
+  url: string | null,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from("events")
+      .update({ [column]: url, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    try {
+      const { data: row } = await admin.from("events").select("slug").eq("id", eventId).maybeSingle()
+      const slug = (row?.slug as string | null) ?? null
+      if (slug) try { revalidatePath(`/events/${slug}`) } catch {}
+    } catch {}
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+export async function getEventImageColumn(
+  eventId: string,
+  column: "thumbnail_url" | "favicon_url" | "logo_url",
+): Promise<{ success: boolean; url: string | null; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("events")
+      .select(column)
+      .eq("id", eventId)
+      .maybeSingle()
+    if (error) return { success: false, url: null, error: error.message }
+    const v = (data as Record<string, unknown> | null)?.[column]
+    return { success: true, url: typeof v === "string" ? v : null }
+  } catch (err) {
+    return { success: false, url: null, error: (err as Error).message }
+  }
+}
+
+/* ── ITEM 8 — nav_extra_links CRUD ───────────────────────────────── */
+
+export type NavExtraLink = {
+  id: string
+  label: string
+  url: string
+  parent_id?: string | null
+  sort_order: number
+  visible: boolean
+}
+
+export async function getNavExtraLinks(
+  eventId: string,
+): Promise<{ success: boolean; rows: NavExtraLink[]; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("events")
+      .select("nav_extra_links")
+      .eq("id", eventId)
+      .maybeSingle()
+    if (error) return { success: false, rows: [], error: error.message }
+    const raw = (data?.nav_extra_links ?? []) as unknown
+    const rows = Array.isArray(raw) ? (raw as NavExtraLink[]) : []
+    return { success: true, rows }
+  } catch (err) {
+    return { success: false, rows: [], error: (err as Error).message }
+  }
+}
+
+export async function saveNavExtraLinks(
+  eventId: string,
+  rows: NavExtraLink[],
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const cleaned = rows
+      .map((r, i) => ({
+        id: r.id || `nx-${Date.now()}-${i}`,
+        label: (r.label ?? "").trim(),
+        url: (r.url ?? "").trim(),
+        parent_id: r.parent_id ?? null,
+        sort_order: typeof r.sort_order === "number" ? r.sort_order : i * 10,
+        visible: r.visible !== false,
+      }))
+      .filter((r) => r.label && r.url)
+    const { error } = await admin
+      .from("events")
+      .update({ nav_extra_links: cleaned, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    try {
+      const { data: row } = await admin.from("events").select("slug").eq("id", eventId).maybeSingle()
+      const slug = (row?.slug as string | null) ?? null
+      if (slug) try { revalidatePath(`/events/${slug}`) } catch {}
     } catch {}
     return { success: true }
   } catch (err) {

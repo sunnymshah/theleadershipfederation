@@ -41,17 +41,19 @@ export async function EventTopNav({
   const pages = await listVisibleStandardPagesPublic(eventId)
   if (pages.length === 0) return null
 
-  // Pull event locales + logo for the switcher / left-edge logo
-  // (best-effort, anon-safe).
+  // Pull event locales + logo + nav_extra_links for the switcher,
+  // left-edge logo, and ITEM 8 custom nav merge (best-effort).
   let locales: string[] = []
   let defaultLocale = "en"
   let logoUrl: string | null = null
   let eventTitle = ""
+  type NX = { id: string; label: string; url: string; parent_id?: string | null; sort_order: number; visible: boolean }
+  let extraLinks: NX[] = []
   try {
     const admin = createAdminClient()
     const { data } = await admin
       .from("events")
-      .select("locales, default_locale, logo_url, title")
+      .select("locales, default_locale, logo_url, title, nav_extra_links")
       .eq("id", eventId)
       .maybeSingle()
     if (data) {
@@ -59,9 +61,22 @@ export async function EventTopNav({
       defaultLocale = (data.default_locale as string) ?? "en"
       logoUrl = (data.logo_url as string | null) ?? null
       eventTitle = (data.title as string | null) ?? ""
+      const raw = (data as { nav_extra_links?: unknown }).nav_extra_links
+      if (Array.isArray(raw)) {
+        extraLinks = (raw as NX[]).filter((x) => x && x.label && x.url && x.visible !== false)
+      }
     }
   } catch {}
   const logoSrc = logoUrl ? parseFocalPoint(logoUrl).src : null
+
+  // ITEM 8: build a tree out of extraLinks (parent_id → children).
+  const topExtras = extraLinks.filter((x) => !x.parent_id).sort((a, b) => a.sort_order - b.sort_order)
+  const childrenByParent = new Map<string, NX[]>()
+  for (const e of extraLinks) {
+    if (!e.parent_id) continue
+    const arr = childrenByParent.get(e.parent_id) ?? []
+    arr.push(e); childrenByParent.set(e.parent_id, arr)
+  }
 
   const main = pages.filter((p) => !RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
   const rail = pages.filter((p) => RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
@@ -76,6 +91,19 @@ export async function EventTopNav({
       href: withLocale(`/events/${eventSlug}/${c.slug}`, locale),
     })) ?? undefined,
   }))
+
+  // ITEM 8: append custom links + their nested children.
+  type TopItem = (typeof items)[number]
+  for (const ex of topExtras) {
+    const kids = childrenByParent.get(ex.id) ?? []
+    items.push({
+      kind: ("__extra__" + ex.id) as StandardPageKind,
+      label: ex.label,
+      href: ex.url,
+      active: false,
+      children: kids.length > 0 ? kids.map((k) => ({ label: k.label, href: k.url })) : undefined,
+    } as unknown as TopItem)
+  }
   const railItems = rail.map((p) => ({
     kind: p.kind as StandardPageKind,
     label: p.label,
