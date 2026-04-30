@@ -15,10 +15,25 @@ async function getAuthenticatedClient() {
 }
 
 async function invalidateCaches(supabase: ReturnType<typeof createClient>, eventId: string) {
-  revalidatePath("/admin/speakers", "page")
-  revalidatePath("/admin/events", "page")
-  revalidatePath("/admin", "page")
-  revalidatePath(`/admin/events/${eventId}`, "page")
+  // Next 16: for literal paths, OMIT the "page" type arg. Passing it
+  // triggers a synchronous re-render that can throw a downstream error
+  // and hang the entire action — that was making the speaker form
+  // spin forever and (per user report) crash the tab. Each call is
+  // also wrapped in try/catch so a render failure on one path can't
+  // block the rest of the cache invalidation or the action's success
+  // return value.
+  const safe = (path: string, type?: "layout") => {
+    try {
+      type ? revalidatePath(path, type) : revalidatePath(path)
+    } catch (e) {
+      console.error(`[speakerActions] revalidatePath(${path}) failed:`, e)
+    }
+  }
+
+  safe("/admin/speakers")
+  safe("/admin/events")
+  safe("/admin")
+  safe(`/admin/events/${eventId}`)
 
   const { data: event } = await supabase
     .from("events")
@@ -27,10 +42,12 @@ async function invalidateCaches(supabase: ReturnType<typeof createClient>, event
     .single()
 
   if (event?.slug) {
-    revalidatePath(`/events/${event.slug}`, "page")
+    safe(`/events/${event.slug}`)
   }
-  revalidatePath("/events", "page")
-  revalidatePath("/", "layout")
+  safe("/events")
+  // The home-page layout still uses "layout" intentionally so the
+  // featured event swap propagates instantly to every public route.
+  safe("/", "layout")
 }
 
 /**
@@ -98,7 +115,13 @@ async function uploadSpeakerHeadshot(
 export async function createSpeaker(formData: FormData) {
   try {
     await requirePermission("speakers", "create")
+    // Use admin client for the speakers insert — same RLS-lockdown
+    // story as the CRM leads fix. requirePermission() above is the
+    // gate; the DB is the storage layer. invalidateCaches() still
+    // uses a cookie-backed read for the event slug lookup, which is
+    // a SELECT and so works under any RLS policy.
     const { supabase } = await getAuthenticatedClient()
+    const adminDb = createAdminClient()
 
     const eventId     = formData.get("eventId") as string
     const name        = formData.get("name") as string
@@ -122,7 +145,7 @@ export async function createSpeaker(formData: FormData) {
       return { success: false, error: "Event and speaker name are required." }
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await adminDb
       .from("speakers")
       .insert({
         event_id: eventId,
@@ -148,8 +171,9 @@ export async function updateSpeaker(speakerId: string, formData: FormData) {
   try {
     await requirePermission("speakers", "edit")
     const { supabase } = await getAuthenticatedClient()
+    const adminDb = createAdminClient()
 
-    const { data: existing } = await supabase
+    const { data: existing } = await adminDb
       .from("speakers")
       .select("event_id, image_url")
       .eq("id", speakerId)
@@ -174,7 +198,7 @@ export async function updateSpeaker(speakerId: string, formData: FormData) {
 
     if (!name) return { success: false, error: "Speaker name is required." }
 
-    const { data, error } = await supabase
+    const { data, error } = await adminDb
       .from("speakers")
       .update({
         name,
@@ -204,6 +228,7 @@ export async function bulkCreateSpeakers(
   try {
     await requirePermission("speakers", "create")
     const { supabase } = await getAuthenticatedClient()
+    const adminDb = createAdminClient()
     if (!eventId || !rows.length) return { success: false, error: "No data provided." }
 
     const inserts = rows.map((r, i) => ({
@@ -218,7 +243,7 @@ export async function bulkCreateSpeakers(
 
     if (!inserts.length) return { success: false, error: "No valid rows found." }
 
-    const { data, error } = await supabase
+    const { data, error } = await adminDb
       .from("speakers")
       .insert(inserts)
       .select()
@@ -235,22 +260,25 @@ export async function deleteSpeaker(speakerId: string) {
   try {
     await requirePermission("speakers", "delete")
     const { supabase } = await getAuthenticatedClient()
+    const adminDb = createAdminClient()
 
-    const { data: existing } = await supabase
+    const { data: existing } = await adminDb
       .from("speakers")
       .select("event_id, image_url")
       .eq("id", speakerId)
       .single()
 
-    // Delete the headshot from storage if it's in our bucket
+    // Delete the headshot from storage if it's in our bucket. The
+    // storage delete also goes through the admin client so storage.objects
+    // RLS can't silently block.
     if (existing?.image_url?.includes("public_images/speakers/")) {
       const match = existing.image_url.match(/\/public_images\/(.+)$/)
       if (match) {
-        await supabase.storage.from("public_images").remove([match[1]])
+        await adminDb.storage.from("public_images").remove([match[1]])
       }
     }
 
-    const { error } = await supabase.from("speakers").delete().eq("id", speakerId)
+    const { error } = await adminDb.from("speakers").delete().eq("id", speakerId)
     if (error) return { success: false, error: error.message }
     if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
     return { success: true }
