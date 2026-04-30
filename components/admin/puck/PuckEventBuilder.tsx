@@ -36,6 +36,7 @@ import {
   Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
   History, Undo2, Monitor, Tablet, Smartphone, Minus,
   HelpCircle, Calendar, X, MoreHorizontal, MessageSquare,
+  Briefcase, BedDouble,
 } from "lucide-react"
 
 import { puckConfig } from "./puck-config"
@@ -60,6 +61,8 @@ import { SpeakersManager } from "./zoho/SpeakersManager"
 import { SessionsManager } from "./zoho/SessionsManager"
 import { TicketsManager } from "./zoho/TicketsManager"
 import { SponsorsManager } from "./zoho/SponsorsManager"
+import { ExhibitorsManager } from "./zoho/ExhibitorsManager"
+import { HotelsManager } from "./zoho/HotelsManager"
 import { PagesPanel } from "./zoho/PagesPanel"
 import { StandardPagesPanel } from "./zoho/StandardPagesPanel"
 import { LanguagesPanel } from "./zoho/LanguagesPanel"
@@ -1169,6 +1172,11 @@ function ActiveRailPanel({
           onClose={onClose}
         />
       )
+    case "exhibitors":
+      return <ExhibitorsManager eventId={eventId} onClose={onClose} />
+    case "hotels":
+      return <HotelsManager eventId={eventId} onClose={onClose} />
+
     case "stdpages":
       return (
         <StandardPagesPanel
@@ -1339,6 +1347,25 @@ function TopBarOverflowMenu({
                 <DataLink href={`/admin/events/${eventId}?tab=agenda`}       icon={ClipboardList} label="Sessions & Agenda" />
                 <DataLink href={`/admin/events/${eventId}?tab=tickets`}      icon={Ticket}        label="Tickets" />
                 <DataLink href={`/admin/events/${eventId}?tab=sponsors`}     icon={Building2}     label="Sponsors" />
+                {/* ITEM 6 + 7 — exhibitors + hotels open as in-builder panels */}
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => { setActiveRail("exhibitors"); setDataMenuOpen(false); setMoreMenuOpen(false) }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+                >
+                  <Briefcase size={13} strokeWidth={1.5} />
+                  <span className="flex-1 text-left">Exhibitors</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => { setActiveRail("hotels"); setDataMenuOpen(false); setMoreMenuOpen(false) }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+                >
+                  <BedDouble size={13} strokeWidth={1.5} />
+                  <span className="flex-1 text-left">Hotels</span>
+                </button>
                 <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
                 <DataLink href={`/admin/events/${eventId}?tab=settings`}     icon={Settings}      label="Event settings" />
               </div>

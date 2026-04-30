@@ -29,6 +29,8 @@ export type RailKey =
   | "sessions"
   | "tickets"
   | "sponsors"
+  | "exhibitors"
+  | "hotels"
   | "settings"
 
 // Zoho-parity rail: exactly 4 primary items + Settings bottom-anchored.
