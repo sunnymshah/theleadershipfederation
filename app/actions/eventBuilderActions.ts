@@ -903,6 +903,65 @@ export async function saveBuilderSettingsGroup(
   }
 }
 
+/**
+ * A2: events.logo_url is its own column (not part of builder_settings JSONB)
+ * because EventTopNav / Hero / Footer all read it server-side and benefit
+ * from a relational read instead of unpacking JSONB. The General sub-form
+ * surfaces a Logo image field that calls this action directly.
+ *
+ * `url` accepts the same `?fp=x,y` focal-point suffix as every other image
+ * field — parseFocalPoint() at the render side strips it. Pass `null` to
+ * clear.
+ */
+export async function saveEventLogoUrl(
+  eventId: string,
+  url: string | null,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from("events")
+      .update({ logo_url: url, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    // Revalidate every standard-page route so the new logo paints in nav.
+    try {
+      const { data: row } = await admin
+        .from("events")
+        .select("slug")
+        .eq("id", eventId)
+        .maybeSingle()
+      const slug = (row?.slug as string | null) ?? null
+      if (slug) {
+        try { revalidatePath(`/events/${slug}`) } catch {}
+      }
+    } catch {}
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/** Read the current logo_url for use in the General sub-form's preview. */
+export async function getEventLogoUrl(
+  eventId: string,
+): Promise<{ success: boolean; url: string | null; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("events")
+      .select("logo_url")
+      .eq("id", eventId)
+      .maybeSingle()
+    if (error) return { success: false, url: null, error: error.message }
+    return { success: true, url: (data?.logo_url as string | null) ?? null }
+  } catch (err) {
+    return { success: false, url: null, error: (err as Error).message }
+  }
+}
+
 /** Public-side read: just the nav list. Used by the minimal event-page
  *  layout to render the links next to "Home". */
 export async function getPublicBuilderNav(

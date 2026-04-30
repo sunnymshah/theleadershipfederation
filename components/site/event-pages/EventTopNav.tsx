@@ -16,6 +16,7 @@ import Link from "next/link"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { listVisibleStandardPagesPublic } from "@/app/actions/standardPageActions"
 import { publicPageHref, RAIL_PAGE_KINDS, type StandardPageKind } from "@/lib/standard-pages"
+import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
 import { EventTopNavMobile } from "./EventTopNavMobile"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 
@@ -40,21 +41,27 @@ export async function EventTopNav({
   const pages = await listVisibleStandardPagesPublic(eventId)
   if (pages.length === 0) return null
 
-  // Pull event locales for the switcher (best-effort, anon-safe).
+  // Pull event locales + logo for the switcher / left-edge logo
+  // (best-effort, anon-safe).
   let locales: string[] = []
   let defaultLocale = "en"
+  let logoUrl: string | null = null
+  let eventTitle = ""
   try {
     const admin = createAdminClient()
     const { data } = await admin
       .from("events")
-      .select("locales, default_locale")
+      .select("locales, default_locale, logo_url, title")
       .eq("id", eventId)
       .maybeSingle()
     if (data) {
       locales = ((data.locales as string[] | null) ?? []).filter(Boolean)
       defaultLocale = (data.default_locale as string) ?? "en"
+      logoUrl = (data.logo_url as string | null) ?? null
+      eventTitle = (data.title as string | null) ?? ""
     }
   } catch {}
+  const logoSrc = logoUrl ? parseFocalPoint(logoUrl).src : null
 
   const main = pages.filter((p) => !RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
   const rail = pages.filter((p) => RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
@@ -83,7 +90,23 @@ export async function EventTopNav({
       aria-label="Event pages"
       className="sticky top-0 z-30 bg-white border-b border-[#1a1a2e]/[0.08] shadow-sm"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4 sm:gap-6">
+        {/* A2: left-edge event logo (when set on events.logo_url). 40px
+            tall — matches the Zoho Backstage left-of-nav reference. */}
+        {logoSrc && (
+          <Link
+            href={withLocale(`/events/${eventSlug}`, locale)}
+            className="shrink-0 flex items-center"
+            aria-label={`${eventTitle || "Event"} home`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoSrc}
+              alt={eventTitle ? `${eventTitle} logo` : "Event logo"}
+              className="h-10 w-auto max-w-[180px] object-contain"
+            />
+          </Link>
+        )}
         {/* Desktop main tabs */}
         <ul className="hidden md:flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
           {items.map((it) => {

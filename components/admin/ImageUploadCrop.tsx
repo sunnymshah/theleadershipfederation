@@ -45,6 +45,7 @@ export function ImageUploadCrop({
   help?: string
 }) {
   const [picking, setPicking] = useState<string | null>(null) // object URL of picked but uncropped file
+  const [pickedFile, setPickedFile] = useState<File | null>(null) // original file for "no-crop" path
   const [pickedName, setPickedName] = useState<string>("")
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -75,10 +76,44 @@ export function ImageUploadCrop({
       return
     }
     setPicking(URL.createObjectURL(file))
+    setPickedFile(file)
     setPickedName(file.name)
     setOffset({ x: 0, y: 0 })
     setZoom(1)
   }, [])
+
+  // ── No-crop fast path (B0 fix) ─────────────────────────────────────
+  // When aspectRatio === 0 the caller is saying "preserve the original
+  // ratio — don't crop." The previous implementation still rendered a
+  // 16:9 crop frame, which silently force-cropped logos. Instead, skip
+  // the crop UI entirely: upload the original file as a base64 dataURL
+  // and drop straight into the focal-point picker.
+  async function uploadOriginal(file: File) {
+    setUploading(true)
+    setError(null)
+    try {
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onerror = () => reject(reader.error ?? new Error("read failed"))
+        reader.onload = () => resolve(String(reader.result ?? ""))
+        reader.readAsDataURL(file)
+      })
+      const res = await uploadImageDataUrl(dataUrl, folder, file.name || "upload")
+      if (!res.success) {
+        setError(res.error)
+        setUploading(false)
+        return
+      }
+      setPicking(null)
+      setPickedFile(null)
+      setFocalStage({ url: res.url })
+      setFocal({ x: 0.5, y: 0.5 })
+      setUploading(false)
+    } catch (err) {
+      setError((err as Error).message)
+      setUploading(false)
+    }
+  }
 
   // ── Drag to pan ─────────────────────────────────────────────────────
   function onPointerDown(e: React.PointerEvent) {
@@ -272,7 +307,41 @@ export function ImageUploadCrop({
       {/* Crop stage — full-screen overlay so narrow side panels (e.g. the
           288px Settings/Inspector column) don't clip the crop frame, and
           parent scroll containers don't fight the pan gesture. */}
-      {picking && (
+      {picking && aspectRatio === 0 && pickedFile && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 overscroll-contain"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative w-full max-w-md p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-2xl space-y-3 text-white">
+            <div className="flex items-center gap-2 text-white/90 text-xs font-semibold">
+              <Crop size={14} className="text-[#e7ab1c]" />
+              Upload original (no crop)
+            </div>
+            <div className="rounded-lg overflow-hidden bg-black/40 max-h-[60vh] flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={picking} alt="Preview" className="max-w-full max-h-[60vh] object-contain" />
+            </div>
+            <p className="text-[11px] text-white/55">
+              The image will be uploaded at its original dimensions. You can pick a focal point next.
+            </p>
+            {error && (
+              <div className="text-[12px] text-red-300 bg-red-500/10 border border-red-500/30 rounded px-3 py-2">
+                {error}
+              </div>
+            )}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+              <button type="button" onClick={() => { setPicking(null); setPickedFile(null) }} disabled={uploading} className="px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 text-sm disabled:opacity-50">
+                Cancel
+              </button>
+              <button type="button" onClick={() => void uploadOriginal(pickedFile)} disabled={uploading} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#e7ab1c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d49c10] disabled:opacity-60">
+                {uploading ? <><Loader2 size={14} className="animate-spin" /> Uploading</> : <><Upload size={14} /> Upload</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {picking && aspectRatio !== 0 && (
         <div
           className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 overscroll-contain"
           role="dialog"
@@ -367,7 +436,7 @@ export function ImageUploadCrop({
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
             <button
               type="button"
-              onClick={() => setPicking(null)}
+              onClick={() => { setPicking(null); setPickedFile(null) }}
               disabled={uploading}
               className="px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 text-sm disabled:opacity-50"
             >
@@ -410,10 +479,21 @@ export function ImageUploadCrop({
           <div
             onClick={onFocalClick}
             className="relative w-full max-w-[520px] mx-auto rounded-lg overflow-hidden ring-2 ring-[#e7ab1c]/90 cursor-crosshair select-none"
-            style={{ aspectRatio: aspectRatio > 0 ? String(aspectRatio) : "16/9" }}
+            // B0: when aspectRatio === 0 (logo / no-crop) we let the image
+            // size itself naturally so the focal dot lands on the actual
+            // pixels, not on a forced 16:9 frame.
+            style={aspectRatio > 0 ? { aspectRatio: String(aspectRatio) } : undefined}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={focalStage.url} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+            <img
+              src={focalStage.url}
+              alt=""
+              className={
+                aspectRatio > 0
+                  ? "absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  : "block w-full h-auto pointer-events-none"
+              }
+            />
             <div
               className="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-[0_0_0_2px_rgba(231,171,28,0.6)] pointer-events-none"
               style={{ left: `${focal.x * 100}%`, top: `${focal.y * 100}%`, background: "rgba(231,171,28,0.5)" }}

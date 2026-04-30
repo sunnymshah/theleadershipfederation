@@ -19,8 +19,10 @@ import {
 import { SecondaryPanel } from "./SecondaryPanel"
 import {
   getBuilderSettings, saveBuilderSettingsGroup,
+  getEventLogoUrl, saveEventLogoUrl,
   type BuilderSettingsGroup,
 } from "@/app/actions/eventBuilderActions"
+import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
 
 type GroupDef = { key: BuilderSettingsGroup; label: string; desc: string; Icon: typeof Globe }
 
@@ -172,7 +174,7 @@ function SettingsForm({
       </div>
       <form onSubmit={onSubmit} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-3">
         <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">{groupDef.desc}</p>
-        {renderGroupFields(groupKey, initial)}
+        {renderGroupFields(groupKey, initial, eventId)}
         {error && (
           <p className="text-[12px] text-[var(--z-danger,#dc2626)] bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>
         )}
@@ -201,10 +203,15 @@ function SettingsForm({
  * whole object under `builder_settings.<groupKey>`.
  * ──────────────────────────────────────────────────────────────────── */
 
-function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unknown>) {
+function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unknown>, eventId: string) {
   switch (group) {
     case "general": return (
       <>
+        {/* A2: event logo. Persists to events.logo_url (separate column,
+            not part of builder_settings JSONB) so EventTopNav / Hero /
+            Footer can read it cheaply. Saves immediately on change —
+            independent of the form's Save button below. */}
+        <LogoField eventId={eventId} />
         <Field label="Microsite name"           name="name"          defaultValue={s(init.name)} />
         <Field label="Tagline"                  name="tagline"       defaultValue={s(init.tagline)} />
         <SelectField label="Time zone"          name="timezone"      defaultValue={s(init.timezone) || "Asia/Kolkata"} options={TZ_OPTIONS} />
@@ -414,6 +421,69 @@ function collectFormValues(form: HTMLFormElement, group: BuilderSettingsGroup): 
     }
   }
   return out
+}
+
+/* ── Logo field — A2 ────────────────────────────────────────────────
+ *
+ * Reads/writes events.logo_url directly via the dedicated actions. We
+ * deliberately keep this OUT of the form's collectFormValues path because
+ * (a) the URL belongs in a column, not in builder_settings JSONB, and
+ * (b) ImageUploadCrop is React-state-driven and surfaces values via
+ * onChange, not via FormData. Saves immediately on change.
+ */
+function LogoField({ eventId }: { eventId: string }) {
+  const [url, setUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void getEventLogoUrl(eventId).then((res) => {
+      if (cancelled) return
+      setUrl(res.url)
+      setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [eventId])
+
+  async function commit(next: string | null) {
+    setSaving(true)
+    setError(null)
+    setUrl(next) // optimistic
+    const res = await saveEventLogoUrl(eventId, next)
+    setSaving(false)
+    if (!res.success) setError(res.error ?? "Save failed")
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-[11px] text-[var(--z-text-muted,#6b7280)]">
+        <Loader2 size={12} className="animate-spin" /> Loading logo…
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-1.5">
+      <ImageUploadCrop
+        value={url}
+        onChange={(next) => void commit(next)}
+        // Logos preserve their native ratio — `0` means "no fixed crop".
+        aspectRatio={0}
+        folder="events"
+        label="Event logo"
+        help="Shows at the left edge of the public nav bar. Optional — leave empty for text-only nav."
+      />
+      {saving && (
+        <p className="text-[11px] text-[var(--z-text-muted,#6b7280)] flex items-center gap-1">
+          <Loader2 size={10} className="animate-spin" /> Saving…
+        </p>
+      )}
+      {error && (
+        <p className="text-[12px] text-[var(--z-danger,#dc2626)]">{error}</p>
+      )}
+    </div>
+  )
 }
 
 /* ── Field primitives ──────────────────────────────────────────────── */
