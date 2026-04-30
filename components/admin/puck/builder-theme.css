@@ -118,14 +118,14 @@
  * __hidden flag is true. (See SectionShell wiring in blocks.tsx.)
  */
 
-.lf-builder-shell [data-lf-hidden="true"] {
+[data-lf-hidden="true"] {
   position: relative;
   opacity: 0.55;
   filter: grayscale(0.6);
   pointer-events: none; /* admin can re-show via the toolbar */
 }
 
-.lf-builder-shell [data-lf-hidden="true"]::before {
+[data-lf-hidden="true"]::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -140,7 +140,7 @@
   pointer-events: none;
 }
 
-.lf-builder-shell [data-lf-hidden="true"]::after {
+[data-lf-hidden="true"]::after {
   content: "Hidden Element";
   position: absolute;
   top: 12px;

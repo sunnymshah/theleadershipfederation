@@ -896,15 +896,10 @@ export function PuckEventBuilder({
             <Plus size={20} strokeWidth={2} />
           </button>
 
-          {/* Floating viewport + zoom pill (Figma-style). Sits at the
-              bottom-right of the canvas, never crowds the top bar. */}
-          <ViewportPill
-            viewport={viewport}
-            onViewport={setViewport}
-            zoom={zoom}
-            onZoomDown={zoomDown}
-            onZoomUp={zoomUp}
-          />
+          {/* Floating viewport + zoom pill removed per UX feedback —
+              cluttered the canvas. Device preview lives in the top
+              bar's centre zone (existing tablet/mobile icons next to
+              undo/redo); zoom can be re-introduced later if needed. */}
 
           <Puck
             key={puckKey}
