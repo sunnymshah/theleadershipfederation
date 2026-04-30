@@ -299,6 +299,11 @@ export default async function EventDetailPage({ params }: Props) {
             features: t.features ?? null,
             early_bird_ends_at: t.early_bird_ends_at ?? null,
           })),
+          socialHandles: (() => {
+            const bs = (event as { builder_settings?: Record<string, unknown> | null }).builder_settings ?? {}
+            const general = (bs.general ?? {}) as Record<string, unknown>
+            return (general.socialHandles ?? {}) as Record<string, string>
+          })(),
         }}
       />
       </>

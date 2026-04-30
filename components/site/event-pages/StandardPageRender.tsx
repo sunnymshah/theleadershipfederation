@@ -78,7 +78,7 @@ export async function StandardPageRender({
     renderedData = { ...data, content: cleaned }
   }
 
-  const [speakersRes, sessionsRes, sponsorsRes, ticketsRes] = await Promise.all([
+  const [speakersRes, sessionsRes, sponsorsRes, ticketsRes, builderRes, exhibRes, catRes, hotelRes] = await Promise.all([
     supabase.from("speakers").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("sessions").select("*").eq("event_id", event.id).order("start_time"),
     supabase.from("sponsors").select("*").eq("event_id", event.id).order("sort_order"),
@@ -87,11 +87,24 @@ export async function StandardPageRender({
       .select("id, name, description, price_inr, sold, inventory_limit, features, early_bird_ends_at")
       .eq("event_id", event.id)
       .order("sort_order"),
+    // ITEM 2.4 — pull socialHandles + ITEM 10 settings from builder_settings.
+    supabase.from("events").select("builder_settings").eq("id", event.id).maybeSingle(),
+    // ITEM 6 — exhibitors + categories are anon-readable per RLS.
+    supabase.from("exhibitors").select("*").eq("event_id", event.id).order("sort_order"),
+    supabase.from("event_exhibitor_categories").select("*").eq("event_id", event.id).order("sort_order"),
+    // ITEM 7 — hotels.
+    supabase.from("event_hotels").select("*").eq("event_id", event.id).order("sort_order"),
   ])
   const speakers = speakersRes.data ?? []
   const sessions = sessionsRes.data ?? []
   const sponsors = sponsorsRes.data ?? []
   const tickets = ticketsRes.data ?? []
+  const builderSettings = (builderRes.data?.builder_settings ?? {}) as Record<string, unknown>
+  const general = (builderSettings.general ?? {}) as Record<string, unknown>
+  const socialHandles = (general.socialHandles ?? {}) as Record<string, string>
+  const exhibitors = (exhibRes.data ?? []) as Array<Record<string, unknown>>
+  const exhibitorCategories = (catRes.data ?? []) as Array<Record<string, unknown>>
+  const hotels = (hotelRes.data ?? []) as Array<Record<string, unknown>>
 
   return (
     <>
@@ -158,6 +171,31 @@ export async function StandardPageRender({
             inventory_limit: t.inventory_limit ?? null,
             features: t.features ?? null,
             early_bird_ends_at: t.early_bird_ends_at ?? null,
+          })),
+          socialHandles,
+          exhibitors: exhibitors.map((e) => ({
+            id: e.id as string,
+            name: (e.name as string) ?? "",
+            logo_url: (e.logo_url as string | null) ?? null,
+            category: (e.category as string | null) ?? null,
+            booth: (e.booth as string | null) ?? null,
+            description: (e.description as string | null) ?? null,
+            website: (e.website as string | null) ?? null,
+          })),
+          exhibitorCategories: exhibitorCategories.map((c) => ({
+            id: c.id as string,
+            name: (c.name as string) ?? "",
+            color: (c.color as string | null) ?? null,
+          })),
+          hotels: hotels.map((h) => ({
+            id: h.id as string,
+            name: (h.name as string) ?? "",
+            image_url: (h.image_url as string | null) ?? null,
+            address: (h.address as string | null) ?? null,
+            distance_km: (h.distance_km as number | null) ?? null,
+            price_range: (h.price_range as string | null) ?? null,
+            booking_url: (h.booking_url as string | null) ?? null,
+            description: (h.description as string | null) ?? null,
           })),
         }}
       />
