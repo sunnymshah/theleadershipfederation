@@ -37,6 +37,8 @@ import {
   TicketsPricing,
   FormBlock,
   EmbedHtml, Footer, SpeakerBioCard, ScheduleSummary, CtaWithImage,
+  MediaWithTextGroup, TestimonialsGroup, FloorPlan,
+  ExhibitorsListing, ExhibitorCategoryBlock, HotelsListing,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
@@ -53,6 +55,9 @@ import {
   type FormBlockProps,
   type EmbedHtmlProps, type FooterProps, type SpeakerBioCardProps,
   type ScheduleSummaryProps, type CtaWithImageProps,
+  type MediaWithTextGroupProps, type TestimonialsGroupProps,
+  type FloorPlanProps, type ExhibitorsListingProps,
+  type ExhibitorCategoryProps, type HotelsListingProps,
   type LayoutProps,
 } from "./blocks"
 import { ImageField } from "./ImageField"
@@ -96,6 +101,12 @@ export type BuilderComponents = {
   SpeakerBioCard: SpeakerBioCardProps
   ScheduleSummary: ScheduleSummaryProps
   CtaWithImage: CtaWithImageProps
+  MediaWithTextGroup: MediaWithTextGroupProps
+  TestimonialsGroup: TestimonialsGroupProps
+  FloorPlan: FloorPlanProps
+  ExhibitorsListing: ExhibitorsListingProps
+  ExhibitorCategoryBlock: ExhibitorCategoryProps
+  HotelsListing: HotelsListingProps
 }
 
 /* ── Shared layout field ─────────────────────────────────────────────
@@ -160,14 +171,14 @@ const defaultLayout: LayoutProps = { paddingY: "lg", backgroundColor: "", backgr
 export const puckConfig: Config<BuilderComponents> = {
   categories: {
     Headers:  { title: "Headers",         components: ["Hero", "Countdown", "Carousel"] },
-    Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial", "TabsBlock", "AccordionBlock"] },
+    Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial", "TestimonialsGroup", "MediaWithTextGroup", "TabsBlock", "AccordionBlock"] },
     Discovery:{ title: "Discovery",       components: ["EventCardGrid"] },
     Speakers: { title: "Speakers",        components: ["SpeakersGrid", "SpeakerBioCard"] },
     Program:  { title: "Program",         components: ["Agenda", "ScheduleSummary"] },
     Tickets:  { title: "Tickets",         components: ["TicketsCta", "TicketsPricing"] },
-    Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip"] },
+    Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip", "ExhibitorsListing", "ExhibitorCategoryBlock"] },
     Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock", "ImageHotspots"] },
-    Venue:    { title: "Venue",           components: ["VenueMap"] },
+    Venue:    { title: "Venue",           components: ["VenueMap", "FloorPlan", "HotelsListing"] },
     CTAs:     { title: "Call-to-actions", components: ["CtaButton", "CtaWithImage", "FormBlock", "Newsletter", "StickyCta", "SocialBar"] },
     FAQs:     { title: "FAQs",            components: ["Faqs"] },
     Layout:   { title: "Layout",          components: ["Spacer", "Divider", "Footer"] },
@@ -1678,6 +1689,168 @@ export const puckConfig: Config<BuilderComponents> = {
         layout: layoutField,
       },
       render: (p) => <CtaWithImage {...p} />,
+    },
+
+    /* ── ITEM 3 — MEDIA WITH TEXT GROUP ─────────────────────────── */
+    MediaWithTextGroup: {
+      label: "Media with text",
+      defaultProps: {
+        title: "Why attend",
+        subtitle: "",
+        items: [
+          { id: "", image: "", heading: "Item heading", body: "Body copy goes here.", ctaLabel: "", ctaUrl: "", side: "alternate" },
+        ],
+        layout: defaultLayout,
+      },
+      fields: {
+        title:    makeSparklesField({ label: "Heading", hint: "title" }) as unknown as Field<string>,
+        subtitle: { type: "text", label: "Eyebrow" },
+        items: {
+          type: "array",
+          label: "Items",
+          arrayFields: {
+            id:       { type: "text", label: "Internal id" },
+            image: {
+              type: "custom", label: "Image",
+              render: (p) => <ImageField {...p} folder="sections" />,
+            },
+            heading:  { type: "text", label: "Heading" },
+            body:     { type: "textarea", label: "Body (Markdown)" },
+            ctaLabel: { type: "text", label: "CTA label (optional)" },
+            ctaUrl: {
+              type: "custom", label: "CTA link",
+              render: (p) => (
+                <UrlPicker field={p.field as { label?: string }} value={(p.value as string) ?? ""} onChange={p.onChange as (v: string) => void} />
+              ),
+            },
+            side: {
+              type: "radio", label: "Image side",
+              options: [
+                { label: "Alternate", value: "alternate" },
+                { label: "Left",      value: "left" },
+                { label: "Right",     value: "right" },
+              ],
+            },
+          },
+          getItemSummary: (item: unknown) => (item as { heading?: string })?.heading || "Item",
+          defaultItemProps: { id: "", image: "", heading: "Item heading", body: "", ctaLabel: "", ctaUrl: "", side: "alternate" },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <MediaWithTextGroup {...p} />,
+    },
+
+    /* ── ITEM 4 — TESTIMONIALS GROUP ────────────────────────────── */
+    TestimonialsGroup: {
+      label: "Testimonials",
+      defaultProps: {
+        title: "What people say",
+        subtitle: "",
+        items: [
+          { id: "", quote: "Quote goes here.", attribution: "Name", role: "Title", avatar: "", rating: 5 },
+        ],
+        displayStyle: "grid",
+        layout: defaultLayout,
+      },
+      fields: {
+        title:    makeSparklesField({ label: "Heading", hint: "title" }) as unknown as Field<string>,
+        subtitle: { type: "text", label: "Eyebrow" },
+        displayStyle: {
+          type: "radio", label: "Display style",
+          options: [
+            { label: "Carousel", value: "carousel" },
+            { label: "Grid",     value: "grid" },
+            { label: "List",     value: "list" },
+          ],
+        },
+        items: {
+          type: "array",
+          label: "Testimonials",
+          arrayFields: {
+            id:          { type: "text",     label: "Internal id" },
+            quote:       { type: "textarea", label: "Quote" },
+            attribution: { type: "text",     label: "Name" },
+            role:        { type: "text",     label: "Title / company" },
+            avatar: {
+              type: "custom", label: "Avatar",
+              render: (p) => <ImageField {...p} folder="general" aspectRatio={1} />,
+            },
+            rating: { type: "number", label: "Rating (0–5)", min: 0, max: 5 },
+          },
+          getItemSummary: (item: unknown) => (item as { attribution?: string })?.attribution || "Testimonial",
+          defaultItemProps: { id: "", quote: "", attribution: "", role: "", avatar: "", rating: 5 },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <TestimonialsGroup {...p} />,
+    },
+
+    /* ── ITEM 5 — FLOOR PLAN ────────────────────────────────────── */
+    FloorPlan: {
+      label: "Floor plan",
+      defaultProps: { title: "Floor plan", image: "", caption: "", hotspots: [], layout: defaultLayout },
+      fields: {
+        title:   { type: "text", label: "Heading" },
+        image: {
+          type: "custom", label: "Floor plan image",
+          render: (p) => <ImageField {...p} folder="sections" aspectRatio={16 / 9} />,
+        },
+        caption: { type: "text", label: "Caption" },
+        hotspots: {
+          type: "array", label: "Hotspots (numbered pins)",
+          arrayFields: {
+            x:           { type: "number", label: "X position (0–1)", min: 0, max: 1 },
+            y:           { type: "number", label: "Y position (0–1)", min: 0, max: 1 },
+            label:       { type: "text",   label: "Label" },
+            description: { type: "textarea", label: "Tooltip description" },
+          },
+          getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Hotspot",
+          defaultItemProps: { x: 0.5, y: 0.5, label: "Booth", description: "" },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <FloorPlan {...p} />,
+    },
+
+    /* ── ITEM 6 — EXHIBITORS LISTING ────────────────────────────── */
+    ExhibitorsListing: {
+      label: "Exhibitors",
+      defaultProps: { title: "Exhibitors", groupByCategory: true, layout: defaultLayout },
+      fields: {
+        title: { type: "text", label: "Heading" },
+        groupByCategory: {
+          type: "radio", label: "Group by category",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        layout: layoutField,
+      },
+      render: (p) => <ExhibitorsListing {...p} />,
+    },
+
+    /* ── ITEM 6 — EXHIBITOR CATEGORY (single-section) ───────────── */
+    ExhibitorCategoryBlock: {
+      label: "Exhibitor category",
+      defaultProps: { categoryId: "", layout: defaultLayout },
+      fields: {
+        categoryId: { type: "text", label: "Category id (copy from Data → Exhibitors)" },
+        layout: layoutField,
+      },
+      render: (p) => <ExhibitorCategoryBlock {...p} />,
+    },
+
+    /* ── ITEM 7 — HOTELS LISTING ────────────────────────────────── */
+    HotelsListing: {
+      label: "Hotels",
+      defaultProps: { title: "Where to stay", columns: 3, layout: defaultLayout },
+      fields: {
+        title: { type: "text", label: "Heading" },
+        columns: {
+          type: "radio", label: "Columns",
+          options: [{ label: "2", value: 2 }, { label: "3", value: 3 }, { label: "4", value: 4 }],
+        },
+        layout: layoutField,
+      },
+      render: (p) => <HotelsListing {...p} />,
     },
   },
 
