@@ -40,10 +40,11 @@ function getActiveKind(): StandardPageKind {
 }
 
 export function SectionActionBarOverflow({
-  label,
-  // `children` is the Puck-native action set (drag, delete, etc.) — we
-  // intentionally don't render it; Eye/Gear/chevron cover everything.
-  // children: _ignoredChildren,
+  // Puck passes `label` (block type chip) and `children` (its native
+  // action set: drag handle, delete) to actionBar overrides. We omit
+  // both — our toolbar is intentionally icon-only with Eye + Gear +
+  // chevron. parentAction is kept (Puck uses it as a hidden lifecycle
+  // node).
   parentAction,
 }: {
   label?: string
@@ -91,8 +92,12 @@ export function SectionActionBarOverflow({
   // pair or the chevron menu. parentAction is kept (Puck uses it as a
   // hidden anchor for the selection lifecycle) but visually hidden via
   // CSS in builder-theme.css.
+  // `label` deliberately omitted from <ActionBar> — Puck would render
+  // it as a chip to the LEFT of our actions, which crowded the pill
+  // (the user complaint: "Text box" label getting cut off). Our pill
+  // is icon-only by design.
   return (
-    <ActionBar label={label}>
+    <ActionBar>
       <span className="lf-actionbar-anchor" aria-hidden>{parentAction}</span>
       {selectedId && (
         <ActionBar.Group>
