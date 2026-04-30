@@ -189,6 +189,25 @@ export const puckConfig: Config<BuilderComponents> = {
         alignment: "left",
         minHeight: "tall",
         useEventLogo: false,
+        // ITEM 1
+        slides: [],
+        sliderControls: {
+          arrowsVisible: true,
+          arrowColor: "#ffffff",
+          arrowSize: "md",
+          navigatorVisible: true,
+          navigatorStyle: "dots",
+          autoplay: true,
+          intervalSec: 6,
+          transition: "slide",
+        },
+        // ITEM 2
+        showEventName: true,
+        showDateTime: true,
+        showLocation: true,
+        showCountdown: false,
+        showSocialHandles: false,
+        showButtons: true,
       },
       fields: {
         title:    makeSparklesField({ label: "Title (leave blank to use event title)", hint: "title" }) as unknown as Field<string>,
@@ -246,6 +265,143 @@ export const puckConfig: Config<BuilderComponents> = {
             { label: "Tall (default)", value: "tall" },
             { label: "Full viewport",  value: "full" },
           ],
+        },
+        // ── ITEM 1 — slider config ────────────────────────────────
+        slides: {
+          type: "array",
+          label: "Slides (leave empty for single hero)",
+          arrayFields: {
+            id:               { type: "text",   label: "Internal id (auto)" },
+            title:            { type: "text",   label: "Slide title" },
+            subtitle:         { type: "textarea", label: "Slide subtitle" },
+            ctaPrimaryLabel:  { type: "text",   label: "Primary CTA label" },
+            ctaPrimaryUrl: {
+              type: "custom",
+              label: "Primary CTA link",
+              render: (p) => (
+                <UrlPicker
+                  field={p.field as { label?: string }}
+                  value={(p.value as string) ?? ""}
+                  onChange={p.onChange as (v: string) => void}
+                />
+              ),
+            },
+            ctaSecondaryLabel: { type: "text", label: "Secondary CTA label" },
+            ctaSecondaryUrl: {
+              type: "custom",
+              label: "Secondary CTA link",
+              render: (p) => (
+                <UrlPicker
+                  field={p.field as { label?: string }}
+                  value={(p.value as string) ?? ""}
+                  onChange={p.onChange as (v: string) => void}
+                />
+              ),
+            },
+            backgroundImage: {
+              type: "custom",
+              label: "Slide background image",
+              render: (p) => <ImageField {...p} folder="events" />,
+            },
+            alignment: {
+              type: "radio",
+              label: "Alignment",
+              options: [
+                { label: "Left",   value: "left" },
+                { label: "Center", value: "center" },
+              ],
+            },
+            useEventLogo: {
+              type: "radio",
+              label: "Show event logo",
+              options: [
+                { label: "No",  value: false as unknown as string },
+                { label: "Yes", value: true  as unknown as string },
+              ],
+            },
+          },
+          getItemSummary: (item: unknown) =>
+            (item as { title?: string })?.title || "Slide",
+          defaultItemProps: {
+            id: "",
+            title: "",
+            subtitle: "",
+            ctaPrimaryLabel: "Register Now",
+            ctaPrimaryUrl: "/tickets",
+            ctaSecondaryLabel: "",
+            ctaSecondaryUrl: "",
+            backgroundImage: "",
+            alignment: "left",
+            useEventLogo: false,
+          },
+        },
+        sliderControls: {
+          type: "object",
+          label: "Slider controls (only used when slides ≥ 1)",
+          objectFields: {
+            arrowsVisible: {
+              type: "radio", label: "Show arrows",
+              options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+            },
+            arrowColor:  { type: "text", label: "Arrow color (hex)" },
+            arrowSize: {
+              type: "select", label: "Arrow size",
+              options: [
+                { label: "Small",  value: "sm" },
+                { label: "Medium", value: "md" },
+                { label: "Large",  value: "lg" },
+              ],
+            },
+            navigatorVisible: {
+              type: "radio", label: "Show navigator",
+              options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+            },
+            navigatorStyle: {
+              type: "select", label: "Navigator style",
+              options: [
+                { label: "Dots",    value: "dots" },
+                { label: "Bars",    value: "bars" },
+                { label: "Numbers", value: "numbers" },
+              ],
+            },
+            autoplay: {
+              type: "radio", label: "Auto-play",
+              options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+            },
+            intervalSec: { type: "number", label: "Interval (seconds)", min: 2, max: 30 },
+            transition: {
+              type: "select", label: "Transition",
+              options: [
+                { label: "Slide", value: "slide" },
+                { label: "Fade",  value: "fade"  },
+              ],
+            },
+          },
+        },
+        // ── ITEM 2 — visibility toggles ───────────────────────────
+        showEventName: {
+          type: "radio", label: "Show event name",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showDateTime: {
+          type: "radio", label: "Show date / time",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showLocation: {
+          type: "radio", label: "Show location",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showCountdown: {
+          type: "radio", label: "Show inline countdown",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showSocialHandles: {
+          type: "radio", label: "Show social handles",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+        },
+        showButtons: {
+          type: "radio", label: "Show CTA buttons",
+          options: [{ label: "Yes", value: true }, { label: "No", value: false }],
         },
       },
       render: (p) => <Hero {...p} />,
