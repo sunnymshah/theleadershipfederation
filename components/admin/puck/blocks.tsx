@@ -2515,11 +2515,34 @@ export type FooterProps = {
   showPoweredBy?: boolean
   socialLinks?: Array<{ label: string; url: string }>
   links?: Array<{ label: string; url: string; group?: string }>
+  // ITEM 9 — Zoho-parity polish
+  /** Optional secondary footer media (e.g. event logo lockup). When set,
+   *  renders to the left of textField in the first column. Linkable
+   *  via mediaHref. */
+  mediaImage?: string
+  mediaHref?: string
+  /** Terms / Policies list — center-left column. */
+  terms?: Array<{ label: string; url: string }>
+  /** Social handles object — uses the same socialHandles shape as the
+   *  Hero. Preferred over socialLinks when set; the right-most column. */
+  useEventSocialHandles?: boolean
+  /** Tertiary call-to-action buttons row — center-right column. */
+  navButtons?: Array<{ label: string; url: string; style: "primary" | "secondary" | "outline" }>
+  /** Free-text rich field rendered under the media image / logo. */
+  textField?: string
+  /** Visibility toggles (matches Zoho's footer-customisation pattern). */
+  showMedia?: boolean
+  showTerms?: boolean
+  showSocial?: boolean
+  showNavButtons?: boolean
   layout?: LayoutProps
 }
 
 export function Footer({
-  columns = 3, copyright, logoUrl, useEventLogo, showPoweredBy, socialLinks, links, layout, puck,
+  columns = 4, copyright, logoUrl, useEventLogo, showPoweredBy, socialLinks, links, layout,
+  mediaImage, mediaHref, terms, useEventSocialHandles, navButtons, textField,
+  showMedia = true, showTerms = true, showSocial = true, showNavButtons = true,
+  puck,
 }: FooterProps & { puck?: { metadata?: Record<string, unknown> } }) {
   const meta = puck ? getMeta(puck) : null
   const eventLogo = useEventLogo && meta ? meta.event.logo_url ?? null : null
@@ -2534,24 +2557,109 @@ export function Footer({
     grouped.set(g, arr)
   }
   const cols = Math.max(1, Math.min(4, columns))
-  const gridCls = cols === 1 ? "grid-cols-1" : cols === 2 ? "grid-cols-1 md:grid-cols-2" : cols === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4"
+  const gridCls = cols === 1 ? "grid-cols-1"
+                : cols === 2 ? "grid-cols-1 md:grid-cols-2"
+                : cols === 3 ? "grid-cols-1 md:grid-cols-3"
+                :              "grid-cols-1 md:grid-cols-4"
+
+  // Resolve social — prefer event-level handles when toggled.
+  const eventHandles = (meta?.socialHandles ?? {}) as {
+    twitter?: string; linkedin?: string; instagram?: string;
+    facebook?: string; youtube?: string; website?: string;
+  }
+  const socialList: Array<{ label: string; url: string }> = (() => {
+    if (useEventSocialHandles) {
+      const out: Array<{ label: string; url: string }> = []
+      if (eventHandles.twitter)   out.push({ label: "Twitter",   url: eventHandles.twitter })
+      if (eventHandles.linkedin)  out.push({ label: "LinkedIn",  url: eventHandles.linkedin })
+      if (eventHandles.instagram) out.push({ label: "Instagram", url: eventHandles.instagram })
+      if (eventHandles.facebook)  out.push({ label: "Facebook",  url: eventHandles.facebook })
+      if (eventHandles.youtube)   out.push({ label: "YouTube",   url: eventHandles.youtube })
+      if (eventHandles.website)   out.push({ label: "Website",   url: eventHandles.website })
+      return out
+    }
+    return socialLinks ?? []
+  })()
+
+  function btnCls(style: "primary" | "secondary" | "outline") {
+    if (style === "primary")   return "bg-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e] hover:brightness-95"
+    if (style === "secondary") return "bg-white/10 text-white hover:bg-white/15 border border-white/15"
+    return "border border-white/40 text-white hover:bg-white/10"
+  }
+
   return (
     <SectionShell layout={{ ...(layout ?? {}), paddingY: layout?.paddingY ?? "md", backgroundColor: layout?.backgroundColor || "#0a0a14", textColor: layout?.textColor || "#ffffff" }} dark>
       <div className="max-w-6xl mx-auto px-6">
         <div className={`grid gap-8 ${gridCls}`}>
-          <div>
-            {resolvedLogo ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={resolvedLogo} alt="" className="h-8 w-auto mb-3" />
-            ) : (
-              <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/65 mb-3">
-                Powered by The Leadership Federation
-              </p>
-            )}
-            <p className="text-[12px] text-white/55 leading-relaxed">{copyright}</p>
-            {socialLinks && socialLinks.length > 0 && (
-              <ul className="mt-4 flex flex-wrap gap-3">
-                {socialLinks.map((s) => (
+          {/* Column 1 — media + textField + (legacy) custom logo + copyright */}
+          {showMedia && (
+            <div>
+              {(mediaImage || resolvedLogo) && (() => {
+                const src = mediaImage ? parseFocalPoint(mediaImage).src : resolvedLogo
+                const img = (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={src} alt="" className="h-10 w-auto mb-3" />
+                )
+                return mediaHref ? (
+                  <a href={mediaHref} target={mediaHref.startsWith("http") ? "_blank" : undefined} rel={mediaHref.startsWith("http") ? "noopener noreferrer" : undefined} className="inline-block">
+                    {img}
+                  </a>
+                ) : img
+              })()}
+              {!mediaImage && !resolvedLogo && (
+                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/65 mb-3">
+                  Powered by The Leadership Federation
+                </p>
+              )}
+              {textField && (
+                <div className="text-[12px] text-white/65 leading-relaxed mb-3 prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{textField}</ReactMarkdown>
+                </div>
+              )}
+              <p className="text-[12px] text-white/55 leading-relaxed">{copyright}</p>
+            </div>
+          )}
+
+          {/* Column 2 — Terms / Policies */}
+          {showTerms && terms && terms.length > 0 && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 mb-3">Terms &amp; Policies</p>
+              <ul className="space-y-2">
+                {terms.map((t) => (
+                  <li key={t.url}>
+                    <a href={t.url} className="text-[13px] text-white/75 hover:text-white">{t.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Column 3 — nav buttons */}
+          {showNavButtons && navButtons && navButtons.length > 0 && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 mb-3">Quick links</p>
+              <div className="flex flex-col gap-2 items-start">
+                {navButtons.map((b) => (
+                  <a
+                    key={`${b.label}-${b.url}`}
+                    href={b.url}
+                    target={b.url.startsWith("http") ? "_blank" : undefined}
+                    rel={b.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                    className={`inline-flex items-center px-4 py-2 rounded-md text-[12px] font-bold transition-colors ${btnCls(b.style)}`}
+                  >
+                    {b.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Column 4 — social handles */}
+          {showSocial && socialList.length > 0 && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 mb-3">Follow</p>
+              <ul className="flex flex-wrap gap-3">
+                {socialList.map((s) => (
                   <li key={s.url}>
                     <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-white/65 hover:text-white">
                       {s.label}
@@ -2559,8 +2667,10 @@ export function Footer({
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Legacy grouped link columns (when user populates `links[]`). */}
           {[...grouped.entries()].map(([group, items]) => (
             <div key={group}>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 mb-3">{group}</p>
