@@ -33,6 +33,7 @@ import {
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { GalleryLightbox } from "./GalleryLightbox"
 import { CarouselInner } from "./CarouselInner"
+import { HeroSliderInner } from "./HeroSliderInner"
 import { FormBlockClient, type FormField } from "./FormBlockClient"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
 
@@ -88,12 +89,55 @@ export type TicketShape  = {
   early_bird_ends_at?: string | null
 }
 
+export type SocialHandles = {
+  twitter?: string
+  linkedin?: string
+  instagram?: string
+  facebook?: string
+  youtube?: string
+  website?: string
+}
+
+export type ExhibitorShape = {
+  id: string
+  name: string
+  logo_url: string | null
+  category: string | null
+  booth: string | null
+  description: string | null
+  website: string | null
+}
+
+export type ExhibitorCategoryShape = {
+  id: string
+  name: string
+  color: string | null
+}
+
+export type HotelShape = {
+  id: string
+  name: string
+  image_url: string | null
+  address: string | null
+  distance_km: number | null
+  price_range: string | null
+  booking_url: string | null
+  description: string | null
+}
+
 export type BuilderMetadata = {
   event: EventShape
   speakers: SpeakerShape[]
   sessions: SessionShape[]
   sponsors: SponsorShape[]
   tickets: TicketShape[]
+  /** ITEM 2.4 — wired into Hero inline social row + Footer. */
+  socialHandles?: SocialHandles
+  /** ITEM 6 — populated when an Exhibitors block is rendered. */
+  exhibitors?: ExhibitorShape[]
+  exhibitorCategories?: ExhibitorCategoryShape[]
+  /** ITEM 7 — populated for the Hotels block. */
+  hotels?: HotelShape[]
 }
 
 /** Pull metadata off the puck context. Components receive `puck.metadata`
@@ -371,6 +415,30 @@ export function Root({ children, themePreset, primaryColor, textColor, bgColor, 
 
 /* ── HERO ─────────────────────────────────────────────────────────── */
 
+export type HeroSlide = {
+  id: string
+  title: string
+  subtitle: string
+  ctaPrimaryLabel: string
+  ctaPrimaryUrl: string
+  ctaSecondaryLabel?: string
+  ctaSecondaryUrl?: string
+  backgroundImage: string
+  alignment?: "left" | "center"
+  useEventLogo?: boolean
+}
+
+export type SliderControls = {
+  arrowsVisible?: boolean
+  arrowColor?: string
+  arrowSize?: "sm" | "md" | "lg"
+  navigatorVisible?: boolean
+  navigatorStyle?: "dots" | "bars" | "numbers"
+  autoplay?: boolean
+  intervalSec?: number
+  transition?: "slide" | "fade"
+}
+
 export type HeroProps = {
   title: string
   subtitle: string
@@ -384,11 +452,25 @@ export type HeroProps = {
   minHeight?: "short" | "tall" | "full"
   /** A2: when true, render the event logo (events.logo_url) above the title. */
   useEventLogo?: boolean
+  /** ITEM 1: when slides[].length >= 1, Hero renders a slider; otherwise
+   *  it renders the legacy single-slide layout from the top-level props. */
+  slides?: HeroSlide[]
+  sliderControls?: SliderControls
+  /** ITEM 2: per-element visibility toggles. Default true. */
+  showEventName?: boolean
+  showDateTime?: boolean
+  showLocation?: boolean
+  showCountdown?: boolean
+  showSocialHandles?: boolean
+  showButtons?: boolean
 }
 
 export function Hero({
   title, subtitle, ctaLabel, ctaUrl, secondaryCtaLabel, secondaryCtaUrl,
   backgroundImage, alignment, minHeight, useEventLogo,
+  slides, sliderControls,
+  showEventName = true, showDateTime = true, showLocation = true,
+  showCountdown = true, showSocialHandles = true, showButtons = true,
   puck,
 }: HeroProps & { puck: { metadata?: Record<string, unknown>; dragRef?: unknown; id?: string } }) {
   const { event } = getMeta(puck)
@@ -410,6 +492,29 @@ export function Hero({
     minHeight === "short" ? "min-h-[380px] sm:min-h-[460px]" :
                             "min-h-[520px] sm:min-h-[640px]"
   const centered = alignment === "center"
+
+  // ITEM 1: when slides are configured, hand off to the embla slider.
+  if (Array.isArray(slides) && slides.length >= 1) {
+    return (
+      <HeroSliderInner
+        slides={slides}
+        event={event}
+        controls={sliderControls ?? {}}
+        height={height}
+        isFirstBlock={isFirstBlock}
+      />
+    )
+  }
+
+  // Read social handles from event-level builder_settings.general (passed
+  // via metadata.socialHandles). Fall back to none.
+  const socialHandles = (meta.socialHandles ?? {}) as {
+    twitter?: string; linkedin?: string; instagram?: string;
+    facebook?: string; youtube?: string; website?: string;
+  }
+  const hasAnySocial = !!(socialHandles.twitter || socialHandles.linkedin
+    || socialHandles.instagram || socialHandles.facebook
+    || socialHandles.youtube || socialHandles.website)
 
   return (
     <section className={`relative ${height} flex items-end overflow-hidden bg-[#1a1a2e]`}>
@@ -441,32 +546,37 @@ export function Hero({
             />
           )
         })()}
-        {event.start_date && (
+        {(showDateTime || showLocation) && event.start_date && (
           <div
             className={`flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] mb-4 ${centered ? "justify-center" : ""}`}
             style={{ color: "var(--lf-primary, #e7ab1c)" }}
           >
-            <Calendar size={13} /> {fmtDate(event.start_date, event.end_date)}
-            {event.venue && (
+            {showDateTime && (<><Calendar size={13} /> {fmtDate(event.start_date, event.end_date)}</>)}
+            {showLocation && event.venue && (
               <>
-                <span className="opacity-40">·</span>
+                {showDateTime && <span className="opacity-40">·</span>}
                 <MapPin size={13} /> {event.venue}
               </>
             )}
           </div>
         )}
-        <h1
-          className={`text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.05] ${centered ? "max-w-4xl mx-auto" : "max-w-4xl"}`}
-          style={sfFont}
-        >
-          {shownTitle || "Untitled Event"}
-        </h1>
+        {showEventName && (
+          <h1
+            className={`text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.05] ${centered ? "max-w-4xl mx-auto" : "max-w-4xl"}`}
+            style={sfFont}
+          >
+            {shownTitle || "Untitled Event"}
+          </h1>
+        )}
         {subtitle && (
           <p className={`mt-5 text-lg sm:text-xl text-white/80 leading-relaxed ${centered ? "max-w-2xl mx-auto" : "max-w-2xl"}`}>
             {subtitle}
           </p>
         )}
-        {(ctaLabel && ctaUrl) || (secondaryCtaLabel && secondaryCtaUrl) ? (
+        {showCountdown && event.start_date && (
+          <HeroInlineCountdown to={event.start_date} centered={centered} />
+        )}
+        {showButtons && ((ctaLabel && ctaUrl) || (secondaryCtaLabel && secondaryCtaUrl)) ? (
           <div className={`mt-8 flex flex-wrap items-center gap-3 ${centered ? "justify-center" : ""}`}>
             {ctaLabel && ctaUrl && (
               <Link
@@ -492,8 +602,72 @@ export function Hero({
             )}
           </div>
         ) : null}
+        {showSocialHandles && hasAnySocial && (
+          <HeroInlineSocialHandles handles={socialHandles} centered={centered} />
+        )}
       </div>
     </section>
+  )
+}
+
+/** ITEM 2.3 — compact 4-up Days/Hours/Minutes/Seconds rendered INSIDE
+ *  the hero. Smaller than the standalone Countdown block. */
+function HeroInlineCountdown({ to, centered }: { to: string; centered: boolean }) {
+  const [now, setNow] = useState<number>(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const target = new Date(to).getTime()
+  const ms = Math.max(0, target - now)
+  const days = Math.floor(ms / 86_400_000)
+  const hours = Math.floor((ms % 86_400_000) / 3_600_000)
+  const mins = Math.floor((ms % 3_600_000) / 60_000)
+  const secs = Math.floor((ms % 60_000) / 1000)
+  const cell = (n: number, label: string) => (
+    <div className="flex flex-col items-center min-w-[56px] sm:min-w-[64px] px-3 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/15">
+      <span className="text-2xl sm:text-3xl font-bold text-white tabular-nums leading-none">{String(n).padStart(2, "0")}</span>
+      <span className="mt-1 text-[10px] uppercase tracking-[0.2em] text-white/65">{label}</span>
+    </div>
+  )
+  return (
+    <div className={`mt-6 flex flex-wrap items-center gap-2.5 ${centered ? "justify-center" : ""}`}>
+      {cell(days, "Days")}{cell(hours, "Hrs")}{cell(mins, "Min")}{cell(secs, "Sec")}
+    </div>
+  )
+}
+
+/** ITEM 2.4 — small inline social-icon row inside the hero. Pulls
+ *  builder_settings.general.socialHandles via metadata. */
+function HeroInlineSocialHandles({
+  handles, centered,
+}: {
+  handles: { twitter?: string; linkedin?: string; instagram?: string; facebook?: string; youtube?: string; website?: string }
+  centered: boolean
+}) {
+  const links: Array<{ key: string; href: string; label: string }> = []
+  if (handles.twitter)   links.push({ key: "tw", href: handles.twitter,   label: "X / Twitter" })
+  if (handles.linkedin)  links.push({ key: "li", href: handles.linkedin,  label: "LinkedIn" })
+  if (handles.instagram) links.push({ key: "ig", href: handles.instagram, label: "Instagram" })
+  if (handles.facebook)  links.push({ key: "fb", href: handles.facebook,  label: "Facebook" })
+  if (handles.youtube)   links.push({ key: "yt", href: handles.youtube,   label: "YouTube" })
+  if (handles.website)   links.push({ key: "ww", href: handles.website,   label: "Website" })
+  if (links.length === 0) return null
+  return (
+    <div className={`mt-6 flex flex-wrap items-center gap-2.5 ${centered ? "justify-center" : ""}`}>
+      {links.map((l) => (
+        <a
+          key={l.key}
+          href={l.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={l.label}
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/15 text-white text-[10px] font-bold uppercase"
+        >
+          {l.key.toUpperCase()}
+        </a>
+      ))}
+    </div>
   )
 }
 
