@@ -13,6 +13,9 @@ async function getNextEvent() {
     .from("events")
     .select("title, slug, start_date")
     .eq("status", "published")
+    // Skip seeded legacy events — only admin-managed upcoming events
+    // power the sticky countdown bar.
+    .is("external_url", null)
     .gte("start_date", new Date().toISOString())
     .order("start_date", { ascending: true })
     .limit(1)

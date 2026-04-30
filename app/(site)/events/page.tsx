@@ -42,9 +42,6 @@ function fmtMonth(d: string) {
 function fmtDay(d: string) {
   return new Date(d).getDate().toString().padStart(2, "0")
 }
-function fmtYear(d: string) {
-  return new Date(d).getFullYear().toString()
-}
 function getDaysUntil(d: string) {
   const diff = new Date(d).getTime() - Date.now()
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
@@ -125,28 +122,27 @@ export default async function EventsPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, speakers(id), tickets(id)",
+      "id, title, slug, start_date, end_date, venue, description, cover_image_url, status, external_url, speakers(id), tickets(id)",
     )
     .eq("status", "published")
+    // Exclude the seeded legacy events — those carry an external_url
+    // pointing at the old TLF site and live on /archive only. Per user
+    // request, the /events page should show ONLY the current/upcoming
+    // event lineup managed in the admin console.
+    .is("external_url", null)
     .order("start_date", { ascending: true })
 
   const now = new Date()
   const allEvents = events ?? []
+  // Only upcoming events are surfaced on /events. Past editions live on
+  // /archive (Past Events nav link) — keeping the marketing /events page
+  // focused on what's bookable now.
   const upcoming = allEvents.filter((e) => new Date(e.start_date) >= now)
   const past = allEvents.filter((e) => new Date(e.start_date) < now)
 
   // Featured = nearest upcoming. Other upcoming render in the grid.
   const featured = upcoming[0] ?? null
   const otherUpcoming = upcoming.slice(1)
-
-  // Group past events by year, newest year first.
-  const pastByYear = past.reduce<Record<string, typeof past>>((acc, e) => {
-    const y = fmtYear(e.start_date)
-    if (!acc[y]) acc[y] = []
-    acc[y].push(e)
-    return acc
-  }, {})
-  const pastYears = Object.keys(pastByYear).sort((a, b) => Number(b) - Number(a))
 
   return (
     <main className="min-h-screen bg-white text-[#1a1a2e]">
@@ -391,58 +387,10 @@ export default async function EventsPage() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════
-       * PAST EVENTS — year-grouped editorial timeline
-       * ════════════════════════════════════════════════════════════ */}
-      {pastYears.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 py-20 sm:py-28">
-          <AnimateOnScroll animation="fade-up">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 mb-14">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#1a1a2e]/55 mb-3 flex items-center gap-3">
-                  <span className="inline-block w-8 h-px bg-[#e7ab1c]" />
-                  Recent editions
-                </p>
-                <h2 className="text-[34px] sm:text-[44px] font-medium text-[#1a1a2e] leading-tight" style={serifFont}>
-                  Where we&apos;ve gathered.
-                </h2>
-              </div>
-              <Link
-                href="/archive"
-                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1a1a2e]/75 hover:text-[#e7ab1c] transition-colors"
-              >
-                Full archive
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </AnimateOnScroll>
-
-          <div className="space-y-16 sm:space-y-20">
-            {pastYears.map((year) => (
-              <AnimateOnScroll key={year} animation="fade-up">
-                <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
-                  <div className="lg:col-span-3">
-                    <p
-                      className="text-[64px] sm:text-[80px] font-medium leading-none text-[#1a1a2e]/15 select-none"
-                      style={serifFont}
-                    >
-                      {year}
-                    </p>
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#1a1a2e]/55 mt-3">
-                      {pastByYear[year].length} {pastByYear[year].length === 1 ? "edition" : "editions"}
-                    </p>
-                  </div>
-                  <div className="lg:col-span-9 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {pastByYear[year].map((event) => (
-                      <PastEventCard key={event.id} event={event} />
-                    ))}
-                  </div>
-                </div>
-              </AnimateOnScroll>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Past events were previously listed here as a year-grouped
+       * timeline. Removed per user request — past editions now live
+       * exclusively on /archive (Past Events nav link), keeping the
+       * /events page focused on bookable upcoming events only. */}
 
       {/* ════════════════════════════════════════════════════════════
        * FAQ
@@ -724,44 +672,9 @@ function UpcomingEventCard({ event }: { event: EventRow }) {
   )
 }
 
-function PastEventCard({ event }: { event: EventRow }) {
-  const slug = (event.slug ?? "").trim()
-  return (
-    <Link
-      href={`/events/${slug}`}
-      className="group block rounded-2xl overflow-hidden border border-[#1a1a2e]/[0.08] bg-white hover:border-[#1a1a2e]/20 hover:shadow-[0_12px_40px_-16px_rgba(26,26,46,0.18)] transition-all duration-300"
-    >
-      {event.cover_image_url ? (
-        <div className="relative aspect-[16/10] overflow-hidden">
-          <Image
-            src={event.cover_image_url}
-            alt={event.title}
-            fill
-            className="object-cover grayscale-[0.4] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/30 to-transparent" />
-        </div>
-      ) : (
-        <div className="aspect-[16/10] bg-gradient-to-br from-[#1a1a2e]/[0.04] to-[#e7ab1c]/[0.06]" />
-      )}
-      <div className="p-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1a1a2e]/45 mb-2">
-          {fmtDateShort(event.start_date)}
-          {event.end_date && event.end_date !== event.start_date && ` – ${fmtDateShort(event.end_date)}`}
-        </p>
-        <h3 className="text-[16px] font-semibold text-[#1a1a2e] leading-snug line-clamp-2 group-hover:text-[#e7ab1c] transition-colors" style={serifFont}>
-          {event.title}
-        </h3>
-        {event.venue && (
-          <p className="text-[12px] text-[#1a1a2e]/55 mt-1.5 truncate" title={event.venue}>
-            {event.venue}
-          </p>
-        )}
-      </div>
-    </Link>
-  )
-}
+// PastEventCard removed — past events now live exclusively on /archive,
+// no longer rendered on /events. Kept as a comment so future readers
+// know where to look for the previous design.
 
 function EmptyUpcoming() {
   return (

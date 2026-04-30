@@ -91,21 +91,17 @@ export function InteractiveBackground() {
     // ── Initial orb seed ──────────────────────────────────────────
     // Six big orbs spread across the viewport. Each gets a slightly
     // different pulse speed/phase so the scene feels organic.
-    // Alphas bumped to ~0.18-0.26 — user wants the orbs MORE obvious
-    // (Spline-style visible drifting blobs) but on the now near-pure
-    // white base. At these alphas + white base the orbs read as
-    // distinct warm circles you can see moving across the page,
-    // without tinting the whole surface (the cream-base trap from
-    // earlier passes — that was caused by the warm BASE wash, not the
-    // orbs themselves; on pure white we can saturate the orbs more
-    // aggressively).
+    // Alphas dropped to 0.11-0.15 per "lighter" feedback. Orbs are
+    // still perceptible drifting circles (faster drift makes the motion
+    // read), but the saturation is dialled back so the page surface
+    // stays clearly white at a glance instead of warm-tinted.
     orbsRef.current = [
-      { x: 0.15, y: 0.20, vx: 0.00024, vy: 0.00016, radiusFactor: 1.05, radius: 0, parallax: 0.045, color: APRICOT_GLOW, alpha: 0.22, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
-      { x: 0.85, y: 0.28, vx: -0.00019, vy: 0.00021, radiusFactor: 0.95, radius: 0, parallax: 0.034, color: WARM_AMBER,   alpha: 0.20, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
-      { x: 0.50, y: 0.78, vx: 0.00016, vy: -0.00020, radiusFactor: 1.15, radius: 0, parallax: 0.055, color: GOLD_TOAST,   alpha: 0.18, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
-      { x: 0.10, y: 0.88, vx: 0.00020, vy: -0.00013, radiusFactor: 0.85, radius: 0, parallax: 0.032, color: HONEY_LIGHT,  alpha: 0.21, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
-      { x: 0.92, y: 0.10, vx: -0.00014, vy: 0.00017, radiusFactor: 0.75, radius: 0, parallax: 0.026, color: PEACH_SOFT,   alpha: 0.26, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
-      { x: 0.30, y: 0.55, vx: 0.00012, vy: 0.00011, radiusFactor: 0.70, radius: 0, parallax: 0.040, color: SUNRISE_PALE,  alpha: 0.23, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
+      { x: 0.15, y: 0.20, vx: 0.00024, vy: 0.00016, radiusFactor: 1.05, radius: 0, parallax: 0.045, color: APRICOT_GLOW, alpha: 0.13, pulsePhase: 0,    pulseSpeed: 0.00045, pulseAmount: 0.18 },
+      { x: 0.85, y: 0.28, vx: -0.00019, vy: 0.00021, radiusFactor: 0.95, radius: 0, parallax: 0.034, color: WARM_AMBER,   alpha: 0.12, pulsePhase: 1.7,  pulseSpeed: 0.00038, pulseAmount: 0.22 },
+      { x: 0.50, y: 0.78, vx: 0.00016, vy: -0.00020, radiusFactor: 1.15, radius: 0, parallax: 0.055, color: GOLD_TOAST,   alpha: 0.11, pulsePhase: 3.1,  pulseSpeed: 0.00052, pulseAmount: 0.16 },
+      { x: 0.10, y: 0.88, vx: 0.00020, vy: -0.00013, radiusFactor: 0.85, radius: 0, parallax: 0.032, color: HONEY_LIGHT,  alpha: 0.13, pulsePhase: 4.5,  pulseSpeed: 0.00041, pulseAmount: 0.20 },
+      { x: 0.92, y: 0.10, vx: -0.00014, vy: 0.00017, radiusFactor: 0.75, radius: 0, parallax: 0.026, color: PEACH_SOFT,   alpha: 0.15, pulsePhase: 5.8,  pulseSpeed: 0.00048, pulseAmount: 0.15 },
+      { x: 0.30, y: 0.55, vx: 0.00012, vy: 0.00011, radiusFactor: 0.70, radius: 0, parallax: 0.040, color: SUNRISE_PALE,  alpha: 0.13, pulsePhase: 2.2,  pulseSpeed: 0.00050, pulseAmount: 0.19 },
     ]
 
     // ── Sizing ────────────────────────────────────────────────────

@@ -29,10 +29,18 @@ export default async function HomePage() {
       .from("events")
       .select("id, title, slug, start_date, end_date, venue, description")
       .eq("status", "published")
+      // Exclude seeded legacy events (those carry an external_url
+      // pointing at the old TLF site). Per user request, the homepage
+      // surfaces only the latest upcoming event managed in admin.
+      .is("external_url", null)
       .gte("start_date", new Date().toISOString())
       .order("start_date", { ascending: true })
       .limit(1),
-    supabase.from("events").select("*", { count: "exact", head: true }).eq("status", "published"),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "published")
+      .is("external_url", null),
     supabase.from("speakers").select("*", { count: "exact", head: true }),
     supabase
       .from("testimonials")
