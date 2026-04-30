@@ -4,7 +4,14 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 
-type Item = { kind: string; label: string; href: string; active: boolean }
+// ITEM 8: nested children render indented inside the hamburger menu.
+type Item = {
+  kind: string
+  label: string
+  href: string
+  active: boolean
+  children?: Array<{ label: string; href: string }>
+}
 
 export function EventTopNavMobile({ items }: { items: Item[] }) {
   const [open, setOpen] = useState(false)
@@ -45,6 +52,21 @@ export function EventTopNavMobile({ items }: { items: Item[] }) {
                 >
                   {it.label}
                 </Link>
+                {it.children && it.children.length > 0 && (
+                  <ul className="pb-2">
+                    {it.children.map((c) => (
+                      <li key={c.href}>
+                        <Link
+                          href={c.href}
+                          onClick={() => setOpen(false)}
+                          className="block pl-10 pr-5 py-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1a2e]/60"
+                        >
+                          {c.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

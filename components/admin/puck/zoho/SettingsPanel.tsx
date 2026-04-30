@@ -15,26 +15,36 @@ import { useEffect, useState } from "react"
 import {
   ArrowLeft, Globe, Search, Lock, Cookie,
   Code2, Loader2, Check, Plus, Trash2,
+  Navigation as NavIcon, Bell, Clock as ClockIcon, Map as MapIcon, Image as ImageIco, Smile,
 } from "lucide-react"
 import { SecondaryPanel } from "./SecondaryPanel"
 import {
   getBuilderSettings, saveBuilderSettingsGroup,
   getEventLogoUrl, saveEventLogoUrl,
-  type BuilderSettingsGroup,
+  getNavExtraLinks, saveNavExtraLinks,
+  getEventImageColumn, saveEventImageColumn,
+  type BuilderSettingsGroup, type NavExtraLink,
 } from "@/app/actions/eventBuilderActions"
 import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
 
 type GroupDef = { key: BuilderSettingsGroup; label: string; desc: string; Icon: typeof Globe }
 
-// Six groups laid out as a 3×2 grid of cards. Analytics + Webhooks live
-// in the Integrations rail item; Languages is its own rail item.
+// Settings group cards. Notification / Time / Map / Search / Thumb /
+// Favicon are added by ITEM 10. Navigation is added by ITEM 8.
 const GROUPS: GroupDef[] = [
-  { key: "general", label: "General",       desc: "Microsite name, tagline, time zone",   Icon: Globe },
-  { key: "seo",     label: "SEO",           desc: "Title, description, OG card",          Icon: Search },
-  { key: "domain",  label: "Custom domain", desc: "events.yourdomain.com",                Icon: Globe },
-  { key: "privacy", label: "Privacy",       desc: "GDPR notices, data-retention",         Icon: Lock },
-  { key: "cookies", label: "Cookie banner", desc: "Show / hide, copy, link to policy",   Icon: Cookie },
-  { key: "code",    label: "Custom code",   desc: "Inject head + body scripts",           Icon: Code2 },
+  { key: "general",       label: "General",        desc: "Microsite name, tagline, time zone, social",  Icon: Globe },
+  { key: "seo",           label: "SEO",            desc: "Title, description, OG card",                 Icon: Search },
+  { key: "domain",        label: "Custom domain",  desc: "events.yourdomain.com",                       Icon: Globe },
+  { key: "privacy",       label: "Privacy",        desc: "GDPR notices, data-retention",                Icon: Lock },
+  { key: "cookies",       label: "Cookie banner",  desc: "Show / hide, copy, link to policy",           Icon: Cookie },
+  { key: "code",          label: "Custom code",    desc: "Inject head + body scripts",                  Icon: Code2 },
+  { key: "navigation",    label: "Navigation",     desc: "Custom links + nested submenus",              Icon: NavIcon },
+  { key: "notification",  label: "Notification",   desc: "Sticky banner above nav",                     Icon: Bell },
+  { key: "timeFormat",    label: "Time format",    desc: "Date / 12h-24h / timezone",                   Icon: ClockIcon },
+  { key: "map",           label: "Map display",    desc: "Provider, zoom, directions",                  Icon: MapIcon },
+  { key: "searchVis",     label: "Search visibility", desc: "Indexable / robots / sitemap",             Icon: Search },
+  { key: "thumbnail",     label: "Event thumbnail", desc: "Card image on /events listing",              Icon: ImageIco },
+  { key: "favicon",       label: "Favicon",        desc: "Browser tab icon",                            Icon: Smile },
 ]
 
 export function SettingsPanel({
@@ -158,9 +168,9 @@ function SettingsForm({
     window.setTimeout(() => setSavedFlash(false), 1500)
   }
 
-  // Code + Webhooks groups need wider real estate for the textareas /
-  // dynamic rows; everything else stays in the standard 288px column.
-  const wideGroups = new Set<BuilderSettingsGroup>(["code", "webhooks", "domain"])
+  // Code + Webhooks + Navigation need wider real estate for the
+  // textareas / dynamic rows; everything else stays in 288px.
+  const wideGroups = new Set<BuilderSettingsGroup>(["code", "webhooks", "domain", "navigation"])
   const widthCls = wideGroups.has(groupKey) ? "w-[420px]" : "w-72"
 
   return (
@@ -311,6 +321,51 @@ function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unk
         </>
       )
     }
+    /* ── ITEM 8 — navigation ─────────────────────────────────────── */
+    case "navigation":
+      return <NavigationSection eventId={eventId} />
+
+    /* ── ITEM 10.1 — notification ───────────────────────────────── */
+    case "notification": return (
+      <>
+        <BoolField label="Enabled"             name="enabled"      defaultChecked={b(init.enabled, false)} />
+        <Field     label="Message"             name="message"      defaultValue={s(init.message)} placeholder="Early-bird ends Friday." />
+        <Field     label="Link URL (optional)" name="link"         type="url" defaultValue={s(init.link)} />
+        <Field     label="Link label"          name="linkLabel"    defaultValue={s(init.linkLabel) || "Learn more"} />
+        <BoolField label="Dismissable"         name="dismissable"  defaultChecked={b(init.dismissable, true)} />
+        <Field     label="Display until (date)" name="displayUntil" type="date" defaultValue={s(init.displayUntil)} />
+      </>
+    )
+    /* ── ITEM 10.2 — time format ────────────────────────────────── */
+    case "timeFormat": return (
+      <>
+        <SelectField label="Date format"        name="dateFormat"   defaultValue={s(init.dateFormat) || "DD/MM/YYYY"} options={["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"]} />
+        <SelectField label="Time format"        name="timeFormat"   defaultValue={s(init.timeFormat) || "12h"}        options={["12h", "24h"]} />
+        <BoolField   label="Show timezone next to times" name="showTimezone" defaultChecked={b(init.showTimezone, true)} />
+      </>
+    )
+    /* ── ITEM 10.3 — map display ────────────────────────────────── */
+    case "map": return (
+      <>
+        <SelectField label="Map provider"     name="provider"   defaultValue={s(init.provider) || "google"} options={["google", "openstreetmap"]} />
+        <Field       label="Default zoom (8–18)" name="defaultZoom" type="number" defaultValue={n(init.defaultZoom) || "14"} />
+        <BoolField   label="Show 'Get directions' button" name="showDirectionsButton" defaultChecked={b(init.showDirectionsButton, true)} />
+      </>
+    )
+    /* ── ITEM 10.4 — search visibility ──────────────────────────── */
+    case "searchVis": return (
+      <>
+        <BoolField  label="Indexable (search engines)" name="indexable" defaultChecked={b(init.indexable, true)} />
+        <FieldArea  label="Custom robots rules"        name="customRobotsRules" defaultValue={s(init.customRobotsRules)} placeholder="Disallow: /private/" />
+        <BoolField  label="Include in sitemap.xml"     name="sitemapEnabled" defaultChecked={b(init.sitemapEnabled, true)} />
+      </>
+    )
+    /* ── ITEM 10.5 — event thumbnail ────────────────────────────── */
+    case "thumbnail":
+      return <SingleImageColumnField eventId={eventId} column="thumbnail_url" label="Event thumbnail (used on /events listing card)" aspectRatio={4 / 3} />
+    /* ── ITEM 10.6 — favicon ────────────────────────────────────── */
+    case "favicon":
+      return <SingleImageColumnField eventId={eventId} column="favicon_url" label="Favicon (.ico / .png ≤ 256 px)" aspectRatio={1} />
   }
 }
 
@@ -440,6 +495,169 @@ function collectFormValues(form: HTMLFormElement, group: BuilderSettingsGroup): 
     out.socialHandles = sh
   }
   return out
+}
+
+/* ── Navigation section (ITEM 8) ─────────────────────────────────── */
+function NavigationSection({ eventId }: { eventId: string }) {
+  const [rows, setRows] = useState<NavExtraLink[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [savedFlash, setSavedFlash] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    void getNavExtraLinks(eventId).then((res) => {
+      if (cancelled) return
+      setRows(res.rows)
+      setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [eventId])
+
+  function update(idx: number, patch: Partial<NavExtraLink>) {
+    setRows((rs) => rs.map((r, i) => (i === idx ? { ...r, ...patch } : r)))
+  }
+  function move(idx: number, dir: -1 | 1) {
+    const j = idx + dir
+    if (j < 0 || j >= rows.length) return
+    const next = [...rows]
+    ;[next[idx], next[j]] = [next[j], next[idx]]
+    setRows(next.map((r, i) => ({ ...r, sort_order: i * 10 })))
+  }
+  function add() {
+    const id = `nx-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    setRows((rs) => [...rs, { id, label: "New link", url: "/", parent_id: null, sort_order: rs.length * 10, visible: true }])
+  }
+  function remove(idx: number) {
+    const r = rows[idx]
+    if (!r) return
+    // Also detach children
+    setRows((rs) => rs
+      .filter((_, i) => i !== idx)
+      .map((row) => row.parent_id === r.id ? { ...row, parent_id: null } : row))
+  }
+  async function persist() {
+    setSaving(true); setError(null)
+    const res = await saveNavExtraLinks(eventId, rows)
+    setSaving(false)
+    if (!res.success) { setError(res.error ?? "Save failed"); return }
+    setSavedFlash(true); setTimeout(() => setSavedFlash(false), 1500)
+  }
+
+  if (loading) return <div className="flex items-center gap-2 text-[11px] text-[var(--z-text-muted,#6b7280)]"><Loader2 size={12} className="animate-spin" /> Loading…</div>
+  return (
+    <>
+      <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">
+        Custom links appear in the public top nav alongside the canonical pages.
+        Mark a link as nested under another to create a hover dropdown.
+      </p>
+      <div className="space-y-2">
+        {rows.map((r, idx) => (
+          <div key={r.id} className="rounded-md border border-[var(--z-border,#e5e7eb)] bg-white p-2.5 space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <input
+                value={r.label}
+                onChange={(e) => update(idx, { label: e.target.value })}
+                placeholder="Label"
+                className="z-input flex-1 !h-7 !text-[12px]"
+              />
+              <button onClick={() => move(idx, -1)} disabled={idx === 0} aria-label="Up" className="z-btn z-btn-icon !w-6 !h-6 disabled:opacity-30">↑</button>
+              <button onClick={() => move(idx, 1)} disabled={idx === rows.length - 1} aria-label="Down" className="z-btn z-btn-icon !w-6 !h-6 disabled:opacity-30">↓</button>
+              <button onClick={() => remove(idx)} aria-label="Delete" className="z-btn z-btn-icon !w-6 !h-6 hover:!text-red-600">
+                <Trash2 size={11} />
+              </button>
+            </div>
+            <input
+              value={r.url}
+              onChange={(e) => update(idx, { url: e.target.value })}
+              placeholder="URL — e.g. /sponsors or https://…"
+              className="z-input !h-7 !text-[11px]"
+            />
+            <div className="flex items-center gap-2">
+              <label className="flex-1 flex items-center gap-1 text-[11px] text-[var(--z-text-muted,#6b7280)]">
+                Nested under:
+                <select
+                  value={r.parent_id ?? ""}
+                  onChange={(e) => update(idx, { parent_id: e.target.value || null })}
+                  className="z-input !h-7 !text-[11px] !py-0 flex-1"
+                >
+                  <option value="">— top-level —</option>
+                  {rows.filter((p) => p.id !== r.id && !p.parent_id).map((p) => (
+                    <option key={p.id} value={p.id}>{p.label || "(untitled)"}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="inline-flex items-center gap-1 text-[11px]">
+                <input type="checkbox" checked={r.visible !== false} onChange={(e) => update(idx, { visible: e.target.checked })} />
+                Visible
+              </label>
+            </div>
+          </div>
+        ))}
+        {rows.length === 0 && <p className="text-[12px] text-[var(--z-text-muted,#6b7280)] italic">No custom nav links yet.</p>}
+      </div>
+      <button type="button" onClick={add} className="w-full inline-flex items-center justify-center gap-2 h-9 rounded-md border border-dashed border-[var(--z-border-strong,#d1d5db)] text-[12px] font-medium text-[var(--z-text-muted,#6b7280)] hover:text-[var(--z-info,#3e7af7)] hover:border-[var(--z-info,#3e7af7)]">
+        <Plus size={14} strokeWidth={1.5} />
+        Add nav link
+      </button>
+      {error && <p className="text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5">{error}</p>}
+      <div className="pt-1 flex items-center gap-2">
+        <button type="button" onClick={() => void persist()} disabled={saving} className="z-btn-primary flex-1">
+          {saving && <Loader2 size={12} className="animate-spin" />}
+          Save navigation
+        </button>
+        {savedFlash && <span className="text-[12px] text-[var(--z-success,#10b981)]">Saved.</span>}
+      </div>
+    </>
+  )
+}
+
+/* ── Single-image column field (ITEM 10.5 / 10.6) ─────────────────── */
+function SingleImageColumnField({
+  eventId, column, label, aspectRatio,
+}: {
+  eventId: string
+  column: "thumbnail_url" | "favicon_url"
+  label: string
+  aspectRatio: number
+}) {
+  const [url, setUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void getEventImageColumn(eventId, column).then((res) => {
+      if (cancelled) return
+      setUrl(res.url); setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [eventId, column])
+
+  async function commit(next: string | null) {
+    setSaving(true); setError(null)
+    setUrl(next)
+    const res = await saveEventImageColumn(eventId, column, next)
+    setSaving(false)
+    if (!res.success) setError(res.error ?? "Save failed")
+  }
+
+  if (loading) return <div className="flex items-center gap-2 text-[11px] text-[var(--z-text-muted,#6b7280)]"><Loader2 size={12} className="animate-spin" /> Loading…</div>
+  return (
+    <div className="space-y-1.5">
+      <ImageUploadCrop
+        value={url}
+        onChange={(next) => void commit(next)}
+        aspectRatio={aspectRatio}
+        folder="events"
+        label={label}
+      />
+      {saving && <p className="text-[11px] text-[var(--z-text-muted,#6b7280)] flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Saving…</p>}
+      {error && <p className="text-[12px] text-[var(--z-danger,#dc2626)]">{error}</p>}
+    </div>
+  )
 }
 
 /* ── Logo field — A2 ────────────────────────────────────────────────
