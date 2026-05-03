@@ -260,9 +260,14 @@ export const puckConfig: Config<BuilderComponents> = {
             />
           ),
         },
+        // ITEM 7 — labelled to match the spec's tab map: this Hero-level
+        // cover image is the fallback used when slides[] is empty. It
+        // belongs in Settings (legacy single-slide path), not Style.
+        // The label deliberately omits the "background" keyword so the
+        // auto-categorise route lands it in Settings.
         backgroundImage: {
           type: "custom",
-          label: "Background image",
+          label: "Cover image (legacy single-slide)",
           render: (p) => <ImageField {...p} folder="events" />,
         },
         alignment: {
