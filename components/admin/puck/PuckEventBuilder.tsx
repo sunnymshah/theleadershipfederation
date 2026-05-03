@@ -53,6 +53,7 @@ import { UndoRedoButtons } from "./UndoRedoButtons"
 import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
 import { PuckBridge, insertBlockAtEnd, insertBlockAtIndex } from "./zoho/PuckBridge"
+import { InlineEditTip } from "./InlineEditTip"
 import { ALLOWED_OPTIONAL_SECTIONS, isStandardPageKind } from "@/lib/standard-pages"
 import { SectionActionBarOverflow } from "./zoho/SectionContextMenu"
 import { InspectorTabs, ZohoFieldLabel } from "./zoho/InspectorTabs"
@@ -730,6 +731,10 @@ export function PuckEventBuilder({
 
   return (
     <div className={`lf-builder-shell fixed inset-0 flex flex-col bg-white text-[var(--bs-text,#1f2937)] ${inspectorOverlayOpen ? "lf-inspector-open" : "lf-inspector-closed"}`}>
+      {/* ITEM 5 — first-use "Click to edit" tooltip. Mounts once at the
+          top of the shell and listens for the global hover event fired
+          by every useInlineEdit-bagged element. */}
+      <InlineEditTip />
       {publishMsg && (
         <div className={`shrink-0 px-4 py-1.5 text-[11px] font-medium text-center ${
           publishState === "error" ? "bg-red-900/10 text-red-700" : "bg-emerald-900/10 text-emerald-700"

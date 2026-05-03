@@ -496,3 +496,32 @@
  * match anything in v0.20 anyway (the actual class is _PuckCanvas_).
  * The canvas naturally fills the centre column once the side tracks
  * are forced to 0 above. */
+
+/* ────────────────────────────────────────────────────────────────────
+ * Inline-edit cursor + hover / focus outline (ITEM 1.2).
+ *
+ * Marks every element wrapped by useInlineEdit with a text-cursor and
+ * a soft dashed outline on hover; on focus the outline thickens and a
+ * primary-color caret hints at the edit being live. Scoped to
+ * .lf-builder-shell so the public site never gets these styles even
+ * if a stray data-lf-inline-editable attribute leaked through.
+ * ──────────────────────────────────────────────────────────────────── */
+.lf-builder-shell [data-lf-inline-editable] {
+  cursor: text;
+}
+.lf-builder-shell [data-lf-inline-editable]:hover {
+  outline: 1px dashed var(--bs-info, #3e7af7);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.lf-builder-shell [data-lf-inline-editable]:focus {
+  outline: 2px dashed var(--bs-info, #3e7af7);
+  outline-offset: 2px;
+  caret-color: var(--lf-primary, #e7ab1c);
+  border-radius: 2px;
+}
+.lf-builder-shell [data-lf-inline-editable]:focus,
+.lf-builder-shell [data-lf-inline-editable]:focus-visible {
+  /* Keep the caret visible against dark backgrounds. */
+  caret-color: var(--lf-primary, #e7ab1c);
+}
