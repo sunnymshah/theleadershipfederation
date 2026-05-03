@@ -23,6 +23,7 @@
  */
 
 import useEmblaCarousel from "embla-carousel-react"
+import Autoplay from "embla-carousel-autoplay"
 import Image from "next/image"
 import Link from "next/link"
 import { useCallback, useEffect, useState, useRef, type CSSProperties } from "react"
@@ -78,13 +79,28 @@ export function HeroSliderInner({
   socialHandles?: SocialHandles
 }) {
   const transition = controls.transition === "fade" ? "fade" : "slide"
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
-    align: "start",
-    duration: transition === "fade" ? 18 : 30,
-  })
+  // ITEM 6.3 — autoplay is now driven by embla-carousel-autoplay's
+  // plugin so stopOnMouseEnter / stopOnInteraction are honoured by
+  // embla itself (no setInterval / hoveringRef hack). The plugin is
+  // memoised across renders via useRef so changing other controls
+  // doesn't tear down the timer.
+  const autoplayPlugin = useRef(
+    Autoplay({
+      delay: Math.max(2000, (controls.intervalSec ?? 6) * 1000),
+      stopOnInteraction: false,
+      stopOnMouseEnter: controls.pauseOnHover !== false,
+      playOnInit: controls.autoplay !== false,
+    }),
+  )
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    {
+      loop: true,
+      align: "start",
+      duration: transition === "fade" ? 18 : 30,
+    },
+    [autoplayPlugin.current],
+  )
   const [selectedIdx, setSelectedIdx] = useState(0)
-  const hoveringRef = useRef(false)
   const [isMobile, setIsMobile] = useState(false)
 
   // Track viewport for mobile background overrides + responsive layout.
@@ -108,19 +124,23 @@ export function HeroSliderInner({
     return () => { emblaApi.off("select", onSelect) }
   }, [emblaApi])
 
-  // Autoplay. ITEM 6.3: pauseOnHover gates the hover-skip behaviour.
+  // ITEM 6.3 — when the inspector toggles autoplay / intervalSec /
+  // pauseOnHover at runtime, reset the plugin so the new options take
+  // effect. The plugin instance itself is stable; we just reconfigure it.
   useEffect(() => {
-    if (!emblaApi || !controls.autoplay) return
-    const pauseOnHover = controls.pauseOnHover !== false
-    const ms = Math.max(2000, (controls.intervalSec ?? 6) * 1000)
-    const tick = () => {
-      if (!emblaApi) return
-      if (pauseOnHover && hoveringRef.current) return
-      if (emblaApi.canScrollNext()) emblaApi.scrollNext()
-      else emblaApi.scrollTo(0)
+    if (!emblaApi) return
+    const plugin = autoplayPlugin.current
+    if (!plugin) return
+    if (controls.autoplay === false) {
+      plugin.stop()
+    } else {
+      plugin.play()
     }
-    const t = setInterval(tick, ms)
-    return () => clearInterval(t)
+    // The autoplay plugin reads its `delay`, `stopOnMouseEnter`, etc.
+    // from the options object passed at construction time. Update them
+    // by re-initialising the embla instance with the new options
+    // object — emblaApi.reInit accepts options + plugins.
+    emblaApi.reInit()
   }, [emblaApi, controls.autoplay, controls.intervalSec, controls.pauseOnHover])
 
   const arrowSize = controls.arrowSize === "sm" ? 14 : controls.arrowSize === "lg" ? 22 : 18
@@ -144,8 +164,6 @@ export function HeroSliderInner({
   return (
     <section
       className={`relative ${height} overflow-hidden bg-[#1a1a2e]`}
-      onMouseEnter={() => { hoveringRef.current = true }}
-      onMouseLeave={() => { hoveringRef.current = false }}
     >
       <div className="overflow-hidden h-full" ref={emblaRef}>
         <div className="flex h-full">
