@@ -26,7 +26,7 @@ import useEmblaCarousel from "embla-carousel-react"
 import Autoplay from "embla-carousel-autoplay"
 import Image from "next/image"
 import Link from "next/link"
-import { useCallback, useEffect, useState, useRef, type CSSProperties } from "react"
+import { useCallback, useEffect, useMemo, useState, useRef, type CSSProperties } from "react"
 import {
   Calendar, MapPin, ChevronRight as ChevronRightIcon,
 } from "lucide-react"
@@ -34,7 +34,6 @@ import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
 import {
   sfFont,
-  buildDefaultElements,
   type EventShape, type SocialHandles,
   type HeroSlide, type SliderControls, type SlideBackground,
   type HeroElement, type EventNameFormat, type HeroElementButton,
@@ -169,7 +168,6 @@ export function HeroSliderInner({
         <div className="flex h-full">
           {slides.map((slide, idx) => {
             const bg = pickBackground(slide, isMobile)
-            const slideElements = resolveElements(slide)
             const slideLayout = slide.layout ?? "background-only"
             const horizontalAlign = slide.horizontalAlign
               ?? (slide.alignment === "center" ? "center" : "left")
@@ -192,7 +190,6 @@ export function HeroSliderInner({
                     layout={slideLayout}
                     horizontalAlign={horizontalAlign}
                     verticalAlign={verticalAlign}
-                    elements={slideElements}
                     event={event}
                     fmtDate={fmtDate}
                     socialHandles={socialHandles ?? {}}
@@ -334,17 +331,57 @@ const MEDIA_SIZE_PCT: Record<NonNullable<HeroSlide["mediaSize"]>, number> = {
 }
 
 function SlideContent({
-  slide, layout, horizontalAlign, verticalAlign, elements, event, fmtDate, socialHandles,
+  slide, layout, horizontalAlign, verticalAlign, event, fmtDate, socialHandles,
 }: {
   slide: HeroSlide
   layout: NonNullable<HeroSlide["layout"]>
   horizontalAlign: "left" | "center" | "right"
   verticalAlign: "top" | "center" | "bottom"
-  elements: HeroElement[]
   event: EventShape
   fmtDate: (s: string, e: string | null) => string
   socialHandles: SocialHandles
 }) {
+  // ITEM 3.5 — synthesize the elements array from legacy fields when
+  // slide.elements isn't populated. Memoised on slide identity so the
+  // synthesis cost is paid once per slide, not on every parent render.
+  const elements = useMemo<HeroElement[]>(() => {
+    if (Array.isArray(slide.elements) && slide.elements.length > 0) return slide.elements
+    const synth: HeroElement[] = []
+    if (slide.title || event.title) {
+      synth.push({ id: "legacy-eventName", kind: "eventName", text: slide.title })
+    }
+    synth.push({
+      id: "legacy-dateTime",
+      kind: "dateTime",
+      showVenue: false,
+      showDate: true,
+      showTime: true,
+      formatType: "long",
+      iconStyle: "outline",
+    })
+    if (event.venue) synth.push({ id: "legacy-venue", kind: "venue" })
+    if (slide.subtitle) {
+      synth.push({ id: "legacy-shortDescription", kind: "shortDescription", text: slide.subtitle })
+    }
+    if (slide.ctaPrimaryLabel || slide.ctaSecondaryLabel) {
+      const buttons: HeroElementButton[] = []
+      if (slide.ctaPrimaryLabel) buttons.push({
+        id: "legacy-cta1", label: slide.ctaPrimaryLabel,
+        type: "url", url: slide.ctaPrimaryUrl ?? "/", style: "primary",
+      })
+      if (slide.ctaSecondaryLabel) buttons.push({
+        id: "legacy-cta2", label: slide.ctaSecondaryLabel,
+        type: "url", url: slide.ctaSecondaryUrl ?? "/", style: "outline",
+      })
+      synth.push({ id: "legacy-buttonGroup", kind: "buttonGroup", buttons })
+    }
+    return synth
+  }, [
+    slide.elements, slide.title, slide.subtitle, slide.id,
+    slide.ctaPrimaryLabel, slide.ctaPrimaryUrl,
+    slide.ctaSecondaryLabel, slide.ctaSecondaryUrl,
+    event.title, event.venue,
+  ])
   const verticalMap = {
     top: "items-start", center: "items-center", bottom: "items-end",
   } as const
@@ -952,28 +989,7 @@ function Navigator({
   )
 }
 
-/* ── ITEM 3.5 — back-compat: legacy → elements[] ─────────────────── */
-function resolveElements(slide: HeroSlide): HeroElement[] {
-  if (Array.isArray(slide.elements) && slide.elements.length > 0) return slide.elements
-  // Materialise the canonical default order, then thread the slide's
-  // legacy fields through (title → eventName.text, subtitle →
-  // shortDescription.text, CTAs → buttonGroup.buttons).
-  const out = buildDefaultElements(slide.id ? `el-${slide.id}` : "el")
-  for (const el of out) {
-    if (el.kind === "eventName" && slide.title) el.text = slide.title
-    if (el.kind === "shortDescription" && slide.subtitle) el.text = slide.subtitle
-    if (el.kind === "buttonGroup") {
-      const buttons: typeof el.buttons = []
-      if (slide.ctaPrimaryLabel && slide.ctaPrimaryUrl) {
-        buttons.push({ id: "p", label: slide.ctaPrimaryLabel, type: "url", url: slide.ctaPrimaryUrl, style: "primary" })
-      }
-      if (slide.ctaSecondaryLabel && slide.ctaSecondaryUrl) {
-        buttons.push({ id: "s", label: slide.ctaSecondaryLabel, type: "url", url: slide.ctaSecondaryUrl, style: "outline" })
-      }
-      // Only override the canonical default Register button when the
-      // slide actually carries legacy CTAs — otherwise keep the default.
-      if (buttons.length > 0) el.buttons = buttons
-    }
-  }
-  return out
-}
+/* The free-function resolveElements is gone — synthesis now lives in a
+ * useMemo inside SlideContent (ITEM 3.5). buildDefaultElements is still
+ * used by HeroElementsField as the seed for new slides + by puck-config
+ * for slide.defaultItemProps. */
