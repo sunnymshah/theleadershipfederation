@@ -59,8 +59,10 @@ import {
   type FloorPlanProps, type ExhibitorsListingProps,
   type ExhibitorCategoryProps, type HotelsListingProps,
   type LayoutProps,
+  type HeroElement,
 } from "./blocks"
 import { ImageField } from "./ImageField"
+import { HeroElementsField } from "./HeroElementsField"
 import { UrlPicker } from "./UrlPicker"
 import { ThemePresetGrid } from "./ThemePresetGrid"
 import { makeSparklesField } from "./SparklesField"
@@ -502,151 +504,29 @@ export const puckConfig: Config<BuilderComponents> = {
                 alt: { type: "text", label: "Alt text" },
               },
             },
-            // ── ITEM 3 — elements library (array) ──────────────
+            // ── ITEM 3.4 — elements library with @dnd-kit reorder ───
+            // Uses the custom HeroElementsField inspector which provides
+            // explicit drag handles via @dnd-kit/sortable, an Add-Element
+            // picker dialog over all 10 HeroElementKind values, expand-
+            // to-edit per-row chrome, and per-row delete with confirm.
             elements: {
-              type: "array", label: "Elements (drag to reorder)",
-              arrayFields: {
-                id:   { type: "text", label: "Internal id" },
-                kind: {
-                  type: "select", label: "Element type",
-                  options: [
-                    { label: "Event Name",         value: "eventName" },
-                    { label: "Short Description", value: "shortDescription" },
-                    { label: "Label",              value: "label" },
-                    { label: "Button Group",       value: "buttonGroup" },
-                    { label: "Countdown",          value: "countdown" },
-                    { label: "Social Handles",     value: "socialHandles" },
-                    { label: "Primary Media",      value: "primaryMedia" },
-                    { label: "Secondary Media",    value: "secondaryMedia" },
-                    { label: "Date / Time",        value: "dateTime" },
-                    { label: "Venue",              value: "venue" },
-                  ],
-                },
-                text: { type: "textarea", label: "Text (eventName / label / shortDescription)" },
-                // ── ITEM 4 — Event Name format ───────────────
-                format: {
-                  type: "object", label: "Formatting (eventName / label / shortDescription)",
-                  objectFields: {
-                    bold:          { type: "radio", label: "Bold",          options: [{ label: "On", value: true }, { label: "Off", value: false }] },
-                    italic:        { type: "radio", label: "Italic",        options: [{ label: "On", value: true }, { label: "Off", value: false }] },
-                    underline:     { type: "radio", label: "Underline",     options: [{ label: "On", value: true }, { label: "Off", value: false }] },
-                    strikethrough: { type: "radio", label: "Strikethrough", options: [{ label: "On", value: true }, { label: "Off", value: false }] },
-                    textAlign: {
-                      type: "select", label: "Alignment",
-                      options: [
-                        { label: "Left",   value: "left" },
-                        { label: "Center", value: "center" },
-                        { label: "Right",  value: "right" },
-                      ],
-                    },
-                    listType: {
-                      type: "select", label: "List",
-                      options: [
-                        { label: "None",    value: "none" },
-                        { label: "Bullet",  value: "bullet" },
-                        { label: "Ordered", value: "ordered" },
-                      ],
-                    },
-                    textColor:      { type: "text", label: "Text color (hex)" },
-                    textBackground: { type: "text", label: "Text background (hex)" },
-                    lineHeight:     { type: "number", label: "Line height (e.g. 1.2)", min: 0.8, max: 3 },
-                    letterSpacing:  { type: "number", label: "Letter spacing (px)" },
-                    textTransform: {
-                      type: "select", label: "Text transform",
-                      options: [
-                        { label: "None",       value: "none" },
-                        { label: "UPPERCASE",  value: "uppercase" },
-                        { label: "lowercase",  value: "lowercase" },
-                        { label: "Capitalize", value: "capitalize" },
-                      ],
-                    },
-                    link: { type: "text", label: "Link URL" },
-                  },
-                },
-                // ── Button Group ────────────────────────────
-                buttons: {
-                  type: "array", label: "Buttons (buttonGroup elements)",
-                  arrayFields: {
-                    id:    { type: "text", label: "Internal id" },
-                    label: { type: "text", label: "Label" },
-                    type: {
-                      type: "select", label: "Type",
-                      options: [
-                        { label: "Open URL",  value: "url" },
-                        { label: "Register",  value: "register" },
-                        { label: "Anchor",    value: "anchor" },
-                      ],
-                    },
-                    url:    { type: "text", label: "URL" },
-                    anchor: { type: "text", label: "Anchor (without #)" },
-                    style: {
-                      type: "select", label: "Style",
-                      options: [
-                        { label: "Primary",   value: "primary" },
-                        { label: "Secondary", value: "secondary" },
-                        { label: "Outline",   value: "outline" },
-                      ],
-                    },
-                  },
-                  getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Button",
-                  defaultItemProps: { id: "", label: "Button", type: "url", url: "/tickets", style: "primary" },
-                },
-                // ── Media element ───────────────────────────
-                url: {
-                  type: "custom", label: "Media URL (primaryMedia / secondaryMedia)",
-                  render: (p) => (
-                    <ImageField
-                      field={p.field as { label?: string }}
-                      value={(p.value as string | undefined) ?? ""}
-                      onChange={p.onChange as (v: string) => void}
-                      folder="events"
-                    />
-                  ),
-                },
-                alt: { type: "text", label: "Alt (primaryMedia / secondaryMedia)" },
-                mediaKind: {
-                  type: "radio", label: "Media kind",
-                  options: [{ label: "Image", value: "image" }, { label: "Video", value: "video" }],
-                },
-                // ── ITEM 5 — Date/Time element ──────────────
-                showVenue: { type: "radio", label: "Show venue (dateTime)",   options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
-                showDate:  { type: "radio", label: "Show date (dateTime)",    options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
-                showTime:  { type: "radio", label: "Show time (dateTime)",    options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
-                widgetSize: {
-                  type: "select", label: "Widget size (dateTime)",
-                  options: [
-                    { label: "Small",       value: "sm" },
-                    { label: "Medium",      value: "md" },
-                    { label: "Large",       value: "lg" },
-                    { label: "Extra large", value: "xl" },
-                  ],
-                },
-                formatType: {
-                  type: "select", label: "Format type (dateTime)",
-                  options: [
-                    { label: "Short", value: "short" },
-                    { label: "Long",  value: "long" },
-                    { label: "ISO",   value: "iso" },
-                  ],
-                },
-                iconStyle: {
-                  type: "select", label: "Icon style (dateTime)",
-                  options: [
-                    { label: "Outline", value: "outline" },
-                    { label: "Solid",   value: "solid" },
-                    { label: "Minimal", value: "minimal" },
-                    { label: "None",    value: "none" },
-                  ],
-                },
-                textColor: { type: "text", label: "Text color (dateTime, hex)" },
-              },
-              getItemSummary: (item: unknown) => {
-                const k = (item as { kind?: string })?.kind ?? "element"
-                const label = (item as { text?: string })?.text
-                return label ? `${k}: ${label.slice(0, 24)}` : k
-              },
-              defaultItemProps: { id: "", kind: "eventName", text: "" },
+              type: "custom",
+              label: "Elements (drag to reorder)",
+              render: (p) => (
+                <HeroElementsField
+                  field={p.field as { label?: string }}
+                  value={(p.value as HeroElement[] | undefined) ?? []}
+                  onChange={p.onChange as (v: HeroElement[]) => void}
+                />
+              ),
             },
+            // Per-element format — surfaced as a separate Event Name
+            // toolbar (ITEM 4.3) just below the elements list. Applies
+            // to whichever eventName / shortDescription / label element
+            // is selected via the elementId helper input. Keep the
+            // toolbar OUT of the array editor so it can render its own
+            // icon-button UI without fighting Puck's row chrome.
+            // (See HeroFormatToolbarField below for the toolbar.)
           },
           getItemSummary: (item: unknown) =>
             (item as { title?: string })?.title || "Slide",
