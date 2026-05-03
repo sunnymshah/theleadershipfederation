@@ -1,205 +1,278 @@
 "use client"
 
 /**
- * In-builder Speakers manager.
+ * In-builder Speakers manager — table view (ITEM 3).
  *
- * Lists the event's speakers (read from Puck metadata that's already
- * loaded), lets the admin add / edit / delete via the existing
- * speakerActions server actions. After save, calls router.refresh() so
- * the metadata reloads and the SpeakersGrid block re-renders.
+ * Replaces the EntityListItem list with a Zoho-parity ManagerTable
+ * (search + filter + sort + columns toolbar) backed by a
+ * ProfilePanel slide-in for view/edit. Featured toggle in the row
+ * saves immediately via setSpeakerFeatured. Profile panel View shows
+ * avatar / name / role / country / bio; Edit shows the full form
+ * including the featured checkbox.
  */
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Loader2, ArrowLeft } from "lucide-react"
-import { SecondaryPanel } from "./SecondaryPanel"
-import { EntityListItem } from "./EntityListItem"
+import { Edit3, Trash2, Loader2 } from "lucide-react"
 import {
   createSpeaker, updateSpeaker, deleteSpeaker,
+  setSpeakerFeatured, listSpeakersFull, type SpeakerRow,
 } from "@/app/actions/speakerActions"
-import type { SpeakerShape } from "../blocks"
-
-type EditState =
-  | { mode: "list" }
-  | { mode: "create" }
-  | { mode: "edit"; speaker: SpeakerShape }
+import { ManagerTable, type ColumnDef } from "./ManagerTable"
+import { ProfilePanel } from "./ProfilePanel"
+import { FeatureSwitch } from "./FeatureSwitch"
+import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
 
 export function SpeakersManager({
   eventId,
-  speakers,
   onClose,
 }: {
   eventId: string
-  speakers: SpeakerShape[]
+  /** Legacy `speakers` prop from puck.metadata is unused — the table
+   *  fetches every column directly via listSpeakersFull. */
+  speakers?: unknown
   onClose?: () => void
 }) {
   const router = useRouter()
-  const [search, setSearch] = useState("")
-  const [edit, setEdit] = useState<EditState>({ mode: "list" })
-  const [busyId, setBusyId] = useState<string | null>(null)
+  const [rows, setRows] = useState<SpeakerRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<"view" | "edit">("view")
+  const [selected, setSelected] = useState<SpeakerRow | null>(null)
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return speakers
-    return speakers.filter((s) =>
-      s.name.toLowerCase().includes(q)
-      || (s.company ?? "").toLowerCase().includes(q)
-      || (s.designation ?? "").toLowerCase().includes(q),
-    )
-  }, [speakers, search])
-
-  async function handleDelete(id: string, name: string) {
-    if (!window.confirm(`Delete speaker "${name}"?`)) return
-    setBusyId(id)
-    try {
-      await deleteSpeaker(id)
-      router.refresh()
-    } finally {
-      setBusyId(null)
-    }
+  async function refresh() {
+    const r = await listSpeakersFull(eventId)
+    setRows(r.rows)
   }
 
-  if (edit.mode !== "list") {
+  useEffect(() => {
+    let cancelled = false
+    void refresh().finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId])
+
+  function openCreate() {
+    setSelected({
+      id: "",
+      event_id: eventId,
+      name: "",
+      designation: "",
+      company: "",
+      country: "",
+      bio: "",
+      image_url: null,
+      slug: null,
+      featured: false,
+      sort_order: rows.length * 10,
+      linkedin_url: null,
+      twitter_url: null,
+      email: null,
+      created_at: new Date().toISOString(),
+    })
+    setMode("edit")
+    setOpen(true)
+  }
+  function openRow(item: SpeakerRow) {
+    setSelected(item)
+    setMode("view")
+    setOpen(true)
+  }
+
+  async function onSave(next: SpeakerRow) {
+    const fd = new FormData()
+    fd.set("eventId", eventId)
+    fd.set("name", next.name ?? "")
+    fd.set("designation", next.designation ?? "")
+    fd.set("company", next.company ?? "")
+    fd.set("country", next.country ?? "")
+    fd.set("bio", next.bio ?? "")
+    fd.set("imageUrl", next.image_url ?? "")
+    fd.set("sortOrder", String(next.sort_order ?? 0))
+    fd.set("featured", next.featured ? "true" : "false")
+    const res = next.id
+      ? await updateSpeaker(next.id, fd)
+      : await createSpeaker(fd)
+    if ((res as { success?: boolean }).success === false) {
+      return { success: false, error: (res as { error?: string }).error }
+    }
+    await refresh()
+    router.refresh()
+    return { success: true }
+  }
+
+  async function onDelete() {
+    if (!selected?.id) return
+    const res = await deleteSpeaker(selected.id)
+    if ((res as { success?: boolean }).success === false) return
+    await refresh()
+    router.refresh()
+  }
+
+  async function onToggleFeatured(row: SpeakerRow, next: boolean) {
+    const res = await setSpeakerFeatured(row.id, next)
+    if (res.success) {
+      setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, featured: next } : r)))
+    }
+    return res
+  }
+
+  const columns = useMemo<ColumnDef<SpeakerRow>[]>(() => [
+    {
+      key: "name",
+      label: "Name",
+      defaultVisible: true,
+      sortValue: (s) => s.name,
+      filter: (s, q) => s.name.toLowerCase().includes(q.toLowerCase()),
+      render: (s) => <span className="font-semibold">{s.name}</span>,
+    },
+    {
+      key: "designation",
+      label: "Designation",
+      defaultVisible: true,
+      sortValue: (s) => s.designation ?? "",
+      filter: (s, q) => (s.designation ?? "").toLowerCase().includes(q.toLowerCase()),
+      render: (s) => <span className="text-[var(--z-text-muted,#6b7280)]">{s.designation ?? "—"}</span>,
+    },
+    {
+      key: "company",
+      label: "Company",
+      defaultVisible: true,
+      sortValue: (s) => s.company ?? "",
+      filter: (s, q) => (s.company ?? "").toLowerCase().includes(q.toLowerCase()),
+      render: (s) => <span className="text-[var(--z-text-muted,#6b7280)]">{s.company ?? "—"}</span>,
+    },
+    {
+      key: "country",
+      label: "Country",
+      defaultVisible: false,
+      sortValue: (s) => s.country ?? "",
+      filter: (s, q) => (s.country ?? "").toLowerCase().includes(q.toLowerCase()),
+      render: (s) => <span className="text-[var(--z-text-muted,#6b7280)]">{s.country ?? "—"}</span>,
+    },
+    {
+      key: "featured",
+      label: "Featured",
+      defaultVisible: true,
+      sortValue: (s) => (s.featured ? 1 : 0),
+      render: (s) => <FeatureSwitch value={s.featured} onChange={(v) => onToggleFeatured(s, v)} />,
+    },
+  ], [])
+
+  if (loading) {
     return (
-      <SpeakerForm
-        eventId={eventId}
-        initial={edit.mode === "edit" ? edit.speaker : undefined}
-        onCancel={() => setEdit({ mode: "list" })}
-        onSaved={() => {
-          setEdit({ mode: "list" })
-          router.refresh()
-        }}
-      />
+      <div className="w-72 shrink-0 h-full bg-[var(--z-bg-alt,#f7f8fa)] border-r border-[var(--z-border,#e5e7eb)] flex items-center justify-center">
+        <Loader2 size={16} className="animate-spin text-[var(--z-text-muted,#6b7280)]" />
+      </div>
     )
   }
 
   return (
-    <SecondaryPanel
-      title="Speakers"
-      onClose={onClose}
-      searchPlaceholder="Search speakers…"
-      searchValue={search}
-      onSearchChange={setSearch}
-    >
-      <div className="px-2 pt-2">
-        <button
-          type="button"
-          onClick={() => setEdit({ mode: "create" })}
-          className="z-btn-primary w-[calc(100%-1rem)] mx-2"
-        >
-          <Plus size={14} strokeWidth={1.5} />
-          Add speaker
-        </button>
-      </div>
-      <div className="pt-2 pb-4">
-        {filtered.length === 0 ? (
-          <div className="z-empty">
-            <p className="z-empty-title">
-              {speakers.length === 0 ? "No speakers yet" : "No matches"}
-            </p>
-            <p className="z-empty-desc">
-              {speakers.length === 0
-                ? "Add your first speaker — they'll appear in the SpeakersGrid block."
-                : "Try a different keyword."}
-            </p>
+    <>
+      <ManagerTable<SpeakerRow>
+        tableId="speakers"
+        title="Speakers"
+        onClose={onClose}
+        items={rows}
+        columns={columns}
+        rowAvatar={(s) => ({
+          src: s.image_url,
+          fallback: (s.name || "?").slice(0, 1).toUpperCase(),
+        })}
+        rowActions={(s) => [
+          { icon: <Edit3 size={11} />, label: "Edit", onClick: () => { setSelected(s); setMode("edit"); setOpen(true) } },
+          { icon: <Trash2 size={11} />, label: "Delete", danger: true, onClick: async () => {
+            if (!confirm(`Delete speaker "${s.name}"?`)) return
+            await deleteSpeaker(s.id)
+            await refresh()
+            router.refresh()
+          } },
+        ]}
+        onAdd={openCreate}
+        onRowClick={openRow}
+        addLabel="Add speaker"
+      />
+      <ProfilePanel<SpeakerRow>
+        open={open}
+        item={selected}
+        title={selected?.name || "New speaker"}
+        mode={mode}
+        onClose={() => setOpen(false)}
+        onModeChange={setMode}
+        onSave={onSave}
+        onDelete={selected?.id ? onDelete : undefined}
+        viewBody={(s) => (
+          <div className="space-y-3 text-[12px] text-[var(--z-text,#1f2937)]">
+            <div className="flex items-center gap-3">
+              {s.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={s.image_url} alt="" className="w-16 h-16 rounded-full object-cover bg-[var(--z-bg-alt,#f7f8fa)]" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-[var(--z-bg-alt,#f7f8fa)] flex items-center justify-center text-[18px] font-bold text-[var(--z-text-muted,#6b7280)]">
+                  {(s.name || "?").slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-[15px] font-bold truncate">{s.name}</p>
+                <p className="text-[12px] text-[var(--z-text-muted,#6b7280)] truncate">
+                  {[s.designation, s.company].filter(Boolean).join(" · ")}
+                </p>
+                {s.country && <p className="text-[11px] text-[var(--z-text-muted,#6b7280)] mt-0.5">{s.country}</p>}
+              </div>
+            </div>
+            {s.bio && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">Bio</p>
+                <p className="whitespace-pre-wrap text-[12px] leading-relaxed">{s.bio}</p>
+              </div>
+            )}
+            {(s.linkedin_url || s.twitter_url || s.email) && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">Contact</p>
+                <ul className="space-y-1 text-[12px]">
+                  {s.linkedin_url && <li><a href={s.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-[var(--z-info,#3e7af7)] hover:underline">{s.linkedin_url}</a></li>}
+                  {s.twitter_url && <li><a href={s.twitter_url} target="_blank" rel="noopener noreferrer" className="text-[var(--z-info,#3e7af7)] hover:underline">{s.twitter_url}</a></li>}
+                  {s.email && <li><a href={`mailto:${s.email}`} className="text-[var(--z-info,#3e7af7)] hover:underline">{s.email}</a></li>}
+                </ul>
+              </div>
+            )}
           </div>
-        ) : (
-          filtered.map((s) => (
-            <div key={s.id} className={busyId === s.id ? "opacity-50 pointer-events-none" : ""}>
-              <EntityListItem
-                avatarSrc={s.image_url}
-                avatarFallback={s.name.slice(0, 1).toUpperCase()}
-                name={s.name}
-                meta={[s.designation, s.company].filter(Boolean).join(" · ") || null}
-                onEdit={() => setEdit({ mode: "edit", speaker: s })}
-                onDelete={() => handleDelete(s.id, s.name)}
+        )}
+        editForm={(s, onChange) => (
+          <>
+            <PField label="Name" required value={s.name} onChange={(v) => onChange({ ...s, name: v })} />
+            <PField label="Designation" value={s.designation ?? ""} onChange={(v) => onChange({ ...s, designation: v })} />
+            <PField label="Company" value={s.company ?? ""} onChange={(v) => onChange({ ...s, company: v })} />
+            <PField label="Country" value={s.country ?? ""} onChange={(v) => onChange({ ...s, country: v })} placeholder="India" />
+            <PArea label="Bio" value={s.bio ?? ""} onChange={(v) => onChange({ ...s, bio: v })} />
+            <div>
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">Photo</span>
+              <ImageUploadCrop
+                value={s.image_url}
+                onChange={(url) => onChange({ ...s, image_url: url ?? null })}
+                aspectRatio={1}
+                folder="speakers"
+                label=""
               />
             </div>
-          ))
+            <label className="flex items-center gap-2 text-[12px]">
+              <input
+                type="checkbox"
+                checked={s.featured}
+                onChange={(e) => onChange({ ...s, featured: e.target.checked })}
+              />
+              <span>Feature this speaker</span>
+            </label>
+          </>
         )}
-      </div>
-    </SecondaryPanel>
+      />
+    </>
   )
 }
 
-function SpeakerForm({
-  eventId,
-  initial,
-  onCancel,
-  onSaved,
-}: {
-  eventId: string
-  initial?: SpeakerShape
-  onCancel: () => void
-  onSaved: () => void
-}) {
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    const fd = new FormData(e.currentTarget)
-    fd.set("eventId", eventId)
-    try {
-      const res = initial
-        ? await updateSpeaker(initial.id, fd)
-        : await createSpeaker(fd)
-      if ((res as { success?: boolean })?.success === false) {
-        setError((res as { error?: string }).error ?? "Save failed")
-      } else {
-        onSaved()
-      }
-    } catch (err) {
-      setError((err as Error).message ?? "Save failed")
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  return (
-    <aside className="w-72 shrink-0 h-full bg-[var(--z-bg-alt,#f7f8fa)] border-r border-[var(--z-border,#e5e7eb)] flex flex-col">
-      <div className="shrink-0 h-12 px-4 flex items-center gap-2 border-b border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg,#fff)]">
-        <button type="button" onClick={onCancel} aria-label="Back" className="z-btn z-btn-icon">
-          <ArrowLeft size={14} strokeWidth={1.5} />
-        </button>
-        <h2 className="text-[13px] font-bold text-[var(--z-text,#1f2937)]">
-          {initial ? "Edit speaker" : "Add speaker"}
-        </h2>
-      </div>
-      <form onSubmit={onSubmit} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-        <Field label="Name" name="name" defaultValue={initial?.name} required />
-        <Field label="Designation" name="designation" defaultValue={initial?.designation ?? ""} />
-        <Field label="Company" name="company" defaultValue={initial?.company ?? ""} />
-        <Field label="Photo URL" name="imageUrl" defaultValue={initial?.image_url ?? ""} type="url" placeholder="https://…" />
-        <FieldArea label="Bio" name="bio" defaultValue="" />
-        {error && (
-          <p className="text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-            {error}
-          </p>
-        )}
-        <div className="pt-1 flex items-center gap-2">
-          <button type="submit" disabled={submitting} className="z-btn-primary flex-1">
-            {submitting ? <Loader2 size={14} className="animate-spin" /> : null}
-            {initial ? "Save" : "Add speaker"}
-          </button>
-          <button type="button" onClick={onCancel} className="z-btn">Cancel</button>
-        </div>
-      </form>
-    </aside>
-  )
-}
-
-function Field({
-  label, name, defaultValue, type = "text", required, placeholder,
-}: {
-  label: string
-  name: string
-  defaultValue?: string
-  type?: string
-  required?: boolean
-  placeholder?: string
+function PField({ label, value, onChange, required, placeholder, type = "text" }: {
+  label: string; value: string; onChange: (v: string) => void;
+  required?: boolean; placeholder?: string; type?: string;
 }) {
   return (
     <label className="block">
@@ -208,8 +281,8 @@ function Field({
       </span>
       <input
         type={type}
-        name={name}
-        defaultValue={defaultValue}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         required={required}
         placeholder={placeholder}
         className="z-input"
@@ -217,25 +290,11 @@ function Field({
     </label>
   )
 }
-
-function FieldArea({
-  label, name, defaultValue,
-}: {
-  label: string
-  name: string
-  defaultValue?: string
-}) {
+function PArea({ label, value, onChange, rows = 4 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
   return (
     <label className="block">
-      <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">
-        {label}
-      </span>
-      <textarea
-        name={name}
-        defaultValue={defaultValue}
-        className="z-input z-textarea"
-        rows={4}
-      />
+      <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">{label}</span>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows} className="z-input z-textarea" />
     </label>
   )
 }
