@@ -64,6 +64,7 @@ import { TicketsManager } from "./zoho/TicketsManager"
 import { SponsorsManager } from "./zoho/SponsorsManager"
 import { ExhibitorsManager } from "./zoho/ExhibitorsManager"
 import { HotelsManager } from "./zoho/HotelsManager"
+import { DataPanel } from "./zoho/DataPanel"
 import { PagesPanel } from "./zoho/PagesPanel"
 import { StandardPagesPanel } from "./zoho/StandardPagesPanel"
 import { LanguagesPanel } from "./zoho/LanguagesPanel"
@@ -1181,6 +1182,11 @@ function ActiveRailPanel({
       return <ExhibitorsManager eventId={eventId} onClose={onClose} />
     case "hotels":
       return <HotelsManager eventId={eventId} onClose={onClose} />
+    case "data":
+      // ITEM 5 — single entry point with 6 sub-tabs over the existing
+      // managers. Each sub-tab mounts its own ManagerTable + Profile-
+      // Panel; switching tabs swaps them in place.
+      return <DataPanel eventId={eventId} onClose={onClose} />
 
     case "stdpages":
       return (
