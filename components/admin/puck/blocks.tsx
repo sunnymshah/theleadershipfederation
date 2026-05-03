@@ -1885,22 +1885,74 @@ export type FaqsProps = {
   layout?: LayoutProps
 }
 
-export function Faqs({ title, faqs, layout }: FaqsProps) {
-  if (!faqs || faqs.length === 0) return <SectionPlaceholder label="FAQs (add question/answer pairs in the inspector)" />
+export function Faqs({
+  title, faqs, layout, puck,
+}: FaqsProps & { puck?: { metadata?: Record<string, unknown>; id?: string } }) {
+  const editor = isEditorRender(puck)
+  const blockId = puck?.id
+  if ((!faqs || faqs.length === 0) && !editor) {
+    return <SectionPlaceholder label="FAQs (add question/answer pairs in the inspector)" />
+  }
+  const list = faqs ?? []
   return (
     <SectionShell layout={layout}>
       <div className="max-w-3xl mx-auto px-6">
-        <h2 className="text-3xl sm:text-4xl font-bold mb-8 tracking-tight text-center" style={sfFont}>
-          {title || "Frequently Asked"}
-        </h2>
+        <EditableText
+          as="h2"
+          editor={editor}
+          blockId={blockId}
+          propKey="title"
+          value={title || "Frequently Asked"}
+          className="text-3xl sm:text-4xl font-bold mb-8 tracking-tight text-center"
+          style={sfFont}
+        />
         <div className="space-y-3">
-          {faqs.map((faq, i) => (
-            <details key={i} className="group bg-white border border-[#1a1a2e]/[0.06] rounded-xl px-5 py-4 open:bg-[#F4F8FF] text-[#1a1a2e]">
+          {list.map((faq, i) => (
+            <details
+              key={i}
+              // ITEM 4 — open the disclosure in editor mode so the
+              // answer is visible (and editable). The user can still
+              // toggle individual entries closed via summary click.
+              {...(editor ? { open: true } : {})}
+              className="group bg-white border border-[#1a1a2e]/[0.06] rounded-xl px-5 py-4 open:bg-[#F4F8FF] text-[#1a1a2e]"
+            >
               <summary className="font-semibold cursor-pointer list-none flex justify-between items-center">
-                {faq.q}
+                {/* In editor mode the question must NOT toggle the
+                    disclosure when clicked (otherwise focusing the
+                    contentEditable closes the panel). Wrap inside a
+                    span that stops propagation. */}
+                {editor && blockId ? (
+                  <span
+                    onClick={(e) => e.preventDefault()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="flex-1"
+                  >
+                    <EditableArrayText
+                      as="span"
+                      editor={editor}
+                      blockId={blockId}
+                      arrayKey="faqs"
+                      index={i}
+                      itemKey="q"
+                      value={faq.q}
+                    />
+                  </span>
+                ) : (
+                  <span className="flex-1">{faq.q}</span>
+                )}
                 <ChevronRight size={16} className="group-open:rotate-90 transition-transform" />
               </summary>
-              <p className="mt-3 text-sm opacity-75 leading-relaxed whitespace-pre-wrap">{faq.a}</p>
+              <EditableArrayText
+                as="p"
+                editor={editor}
+                blockId={blockId}
+                arrayKey="faqs"
+                index={i}
+                itemKey="a"
+                value={faq.a}
+                className="mt-3 text-sm opacity-75 leading-relaxed whitespace-pre-wrap"
+                multiline
+              />
             </details>
           ))}
         </div>
