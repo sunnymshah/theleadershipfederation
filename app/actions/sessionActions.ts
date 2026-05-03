@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
@@ -45,6 +46,7 @@ export async function createSession(formData: FormData) {
     const room        = formData.get("room") as string
     const capacity    = parseInt(formData.get("capacity") as string) || null
     const sortOrder   = parseInt(formData.get("sortOrder") as string) || 0
+    const featured    = formData.get("featured") === "on" || formData.get("featured") === "true"
 
     if (!eventId || !title || !startTime || !endTime) {
       return { success: false, error: "Event, title, start time and end time are required." }
@@ -63,6 +65,7 @@ export async function createSession(formData: FormData) {
         room: room || null,
         capacity,
         sort_order: sortOrder,
+        featured,
       })
       .select()
       .single()
@@ -100,6 +103,7 @@ export async function updateSession(sessionId: string, formData: FormData) {
       return { success: false, error: "Title, start and end time are required." }
     }
 
+    const featured = formData.get("featured") === "on" || formData.get("featured") === "true"
     const { data, error } = await supabase
       .from("sessions")
       .update({
@@ -112,6 +116,7 @@ export async function updateSession(sessionId: string, formData: FormData) {
         room: room || null,
         capacity,
         sort_order: sortOrder,
+        featured,
         updated_at: new Date().toISOString(),
       })
       .eq("id", sessionId)
@@ -210,5 +215,80 @@ export async function getSessionSpeakers(sessionId: string) {
     return { success: true, speakers }
   } catch (err) {
     return { success: false, error: (err as Error).message, speakers: [] }
+  }
+}
+
+/* ── Manager parity helpers (full row + featured toggle) ─────────── */
+
+export type SessionRow = {
+  id: string
+  event_id: string
+  title: string
+  description: string | null
+  start_time: string
+  end_time: string
+  track: string | null
+  session_type: string | null
+  room: string | null
+  capacity: number | null
+  featured: boolean
+  sort_order: number
+  slug: string | null
+  created_at: string
+}
+
+export async function listSessionsFull(eventId: string): Promise<{ success: boolean; rows: SessionRow[]; error?: string }> {
+  try {
+    await requirePermission("sessions", "view")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("sessions")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("start_time", { ascending: true })
+    if (error) return { success: false, rows: [], error: error.message }
+    return { success: true, rows: (data ?? []) as SessionRow[] }
+  } catch (err) {
+    return { success: false, rows: [], error: (err as Error).message }
+  }
+}
+
+export async function setSessionFeatured(sessionId: string, featured: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("sessions", "edit")
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from("sessions")
+      .update({ featured, updated_at: new Date().toISOString() })
+      .eq("id", sessionId)
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+export async function listSpeakerLinksForEvent(
+  eventId: string,
+): Promise<{ success: boolean; map: Record<string, string[]>; error?: string }> {
+  // Returns { sessionId: [speakerId, ...] } for every session in the event.
+  try {
+    await requirePermission("sessions", "view")
+    const admin = createAdminClient()
+    const { data: sess } = await admin.from("sessions").select("id").eq("event_id", eventId)
+    const ids = (sess ?? []).map((r) => r.id as string)
+    if (ids.length === 0) return { success: true, map: {} }
+    const { data, error } = await admin
+      .from("session_speakers")
+      .select("session_id, speaker_id")
+      .in("session_id", ids)
+    if (error) return { success: false, map: {}, error: error.message }
+    const map: Record<string, string[]> = {}
+    for (const row of (data ?? []) as Array<{ session_id: string; speaker_id: string }>) {
+      ;(map[row.session_id] ??= []).push(row.speaker_id)
+    }
+    return { success: true, map }
+  } catch (err) {
+    return { success: false, map: {}, error: (err as Error).message }
   }
 }
