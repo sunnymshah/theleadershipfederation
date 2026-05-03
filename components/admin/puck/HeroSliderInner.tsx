@@ -326,8 +326,14 @@ function SlideContent({
   fmtDate: (s: string, e: string | null) => string
   socialHandles: SocialHandles
 }) {
-  const justifyMap = {
+  const verticalMap = {
     top: "items-start", center: "items-center", bottom: "items-end",
+  } as const
+  // ITEM 2.2 — horizontal align maps to flex justify on the COPY column,
+  // independent of vertical align. So a media-right + bottom-right copy
+  // genuinely lands in the bottom-right of its track.
+  const horizontalMap = {
+    left: "justify-start", center: "justify-center", right: "justify-end",
   } as const
   const alignText =
     horizontalAlign === "center" ? "text-center" :
@@ -335,8 +341,8 @@ function SlideContent({
 
   const copy = (
     <div
-      className={`relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pb-20 pt-28 w-full ${alignText}`}
-      style={horizontalAlign === "center" ? { marginInline: "auto" } : undefined}
+      data-testid="hero-slide-copy"
+      className={`relative z-10 px-6 sm:px-10 py-12 w-full max-w-6xl ${alignText}`}
     >
       {elements.map((el) => (
         <ElementRenderer
@@ -354,7 +360,7 @@ function SlideContent({
 
   if (layout === "background-only") {
     return (
-      <div className={`absolute inset-0 flex ${justifyMap[verticalAlign]}`}>
+      <div className={`absolute inset-0 flex ${verticalMap[verticalAlign]} ${horizontalMap[horizontalAlign]}`}>
         {copy}
       </div>
     )
@@ -362,13 +368,13 @@ function SlideContent({
 
   const media = slide.primaryMedia
   if (!media || !media.url) return (
-    <div className={`absolute inset-0 flex ${justifyMap[verticalAlign]}`}>{copy}</div>
+    <div className={`absolute inset-0 flex ${verticalMap[verticalAlign]} ${horizontalMap[horizontalAlign]}`}>{copy}</div>
   )
 
   const sizePct = MEDIA_SIZE_PCT[slide.mediaSize ?? "lg"]
   const isHorizontal = layout === "media-left" || layout === "media-right"
   const mediaEl = (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden" data-testid={`hero-slide-media-${layout}`}>
       {media.kind === "video" ? (
         <video src={media.url} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
       ) : (
@@ -387,15 +393,18 @@ function SlideContent({
 
   const order = layout === "media-left" || layout === "media-top" ? "media-first" : "copy-first"
   return (
-    <div className={`absolute inset-0 flex ${isHorizontal ? "flex-row" : "flex-col"}`}>
+    <div
+      className={`absolute inset-0 flex ${isHorizontal ? "flex-row" : "flex-col"}`}
+      data-testid={`hero-slide-grid-${layout}-${slide.mediaSize ?? "lg"}`}
+    >
       {order === "media-first" ? (
         <>
           <div style={styleMedia}>{mediaEl}</div>
-          <div style={styleCopy} className={`flex ${justifyMap[verticalAlign]}`}>{copy}</div>
+          <div style={styleCopy} className={`flex ${verticalMap[verticalAlign]} ${horizontalMap[horizontalAlign]}`}>{copy}</div>
         </>
       ) : (
         <>
-          <div style={styleCopy} className={`flex ${justifyMap[verticalAlign]}`}>{copy}</div>
+          <div style={styleCopy} className={`flex ${verticalMap[verticalAlign]} ${horizontalMap[horizontalAlign]}`}>{copy}</div>
           <div style={styleMedia}>{mediaEl}</div>
         </>
       )}
