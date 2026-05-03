@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { requirePermission } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
@@ -84,6 +85,7 @@ export async function createSponsor(formData: FormData) {
       return { success: false, error: "Event and sponsor name are required." }
     }
 
+    const featured = formData.get("featured") === "on" || formData.get("featured") === "true"
     const { data, error } = await supabase
       .from("sponsors")
       .insert({
@@ -94,6 +96,7 @@ export async function createSponsor(formData: FormData) {
         website: website || null,
         description: description || null,
         sort_order: sortOrder,
+        featured,
       })
       .select()
       .single()
@@ -134,6 +137,7 @@ export async function updateSponsor(sponsorId: string, formData: FormData) {
 
     if (!name) return { success: false, error: "Sponsor name is required." }
 
+    const featured = formData.get("featured") === "on" || formData.get("featured") === "true"
     const { data, error } = await supabase
       .from("sponsors")
       .update({
@@ -143,6 +147,7 @@ export async function updateSponsor(sponsorId: string, formData: FormData) {
         website: website || null,
         description: description || null,
         sort_order: sortOrder,
+        featured,
         updated_at: new Date().toISOString(),
       })
       .eq("id", sponsorId)
@@ -178,6 +183,144 @@ export async function deleteSponsor(sponsorId: string) {
     const { error } = await supabase.from("sponsors").delete().eq("id", sponsorId)
     if (error) return { success: false, error: error.message }
     if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── Manager parity helpers ─────────────────────────────────────── */
+
+export type SponsorRow = {
+  id: string
+  event_id: string
+  name: string
+  tier: string | null
+  logo_url: string | null
+  website: string | null
+  description: string | null
+  featured: boolean
+  sort_order: number
+  created_at: string
+}
+
+export async function listSponsorsFull(eventId: string): Promise<{ success: boolean; rows: SponsorRow[]; error?: string }> {
+  try {
+    await requirePermission("sponsors", "view")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("sponsors")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("sort_order", { ascending: true })
+    if (error) return { success: false, rows: [], error: error.message }
+    return { success: true, rows: (data ?? []) as SponsorRow[] }
+  } catch (err) {
+    return { success: false, rows: [], error: (err as Error).message }
+  }
+}
+
+export async function setSponsorFeatured(sponsorId: string, featured: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("sponsors", "edit")
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from("sponsors")
+      .update({ featured, updated_at: new Date().toISOString() })
+      .eq("id", sponsorId)
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── Sponsor tiers (event_sponsor_tiers) ────────────────────────── */
+
+export type SponsorTier = {
+  id: string
+  event_id: string
+  name: string
+  color: string | null
+  sort_order: number
+  created_at: string
+}
+
+export async function listSponsorTiers(eventId: string): Promise<{ success: boolean; rows: SponsorTier[]; error?: string }> {
+  try {
+    await requirePermission("sponsors", "view")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("event_sponsor_tiers")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("sort_order", { ascending: true })
+    if (error) return { success: false, rows: [], error: error.message }
+    return { success: true, rows: (data ?? []) as SponsorTier[] }
+  } catch (err) {
+    return { success: false, rows: [], error: (err as Error).message }
+  }
+}
+
+export async function upsertSponsorTier(
+  eventId: string,
+  patch: { id?: string; name: string; color?: string | null; sort_order?: number },
+): Promise<{ success: boolean; row?: SponsorTier; error?: string }> {
+  try {
+    await requirePermission("sponsors", "edit")
+    const admin = createAdminClient()
+    const payload = {
+      event_id: eventId,
+      name: patch.name.trim(),
+      color: patch.color ?? null,
+      sort_order: patch.sort_order ?? 0,
+    }
+    if (patch.id) {
+      const { data, error } = await admin
+        .from("event_sponsor_tiers")
+        .update(payload)
+        .eq("id", patch.id)
+        .eq("event_id", eventId)
+        .select()
+        .maybeSingle()
+      if (error) return { success: false, error: error.message }
+      return { success: true, row: (data as SponsorTier | null) ?? undefined }
+    }
+    const { data, error } = await admin
+      .from("event_sponsor_tiers")
+      .insert(payload)
+      .select()
+      .maybeSingle()
+    if (error) return { success: false, error: error.message }
+    return { success: true, row: (data as SponsorTier | null) ?? undefined }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+export async function deleteSponsorTier(eventId: string, tierId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("sponsors", "edit")
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from("event_sponsor_tiers")
+      .delete()
+      .eq("id", tierId)
+      .eq("event_id", eventId)
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+export async function reorderSponsorTiers(eventId: string, idsInOrder: string[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("sponsors", "edit")
+    const admin = createAdminClient()
+    await Promise.all(idsInOrder.map((id, idx) =>
+      Promise.resolve(admin.from("event_sponsor_tiers").update({ sort_order: idx * 10 }).eq("id", id).eq("event_id", eventId)),
+    ))
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
