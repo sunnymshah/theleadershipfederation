@@ -32,6 +32,7 @@ import {
 } from "lucide-react"
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
+import { useInlineEdit, patchHeroSlideElement, patchHeroSlideButton } from "@/lib/inline-edit"
 import {
   sfFont,
   type EventShape, type SocialHandles,
@@ -69,6 +70,8 @@ export function HeroSliderInner({
   height,
   isFirstBlock,
   socialHandles,
+  editorMode,
+  blockId,
 }: {
   slides: HeroSlide[]
   event: EventShape
@@ -76,6 +79,11 @@ export function HeroSliderInner({
   height: string
   isFirstBlock: boolean
   socialHandles?: SocialHandles
+  /** ITEM 2 — when true, ElementRenderer wraps text nodes in
+   *  contentEditable spans bound to useInlineEdit. blockId is the
+   *  Hero block's puck.id, used to dispatch updates back into Puck. */
+  editorMode?: boolean
+  blockId?: string
 }) {
   const transition = controls.transition === "fade" ? "fade" : "slide"
   // ITEM 6.3 — autoplay is now driven by embla-carousel-autoplay's
@@ -193,6 +201,8 @@ export function HeroSliderInner({
                     event={event}
                     fmtDate={fmtDate}
                     socialHandles={socialHandles ?? {}}
+                    editorMode={editorMode === true}
+                    blockId={blockId}
                   />
                 </div>
               </div>
@@ -331,7 +341,7 @@ const MEDIA_SIZE_PCT: Record<NonNullable<HeroSlide["mediaSize"]>, number> = {
 }
 
 function SlideContent({
-  slide, layout, horizontalAlign, verticalAlign, event, fmtDate, socialHandles,
+  slide, layout, horizontalAlign, verticalAlign, event, fmtDate, socialHandles, editorMode, blockId,
 }: {
   slide: HeroSlide
   layout: NonNullable<HeroSlide["layout"]>
@@ -340,6 +350,8 @@ function SlideContent({
   event: EventShape
   fmtDate: (s: string, e: string | null) => string
   socialHandles: SocialHandles
+  editorMode: boolean
+  blockId: string | undefined
 }) {
   // ITEM 3.5 — synthesize the elements array from legacy fields when
   // slide.elements isn't populated. Memoised on slide identity so the
@@ -409,6 +421,8 @@ function SlideContent({
           fmtDate={fmtDate}
           socialHandles={socialHandles}
           horizontalAlign={horizontalAlign}
+          editorMode={editorMode}
+          blockId={blockId}
         />
       ))}
     </div>
@@ -470,7 +484,7 @@ function SlideContent({
 
 /* ── ITEM 3 — element renderer ─────────────────────────────────── */
 function ElementRenderer({
-  el, slide, event, fmtDate, socialHandles, horizontalAlign,
+  el, slide, event, fmtDate, socialHandles, horizontalAlign, editorMode, blockId,
 }: {
   el: HeroElement
   slide: HeroSlide
@@ -478,33 +492,63 @@ function ElementRenderer({
   fmtDate: (s: string, e: string | null) => string
   socialHandles: SocialHandles
   horizontalAlign: "left" | "center" | "right"
+  editorMode: boolean
+  blockId: string | undefined
 }) {
   const centered = horizontalAlign === "center"
   const eventLogo = slide.useEventLogo ? event.logo_url ?? null : null
 
   switch (el.kind) {
     case "eventName":
-      return <EventNameElement text={el.text || slide.title || event.title || "Untitled Event"} format={el.format} centered={centered} logo={eventLogo} />
+      return (
+        <EventNameElement
+          text={el.text || slide.title || event.title || "Untitled Event"}
+          format={el.format}
+          centered={centered}
+          logo={eventLogo}
+          editable={editorMode && !!blockId}
+          blockId={blockId}
+          slideId={slide.id}
+          elementId={el.id}
+        />
+      )
     case "shortDescription":
       return el.text || slide.subtitle ? (
-        <p
+        <InlineEditableP
+          editable={editorMode && !!blockId}
+          value={el.text || slide.subtitle || ""}
+          blockId={blockId}
+          slideId={slide.id}
+          elementId={el.id}
           className={`mt-5 text-lg sm:text-xl text-white/80 leading-relaxed ${centered ? "max-w-2xl mx-auto" : "max-w-2xl"}`}
           style={formatToStyle(el.format)}
-        >
-          {el.text || slide.subtitle}
-        </p>
+          multiline
+        />
       ) : null
     case "label":
       return el.text ? (
-        <span
+        <InlineEditableSpan
+          editable={editorMode && !!blockId}
+          value={el.text}
+          blockId={blockId}
+          slideId={slide.id}
+          elementId={el.id}
           className="inline-flex items-center px-3 py-1 mb-3 rounded-full bg-white/15 text-white text-[11px] font-bold uppercase tracking-[0.2em]"
           style={formatToStyle(el.format)}
-        >
-          {el.text}
-        </span>
+        />
       ) : null
     case "buttonGroup":
-      return <ButtonGroupElement buttons={el.buttons} slide={slide} event={event} centered={centered} />
+      return (
+        <ButtonGroupElement
+          buttons={el.buttons}
+          slide={slide}
+          event={event}
+          centered={centered}
+          editorMode={editorMode}
+          blockId={blockId}
+          elementId={el.id}
+        />
+      )
     case "countdown":
       return event.start_date ? <InlineCountdown to={event.start_date} centered={centered} /> : null
     case "socialHandles":
@@ -535,12 +579,18 @@ function ElementRenderer({
 
 /* ── ITEM 3 / ITEM 4 — Event Name with formatting ──────────────── */
 function EventNameElement({
-  text, format, centered, logo,
+  text, format, centered, logo, editable, blockId, slideId, elementId,
 }: {
   text: string
   format?: EventNameFormat
   centered: boolean
   logo: string | null
+  // ITEM 2.1 — when editable, the rendered <h1> becomes contentEditable
+  // and saves via patchHeroSlideElement on blur.
+  editable?: boolean
+  blockId?: string
+  slideId?: string
+  elementId?: string
 }) {
   const f = format ?? {}
   const cls = [
@@ -565,7 +615,18 @@ function EventNameElement({
     ...(typeof f.lineHeight === "number" ? { lineHeight: f.lineHeight } : {}),
     ...(typeof f.letterSpacing === "number" ? { letterSpacing: `${f.letterSpacing}px` } : {}),
   }
-  const titleNode = f.link ? (
+  // Editable: contentEditable <h1>; non-editable: link wraps headline
+  // (canvas inline edit is more useful than the link wrapper).
+  const titleNode = editable && blockId && slideId && elementId ? (
+    <InlineEditableHeading
+      value={text}
+      blockId={blockId}
+      slideId={slideId}
+      elementId={elementId}
+      className={`${cls} ${transformCls} ${alignCls}`}
+      style={style}
+    />
+  ) : f.link ? (
     <Link href={f.link} className={`${cls} ${transformCls} ${alignCls}`} style={style}>{text}</Link>
   ) : (
     <h1 className={`${cls} ${transformCls} ${alignCls}`} style={style}>{text}</h1>
@@ -587,6 +648,89 @@ function EventNameElement({
   )
 }
 
+/* ── ITEM 2.1 — small inline-edit wrappers for Hero text ─────── */
+function InlineEditableHeading({
+  value, blockId, slideId, elementId, className, style,
+}: {
+  value: string
+  blockId: string
+  slideId: string
+  elementId: string
+  className?: string
+  style?: CSSProperties
+}) {
+  const bag = useInlineEdit(value, (next) => {
+    patchHeroSlideElement(blockId, slideId, elementId, { text: next })
+  })
+  return <h1 className={className} style={style} {...bag} />
+}
+
+function InlineEditableP({
+  editable, value, blockId, slideId, elementId, className, style, multiline,
+}: {
+  editable: boolean
+  value: string
+  blockId?: string
+  slideId: string
+  elementId: string
+  className?: string
+  style?: CSSProperties
+  multiline?: boolean
+}) {
+  if (!editable || !blockId) {
+    return <p className={className} style={style}>{value}</p>
+  }
+  return <InlineEditableP_ value={value} blockId={blockId} slideId={slideId} elementId={elementId} className={className} style={style} multiline={multiline} />
+}
+function InlineEditableP_({
+  value, blockId, slideId, elementId, className, style, multiline,
+}: {
+  value: string
+  blockId: string
+  slideId: string
+  elementId: string
+  className?: string
+  style?: CSSProperties
+  multiline?: boolean
+}) {
+  const bag = useInlineEdit(value, (next) => {
+    patchHeroSlideElement(blockId, slideId, elementId, { text: next })
+  }, { multiline })
+  return <p className={className} style={style} {...bag} />
+}
+
+function InlineEditableSpan({
+  editable, value, blockId, slideId, elementId, className, style,
+}: {
+  editable: boolean
+  value: string
+  blockId?: string
+  slideId: string
+  elementId: string
+  className?: string
+  style?: CSSProperties
+}) {
+  if (!editable || !blockId) {
+    return <span className={className} style={style}>{value}</span>
+  }
+  return <InlineEditableSpan_ value={value} blockId={blockId} slideId={slideId} elementId={elementId} className={className} style={style} />
+}
+function InlineEditableSpan_({
+  value, blockId, slideId, elementId, className, style,
+}: {
+  value: string
+  blockId: string
+  slideId: string
+  elementId: string
+  className?: string
+  style?: CSSProperties
+}) {
+  const bag = useInlineEdit(value, (next) => {
+    patchHeroSlideElement(blockId, slideId, elementId, { text: next })
+  })
+  return <span className={className} style={style} {...bag} />
+}
+
 function formatToStyle(format?: EventNameFormat): CSSProperties {
   if (!format) return {}
   return {
@@ -601,12 +745,16 @@ function formatToStyle(format?: EventNameFormat): CSSProperties {
 
 /* ── ITEM 3.5 — Button Group ────────────────────────────────────── */
 function ButtonGroupElement({
-  buttons, slide, event, centered,
+  buttons, slide, event, centered, editorMode, blockId, elementId,
 }: {
   buttons?: HeroElementButton[]
   slide: HeroSlide
   event: EventShape
   centered: boolean
+  // ITEM 2.2 — when editorMode, each button label becomes editable.
+  editorMode?: boolean
+  blockId?: string
+  elementId?: string
 }) {
   // Backwards compat: if buttons is empty/missing, fall back to the
   // legacy ctaPrimary/ctaSecondary pair.
@@ -639,6 +787,24 @@ function ButtonGroupElement({
         const style: CSSProperties | undefined = b.style === "primary"
           ? { backgroundColor: "var(--lf-primary, #e7ab1c)" }
           : undefined
+        // ITEM 2.2 — in editor mode, render the button as a span with
+        // contentEditable wrapping the label (the anchor itself can't
+        // be contentEditable AND clickable). Click commits the
+        // currently-typed value via patchHeroSlideButton on blur.
+        if (editorMode && blockId && slide.id && elementId) {
+          return (
+            <span key={b.id} className={cls} style={style}>
+              <InlineEditableButtonLabel
+                value={b.label}
+                blockId={blockId}
+                slideId={slide.id}
+                elementId={elementId}
+                buttonId={b.id}
+              />
+              {b.style === "primary" && <ChevronRightIcon size={14} />}
+            </span>
+          )
+        }
         return (
           <Link
             key={b.id}
@@ -655,6 +821,21 @@ function ButtonGroupElement({
       })}
     </div>
   )
+}
+
+function InlineEditableButtonLabel({
+  value, blockId, slideId, elementId, buttonId,
+}: {
+  value: string
+  blockId: string
+  slideId: string
+  elementId: string
+  buttonId: string
+}) {
+  const bag = useInlineEdit(value, (next) => {
+    patchHeroSlideButton(blockId, slideId, elementId, buttonId, { label: next })
+  })
+  return <span {...bag} />
 }
 
 /* ── ITEM 5 — Date/Time element with size + format + icon style ── */

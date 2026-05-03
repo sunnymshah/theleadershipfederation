@@ -703,6 +703,8 @@ export function Hero({
         height={height}
         isFirstBlock={isFirstBlock}
         socialHandles={socialHandles}
+        editorMode={(meta as { editor?: boolean }).editor === true}
+        blockId={puck?.id}
       />
     )
   }
