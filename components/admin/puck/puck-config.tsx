@@ -209,11 +209,13 @@ export const puckConfig: Config<BuilderComponents> = {
           arrowsVisible: true,
           arrowColor: "#ffffff",
           arrowSize: "md",
+          arrowDesign: "stroke",
           navigatorVisible: true,
           navigatorStyle: "dots",
           autoplay: true,
           intervalSec: 6,
           transition: "slide",
+          pauseOnHover: true,
         },
         // ITEM 2
         showEventName: true,
@@ -314,7 +316,7 @@ export const puckConfig: Config<BuilderComponents> = {
             },
             backgroundImage: {
               type: "custom",
-              label: "Slide background image",
+              label: "Slide background image (legacy)",
               render: (p) => <ImageField {...p} folder="events" />,
             },
             alignment: {
@@ -333,6 +335,313 @@ export const puckConfig: Config<BuilderComponents> = {
                 { label: "Yes", value: true  as unknown as string },
               ],
             },
+            // ── ITEM 1 — per-slide background ──────────────────
+            background: {
+              type: "object",
+              label: "Background",
+              objectFields: {
+                type: {
+                  type: "select", label: "Background type",
+                  options: [
+                    { label: "Image", value: "image" },
+                    { label: "Color", value: "color" },
+                    { label: "Video", value: "video" },
+                  ],
+                },
+                color: {
+                  type: "object", label: "Color (used when type=color)",
+                  objectFields: {
+                    mode: { type: "select", label: "Mode", options: [{ label: "Flat", value: "flat" }, { label: "Gradient", value: "gradient" }] },
+                    color: { type: "text", label: "Color (hex)" },
+                    gradientTo: { type: "text", label: "Gradient end (hex; gradient mode only)" },
+                    opacity: { type: "number", label: "Opacity (0-1)", min: 0, max: 1 },
+                  },
+                },
+                image: {
+                  type: "object", label: "Image (used when type=image)",
+                  objectFields: {
+                    url: {
+                      type: "custom", label: "Image",
+                      render: (p) => <ImageField {...p} folder="events" />,
+                    },
+                    opacity: { type: "number", label: "Opacity (0-1)", min: 0, max: 1 },
+                    fit: {
+                      type: "select", label: "Fit",
+                      options: [
+                        { label: "Cover",   value: "cover" },
+                        { label: "Contain", value: "contain" },
+                        { label: "Tile",    value: "tile" },
+                      ],
+                    },
+                    position: {
+                      type: "object", label: "Focal point",
+                      objectFields: {
+                        x: { type: "number", label: "X (0-1)", min: 0, max: 1 },
+                        y: { type: "number", label: "Y (0-1)", min: 0, max: 1 },
+                      },
+                    },
+                    overlayEnabled: {
+                      type: "radio", label: "Show overlay",
+                      options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+                    },
+                    overlayColor:   { type: "text",   label: "Overlay color (hex)" },
+                    overlayOpacity: { type: "number", label: "Overlay opacity (0-1)", min: 0, max: 1 },
+                  },
+                },
+                video: {
+                  type: "object", label: "Video (used when type=video)",
+                  objectFields: {
+                    url: { type: "text", label: "Video URL (mp4 / webm)" },
+                    loop: {
+                      type: "radio", label: "Loop",
+                      options: [{ label: "Yes", value: true }, { label: "No", value: false }],
+                    },
+                    overlayColor:   { type: "text",   label: "Overlay color (hex)" },
+                    overlayOpacity: { type: "number", label: "Overlay opacity (0-1)", min: 0, max: 1 },
+                  },
+                },
+                mobile: {
+                  type: "object", label: "Mobile override (window < 768px)",
+                  objectFields: {
+                    type: {
+                      type: "select", label: "Mobile background type",
+                      options: [
+                        { label: "Same as desktop", value: "" },
+                        { label: "Image", value: "image" },
+                        { label: "Color", value: "color" },
+                        { label: "Video", value: "video" },
+                      ],
+                    },
+                    color: {
+                      type: "object", label: "Mobile color",
+                      objectFields: {
+                        mode: { type: "select", label: "Mode", options: [{ label: "Flat", value: "flat" }, { label: "Gradient", value: "gradient" }] },
+                        color: { type: "text", label: "Color (hex)" },
+                        gradientTo: { type: "text", label: "Gradient end (hex)" },
+                        opacity: { type: "number", label: "Opacity (0-1)", min: 0, max: 1 },
+                      },
+                    },
+                    image: {
+                      type: "object", label: "Mobile image",
+                      objectFields: {
+                        url: { type: "custom", label: "Image", render: (p) => <ImageField {...p} folder="events" /> },
+                        opacity: { type: "number", label: "Opacity (0-1)", min: 0, max: 1 },
+                        fit: { type: "select", label: "Fit", options: [{ label: "Cover", value: "cover" }, { label: "Contain", value: "contain" }, { label: "Tile", value: "tile" }] },
+                        position: { type: "object", label: "Focal point", objectFields: { x: { type: "number", label: "X (0-1)", min: 0, max: 1 }, y: { type: "number", label: "Y (0-1)", min: 0, max: 1 } } },
+                        overlayEnabled: { type: "radio", label: "Show overlay", options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
+                        overlayColor: { type: "text", label: "Overlay color (hex)" },
+                        overlayOpacity: { type: "number", label: "Overlay opacity (0-1)", min: 0, max: 1 },
+                      },
+                    },
+                    video: {
+                      type: "object", label: "Mobile video",
+                      objectFields: {
+                        url: { type: "text", label: "Video URL (mp4 / webm)" },
+                        loop: { type: "radio", label: "Loop", options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
+                        overlayColor: { type: "text", label: "Overlay color (hex)" },
+                        overlayOpacity: { type: "number", label: "Overlay opacity (0-1)", min: 0, max: 1 },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            // ── ITEM 2 — slide layout + media size ─────────────
+            layout: {
+              type: "select", label: "Slide layout",
+              options: [
+                { label: "Background only", value: "background-only" },
+                { label: "Media on left",   value: "media-left" },
+                { label: "Media on right",  value: "media-right" },
+                { label: "Media on top",    value: "media-top" },
+                { label: "Media on bottom", value: "media-bottom" },
+              ],
+            },
+            mediaSize: {
+              type: "select", label: "Media size",
+              options: [
+                { label: "Extra small (25%)", value: "xs" },
+                { label: "Small (33%)",       value: "sm" },
+                { label: "Medium (50%)",      value: "md" },
+                { label: "Large (66%)",       value: "lg" },
+                { label: "Extra large (80%)", value: "xl" },
+              ],
+            },
+            horizontalAlign: {
+              type: "select", label: "Horizontal align",
+              options: [
+                { label: "Left",   value: "left" },
+                { label: "Center", value: "center" },
+                { label: "Right",  value: "right" },
+              ],
+            },
+            verticalAlign: {
+              type: "select", label: "Vertical align",
+              options: [
+                { label: "Top",    value: "top" },
+                { label: "Center", value: "center" },
+                { label: "Bottom", value: "bottom" },
+              ],
+            },
+            primaryMedia: {
+              type: "object", label: "Primary media (split-screen layouts)",
+              objectFields: {
+                kind: {
+                  type: "radio", label: "Type",
+                  options: [{ label: "Image", value: "image" }, { label: "Video", value: "video" }],
+                },
+                url: {
+                  type: "custom", label: "Image / Video URL",
+                  render: (p) => <ImageField {...p} folder="events" />,
+                },
+                alt: { type: "text", label: "Alt text" },
+              },
+            },
+            // ── ITEM 3 — elements library (array) ──────────────
+            elements: {
+              type: "array", label: "Elements (drag to reorder)",
+              arrayFields: {
+                id:   { type: "text", label: "Internal id" },
+                kind: {
+                  type: "select", label: "Element type",
+                  options: [
+                    { label: "Event Name",         value: "eventName" },
+                    { label: "Short Description", value: "shortDescription" },
+                    { label: "Label",              value: "label" },
+                    { label: "Button Group",       value: "buttonGroup" },
+                    { label: "Countdown",          value: "countdown" },
+                    { label: "Social Handles",     value: "socialHandles" },
+                    { label: "Primary Media",      value: "primaryMedia" },
+                    { label: "Secondary Media",    value: "secondaryMedia" },
+                    { label: "Date / Time",        value: "dateTime" },
+                    { label: "Venue",              value: "venue" },
+                  ],
+                },
+                text: { type: "textarea", label: "Text (eventName / label / shortDescription)" },
+                // ── ITEM 4 — Event Name format ───────────────
+                format: {
+                  type: "object", label: "Formatting (eventName / label / shortDescription)",
+                  objectFields: {
+                    bold:          { type: "radio", label: "Bold",          options: [{ label: "On", value: true }, { label: "Off", value: false }] },
+                    italic:        { type: "radio", label: "Italic",        options: [{ label: "On", value: true }, { label: "Off", value: false }] },
+                    underline:     { type: "radio", label: "Underline",     options: [{ label: "On", value: true }, { label: "Off", value: false }] },
+                    strikethrough: { type: "radio", label: "Strikethrough", options: [{ label: "On", value: true }, { label: "Off", value: false }] },
+                    textAlign: {
+                      type: "select", label: "Alignment",
+                      options: [
+                        { label: "Left",   value: "left" },
+                        { label: "Center", value: "center" },
+                        { label: "Right",  value: "right" },
+                      ],
+                    },
+                    listType: {
+                      type: "select", label: "List",
+                      options: [
+                        { label: "None",    value: "none" },
+                        { label: "Bullet",  value: "bullet" },
+                        { label: "Ordered", value: "ordered" },
+                      ],
+                    },
+                    textColor:      { type: "text", label: "Text color (hex)" },
+                    textBackground: { type: "text", label: "Text background (hex)" },
+                    lineHeight:     { type: "number", label: "Line height (e.g. 1.2)", min: 0.8, max: 3 },
+                    letterSpacing:  { type: "number", label: "Letter spacing (px)" },
+                    textTransform: {
+                      type: "select", label: "Text transform",
+                      options: [
+                        { label: "None",       value: "none" },
+                        { label: "UPPERCASE",  value: "uppercase" },
+                        { label: "lowercase",  value: "lowercase" },
+                        { label: "Capitalize", value: "capitalize" },
+                      ],
+                    },
+                    link: { type: "text", label: "Link URL" },
+                  },
+                },
+                // ── Button Group ────────────────────────────
+                buttons: {
+                  type: "array", label: "Buttons (buttonGroup elements)",
+                  arrayFields: {
+                    id:    { type: "text", label: "Internal id" },
+                    label: { type: "text", label: "Label" },
+                    type: {
+                      type: "select", label: "Type",
+                      options: [
+                        { label: "Open URL",  value: "url" },
+                        { label: "Register",  value: "register" },
+                        { label: "Anchor",    value: "anchor" },
+                      ],
+                    },
+                    url:    { type: "text", label: "URL" },
+                    anchor: { type: "text", label: "Anchor (without #)" },
+                    style: {
+                      type: "select", label: "Style",
+                      options: [
+                        { label: "Primary",   value: "primary" },
+                        { label: "Secondary", value: "secondary" },
+                        { label: "Outline",   value: "outline" },
+                      ],
+                    },
+                  },
+                  getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Button",
+                  defaultItemProps: { id: "", label: "Button", type: "url", url: "/tickets", style: "primary" },
+                },
+                // ── Media element ───────────────────────────
+                url: {
+                  type: "custom", label: "Media URL (primaryMedia / secondaryMedia)",
+                  render: (p) => (
+                    <ImageField
+                      field={p.field as { label?: string }}
+                      value={(p.value as string | undefined) ?? ""}
+                      onChange={p.onChange as (v: string) => void}
+                      folder="events"
+                    />
+                  ),
+                },
+                alt: { type: "text", label: "Alt (primaryMedia / secondaryMedia)" },
+                mediaKind: {
+                  type: "radio", label: "Media kind",
+                  options: [{ label: "Image", value: "image" }, { label: "Video", value: "video" }],
+                },
+                // ── ITEM 5 — Date/Time element ──────────────
+                showVenue: { type: "radio", label: "Show venue (dateTime)",   options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
+                showDate:  { type: "radio", label: "Show date (dateTime)",    options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
+                showTime:  { type: "radio", label: "Show time (dateTime)",    options: [{ label: "Yes", value: true }, { label: "No", value: false }] },
+                widgetSize: {
+                  type: "select", label: "Widget size (dateTime)",
+                  options: [
+                    { label: "Small",       value: "sm" },
+                    { label: "Medium",      value: "md" },
+                    { label: "Large",       value: "lg" },
+                    { label: "Extra large", value: "xl" },
+                  ],
+                },
+                formatType: {
+                  type: "select", label: "Format type (dateTime)",
+                  options: [
+                    { label: "Short", value: "short" },
+                    { label: "Long",  value: "long" },
+                    { label: "ISO",   value: "iso" },
+                  ],
+                },
+                iconStyle: {
+                  type: "select", label: "Icon style (dateTime)",
+                  options: [
+                    { label: "Outline", value: "outline" },
+                    { label: "Solid",   value: "solid" },
+                    { label: "Minimal", value: "minimal" },
+                    { label: "None",    value: "none" },
+                  ],
+                },
+                textColor: { type: "text", label: "Text color (dateTime, hex)" },
+              },
+              getItemSummary: (item: unknown) => {
+                const k = (item as { kind?: string })?.kind ?? "element"
+                const label = (item as { text?: string })?.text
+                return label ? `${k}: ${label.slice(0, 24)}` : k
+              },
+              defaultItemProps: { id: "", kind: "eventName", text: "" },
+            },
           },
           getItemSummary: (item: unknown) =>
             (item as { title?: string })?.title || "Slide",
@@ -347,6 +656,20 @@ export const puckConfig: Config<BuilderComponents> = {
             backgroundImage: "",
             alignment: "left",
             useEventLogo: false,
+            background: {
+              type: "image",
+              image: {
+                url: "", opacity: 1, fit: "cover",
+                position: { x: 0.5, y: 0.5 },
+                overlayEnabled: true, overlayColor: "#000000", overlayOpacity: 0.55,
+              },
+            },
+            layout: "background-only",
+            mediaSize: "lg",
+            horizontalAlign: "left",
+            verticalAlign: "bottom",
+            primaryMedia: { kind: "image", url: "", alt: "" },
+            elements: [],
           },
         },
         sliderControls: {
@@ -366,6 +689,15 @@ export const puckConfig: Config<BuilderComponents> = {
                 { label: "Large",  value: "lg" },
               ],
             },
+            arrowDesign: {
+              type: "select", label: "Arrow design",
+              options: [
+                { label: "Stroke (default)",    value: "stroke" },
+                { label: "Stroke circle",       value: "stroke-circle" },
+                { label: "Filled circle",       value: "filled" },
+                { label: "Filled box",          value: "filled-box" },
+              ],
+            },
             navigatorVisible: {
               type: "radio", label: "Show navigator",
               options: [{ label: "Yes", value: true }, { label: "No", value: false }],
@@ -374,7 +706,8 @@ export const puckConfig: Config<BuilderComponents> = {
               type: "select", label: "Navigator style",
               options: [
                 { label: "Dots",    value: "dots" },
-                { label: "Bars",    value: "bars" },
+                { label: "Dashes",  value: "dashes" },
+                { label: "Lines",   value: "lines" },
                 { label: "Numbers", value: "numbers" },
               ],
             },
@@ -389,6 +722,10 @@ export const puckConfig: Config<BuilderComponents> = {
                 { label: "Slide", value: "slide" },
                 { label: "Fade",  value: "fade"  },
               ],
+            },
+            pauseOnHover: {
+              type: "radio", label: "Pause on hover",
+              options: [{ label: "Yes", value: true }, { label: "No", value: false }],
             },
           },
         },
