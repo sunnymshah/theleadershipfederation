@@ -1,24 +1,21 @@
 "use client"
 
 /**
- * Hotels data manager (ITEM 7).
- * Same shape as ExhibitorsManager — list / Add / edit form / delete.
+ * Hotels manager — table view (ITEM 7.2).
+ *
+ * Columns: Image | Name | Distance (km) | Price range | Booking URL |
+ * Actions. Default visible: Image / Name / Distance / Price range.
  */
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Loader2, ArrowLeft } from "lucide-react"
-import { SecondaryPanel } from "./SecondaryPanel"
-import { EntityListItem } from "./EntityListItem"
-import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
+import { Edit3, Trash2, Loader2 } from "lucide-react"
 import {
   listHotels, upsertHotel, deleteHotel, type EventHotel,
 } from "@/app/actions/hotelActions"
-
-type EditState =
-  | { mode: "list" }
-  | { mode: "create" }
-  | { mode: "edit"; row: EventHotel }
+import { ManagerTable, type ColumnDef } from "./ManagerTable"
+import { ProfilePanel } from "./ProfilePanel"
+import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
 
 export function HotelsManager({
   eventId,
@@ -28,17 +25,16 @@ export function HotelsManager({
   onClose?: () => void
 }) {
   const router = useRouter()
-  const [edit, setEdit] = useState<EditState>({ mode: "list" })
-  const [search, setSearch] = useState("")
-  const [hotels, setHotels] = useState<EventHotel[]>([])
+  const [rows, setRows] = useState<EventHotel[]>([])
   const [loading, setLoading] = useState(true)
-  const [busyId, setBusyId] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<"view" | "edit">("view")
+  const [selected, setSelected] = useState<EventHotel | null>(null)
 
   async function refresh() {
     const r = await listHotels(eventId)
-    setHotels(r.rows)
+    setRows(r.rows)
   }
-
   useEffect(() => {
     let cancelled = false
     void refresh().finally(() => { if (!cancelled) setLoading(false) })
@@ -46,165 +42,176 @@ export function HotelsManager({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId])
 
-  async function handleDelete(id: string, name: string) {
-    if (!window.confirm(`Delete hotel "${name}"?`)) return
-    setBusyId(id)
-    try {
-      await deleteHotel(eventId, id)
-      await refresh()
-      router.refresh()
-    } finally { setBusyId(null) }
+  function openCreate() {
+    setSelected({
+      id: "", event_id: eventId, name: "", image_url: null,
+      address: null, distance_km: null, price_range: null,
+      booking_url: null, description: null,
+      sort_order: rows.length * 10, created_at: new Date().toISOString(),
+    })
+    setMode("edit"); setOpen(true)
+  }
+  function openRow(item: EventHotel) { setSelected(item); setMode("view"); setOpen(true) }
+
+  async function onSave(next: EventHotel) {
+    const res = await upsertHotel(eventId, {
+      id: next.id || undefined,
+      name: next.name,
+      image_url: next.image_url,
+      address: next.address,
+      distance_km: next.distance_km,
+      price_range: next.price_range,
+      booking_url: next.booking_url,
+      description: next.description,
+      sort_order: next.sort_order,
+    })
+    if (!res.success) return { success: false, error: res.error }
+    await refresh()
+    router.refresh()
+    return { success: true }
+  }
+  async function onDelete() {
+    if (!selected?.id) return
+    await deleteHotel(eventId, selected.id)
+    await refresh()
+    router.refresh()
   }
 
-  if (edit.mode !== "list") {
+  const columns = useMemo<ColumnDef<EventHotel>[]>(() => [
+    {
+      key: "name", label: "Name", defaultVisible: true,
+      sortValue: (h) => h.name,
+      filter: (h, q) => h.name.toLowerCase().includes(q.toLowerCase()),
+      render: (h) => <span className="font-semibold">{h.name}</span>,
+    },
+    {
+      key: "distance_km", label: "Distance", defaultVisible: true,
+      sortValue: (h) => h.distance_km ?? Number.MAX_SAFE_INTEGER,
+      render: (h) => h.distance_km != null ? (
+        <span className="font-mono tabular-nums">{Number(h.distance_km).toFixed(1)} km</span>
+      ) : <span className="text-[var(--z-text-muted,#6b7280)]">—</span>,
+    },
+    {
+      key: "price_range", label: "Price range", defaultVisible: true,
+      sortValue: (h) => h.price_range ?? "",
+      filter: (h, q) => (h.price_range ?? "").toLowerCase().includes(q.toLowerCase()),
+      render: (h) => <span className="text-[var(--z-text-muted,#6b7280)]">{h.price_range ?? "—"}</span>,
+    },
+    {
+      key: "booking_url", label: "Booking URL", defaultVisible: false,
+      sortValue: (h) => h.booking_url ?? "",
+      render: (h) => h.booking_url ? (
+        <a href={h.booking_url} target="_blank" rel="noopener noreferrer" className="text-[var(--z-info,#3e7af7)] hover:underline truncate inline-block max-w-[180px]" onClick={(e) => e.stopPropagation()}>{h.booking_url}</a>
+      ) : <span className="text-[var(--z-text-muted,#6b7280)]">—</span>,
+    },
+  ], [])
+
+  if (loading) {
     return (
-      <HotelForm
-        eventId={eventId}
-        initial={edit.mode === "edit" ? edit.row : undefined}
-        onCancel={() => setEdit({ mode: "list" })}
-        onSaved={async () => { await refresh(); setEdit({ mode: "list" }); router.refresh() }}
-      />
+      <div className="w-72 shrink-0 h-full bg-[var(--z-bg-alt,#f7f8fa)] border-r border-[var(--z-border,#e5e7eb)] flex items-center justify-center">
+        <Loader2 size={16} className="animate-spin text-[var(--z-text-muted,#6b7280)]" />
+      </div>
     )
   }
 
-  const q = search.trim().toLowerCase()
-  const visible = q
-    ? hotels.filter((h) => h.name.toLowerCase().includes(q) || (h.address ?? "").toLowerCase().includes(q))
-    : hotels
-
   return (
-    <SecondaryPanel
-      title="Hotels"
-      onClose={onClose}
-      searchPlaceholder="Search hotels…"
-      searchValue={search}
-      onSearchChange={setSearch}
-    >
-      <div className="px-2 pt-2">
-        <button type="button" onClick={() => setEdit({ mode: "create" })} className="z-btn-primary w-[calc(100%-1rem)] mx-2">
-          <Plus size={14} strokeWidth={1.5} />
-          Add hotel
-        </button>
-      </div>
-      <div className="pt-2 pb-4">
-        {loading ? (
-          <div className="z-empty mt-8"><Loader2 size={18} className="animate-spin z-empty-icon" /><p className="z-empty-desc mt-2">Loading…</p></div>
-        ) : visible.length === 0 ? (
-          <div className="z-empty">
-            <p className="z-empty-title">No hotels yet</p>
-            <p className="z-empty-desc">Add a hotel — they&apos;ll appear in the Hotels block.</p>
-          </div>
-        ) : (
-          visible.map((row) => (
-            <div key={row.id} className={busyId === row.id ? "opacity-50 pointer-events-none" : ""}>
-              <EntityListItem
-                avatarSrc={row.image_url}
-                avatarFallback={row.name.slice(0, 1).toUpperCase()}
-                name={row.name}
-                meta={[row.distance_km != null ? `${row.distance_km.toFixed(1)} km` : null, row.price_range].filter(Boolean).join(" · ") || null}
-                onEdit={() => setEdit({ mode: "edit", row })}
-                onDelete={() => handleDelete(row.id, row.name)}
-              />
+    <>
+      <ManagerTable<EventHotel>
+        tableId="hotels"
+        title="Hotels"
+        onClose={onClose}
+        items={rows}
+        columns={columns}
+        rowAvatar={(h) => ({ src: h.image_url, fallback: (h.name || "?").slice(0, 1).toUpperCase() })}
+        rowActions={(h) => [
+          { icon: <Edit3 size={11} />, label: "Edit", onClick: () => { setSelected(h); setMode("edit"); setOpen(true) } },
+          { icon: <Trash2 size={11} />, label: "Delete", danger: true, onClick: async () => {
+            if (!confirm(`Delete hotel "${h.name}"?`)) return
+            await deleteHotel(eventId, h.id)
+            await refresh()
+            router.refresh()
+          } },
+        ]}
+        onAdd={openCreate}
+        onRowClick={openRow}
+        addLabel="Add hotel"
+      />
+      <ProfilePanel<EventHotel>
+        open={open}
+        item={selected}
+        title={selected?.name || "New hotel"}
+        mode={mode}
+        onClose={() => setOpen(false)}
+        onModeChange={setMode}
+        onSave={onSave}
+        onDelete={selected?.id ? onDelete : undefined}
+        viewBody={(h) => (
+          <div className="space-y-3 text-[12px]">
+            {h.image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={h.image_url} alt="" className="w-full aspect-[16/10] rounded-lg object-cover bg-[var(--z-bg-alt,#f7f8fa)]" />
+            )}
+            <p className="text-[15px] font-bold">{h.name}</p>
+            <div className="flex flex-wrap gap-3 text-[12px] text-[var(--z-text-muted,#6b7280)]">
+              {h.distance_km != null && <span>{Number(h.distance_km).toFixed(1)} km away</span>}
+              {h.price_range && <span className="font-semibold">{h.price_range}</span>}
             </div>
-          ))
+            {h.address && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">Address</p>
+                <p>{h.address}</p>
+              </div>
+            )}
+            {h.description && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">About</p>
+                <p className="whitespace-pre-wrap leading-relaxed">{h.description}</p>
+              </div>
+            )}
+            {h.booking_url && (
+              <a href={h.booking_url} target="_blank" rel="noopener noreferrer" className="z-btn-primary inline-flex items-center !text-[12px]">Book now</a>
+            )}
+          </div>
         )}
-      </div>
-    </SecondaryPanel>
+        editForm={(h, onChange) => (
+          <>
+            <PField label="Name" required value={h.name} onChange={(v) => onChange({ ...h, name: v })} />
+            <PField label="Address" value={h.address ?? ""} onChange={(v) => onChange({ ...h, address: v })} />
+            <div className="grid grid-cols-2 gap-2">
+              <PField label="Distance (km)" type="number" value={h.distance_km != null ? String(h.distance_km) : ""} onChange={(v) => onChange({ ...h, distance_km: v ? Number(v) : null })} />
+              <PField label="Price range" value={h.price_range ?? ""} onChange={(v) => onChange({ ...h, price_range: v })} placeholder="₹4,500 / night" />
+            </div>
+            <PField label="Booking URL" type="url" value={h.booking_url ?? ""} onChange={(v) => onChange({ ...h, booking_url: v })} placeholder="https://…" />
+            <PArea label="About" value={h.description ?? ""} onChange={(v) => onChange({ ...h, description: v })} />
+            <div>
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">Image</span>
+              <ImageUploadCrop value={h.image_url} onChange={(url) => onChange({ ...h, image_url: url ?? null })} aspectRatio={16 / 10} folder="sections" label="" />
+            </div>
+          </>
+        )}
+      />
+    </>
   )
 }
 
-function HotelForm({
-  eventId, initial, onCancel, onSaved,
-}: {
-  eventId: string
-  initial?: EventHotel
-  onCancel: () => void
-  onSaved: () => Promise<void>
-}) {
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [image, setImage] = useState<string>(initial?.image_url ?? "")
-
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    const fd = new FormData(e.currentTarget)
-    const distRaw = String(fd.get("distance_km") ?? "").trim()
-    const distance_km = distRaw ? Number(distRaw) : null
-    const res = await upsertHotel(eventId, {
-      id: initial?.id,
-      name: String(fd.get("name") ?? ""),
-      image_url: image || null,
-      address: String(fd.get("address") ?? "") || null,
-      distance_km: Number.isFinite(distance_km) ? distance_km : null,
-      price_range: String(fd.get("price_range") ?? "") || null,
-      booking_url: String(fd.get("booking_url") ?? "") || null,
-      description: String(fd.get("description") ?? "") || null,
-      sort_order: initial?.sort_order ?? 0,
-    })
-    setSubmitting(false)
-    if (!res.success) {
-      setError(res.error ?? "Save failed")
-      return
-    }
-    await onSaved()
-  }
-
-  return (
-    <aside className="w-72 shrink-0 h-full bg-[var(--z-bg-alt,#f7f8fa)] border-r border-[var(--z-border,#e5e7eb)] flex flex-col">
-      <div className="shrink-0 h-12 px-4 flex items-center gap-2 border-b border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg,#fff)]">
-        <button type="button" onClick={onCancel} aria-label="Back" className="z-btn z-btn-icon">
-          <ArrowLeft size={14} strokeWidth={1.5} />
-        </button>
-        <h2 className="text-[13px] font-bold text-[var(--z-text,#1f2937)]">
-          {initial ? "Edit hotel" : "Add hotel"}
-        </h2>
-      </div>
-      <form onSubmit={onSubmit} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-        <ManagerField label="Name" name="name" defaultValue={initial?.name} required />
-        <ManagerField label="Address" name="address" defaultValue={initial?.address ?? ""} />
-        <ManagerField label="Distance (km)" name="distance_km" type="number" defaultValue={initial?.distance_km != null ? String(initial.distance_km) : ""} />
-        <ManagerField label="Price range" name="price_range" defaultValue={initial?.price_range ?? ""} placeholder="₹4,500 / night" />
-        <ManagerField label="Booking URL" name="booking_url" type="url" defaultValue={initial?.booking_url ?? ""} placeholder="https://…" />
-        <ManagerArea label="Description" name="description" defaultValue={initial?.description ?? ""} />
-        <div>
-          <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">Image</span>
-          <ImageUploadCrop value={image} onChange={(v) => setImage(v ?? "")} aspectRatio={16 / 10} folder="sections" label="" />
-        </div>
-        {error && <p className="text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
-        <div className="pt-1 flex items-center gap-2">
-          <button type="submit" disabled={submitting} className="z-btn-primary flex-1">
-            {submitting ? <Loader2 size={14} className="animate-spin" /> : null}
-            {initial ? "Save" : "Add"}
-          </button>
-          <button type="button" onClick={onCancel} className="z-btn">Cancel</button>
-        </div>
-      </form>
-    </aside>
-  )
-}
-
-function ManagerField({
-  label, name, defaultValue, type = "text", required, placeholder,
-}: {
-  label: string; name: string; defaultValue?: string;
-  type?: string; required?: boolean; placeholder?: string;
+function PField({ label, value, onChange, required, placeholder, type = "text" }: {
+  label: string; value: string; onChange: (v: string) => void;
+  required?: boolean; placeholder?: string; type?: string;
 }) {
   return (
     <label className="block">
       <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">
         {label}{required && <span className="text-[var(--z-danger,#dc2626)]"> *</span>}
       </span>
-      <input type={type} name={name} defaultValue={defaultValue} required={required} placeholder={placeholder} className="z-input" />
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} className="z-input" />
     </label>
   )
 }
-function ManagerArea({ label, name, defaultValue }: { label: string; name: string; defaultValue?: string }) {
+function PArea({ label, value, onChange, rows = 4 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
   return (
     <label className="block">
       <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-1">{label}</span>
-      <textarea name={name} defaultValue={defaultValue} rows={3} className="z-input z-textarea" />
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows} className="z-input z-textarea" />
     </label>
   )
 }
