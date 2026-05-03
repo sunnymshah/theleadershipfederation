@@ -103,4 +103,34 @@ describe("useInlineEdit", () => {
     fireEvent.blur(el)
     expect(onSave).toHaveBeenCalledWith("first line\nsecond line")
   })
+
+  it("mousedown on the editable stops propagation so Puck's wrapper can't preempt the focus", () => {
+    // ITEM 2.2 — emulate Puck's block wrapper attaching its own mousedown
+    // handler. The handler should NOT fire when the user clicks the
+    // editable surface, because useInlineEdit's onMouseDown stops
+    // propagation.
+    const wrapperHandler = vi.fn()
+    const onSave = vi.fn()
+    render(
+      <div onMouseDown={wrapperHandler} data-testid="wrapper">
+        <Probe value="hello" onSave={onSave} />
+      </div>,
+    )
+    const el = screen.getByTestId("probe")
+    fireEvent.mouseDown(el)
+    expect(wrapperHandler).not.toHaveBeenCalled()
+  })
+
+  it("click on the editable stops propagation so global click listeners don't fire on every keystroke target", () => {
+    const wrapperHandler = vi.fn()
+    const onSave = vi.fn()
+    render(
+      <div onClick={wrapperHandler} data-testid="wrapper">
+        <Probe value="hello" onSave={onSave} />
+      </div>,
+    )
+    const el = screen.getByTestId("probe")
+    fireEvent.click(el)
+    expect(wrapperHandler).not.toHaveBeenCalled()
+  })
 })

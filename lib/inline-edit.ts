@@ -46,6 +46,8 @@ type ElementBag = {
   onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void
   onPaste: (e: React.ClipboardEvent<HTMLElement>) => void
   onMouseEnter: (e: React.MouseEvent<HTMLElement>) => void
+  onMouseDown: (e: React.MouseEvent<HTMLElement>) => void
+  onClick: (e: React.MouseEvent<HTMLElement>) => void
 }
 
 export function useInlineEdit(
@@ -158,6 +160,33 @@ export function useInlineEdit(
           window.dispatchEvent(new CustomEvent("lf-inline-edit-hover"))
         }
       } catch {}
+    },
+    onMouseDown: (e) => {
+      // ITEM 2.2 — Puck's block-wrapper click handler runs on mousedown
+      // for selection. If we don't stop propagation here, the wrapper
+      // calls e.preventDefault() before the browser ever runs the
+      // default focus action on the contentEditable, so the caret never
+      // lands. Stopping propagation lets the default focus run; we
+      // also call element.focus() explicitly inside a microtask so the
+      // caret lands at the click position even when the wrapper has
+      // an aggressive mousedown listener.
+      e.stopPropagation()
+      const el = e.currentTarget
+      // Defer the focus to the next tick — calling focus() during
+      // mousedown when another element is about to receive focus by
+      // default is a no-op in some browsers. The microtask runs after
+      // the default action and beats Puck's selection effect.
+      Promise.resolve().then(() => {
+        if (document.activeElement !== el) {
+          try { el.focus() } catch {}
+        }
+      })
+    },
+    onClick: (e) => {
+      // Same reasoning as onMouseDown — also stop click bubbling so
+      // global click handlers (e.g. Puck's "deselect when clicking
+      // outside the inspector") don't fire on every keystroke target.
+      e.stopPropagation()
     },
   }
 }

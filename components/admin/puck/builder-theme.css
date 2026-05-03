@@ -542,3 +542,34 @@
 .lf-profile-panel[data-open="true"] {
   transform: translateX(0);
 }
+
+/* ────────────────────────────────────────────────────────────────────
+ * Inline-edit pointer-events override (ITEM 2.1).
+ *
+ * Puck's stylesheet (node_modules/@measured/puck/dist/index.css:1230)
+ * applies `[data-puck-component] *` { pointer-events: none; user-
+ * select: none } to every descendant of every block, so its
+ * top-level wrapper can catch the selection click. That blanket rule
+ * eats clicks before they reach our useInlineEdit contentEditable
+ * spans. We re-enable pointer events + text selection on those
+ * specific descendants with a higher-specificity match (parent +
+ * descendant attribute) plus !important to beat Puck's declarations.
+ *
+ * Puck mounts blocks inside an iframe (iframe.enabled=true); Puck
+ * mirrors the parent document's stylesheets into the iframe head, so
+ * this rule applies in both places.
+ * ──────────────────────────────────────────────────────────────────── */
+[data-puck-component] [data-lf-inline-editable],
+[data-lf-inline-editable] {
+  pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  position: relative;
+  z-index: 20;
+}
+[data-puck-component] [data-lf-inline-editable]:focus,
+[data-lf-inline-editable]:focus {
+  /* Make sure the focused contentEditable is on top of any sibling
+     overlay Puck might paint for the active block frame. */
+  z-index: 30;
+}
