@@ -442,6 +442,39 @@ export function Root({ children, themePreset, primaryColor, textColor, bgColor, 
 
 /* ── HERO ─────────────────────────────────────────────────────────── */
 
+/* ── ITEM 1 — per-slide background variants ──────────────────────── */
+export type SlideBgColor = {
+  mode: "flat" | "gradient"
+  color: string
+  gradientTo?: string
+  /** 0..1 */
+  opacity: number
+}
+export type SlideBgImage = {
+  url: string
+  /** 0..1 */
+  opacity: number
+  fit: "cover" | "contain" | "tile"
+  position: { x: number; y: number }
+  overlayEnabled: boolean
+  overlayColor: string
+  overlayOpacity: number
+}
+export type SlideBgVideo = {
+  url: string
+  loop: boolean
+  overlayColor: string
+  overlayOpacity: number
+}
+export type SlideBackground = {
+  type: "color" | "image" | "video"
+  color?: SlideBgColor
+  image?: SlideBgImage
+  video?: SlideBgVideo
+  /** Optional override applied when window.innerWidth < 768. */
+  mobile?: SlideBackground
+}
+
 export type HeroSlide = {
   id: string
   title: string
@@ -453,17 +486,98 @@ export type HeroSlide = {
   backgroundImage: string
   alignment?: "left" | "center"
   useEventLogo?: boolean
+  /** ITEM 1 — per-slide background. When set, overrides backgroundImage. */
+  background?: SlideBackground
+  /** ITEM 2 — slide layout + media size. */
+  layout?: "media-left" | "media-right" | "media-top" | "media-bottom" | "background-only"
+  mediaSize?: "xs" | "sm" | "md" | "lg" | "xl"
+  horizontalAlign?: "left" | "center" | "right"
+  verticalAlign?: "top" | "center" | "bottom"
+  /** Side media element rendered next to copy when layout != background-only. */
+  primaryMedia?: { kind: "image" | "video"; url: string; alt?: string }
+  /** ITEM 3 — ordered element list. When present takes precedence over the
+   *  legacy title/subtitle/cta props (kept for backwards compat). */
+  elements?: HeroElement[]
+}
+
+/* ── ITEM 3 — slide elements library ─────────────────────────────── */
+export type EventNameFormat = {
+  bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  strikethrough?: boolean
+  textAlign?: "left" | "center" | "right"
+  listType?: "none" | "ordered" | "bullet"
+  textColor?: string
+  textBackground?: string
+  lineHeight?: number
+  letterSpacing?: number
+  textTransform?: "none" | "uppercase" | "lowercase" | "capitalize"
+  link?: string
+}
+export type HeroElementButton = {
+  id: string
+  label: string
+  type: "register" | "url" | "anchor"
+  url?: string
+  anchor?: string
+  style: "primary" | "secondary" | "outline"
+  icon?: string
+}
+/**
+ * ITEM 3 — flat element shape so Puck's array field can describe every
+ * variant in a single arrayFields object. The renderer narrows on the
+ * `kind` discriminator at runtime; fields irrelevant to a given kind
+ * are simply ignored by that kind's render branch.
+ */
+export type HeroElementKind =
+  | "eventName"
+  | "shortDescription"
+  | "label"
+  | "buttonGroup"
+  | "countdown"
+  | "socialHandles"
+  | "secondaryMedia"
+  | "primaryMedia"
+  | "dateTime"
+  | "venue"
+
+export type HeroElement = {
+  id: string
+  kind: HeroElementKind
+  // Text-bearing kinds (eventName / shortDescription / label).
+  text?: string
+  format?: EventNameFormat
+  // buttonGroup
+  buttons?: HeroElementButton[]
+  // primaryMedia / secondaryMedia
+  url?: string
+  alt?: string
+  mediaKind?: "image" | "video"
+  // dateTime
+  showVenue?: boolean
+  showDate?: boolean
+  showTime?: boolean
+  widgetSize?: "sm" | "md" | "lg" | "xl"
+  formatType?: "short" | "long" | "iso"
+  iconStyle?: "outline" | "solid" | "minimal" | "none"
+  textColor?: string
 }
 
 export type SliderControls = {
   arrowsVisible?: boolean
   arrowColor?: string
   arrowSize?: "sm" | "md" | "lg"
+  /** ITEM 6.1 — chrome variants for the prev/next arrows. */
+  arrowDesign?: "stroke" | "stroke-circle" | "filled" | "filled-box"
   navigatorVisible?: boolean
-  navigatorStyle?: "dots" | "bars" | "numbers"
+  /** ITEM 6.2 — adds dashes / lines alongside dots / numbers. */
+  navigatorStyle?: "dots" | "dashes" | "lines" | "numbers"
   autoplay?: boolean
   intervalSec?: number
   transition?: "slide" | "fade"
+  /** ITEM 6.3 — when true, autoplay pauses while the cursor is over the hero. */
+  pauseOnHover?: boolean
 }
 
 export type HeroProps = {
@@ -520,6 +634,13 @@ export function Hero({
                             "min-h-[520px] sm:min-h-[640px]"
   const centered = alignment === "center"
 
+  // Read social handles from event-level builder_settings.general (passed
+  // via metadata.socialHandles). Fall back to none.
+  const socialHandles = (meta.socialHandles ?? {}) as {
+    twitter?: string; linkedin?: string; instagram?: string;
+    facebook?: string; youtube?: string; website?: string;
+  }
+
   // ITEM 1: when slides are configured, hand off to the embla slider.
   if (Array.isArray(slides) && slides.length >= 1) {
     return (
@@ -529,16 +650,11 @@ export function Hero({
         controls={sliderControls ?? {}}
         height={height}
         isFirstBlock={isFirstBlock}
+        socialHandles={socialHandles}
       />
     )
   }
 
-  // Read social handles from event-level builder_settings.general (passed
-  // via metadata.socialHandles). Fall back to none.
-  const socialHandles = (meta.socialHandles ?? {}) as {
-    twitter?: string; linkedin?: string; instagram?: string;
-    facebook?: string; youtube?: string; website?: string;
-  }
   const hasAnySocial = !!(socialHandles.twitter || socialHandles.linkedin
     || socialHandles.instagram || socialHandles.facebook
     || socialHandles.youtube || socialHandles.website)

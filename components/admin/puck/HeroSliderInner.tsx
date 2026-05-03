@@ -2,48 +2,63 @@
 
 /**
  * Embla-powered slider used by the Hero block when `slides[]` has 1+
- * entries. Lives in its own module so the embla bundle is code-split
- * out of the public bundle for events that don't use a hero slider.
+ * entries. Code-split so the embla bundle stays out of the public
+ * bundle for events that don't use a hero slider.
  *
- * Mirrors the visual chrome of the legacy single-hero render — full-
- * bleed background image, gradient overlay, optional logo, date/venue
- * eyebrow, title, subtitle, primary + secondary CTA — but each slide
- * provides its own copy of those props. Auto-rotates every `interval`
- * seconds (default 6), pauses on hover. Arrows + dots respect the
- * sliderControls config from the inspector.
+ * Per-slide capabilities:
+ *   - background: color (flat / gradient) / image (with focal-point +
+ *     overlay) / video (autoplay muted loop). Mobile override applied
+ *     when window.innerWidth < 768.
+ *   - layout: background-only OR split-screen with primary media on
+ *     left / right / top / bottom (ITEM 2).
+ *   - elements: ordered array of element types each with their own
+ *     props (eventName / dateTime / venue / shortDescription / label /
+ *     buttonGroup / countdown / socialHandles / primaryMedia /
+ *     secondaryMedia). Falls back to legacy show* booleans for
+ *     pre-elements slides.
+ *
+ * Slider chrome respects sliderControls.arrowDesign (stroke / stroke-
+ * circle / filled / filled-box), navigatorStyle (dots / dashes / lines
+ * / numbers), and pauseOnHover.
  */
 
 import useEmblaCarousel from "embla-carousel-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useCallback, useEffect, useState, useRef } from "react"
-import { Calendar, MapPin, ChevronLeft, ChevronRight, ChevronRight as ChevronRightIcon } from "lucide-react"
+import { useCallback, useEffect, useState, useRef, type CSSProperties } from "react"
+import {
+  Calendar, MapPin, ChevronLeft, ChevronRight, ChevronRight as ChevronRightIcon,
+} from "lucide-react"
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
-import { sfFont, type EventShape } from "./blocks"
+import {
+  sfFont,
+  type EventShape, type SocialHandles,
+  type HeroSlide, type SliderControls, type SlideBackground,
+  type HeroElement, type EventNameFormat, type HeroElementButton,
+} from "./blocks"
 
-export type HeroSlide = {
-  id: string
-  title: string
-  subtitle: string
-  ctaPrimaryLabel: string
-  ctaPrimaryUrl: string
-  ctaSecondaryLabel?: string
-  ctaSecondaryUrl?: string
-  backgroundImage: string
-  alignment?: "left" | "center"
-  useEventLogo?: boolean
-}
+/* ── Background helpers ─────────────────────────────────────────── */
+function clamp01(n: number) { return Math.max(0, Math.min(1, n)) }
 
-export type SliderControls = {
-  arrowsVisible?: boolean
-  arrowColor?: string
-  arrowSize?: "sm" | "md" | "lg"
-  navigatorVisible?: boolean
-  navigatorStyle?: "dots" | "bars" | "numbers"
-  autoplay?: boolean
-  intervalSec?: number
-  transition?: "slide" | "fade"
+function pickBackground(slide: HeroSlide, isMobile: boolean): SlideBackground | null {
+  const main = slide.background
+  if (!main) {
+    // Legacy fallback: convert top-level backgroundImage into an image bg.
+    if (slide.backgroundImage) {
+      return {
+        type: "image",
+        image: {
+          url: slide.backgroundImage, opacity: 1, fit: "cover",
+          position: { x: 0.5, y: 0.5 },
+          overlayEnabled: true, overlayColor: "#000000", overlayOpacity: 0.55,
+        },
+      }
+    }
+    return null
+  }
+  if (isMobile && main.mobile) return main.mobile
+  return main
 }
 
 export function HeroSliderInner({
@@ -52,12 +67,14 @@ export function HeroSliderInner({
   controls,
   height,
   isFirstBlock,
+  socialHandles,
 }: {
   slides: HeroSlide[]
   event: EventShape
   controls: SliderControls
   height: string
   isFirstBlock: boolean
+  socialHandles?: SocialHandles
 }) {
   const transition = controls.transition === "fade" ? "fade" : "slide"
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -67,6 +84,16 @@ export function HeroSliderInner({
   })
   const [selectedIdx, setSelectedIdx] = useState(0)
   const hoveringRef = useRef(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Track viewport for mobile background overrides + responsive layout.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const compute = () => setIsMobile(window.innerWidth < 768)
+    compute()
+    window.addEventListener("resize", compute)
+    return () => window.removeEventListener("resize", compute)
+  }, [])
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
@@ -80,22 +107,25 @@ export function HeroSliderInner({
     return () => { emblaApi.off("select", onSelect) }
   }, [emblaApi])
 
+  // Autoplay. ITEM 6.3: pauseOnHover gates the hover-skip behaviour.
   useEffect(() => {
     if (!emblaApi || !controls.autoplay) return
+    const pauseOnHover = controls.pauseOnHover !== false
     const ms = Math.max(2000, (controls.intervalSec ?? 6) * 1000)
     const tick = () => {
       if (!emblaApi) return
-      if (hoveringRef.current) return
+      if (pauseOnHover && hoveringRef.current) return
       if (emblaApi.canScrollNext()) emblaApi.scrollNext()
       else emblaApi.scrollTo(0)
     }
     const t = setInterval(tick, ms)
     return () => clearInterval(t)
-  }, [emblaApi, controls.autoplay, controls.intervalSec])
+  }, [emblaApi, controls.autoplay, controls.intervalSec, controls.pauseOnHover])
 
   const arrowSize = controls.arrowSize === "sm" ? 14 : controls.arrowSize === "lg" ? 22 : 18
   const arrowColor = controls.arrowColor || "#ffffff"
   const arrowsVisible = controls.arrowsVisible !== false
+  const arrowDesign = controls.arrowDesign ?? "stroke"
   const navVisible = controls.navigatorVisible !== false
   const navStyle = controls.navigatorStyle ?? "dots"
 
@@ -119,95 +149,35 @@ export function HeroSliderInner({
       <div className="overflow-hidden h-full" ref={emblaRef}>
         <div className="flex h-full">
           {slides.map((slide, idx) => {
-            const bg = slide.backgroundImage || event.cover_image_url
-            const shownTitle = slide.title || event.title
-            const logo = slide.useEventLogo ? event.logo_url ?? null : null
-            const centered = slide.alignment === "center"
+            const bg = pickBackground(slide, isMobile)
+            const slideElements = resolveElements(slide)
+            const slideLayout = slide.layout ?? "background-only"
+            const horizontalAlign = slide.horizontalAlign
+              ?? (slide.alignment === "center" ? "center" : "left")
+            const verticalAlign = slide.verticalAlign ?? "bottom"
+
             return (
               <div
                 key={slide.id || idx}
-                className={`relative shrink-0 grow-0 basis-full h-full flex items-end ${transition === "fade" ? "transition-opacity" : ""}`}
+                className={`relative shrink-0 grow-0 basis-full h-full ${transition === "fade" ? "transition-opacity" : ""}`}
                 style={transition === "fade" ? { opacity: idx === selectedIdx ? 1 : 0.001 } : undefined}
               >
-                {bg && (() => {
-                  const { src, objectPosition } = parseFocalPoint(bg)
-                  return (
-                    <Image
-                      src={src}
-                      alt={shownTitle || "Event"}
-                      fill
-                      priority={isFirstBlock && idx === 0}
-                      fetchPriority={isFirstBlock && idx === 0 ? "high" : "auto"}
-                      className="object-cover opacity-60"
-                      style={{ objectPosition }}
-                      sizes="100vw"
-                    />
-                  )
-                })()}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent" />
-                <div className={`relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pb-20 pt-28 w-full ${centered ? "text-center" : ""}`}>
-                  {logo && (() => {
-                    const { src } = parseFocalPoint(logo)
-                    return (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={src}
-                        alt={`${event.title || "Event"} logo`}
-                        className={`h-14 sm:h-16 w-auto mb-6 drop-shadow-md ${centered ? "mx-auto" : ""}`}
-                      />
-                    )
-                  })()}
-                  {event.start_date && (
-                    <div
-                      className={`flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] mb-4 ${centered ? "justify-center" : ""}`}
-                      style={{ color: "var(--lf-primary, #e7ab1c)" }}
-                    >
-                      <Calendar size={13} /> {fmtDate(event.start_date, event.end_date)}
-                      {event.venue && (
-                        <>
-                          <span className="opacity-40">·</span>
-                          <MapPin size={13} /> {event.venue}
-                        </>
-                      )}
-                    </div>
-                  )}
-                  <h1
-                    className={`text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.05] ${centered ? "max-w-4xl mx-auto" : "max-w-4xl"}`}
-                    style={sfFont}
-                  >
-                    {shownTitle || "Untitled Event"}
-                  </h1>
-                  {slide.subtitle && (
-                    <p className={`mt-5 text-lg sm:text-xl text-white/80 leading-relaxed ${centered ? "max-w-2xl mx-auto" : "max-w-2xl"}`}>
-                      {slide.subtitle}
-                    </p>
-                  )}
-                  {(slide.ctaPrimaryLabel && slide.ctaPrimaryUrl) || (slide.ctaSecondaryLabel && slide.ctaSecondaryUrl) ? (
-                    <div className={`mt-8 flex flex-wrap items-center gap-3 ${centered ? "justify-center" : ""}`}>
-                      {slide.ctaPrimaryLabel && slide.ctaPrimaryUrl && (
-                        <Link
-                          href={resolveUrl(slide.ctaPrimaryUrl, event.slug)}
-                          target={urlIsExternal(slide.ctaPrimaryUrl) ? "_blank" : undefined}
-                          rel={urlIsExternal(slide.ctaPrimaryUrl) ? "noopener noreferrer" : undefined}
-                          className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold transition-colors hover:brightness-95"
-                          style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
-                        >
-                          {slide.ctaPrimaryLabel}
-                          <ChevronRightIcon size={14} />
-                        </Link>
-                      )}
-                      {slide.ctaSecondaryLabel && slide.ctaSecondaryUrl && (
-                        <Link
-                          href={resolveUrl(slide.ctaSecondaryUrl, event.slug)}
-                          target={urlIsExternal(slide.ctaSecondaryUrl) ? "_blank" : undefined}
-                          rel={urlIsExternal(slide.ctaSecondaryUrl) ? "noopener noreferrer" : undefined}
-                          className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-white border-2 border-white/80 text-sm font-bold hover:bg-white/10 transition-colors"
-                        >
-                          {slide.ctaSecondaryLabel}
-                        </Link>
-                      )}
-                    </div>
-                  ) : null}
+                <SlideBackgroundLayer
+                  bg={bg}
+                  isFirst={isFirstBlock && idx === 0}
+                  alt={slide.title || event.title || "Event"}
+                />
+                <div className="absolute inset-0">
+                  <SlideContent
+                    slide={slide}
+                    layout={slideLayout}
+                    horizontalAlign={horizontalAlign}
+                    verticalAlign={verticalAlign}
+                    elements={slideElements}
+                    event={event}
+                    fmtDate={fmtDate}
+                    socialHandles={socialHandles ?? {}}
+                  />
                 </div>
               </div>
             )
@@ -215,71 +185,690 @@ export function HeroSliderInner({
         </div>
       </div>
 
-      {/* Arrows */}
       {arrowsVisible && slides.length > 1 && (
         <>
-          <button
-            type="button"
-            aria-label="Previous slide"
+          <ArrowButton
+            direction="prev"
             onClick={scrollPrev}
-            className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors"
-            style={{ color: arrowColor }}
-          >
-            <ChevronLeft size={arrowSize} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            aria-label="Next slide"
+            design={arrowDesign}
+            size={arrowSize}
+            color={arrowColor}
+          />
+          <ArrowButton
+            direction="next"
             onClick={scrollNext}
-            className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors"
-            style={{ color: arrowColor }}
-          >
-            <ChevronRight size={arrowSize} strokeWidth={2} />
-          </button>
+            design={arrowDesign}
+            size={arrowSize}
+            color={arrowColor}
+          />
         </>
       )}
 
-      {/* Navigator */}
       {navVisible && slides.length > 1 && (
-        <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2 px-4">
-          {slides.map((_, i) => {
-            const active = i === selectedIdx
-            if (navStyle === "numbers") {
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => scrollTo(i)}
-                  aria-label={`Go to slide ${i + 1}`}
-                  className={`min-w-[28px] h-7 px-2 rounded-md text-[11px] font-bold ${active ? "bg-white text-[#1a1a2e]" : "bg-white/30 text-white hover:bg-white/50"}`}
-                >
-                  {i + 1}
-                </button>
-              )
-            }
-            if (navStyle === "bars") {
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => scrollTo(i)}
-                  aria-label={`Go to slide ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all ${active ? "w-10 bg-white" : "w-5 bg-white/40 hover:bg-white/70"}`}
-                />
-              )
-            }
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => scrollTo(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${active ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"}`}
-              />
-            )
-          })}
-        </div>
+        <Navigator
+          style={navStyle}
+          count={slides.length}
+          selectedIdx={selectedIdx}
+          onJump={scrollTo}
+        />
       )}
     </section>
   )
+}
+
+/* ── ITEM 1.2 — slide background layer ────────────────────────── */
+function SlideBackgroundLayer({
+  bg, isFirst, alt,
+}: {
+  bg: SlideBackground | null
+  isFirst: boolean
+  alt: string
+}) {
+  if (!bg) {
+    return <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent" />
+  }
+  if (bg.type === "color" && bg.color) {
+    const c = bg.color
+    const opacity = clamp01(c.opacity ?? 1)
+    const style: CSSProperties = c.mode === "gradient" && c.gradientTo
+      ? { backgroundImage: `linear-gradient(180deg, ${c.color}, ${c.gradientTo})`, opacity }
+      : { backgroundColor: c.color, opacity }
+    return (
+      <>
+        <div className="absolute inset-0" style={style} />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/70 via-[#050505]/30 to-transparent pointer-events-none" />
+      </>
+    )
+  }
+  if (bg.type === "image" && bg.image) {
+    const img = bg.image
+    const { src } = parseFocalPoint(img.url)
+    const objectPosition = `${(img.position?.x ?? 0.5) * 100}% ${(img.position?.y ?? 0.5) * 100}%`
+    const objectFit = img.fit === "contain" ? "contain" : "cover"
+    const overlayRgba = hexToRgba(img.overlayColor || "#000000", clamp01(img.overlayOpacity ?? 0.55))
+    return (
+      <>
+        {img.fit === "tile" ? (
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url('${src}')`,
+              backgroundRepeat: "repeat",
+              backgroundPosition: "top left",
+              opacity: clamp01(img.opacity ?? 1),
+            }}
+          />
+        ) : src ? (
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            priority={isFirst}
+            fetchPriority={isFirst ? "high" : "auto"}
+            sizes="100vw"
+            style={{ objectFit, objectPosition, opacity: clamp01(img.opacity ?? 1) }}
+            className="select-none"
+          />
+        ) : null}
+        {img.overlayEnabled && (
+          <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: overlayRgba }} />
+        )}
+      </>
+    )
+  }
+  if (bg.type === "video" && bg.video) {
+    const v = bg.video
+    const overlayRgba = hexToRgba(v.overlayColor || "#000000", clamp01(v.overlayOpacity ?? 0.45))
+    return (
+      <>
+        <video
+          src={v.url}
+          autoPlay
+          muted
+          loop={v.loop !== false}
+          playsInline
+          aria-label={alt}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: overlayRgba }} />
+      </>
+    )
+  }
+  return null
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const v = (hex ?? "").trim()
+  if (/^rgba?\(/i.test(v)) return v
+  let h = v.startsWith("#") ? v.slice(1) : v
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("")
+  if (h.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(h)) return `rgba(0,0,0,${alpha})`
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+/* ── ITEM 2 — slide content with optional split-screen layout ─── */
+const MEDIA_SIZE_PCT: Record<NonNullable<HeroSlide["mediaSize"]>, number> = {
+  xs: 25, sm: 33, md: 50, lg: 66, xl: 80,
+}
+
+function SlideContent({
+  slide, layout, horizontalAlign, verticalAlign, elements, event, fmtDate, socialHandles,
+}: {
+  slide: HeroSlide
+  layout: NonNullable<HeroSlide["layout"]>
+  horizontalAlign: "left" | "center" | "right"
+  verticalAlign: "top" | "center" | "bottom"
+  elements: HeroElement[]
+  event: EventShape
+  fmtDate: (s: string, e: string | null) => string
+  socialHandles: SocialHandles
+}) {
+  const justifyMap = {
+    top: "items-start", center: "items-center", bottom: "items-end",
+  } as const
+  const alignText =
+    horizontalAlign === "center" ? "text-center" :
+    horizontalAlign === "right" ? "text-right" : ""
+
+  const copy = (
+    <div
+      className={`relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pb-20 pt-28 w-full ${alignText}`}
+      style={horizontalAlign === "center" ? { marginInline: "auto" } : undefined}
+    >
+      {elements.map((el) => (
+        <ElementRenderer
+          key={el.id}
+          el={el}
+          slide={slide}
+          event={event}
+          fmtDate={fmtDate}
+          socialHandles={socialHandles}
+          horizontalAlign={horizontalAlign}
+        />
+      ))}
+    </div>
+  )
+
+  if (layout === "background-only") {
+    return (
+      <div className={`absolute inset-0 flex ${justifyMap[verticalAlign]}`}>
+        {copy}
+      </div>
+    )
+  }
+
+  const media = slide.primaryMedia
+  if (!media || !media.url) return (
+    <div className={`absolute inset-0 flex ${justifyMap[verticalAlign]}`}>{copy}</div>
+  )
+
+  const sizePct = MEDIA_SIZE_PCT[slide.mediaSize ?? "lg"]
+  const isHorizontal = layout === "media-left" || layout === "media-right"
+  const mediaEl = (
+    <div className="relative w-full h-full overflow-hidden">
+      {media.kind === "video" ? (
+        <video src={media.url} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={parseFocalPoint(media.url).src} alt={media.alt ?? ""} className="absolute inset-0 w-full h-full object-cover" />
+      )}
+    </div>
+  )
+
+  const styleMedia: CSSProperties = isHorizontal
+    ? { width: `${sizePct}%`, height: "100%" }
+    : { width: "100%", height: `${sizePct}%` }
+  const styleCopy: CSSProperties = isHorizontal
+    ? { width: `${100 - sizePct}%`, height: "100%" }
+    : { width: "100%", height: `${100 - sizePct}%` }
+
+  const order = layout === "media-left" || layout === "media-top" ? "media-first" : "copy-first"
+  return (
+    <div className={`absolute inset-0 flex ${isHorizontal ? "flex-row" : "flex-col"}`}>
+      {order === "media-first" ? (
+        <>
+          <div style={styleMedia}>{mediaEl}</div>
+          <div style={styleCopy} className={`flex ${justifyMap[verticalAlign]}`}>{copy}</div>
+        </>
+      ) : (
+        <>
+          <div style={styleCopy} className={`flex ${justifyMap[verticalAlign]}`}>{copy}</div>
+          <div style={styleMedia}>{mediaEl}</div>
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ── ITEM 3 — element renderer ─────────────────────────────────── */
+function ElementRenderer({
+  el, slide, event, fmtDate, socialHandles, horizontalAlign,
+}: {
+  el: HeroElement
+  slide: HeroSlide
+  event: EventShape
+  fmtDate: (s: string, e: string | null) => string
+  socialHandles: SocialHandles
+  horizontalAlign: "left" | "center" | "right"
+}) {
+  const centered = horizontalAlign === "center"
+  const eventLogo = slide.useEventLogo ? event.logo_url ?? null : null
+
+  switch (el.kind) {
+    case "eventName":
+      return <EventNameElement text={el.text || slide.title || event.title || "Untitled Event"} format={el.format} centered={centered} logo={eventLogo} />
+    case "shortDescription":
+      return el.text || slide.subtitle ? (
+        <p
+          className={`mt-5 text-lg sm:text-xl text-white/80 leading-relaxed ${centered ? "max-w-2xl mx-auto" : "max-w-2xl"}`}
+          style={formatToStyle(el.format)}
+        >
+          {el.text || slide.subtitle}
+        </p>
+      ) : null
+    case "label":
+      return el.text ? (
+        <span
+          className="inline-flex items-center px-3 py-1 mb-3 rounded-full bg-white/15 text-white text-[11px] font-bold uppercase tracking-[0.2em]"
+          style={formatToStyle(el.format)}
+        >
+          {el.text}
+        </span>
+      ) : null
+    case "buttonGroup":
+      return <ButtonGroupElement buttons={el.buttons} slide={slide} event={event} centered={centered} />
+    case "countdown":
+      return event.start_date ? <InlineCountdown to={event.start_date} centered={centered} /> : null
+    case "socialHandles":
+      return <InlineSocialHandles handles={socialHandles} centered={centered} />
+    case "primaryMedia":
+    case "secondaryMedia": {
+      const url = el.url ?? ""
+      const alt = el.alt ?? ""
+      if (!url) return null
+      if (el.mediaKind === "video") {
+        return <video src={url} autoPlay muted loop playsInline className="mt-4 max-h-72 w-auto rounded-lg" />
+      }
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={parseFocalPoint(url).src} alt={alt} className={`mt-4 max-h-72 w-auto rounded-lg ${centered ? "mx-auto" : ""}`} />
+      )
+    }
+    case "dateTime":
+      return <DateTimeElement el={el as HeroElement} event={event} centered={centered} fmtDate={fmtDate} />
+    case "venue":
+      return event.venue ? (
+        <div className={`mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/85 ${centered ? "justify-center" : ""}`}>
+          <MapPin size={13} /> {event.venue}
+        </div>
+      ) : null
+  }
+}
+
+/* ── ITEM 3 / ITEM 4 — Event Name with formatting ──────────────── */
+function EventNameElement({
+  text, format, centered, logo,
+}: {
+  text: string
+  format?: EventNameFormat
+  centered: boolean
+  logo: string | null
+}) {
+  const f = format ?? {}
+  const cls = [
+    "text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.05]",
+    centered ? "max-w-4xl mx-auto" : "max-w-4xl",
+    f.bold === false ? "" : "font-bold",
+    f.italic ? "italic" : "",
+    f.underline ? "underline" : "",
+    f.strikethrough ? "line-through" : "",
+  ].filter(Boolean).join(" ")
+  const transformCls = {
+    none: "",
+    uppercase: "uppercase",
+    lowercase: "lowercase",
+    capitalize: "capitalize",
+  }[f.textTransform ?? "none"]
+  const alignCls = f.textAlign === "right" ? "text-right" : f.textAlign === "center" ? "text-center" : f.textAlign === "left" ? "text-left" : ""
+  const style: CSSProperties = {
+    ...sfFont,
+    ...(f.textColor ? { color: f.textColor } : {}),
+    ...(f.textBackground ? { backgroundColor: f.textBackground, padding: "0.05em 0.2em" } : {}),
+    ...(typeof f.lineHeight === "number" ? { lineHeight: f.lineHeight } : {}),
+    ...(typeof f.letterSpacing === "number" ? { letterSpacing: `${f.letterSpacing}px` } : {}),
+  }
+  const titleNode = f.link ? (
+    <Link href={f.link} className={`${cls} ${transformCls} ${alignCls}`} style={style}>{text}</Link>
+  ) : (
+    <h1 className={`${cls} ${transformCls} ${alignCls}`} style={style}>{text}</h1>
+  )
+
+  if (f.listType === "ordered") return <ol className="list-decimal list-inside">{<li>{titleNode}</li>}</ol>
+  if (f.listType === "bullet")  return <ul className="list-disc list-inside">{<li>{titleNode}</li>}</ul>
+  return (
+    <>
+      {logo && (() => {
+        const { src } = parseFocalPoint(logo)
+        return (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={src} alt="" className={`h-14 sm:h-16 w-auto mb-6 drop-shadow-md ${centered ? "mx-auto" : ""}`} />
+        )
+      })()}
+      {titleNode}
+    </>
+  )
+}
+
+function formatToStyle(format?: EventNameFormat): CSSProperties {
+  if (!format) return {}
+  return {
+    ...(format.textColor ? { color: format.textColor } : {}),
+    ...(format.textBackground ? { backgroundColor: format.textBackground } : {}),
+    ...(typeof format.lineHeight === "number" ? { lineHeight: format.lineHeight } : {}),
+    ...(typeof format.letterSpacing === "number" ? { letterSpacing: `${format.letterSpacing}px` } : {}),
+    ...(format.textTransform && format.textTransform !== "none" ? { textTransform: format.textTransform as CSSProperties["textTransform"] } : {}),
+    ...(format.textAlign ? { textAlign: format.textAlign as CSSProperties["textAlign"] } : {}),
+  }
+}
+
+/* ── ITEM 3.5 — Button Group ────────────────────────────────────── */
+function ButtonGroupElement({
+  buttons, slide, event, centered,
+}: {
+  buttons?: HeroElementButton[]
+  slide: HeroSlide
+  event: EventShape
+  centered: boolean
+}) {
+  // Backwards compat: if buttons is empty/missing, fall back to the
+  // legacy ctaPrimary/ctaSecondary pair.
+  const list: HeroElementButton[] = (buttons ?? []).filter((b) => b.label)
+  const fallback: HeroElementButton[] = []
+  if (list.length === 0) {
+    if (slide.ctaPrimaryLabel && slide.ctaPrimaryUrl) {
+      fallback.push({ id: "p", label: slide.ctaPrimaryLabel, type: "url", url: slide.ctaPrimaryUrl, style: "primary" })
+    }
+    if (slide.ctaSecondaryLabel && slide.ctaSecondaryUrl) {
+      fallback.push({ id: "s", label: slide.ctaSecondaryLabel, type: "url", url: slide.ctaSecondaryUrl, style: "outline" })
+    }
+  }
+  const final = list.length > 0 ? list : fallback
+  if (final.length === 0) return null
+  return (
+    <div className={`mt-8 flex flex-wrap items-center gap-3 ${centered ? "justify-center" : ""}`}>
+      {final.map((b) => {
+        const href = b.type === "anchor" && b.anchor
+          ? `#${b.anchor.replace(/^#/, "")}`
+          : b.type === "register"
+            ? `/events/${event.slug}/register`
+            : b.url ?? "#"
+        const cls =
+          b.style === "primary"
+            ? "inline-flex items-center gap-2 px-7 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold transition-colors hover:brightness-95"
+            : b.style === "secondary"
+              ? "inline-flex items-center gap-2 px-7 py-3 rounded-xl text-white bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/15 text-sm font-bold"
+              : "inline-flex items-center gap-2 px-7 py-3 rounded-xl text-white border-2 border-white/80 text-sm font-bold hover:bg-white/10 transition-colors"
+        const style: CSSProperties | undefined = b.style === "primary"
+          ? { backgroundColor: "var(--lf-primary, #e7ab1c)" }
+          : undefined
+        return (
+          <Link
+            key={b.id}
+            href={resolveUrl(href, event.slug)}
+            target={urlIsExternal(href) ? "_blank" : undefined}
+            rel={urlIsExternal(href) ? "noopener noreferrer" : undefined}
+            className={cls}
+            style={style}
+          >
+            {b.label}
+            {b.style === "primary" && <ChevronRightIcon size={14} />}
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ── ITEM 5 — Date/Time element with size + format + icon style ── */
+function DateTimeElement({
+  el, event, centered, fmtDate,
+}: {
+  el: HeroElement
+  event: EventShape
+  centered: boolean
+  fmtDate: (s: string, e: string | null) => string
+}) {
+  if (!event.start_date) return null
+  const showDate = el.showDate !== false
+  const showTime = el.showTime !== false
+  const showVenue = el.showVenue !== false
+  const widget = el.widgetSize ?? "md"
+  const sizeCls =
+    widget === "sm" ? "text-[11px]" :
+    widget === "lg" ? "text-[14px]" :
+    widget === "xl" ? "text-[16px]" : "text-[12px]"
+  const iconSize =
+    widget === "sm" ? 11 :
+    widget === "lg" ? 14 :
+    widget === "xl" ? 16 : 13
+  const iconStyle = el.iconStyle ?? "outline"
+  const iconStrokeWidth = iconStyle === "minimal" ? 1 : iconStyle === "solid" ? 2.4 : 1.6
+  const showIcon = iconStyle !== "none"
+
+  const dateStr = (() => {
+    if (!showDate) return ""
+    if (el.formatType === "iso") return new Date(event.start_date).toISOString().slice(0, 10)
+    if (el.formatType === "long") {
+      const opts: Intl.DateTimeFormatOptions = { weekday: "long", day: "numeric", month: "long", year: "numeric" }
+      return new Date(event.start_date).toLocaleDateString("en-IN", opts)
+    }
+    return fmtDate(event.start_date, event.end_date)
+  })()
+  const timeStr = showTime
+    ? new Date(event.start_date).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true })
+    : ""
+
+  const color = el.textColor || "var(--lf-primary, #e7ab1c)"
+  return (
+    <div
+      className={`flex flex-wrap items-center gap-3 font-semibold uppercase tracking-[0.22em] mb-4 ${sizeCls} ${centered ? "justify-center" : ""}`}
+      style={{ color }}
+    >
+      {showDate && (
+        <span className="inline-flex items-center gap-1.5">
+          {showIcon && <Calendar size={iconSize} strokeWidth={iconStrokeWidth} fill={iconStyle === "solid" ? "currentColor" : "none"} />}
+          {dateStr}
+        </span>
+      )}
+      {showTime && timeStr && (
+        <>
+          {showDate && <span className="opacity-40">·</span>}
+          <span className="inline-flex items-center gap-1.5">
+            {showIcon && <Calendar size={iconSize} strokeWidth={iconStrokeWidth} />}
+            {timeStr}
+          </span>
+        </>
+      )}
+      {showVenue && event.venue && (
+        <>
+          {(showDate || showTime) && <span className="opacity-40">·</span>}
+          <span className="inline-flex items-center gap-1.5">
+            {showIcon && <MapPin size={iconSize} strokeWidth={iconStrokeWidth} fill={iconStyle === "solid" ? "currentColor" : "none"} />}
+            {event.venue}
+          </span>
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ── Inline countdown / social handles (extracted from blocks.tsx) ── */
+function InlineCountdown({ to, centered }: { to: string; centered: boolean }) {
+  const [now, setNow] = useState<number>(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const target = new Date(to).getTime()
+  const ms = Math.max(0, target - now)
+  const days = Math.floor(ms / 86_400_000)
+  const hours = Math.floor((ms % 86_400_000) / 3_600_000)
+  const mins = Math.floor((ms % 3_600_000) / 60_000)
+  const secs = Math.floor((ms % 60_000) / 1000)
+  const cell = (n: number, label: string) => (
+    <div className="flex flex-col items-center min-w-[56px] sm:min-w-[64px] px-3 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/15">
+      <span className="text-2xl sm:text-3xl font-bold text-white tabular-nums leading-none">{String(n).padStart(2, "0")}</span>
+      <span className="mt-1 text-[10px] uppercase tracking-[0.2em] text-white/65">{label}</span>
+    </div>
+  )
+  return (
+    <div className={`mt-6 flex flex-wrap items-center gap-2.5 ${centered ? "justify-center" : ""}`}>
+      {cell(days, "Days")}{cell(hours, "Hrs")}{cell(mins, "Min")}{cell(secs, "Sec")}
+    </div>
+  )
+}
+
+function InlineSocialHandles({
+  handles, centered,
+}: {
+  handles: SocialHandles
+  centered: boolean
+}) {
+  const links: Array<{ key: string; href: string; label: string }> = []
+  if (handles.twitter)   links.push({ key: "tw", href: handles.twitter,   label: "X / Twitter" })
+  if (handles.linkedin)  links.push({ key: "li", href: handles.linkedin,  label: "LinkedIn" })
+  if (handles.instagram) links.push({ key: "ig", href: handles.instagram, label: "Instagram" })
+  if (handles.facebook)  links.push({ key: "fb", href: handles.facebook,  label: "Facebook" })
+  if (handles.youtube)   links.push({ key: "yt", href: handles.youtube,   label: "YouTube" })
+  if (handles.website)   links.push({ key: "ww", href: handles.website,   label: "Website" })
+  if (links.length === 0) return null
+  return (
+    <div className={`mt-6 flex flex-wrap items-center gap-2.5 ${centered ? "justify-center" : ""}`}>
+      {links.map((l) => (
+        <a
+          key={l.key}
+          href={l.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={l.label}
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/15 text-white text-[10px] font-bold uppercase"
+        >
+          {l.key.toUpperCase()}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+/* ── ITEM 6.1 — Arrow chrome variants ─────────────────────────── */
+function ArrowButton({
+  direction, onClick, design, size, color,
+}: {
+  direction: "prev" | "next"
+  onClick: () => void
+  design: NonNullable<SliderControls["arrowDesign"]>
+  size: number
+  color: string
+}) {
+  const sideCls = direction === "prev" ? "left-3 sm:left-6" : "right-3 sm:right-6"
+  const Icon = direction === "prev" ? ChevronLeft : ChevronRight
+  if (design === "filled") {
+    return (
+      <button
+        type="button"
+        aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+        onClick={onClick}
+        className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors`}
+        style={{ backgroundColor: color, color: "#1a1a2e" }}
+      >
+        <Icon size={size} strokeWidth={2.5} />
+      </button>
+    )
+  }
+  if (design === "filled-box") {
+    return (
+      <button
+        type="button"
+        aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+        onClick={onClick}
+        className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-10 h-10 rounded-md transition-colors`}
+        style={{ backgroundColor: color, color: "#1a1a2e" }}
+      >
+        <Icon size={size} strokeWidth={2.5} />
+      </button>
+    )
+  }
+  if (design === "stroke-circle") {
+    return (
+      <button
+        type="button"
+        aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+        onClick={onClick}
+        className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-10 h-10 rounded-full border-2 hover:bg-white/10 transition-colors`}
+        style={{ borderColor: color, color }}
+      >
+        <Icon size={size} strokeWidth={2} />
+      </button>
+    )
+  }
+  return (
+    <button
+      type="button"
+      aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+      onClick={onClick}
+      className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors`}
+      style={{ color }}
+    >
+      <Icon size={size} strokeWidth={2} />
+    </button>
+  )
+}
+
+/* ── ITEM 6.2 — Navigator variants ────────────────────────────── */
+function Navigator({
+  style, count, selectedIdx, onJump,
+}: {
+  style: NonNullable<SliderControls["navigatorStyle"]>
+  count: number
+  selectedIdx: number
+  onJump: (i: number) => void
+}) {
+  return (
+    <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2 px-4">
+      {Array.from({ length: count }).map((_, i) => {
+        const active = i === selectedIdx
+        if (style === "numbers") {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onJump(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`min-w-[28px] h-7 px-2 rounded-md text-[11px] font-bold ${active ? "bg-white text-[#1a1a2e]" : "bg-white/30 text-white hover:bg-white/50"}`}
+            >
+              {i + 1}
+            </button>
+          )
+        }
+        if (style === "dashes") {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onJump(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-1 rounded transition-all ${active ? "w-12 bg-white" : "w-6 bg-white/40 hover:bg-white/70"}`}
+            />
+          )
+        }
+        if (style === "lines") {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onJump(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-0.5 rounded transition-all ${active ? "w-14 bg-white" : "w-7 bg-white/30 hover:bg-white/60"}`}
+            />
+          )
+        }
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onJump(i)}
+            aria-label={`Go to slide ${i + 1}`}
+            className={`w-2.5 h-2.5 rounded-full transition-all ${active ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"}`}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+/* ── ITEM 3.4 — back-compat: legacy → elements[] ─────────────────── */
+function resolveElements(slide: HeroSlide): HeroElement[] {
+  if (Array.isArray(slide.elements) && slide.elements.length > 0) return slide.elements
+  // Build a sensible default ordering from legacy fields.
+  const out: HeroElement[] = []
+  out.push({ id: "el-name",  kind: "eventName", text: slide.title })
+  out.push({ id: "el-dt",    kind: "dateTime",  showDate: true, showTime: false, showVenue: false, widgetSize: "md" })
+  out.push({ id: "el-venue", kind: "venue" })
+  out.push({ id: "el-desc",  kind: "shortDescription", text: slide.subtitle })
+  out.push({
+    id: "el-btns",
+    kind: "buttonGroup",
+    buttons: [
+      ...(slide.ctaPrimaryLabel && slide.ctaPrimaryUrl
+        ? [{ id: "p", label: slide.ctaPrimaryLabel, type: "url" as const, url: slide.ctaPrimaryUrl, style: "primary" as const }]
+        : []),
+      ...(slide.ctaSecondaryLabel && slide.ctaSecondaryUrl
+        ? [{ id: "s", label: slide.ctaSecondaryLabel, type: "url" as const, url: slide.ctaSecondaryUrl, style: "outline" as const }]
+        : []),
+    ],
+  })
+  return out
 }
