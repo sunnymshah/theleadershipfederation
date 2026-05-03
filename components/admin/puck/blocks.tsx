@@ -808,6 +808,9 @@ export function Hero({
 /** ITEM 2.3 — compact 4-up Days/Hours/Minutes/Seconds rendered INSIDE
  *  the hero. Smaller than the standalone Countdown block. */
 function HeroInlineCountdown({ to, centered }: { to: string; centered: boolean }) {
+  // ITEM 8.1 — Zoho-parity styling: thin transparent pills with a
+  // primary-color border, transparent fill, white digit + soft white
+  // label, and an inner divider via border-t between digit and label.
   const [now, setNow] = useState<number>(() => Date.now())
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000)
@@ -820,9 +823,19 @@ function HeroInlineCountdown({ to, centered }: { to: string; centered: boolean }
   const mins = Math.floor((ms % 3_600_000) / 60_000)
   const secs = Math.floor((ms % 60_000) / 1000)
   const cell = (n: number, label: string) => (
-    <div className="flex flex-col items-center min-w-[56px] sm:min-w-[64px] px-3 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/15">
-      <span className="text-2xl sm:text-3xl font-bold text-white tabular-nums leading-none">{String(n).padStart(2, "0")}</span>
-      <span className="mt-1 text-[10px] uppercase tracking-[0.2em] text-white/65">{label}</span>
+    <div
+      className="flex flex-col items-stretch min-w-[60px] sm:min-w-[72px] rounded-md border-2 bg-transparent text-white"
+      style={{ borderColor: "var(--lf-primary, #e7ab1c)" }}
+    >
+      <span className="px-3 py-2 text-2xl sm:text-3xl font-bold text-white tabular-nums leading-none text-center">
+        {String(n).padStart(2, "0")}
+      </span>
+      <span
+        className="px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-white/70 text-center border-t"
+        style={{ borderTopColor: "var(--lf-primary, #e7ab1c)" }}
+      >
+        {label}
+      </span>
     </div>
   )
   return (
