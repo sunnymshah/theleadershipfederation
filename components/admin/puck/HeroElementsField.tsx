@@ -285,16 +285,20 @@ function KindFields({
         </>
       )
     case "dateTime":
+      // ITEM 5.3 — defaults match the renderer (showDate / showTime /
+      // showVenue all default true via `!== false`, so the inspector
+      // also reads `!== false`). textColor is a colour picker rather
+      // than a free-text hex input.
       return (
         <>
           <Mini label="Show date">
-            <BoolToggle value={el.showDate ?? true} onChange={(v) => onPatch({ showDate: v })} />
+            <BoolToggle value={el.showDate !== false} onChange={(v) => onPatch({ showDate: v })} />
           </Mini>
           <Mini label="Show time">
-            <BoolToggle value={el.showTime ?? false} onChange={(v) => onPatch({ showTime: v })} />
+            <BoolToggle value={el.showTime !== false} onChange={(v) => onPatch({ showTime: v })} />
           </Mini>
           <Mini label="Show venue">
-            <BoolToggle value={el.showVenue ?? false} onChange={(v) => onPatch({ showVenue: v })} />
+            <BoolToggle value={el.showVenue !== false} onChange={(v) => onPatch({ showVenue: v })} />
           </Mini>
           <Mini label="Widget size">
             <select value={el.widgetSize ?? "md"} onChange={(e) => onPatch({ widgetSize: e.target.value as "sm" | "md" | "lg" | "xl" })} className="z-input">
@@ -322,7 +326,21 @@ function KindFields({
             </select>
           </Mini>
           <Mini label="Text color">
-            <input type="text" value={el.textColor ?? ""} onChange={(e) => onPatch({ textColor: e.target.value })} className="z-input" placeholder="#e7ab1c" />
+            <div className="flex items-center gap-1.5">
+              <input
+                type="color"
+                value={isHex(el.textColor) ? (el.textColor as string) : "#e7ab1c"}
+                onChange={(e) => onPatch({ textColor: e.target.value })}
+                className="w-8 h-8 rounded cursor-pointer border border-[var(--z-border,#e5e7eb)] bg-white"
+              />
+              <input
+                type="text"
+                value={el.textColor ?? ""}
+                onChange={(e) => onPatch({ textColor: e.target.value })}
+                className="z-input flex-1 !text-[11px]"
+                placeholder="#e7ab1c"
+              />
+            </div>
           </Mini>
         </>
       )
