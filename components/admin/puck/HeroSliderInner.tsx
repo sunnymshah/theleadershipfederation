@@ -33,6 +33,7 @@ import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
 import {
   sfFont,
+  buildDefaultElements,
   type EventShape, type SocialHandles,
   type HeroSlide, type SliderControls, type SlideBackground,
   type HeroElement, type EventNameFormat, type HeroElementButton,
@@ -858,26 +859,28 @@ function Navigator({
   )
 }
 
-/* ── ITEM 3.4 — back-compat: legacy → elements[] ─────────────────── */
+/* ── ITEM 3.5 — back-compat: legacy → elements[] ─────────────────── */
 function resolveElements(slide: HeroSlide): HeroElement[] {
   if (Array.isArray(slide.elements) && slide.elements.length > 0) return slide.elements
-  // Build a sensible default ordering from legacy fields.
-  const out: HeroElement[] = []
-  out.push({ id: "el-name",  kind: "eventName", text: slide.title })
-  out.push({ id: "el-dt",    kind: "dateTime",  showDate: true, showTime: false, showVenue: false, widgetSize: "md" })
-  out.push({ id: "el-venue", kind: "venue" })
-  out.push({ id: "el-desc",  kind: "shortDescription", text: slide.subtitle })
-  out.push({
-    id: "el-btns",
-    kind: "buttonGroup",
-    buttons: [
-      ...(slide.ctaPrimaryLabel && slide.ctaPrimaryUrl
-        ? [{ id: "p", label: slide.ctaPrimaryLabel, type: "url" as const, url: slide.ctaPrimaryUrl, style: "primary" as const }]
-        : []),
-      ...(slide.ctaSecondaryLabel && slide.ctaSecondaryUrl
-        ? [{ id: "s", label: slide.ctaSecondaryLabel, type: "url" as const, url: slide.ctaSecondaryUrl, style: "outline" as const }]
-        : []),
-    ],
-  })
+  // Materialise the canonical default order, then thread the slide's
+  // legacy fields through (title → eventName.text, subtitle →
+  // shortDescription.text, CTAs → buttonGroup.buttons).
+  const out = buildDefaultElements(slide.id ? `el-${slide.id}` : "el")
+  for (const el of out) {
+    if (el.kind === "eventName" && slide.title) el.text = slide.title
+    if (el.kind === "shortDescription" && slide.subtitle) el.text = slide.subtitle
+    if (el.kind === "buttonGroup") {
+      const buttons: typeof el.buttons = []
+      if (slide.ctaPrimaryLabel && slide.ctaPrimaryUrl) {
+        buttons.push({ id: "p", label: slide.ctaPrimaryLabel, type: "url", url: slide.ctaPrimaryUrl, style: "primary" })
+      }
+      if (slide.ctaSecondaryLabel && slide.ctaSecondaryUrl) {
+        buttons.push({ id: "s", label: slide.ctaSecondaryLabel, type: "url", url: slide.ctaSecondaryUrl, style: "outline" })
+      }
+      // Only override the canonical default Register button when the
+      // slide actually carries legacy CTAs — otherwise keep the default.
+      if (buttons.length > 0) el.buttons = buttons
+    }
+  }
   return out
 }

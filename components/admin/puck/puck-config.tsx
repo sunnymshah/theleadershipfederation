@@ -28,7 +28,7 @@ import * as React from "react"
 import type { ReactElement } from "react"
 import {
   Root,
-  Hero, RichText, StatsRow, SpeakersGrid, Agenda, TicketsCta,
+  Hero, RichText, StatsRow, SpeakersGrid, Agenda, TicketsCta, buildDefaultElements,
   SponsorsGrid, Video, Gallery, CtaButton, Faqs,
   Spacer, Divider, ImageBlock, TwoColumn, Testimonial, LogosStrip, Newsletter,
   TextBox,
@@ -674,7 +674,9 @@ export const puckConfig: Config<BuilderComponents> = {
             horizontalAlign: "left",
             verticalAlign: "bottom",
             primaryMedia: { kind: "image", url: "", alt: "" },
-            elements: [],
+            // ITEM 3.2 — fresh slides start with the canonical 5-element
+            // default order so the editor isn't blank on add.
+            elements: buildDefaultElements(),
           },
         },
         sliderControls: {

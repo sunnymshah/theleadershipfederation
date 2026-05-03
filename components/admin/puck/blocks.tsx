@@ -525,10 +525,14 @@ export type HeroElementButton = {
   icon?: string
 }
 /**
- * ITEM 3 — flat element shape so Puck's array field can describe every
- * variant in a single arrayFields object. The renderer narrows on the
- * `kind` discriminator at runtime; fields irrelevant to a given kind
- * are simply ignored by that kind's render branch.
+ * ITEM 3 — element shape. Storage form is FLAT (one Puck array field
+ * with all possible per-kind keys, irrelevant ones simply ignored at
+ * runtime) because Puck v0.20's array fields can't describe a true
+ * discriminated union.  The renderer narrows on `kind` at runtime.
+ *
+ * `HeroElementOf<K>` and `NarrowedHeroElement` (alias of the union of
+ * narrowed forms keyed by `kind`) are exported so consumers and tests
+ * get a type-safe view without losing the storage flatness.
  */
 export type HeroElementKind =
   | "eventName"
@@ -559,9 +563,57 @@ export type HeroElement = {
   showDate?: boolean
   showTime?: boolean
   widgetSize?: "sm" | "md" | "lg" | "xl"
-  formatType?: "short" | "long" | "iso"
+  formatType?: "short" | "long" | "iso" | "us" | "eu"
   iconStyle?: "outline" | "solid" | "minimal" | "none"
   textColor?: string
+}
+
+/** Discriminated narrow form — useful when a caller needs the type
+ *  system to enforce per-kind field requirements. Narrow with `narrow()`
+ *  below at runtime; the storage shape stays flat. */
+export type NarrowedHeroElement =
+  | { id: string; kind: "eventName";        text?: string; format?: EventNameFormat }
+  | { id: string; kind: "shortDescription"; text?: string; format?: EventNameFormat }
+  | { id: string; kind: "label";            text?: string; format?: EventNameFormat }
+  | { id: string; kind: "buttonGroup";      buttons: HeroElementButton[] }
+  | { id: string; kind: "countdown" }
+  | { id: string; kind: "socialHandles" }
+  | { id: string; kind: "secondaryMedia";   url?: string; alt?: string; mediaKind?: "image" | "video" }
+  | { id: string; kind: "primaryMedia";     url?: string; alt?: string; mediaKind?: "image" | "video" }
+  | {
+      id: string; kind: "dateTime";
+      showVenue?: boolean; showDate?: boolean; showTime?: boolean;
+      widgetSize?: "sm" | "md" | "lg" | "xl";
+      formatType?: "short" | "long" | "iso" | "us" | "eu";
+      iconStyle?: "outline" | "solid" | "minimal" | "none";
+      textColor?: string;
+    }
+  | { id: string; kind: "venue" }
+
+/** Narrow a flat HeroElement into its discriminated form. The runtime
+ *  shape is unchanged; this is purely a type-system bridge. */
+export function narrowHeroElement(el: HeroElement): NarrowedHeroElement {
+  return el as unknown as NarrowedHeroElement
+}
+
+/** ITEM 3.2 — default element list for a brand-new slide. Five sensible
+ *  defaults: eventName / dateTime / venue / shortDescription /
+ *  buttonGroup with one Register button. Caller passes a unique id
+ *  prefix so the ids don't collide across slides. */
+export function buildDefaultElements(idPrefix = "el"): HeroElement[] {
+  return [
+    { id: `${idPrefix}-name`,  kind: "eventName" },
+    { id: `${idPrefix}-dt`,    kind: "dateTime", showVenue: false, showDate: true, showTime: false, widgetSize: "md", iconStyle: "outline" },
+    { id: `${idPrefix}-venue`, kind: "venue" },
+    { id: `${idPrefix}-desc`,  kind: "shortDescription" },
+    {
+      id: `${idPrefix}-btns`,
+      kind: "buttonGroup",
+      buttons: [
+        { id: `${idPrefix}-btn-1`, label: "Register Now", type: "register", url: "/tickets", style: "primary" },
+      ],
+    },
+  ]
 }
 
 export type SliderControls = {
