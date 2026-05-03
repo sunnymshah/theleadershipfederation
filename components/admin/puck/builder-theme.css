@@ -525,3 +525,20 @@
   /* Keep the caret visible against dark backgrounds. */
   caret-color: var(--lf-primary, #e7ab1c);
 }
+
+/* ────────────────────────────────────────────────────────────────────
+ * Manager-table profile slide-in panel (ITEM 2.4).
+ *
+ * The panel is rendered with [data-open] toggling true/false; CSS
+ * translates the panel offscreen when closed and slides it in on
+ * open. Matches the inspector-overlay 200ms ease-out timing so the
+ * two surfaces feel consistent.
+ * ──────────────────────────────────────────────────────────────────── */
+.lf-profile-panel {
+  transform: translateX(100%);
+  transition: transform 200ms ease-out;
+  will-change: transform;
+}
+.lf-profile-panel[data-open="true"] {
+  transform: translateX(0);
+}
