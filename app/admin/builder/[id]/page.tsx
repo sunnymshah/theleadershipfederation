@@ -112,6 +112,12 @@ export default async function FullscreenBuilderPage({
   }
 
   /* ── Load event + reference data + builder state in parallel ──────── */
+  // Defensive read: select * so columns added by un-applied migrations
+  // (logo_url, thumbnail_url, favicon_url, nav_extra_links, locales,
+  // default_locale, builder_settings) don't blow up the SELECT on prod
+  // DBs where the migration hasn't run yet — Postgres rejects the whole
+  // query if any named column is missing, which would have us hand back
+  // null data + an error and mistakenly call notFound() below.
   const [
     eventRes,
     speakersRes,
@@ -126,7 +132,7 @@ export default async function FullscreenBuilderPage({
   ] = await Promise.all([
     admin
       .from("events")
-      .select("id, slug, title, start_date, end_date, venue, description, cover_image_url, logo_url, status, locales, default_locale, builder_settings")
+      .select("*")
       .eq("id", id)
       .maybeSingle(),
     admin
@@ -174,8 +180,23 @@ export default async function FullscreenBuilderPage({
     getBuilderPagesDraft(id),
   ])
 
-  if (!eventRes.data) notFound()
-  const event = eventRes.data
+  if (!eventRes.data) {
+    // Distinguish "event genuinely missing" from "Supabase rejected the
+    // SELECT (e.g. RLS, missing column)". Logging the underlying error
+    // gives Vercel runtime logs something to point at the next time
+    // someone hits a builder 404.
+    if (eventRes.error) {
+      console.error(
+        "[builder/[id]] events SELECT failed for id=", id,
+        "— message:", eventRes.error.message,
+        "— code:", eventRes.error.code,
+      )
+    }
+    notFound()
+  }
+  const event = eventRes.data as Record<string, unknown>
+  // Cast through Record<string, unknown> below so optional columns
+  // missing from older databases don't trip the type checker.
 
   const metadata: BuilderMetadata = {
     event: {
