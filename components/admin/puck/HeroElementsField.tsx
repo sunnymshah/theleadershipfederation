@@ -39,6 +39,9 @@ import {
   GripVertical, Plus, Trash2, ChevronDown, ChevronRight,
   Type, AlignLeft, Tag, Square, Clock, Globe, Image as ImageIco,
   Calendar, MapPin, X,
+  Bold, Italic, Underline, Strikethrough,
+  AlignLeft as AlignLeftIcon, AlignCenter, AlignRight,
+  List, ListOrdered, Link as LinkIcon,
 } from "lucide-react"
 import {
   buildDefaultElements,
@@ -254,11 +257,11 @@ function KindFields({
               className="z-input z-textarea"
             />
           </Mini>
-          {el.kind === "eventName" && (
-            <p className="text-[10px] text-[var(--z-text-muted,#6b7280)] italic">
-              Use the Event-Name toolbar in the row above to set bold / italic / colour / size on the title.
-            </p>
-          )}
+          {/* ITEM 4.3 — formatting toolbar with icon buttons */}
+          <HeroFormatToolbar
+            format={el.format}
+            onChange={(format) => onPatch({ format })}
+          />
         </>
       )
     case "buttonGroup":
@@ -387,6 +390,126 @@ function ButtonsEditor({
       </button>
     </div>
   )
+}
+
+/* ── ITEM 4.3 — icon-button format toolbar ─────────────────────── */
+function HeroFormatToolbar({
+  format, onChange,
+}: {
+  format: EventNameFormat | undefined
+  onChange: (next: EventNameFormat) => void
+}) {
+  const f: EventNameFormat = format ?? {}
+  function patch(p: Partial<EventNameFormat>) { onChange({ ...f, ...p }) }
+  function toggle<K extends keyof EventNameFormat>(key: K) {
+    patch({ [key]: !f[key] } as Partial<EventNameFormat>)
+  }
+
+  const ToggleBtn = ({ active, onClick, title, children }: { active: boolean; onClick: () => void; title: string; children: React.ReactNode }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-pressed={active}
+      className={`inline-flex items-center justify-center w-7 h-7 rounded ${active ? "bg-[var(--z-info,#3e7af7)] text-white" : "bg-white text-[var(--z-text,#1f2937)] hover:bg-[var(--z-bg-alt,#f7f8fa)]"} border border-[var(--z-border,#e5e7eb)]`}
+    >
+      {children}
+    </button>
+  )
+  return (
+    <div className="space-y-1.5 rounded-md border border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg-alt,#f7f8fa)] p-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)]">Formatting</div>
+      {/* Row 1 — bold / italic / underline / strikethrough */}
+      <div className="flex flex-wrap items-center gap-1">
+        <ToggleBtn active={!!f.bold}          onClick={() => toggle("bold")}          title="Bold">          <Bold size={12} /></ToggleBtn>
+        <ToggleBtn active={!!f.italic}        onClick={() => toggle("italic")}        title="Italic">        <Italic size={12} /></ToggleBtn>
+        <ToggleBtn active={!!f.underline}     onClick={() => toggle("underline")}     title="Underline">     <Underline size={12} /></ToggleBtn>
+        <ToggleBtn active={!!f.strikethrough} onClick={() => toggle("strikethrough")} title="Strikethrough"> <Strikethrough size={12} /></ToggleBtn>
+        <span className="w-px h-5 bg-[var(--z-border,#e5e7eb)] mx-0.5" aria-hidden />
+        {/* Alignment toggle group */}
+        <ToggleBtn active={f.textAlign === "left"}   onClick={() => patch({ textAlign: "left" })}   title="Align left">   <AlignLeftIcon size={12} /></ToggleBtn>
+        <ToggleBtn active={f.textAlign === "center"} onClick={() => patch({ textAlign: "center" })} title="Align center"> <AlignCenter   size={12} /></ToggleBtn>
+        <ToggleBtn active={f.textAlign === "right"}  onClick={() => patch({ textAlign: "right" })}  title="Align right">  <AlignRight    size={12} /></ToggleBtn>
+        <span className="w-px h-5 bg-[var(--z-border,#e5e7eb)] mx-0.5" aria-hidden />
+        {/* List toggle group */}
+        <ToggleBtn active={f.listType === "bullet"}  onClick={() => patch({ listType: f.listType === "bullet" ? "none" : "bullet" })}   title="Bullet list">  <List        size={12} /></ToggleBtn>
+        <ToggleBtn active={f.listType === "ordered"} onClick={() => patch({ listType: f.listType === "ordered" ? "none" : "ordered" })} title="Ordered list"> <ListOrdered size={12} /></ToggleBtn>
+      </div>
+
+      {/* Row 2 — colour pickers + transform + link */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <label className="inline-flex items-center gap-1 text-[10px] text-[var(--z-text-muted,#6b7280)]" title="Text color">
+          <span>A</span>
+          <input
+            type="color"
+            value={isHex(f.textColor) ? f.textColor as string : "#ffffff"}
+            onChange={(e) => patch({ textColor: e.target.value })}
+            className="w-6 h-6 rounded cursor-pointer border border-[var(--z-border,#e5e7eb)] bg-white"
+          />
+        </label>
+        <label className="inline-flex items-center gap-1 text-[10px] text-[var(--z-text-muted,#6b7280)]" title="Text background">
+          <span>BG</span>
+          <input
+            type="color"
+            value={isHex(f.textBackground) ? f.textBackground as string : "#000000"}
+            onChange={(e) => patch({ textBackground: e.target.value })}
+            className="w-6 h-6 rounded cursor-pointer border border-[var(--z-border,#e5e7eb)] bg-white"
+          />
+        </label>
+        <select
+          value={f.textTransform ?? "none"}
+          onChange={(e) => patch({ textTransform: e.target.value as EventNameFormat["textTransform"] })}
+          className="z-input !h-7 !text-[11px] !py-0"
+          title="Text transform"
+        >
+          <option value="none">Aa</option>
+          <option value="uppercase">AA</option>
+          <option value="lowercase">aa</option>
+          <option value="capitalize">Aa</option>
+        </select>
+        <label className="inline-flex items-center gap-1 text-[10px] text-[var(--z-text-muted,#6b7280)]" title="Link URL">
+          <LinkIcon size={12} />
+          <input
+            type="url"
+            value={f.link ?? ""}
+            onChange={(e) => patch({ link: e.target.value })}
+            placeholder="https://…"
+            className="z-input !h-7 !text-[11px]"
+            style={{ minWidth: 100 }}
+          />
+        </label>
+      </div>
+
+      {/* Row 3 — line-height + letter-spacing sliders */}
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block">
+          <span className="block text-[10px] uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-0.5">
+            Line height: <span className="tabular-nums">{(f.lineHeight ?? 1.05).toFixed(2)}</span>
+          </span>
+          <input
+            type="range" min={0.8} max={2.4} step={0.05}
+            value={f.lineHeight ?? 1.05}
+            onChange={(e) => patch({ lineHeight: parseFloat(e.target.value) })}
+            className="w-full"
+          />
+        </label>
+        <label className="block">
+          <span className="block text-[10px] uppercase tracking-wider text-[var(--z-text-muted,#6b7280)] mb-0.5">
+            Letter spacing: <span className="tabular-nums">{(f.letterSpacing ?? 0).toFixed(1)}px</span>
+          </span>
+          <input
+            type="range" min={-3} max={12} step={0.5}
+            value={f.letterSpacing ?? 0}
+            onChange={(e) => patch({ letterSpacing: parseFloat(e.target.value) })}
+            className="w-full"
+          />
+        </label>
+      </div>
+    </div>
+  )
+}
+function isHex(v: unknown): v is string {
+  return typeof v === "string" && /^#[0-9a-fA-F]{3,8}$/.test(v)
 }
 
 function Mini({ label, children }: { label: string; children: React.ReactNode }) {
