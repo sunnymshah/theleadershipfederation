@@ -630,10 +630,21 @@ function DateTimeElement({
 
   const dateStr = (() => {
     if (!showDate) return ""
-    if (el.formatType === "iso") return new Date(event.start_date).toISOString().slice(0, 10)
+    const start = new Date(event.start_date)
+    if (el.formatType === "iso") return start.toISOString().slice(0, 10)
     if (el.formatType === "long") {
       const opts: Intl.DateTimeFormatOptions = { weekday: "long", day: "numeric", month: "long", year: "numeric" }
-      return new Date(event.start_date).toLocaleDateString("en-IN", opts)
+      return start.toLocaleDateString("en-IN", opts)
+    }
+    // ITEM 5 — US (MM/DD/YYYY) + EU (DD/MM/YYYY) date formats.
+    // Use en-US and en-GB locales rather than en-IN so the slash format
+    // matches the spec's region (en-IN renders DD/MM/YYYY by default
+    // which is fine for EU but not US).
+    if (el.formatType === "us") {
+      return start.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
+    }
+    if (el.formatType === "eu") {
+      return start.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
     }
     return fmtDate(event.start_date, event.end_date)
   })()
