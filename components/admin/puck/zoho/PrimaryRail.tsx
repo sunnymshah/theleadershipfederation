@@ -14,7 +14,7 @@
 import { type ReactNode } from "react"
 import {
   Layout, FileText, Palette, Mic2, Clock, Ticket, Building2, Settings,
-  FolderTree, Globe, Puzzle,
+  FolderTree, Globe, Puzzle, Plus, Database,
 } from "lucide-react"
 
 export type RailKey =
@@ -31,16 +31,20 @@ export type RailKey =
   | "sponsors"
   | "exhibitors"
   | "hotels"
+  | "data"
   | "settings"
 
-// Zoho-parity rail: exactly 4 primary items + Settings bottom-anchored.
-// Comments lives in the top bar (next to History). Legacy keys
-// (sections / pages / speakers / sessions / tickets / sponsors) stay
-// in the RailKey union for the routing switch in ActiveRailPanel but
-// are no longer surfaced as rail buttons.
-const PRIMARY_ITEMS: Array<{ key: RailKey; label: string; Icon: typeof Layout }> = [
+// Zoho-parity rail: ITEM 4.2 prepends a permanent "ADD" item + ITEM
+// 5.1 inserts a "DATA" item before Languages. Comments stays in the
+// top bar (next to History). Legacy keys (speakers / sessions /
+// tickets / sponsors / exhibitors / hotels) stay in the RailKey union
+// for the routing switch in ActiveRailPanel but are now reached via
+// the DATA panel's sub-tabs.
+const PRIMARY_ITEMS: Array<{ key: RailKey; label: string; Icon: typeof Layout; emphasised?: boolean }> = [
+  { key: "sections",     label: "Add",          Icon: Plus,       emphasised: true },
   { key: "theme",        label: "Themes",       Icon: Palette },
   { key: "stdpages",     label: "Pages",        Icon: FolderTree },
+  { key: "data",         label: "Data",         Icon: Database },
   { key: "languages",    label: "Languages",    Icon: Globe },
   { key: "integrations", label: "Integrations", Icon: Puzzle },
 ]
@@ -70,6 +74,7 @@ export function PrimaryRail({
           isActive={active === item.key}
           onClick={() => onChange(item.key)}
           Icon={item.Icon}
+          emphasised={item.emphasised}
         />
       ))}
       {/* Bottom-anchored — Settings */}
@@ -87,12 +92,16 @@ export function PrimaryRail({
 }
 
 function RailButton({
-  label, isActive, onClick, Icon,
+  label, isActive, onClick, Icon, emphasised,
 }: {
   label: string
   isActive: boolean
   onClick: () => void
   Icon: typeof Layout
+  /** ITEM 4.2 — emphasised buttons (the ADD item) get a primary-tinted
+   *  fill so the user can never miss the entry point to insert
+   *  sections. Hover scales subtly. */
+  emphasised?: boolean
 }) {
   return (
     <button
@@ -101,9 +110,9 @@ function RailButton({
       aria-label={label}
       title={label}
       aria-current={isActive ? "page" : undefined}
-      className={`z-rail-item z-rail-item--stacked ${isActive ? "is-active" : ""}`}
+      className={`z-rail-item z-rail-item--stacked ${isActive ? "is-active" : ""} ${emphasised ? "z-rail-item--emphasised" : ""}`}
     >
-      <Icon size={18} strokeWidth={1.5} />
+      <Icon size={emphasised ? 20 : 18} strokeWidth={emphasised ? 2 : 1.5} />
       <span className="z-rail-item__label">{label}</span>
     </button>
   )

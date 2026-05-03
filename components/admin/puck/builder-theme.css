@@ -338,13 +338,21 @@
   margin: 4px 0;
   padding: 0 24px;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 100ms ease-out;
+  /* ITEM 4.1 — discoverability: was opacity 0 (only revealed on
+     adjacent block hover). Now visible by default at 70% so authors
+     never miss it; saturates to 100% on hover with a subtle drop
+     shadow on the pill. */
+  opacity: 0.7;
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
 }
 
 .lf-builder-shell ._DropZone-item:hover + .lf-add-optional-section,
 .lf-builder-shell .lf-add-optional-section:hover {
   opacity: 1;
+}
+.lf-builder-shell .lf-add-optional-section:hover .lf-add-optional-section-pill {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(62, 122, 247, 0.25);
 }
 
 .lf-builder-shell .lf-add-optional-section-line {
@@ -572,4 +580,24 @@
   /* Make sure the focused contentEditable is on top of any sibling
      overlay Puck might paint for the active block frame. */
   z-index: 30;
+}
+
+/* ITEM 4.2 — emphasised "Add" rail button. Bright primary fill so it's
+ * the most prominent entry point in the rail. Hover saturates and
+ * scales gently. */
+.z-rail-item.z-rail-item--emphasised {
+  background: linear-gradient(180deg, var(--lf-primary, #e7ab1c), color-mix(in srgb, var(--lf-primary, #e7ab1c) 78%, black));
+  color: #1a1a2e !important;
+  box-shadow: 0 4px 10px rgba(231, 171, 28, 0.28);
+  border-radius: 12px;
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out, filter 120ms ease-out;
+}
+.z-rail-item.z-rail-item--emphasised:hover {
+  transform: scale(1.04);
+  filter: brightness(1.05);
+  box-shadow: 0 6px 14px rgba(231, 171, 28, 0.36);
+}
+.z-rail-item.z-rail-item--emphasised .z-rail-item__label {
+  color: #1a1a2e !important;
+  font-weight: 700;
 }
