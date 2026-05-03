@@ -32,6 +32,11 @@ const TABS: Array<{ key: TabKey; label: string; Icon: typeof SettingsIcon }> = [
 const STYLE_KEYWORDS = [
   "layout", "padding", "background", "overlay", "text colour", "text color",
   "align", "full bleed", "bleed",
+  // ITEM 7.2 — Hero slider chrome lives under Style.
+  "slider controls", "navigator", "arrow", "auto-play", "pause on hover",
+  "interval", "transition", "height",
+  // Per-section style polish + section settings should also reach style.
+  "section settings", "style",
 ]
 
 /** Returns the category for a field label. Matches case-insensitively. */
