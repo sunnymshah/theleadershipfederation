@@ -27,7 +27,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useCallback, useEffect, useState, useRef, type CSSProperties } from "react"
 import {
-  Calendar, MapPin, ChevronLeft, ChevronRight, ChevronRight as ChevronRightIcon,
+  Calendar, MapPin, ChevronRight as ChevronRightIcon,
 } from "lucide-react"
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
@@ -744,7 +744,48 @@ function InlineSocialHandles({
   )
 }
 
-/* ── ITEM 6.1 — Arrow chrome variants ─────────────────────────── */
+/* ── ITEM 6.1 — Arrow chrome variants ─────────────────────────────
+ *
+ * Inline SVG paths per design — no lucide dependency for the chevron
+ * itself, so each variant can stamp its own stroke / fill / decoration.
+ */
+function ArrowSvg({
+  direction, design, size, color,
+}: {
+  direction: "prev" | "next"
+  design: NonNullable<SliderControls["arrowDesign"]>
+  size: number
+  color: string
+}) {
+  // The "stroke" design inverts the path inside a soft pill — chevron
+  // is rendered as a simple stroked V rotated 90° per direction.
+  const half = size / 2
+  // Chevron path traced from (-0.4 size, -0.5 size) → (0.4 size, 0) →
+  // (-0.4 size, 0.5 size). Drawn relative to the centre then flipped
+  // horizontally for the "prev" direction.
+  const x1 = direction === "prev" ?  half * 0.4 : -half * 0.4
+  const x2 = direction === "prev" ? -half * 0.4 :  half * 0.4
+  const x3 = direction === "prev" ?  half * 0.4 : -half * 0.4
+  const path = `M${x1},-${half * 0.5} L${x2},0 L${x3},${half * 0.5}`
+  const strokeWidth = design === "filled" || design === "filled-box" ? 2.5 : 2
+  const stroke = design === "filled" || design === "filled-box" ? "#1a1a2e" : color
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`-${half} -${half} ${size} ${size}`}
+      fill="none"
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={path} />
+    </svg>
+  )
+}
+
 function ArrowButton({
   direction, onClick, design, size, color,
 }: {
@@ -755,17 +796,19 @@ function ArrowButton({
   color: string
 }) {
   const sideCls = direction === "prev" ? "left-3 sm:left-6" : "right-3 sm:right-6"
-  const Icon = direction === "prev" ? ChevronLeft : ChevronRight
+  const aria = `${direction === "prev" ? "Previous" : "Next"} slide`
+  const arrow = <ArrowSvg direction={direction} design={design} size={size} color={color} />
+
   if (design === "filled") {
     return (
       <button
         type="button"
-        aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+        aria-label={aria}
         onClick={onClick}
         className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors`}
-        style={{ backgroundColor: color, color: "#1a1a2e" }}
+        style={{ backgroundColor: color }}
       >
-        <Icon size={size} strokeWidth={2.5} />
+        {arrow}
       </button>
     )
   }
@@ -773,12 +816,12 @@ function ArrowButton({
     return (
       <button
         type="button"
-        aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+        aria-label={aria}
         onClick={onClick}
         className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-10 h-10 rounded-md transition-colors`}
-        style={{ backgroundColor: color, color: "#1a1a2e" }}
+        style={{ backgroundColor: color }}
       >
-        <Icon size={size} strokeWidth={2.5} />
+        {arrow}
       </button>
     )
   }
@@ -786,24 +829,25 @@ function ArrowButton({
     return (
       <button
         type="button"
-        aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+        aria-label={aria}
         onClick={onClick}
         className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-10 h-10 rounded-full border-2 hover:bg-white/10 transition-colors`}
         style={{ borderColor: color, color }}
       >
-        <Icon size={size} strokeWidth={2} />
+        {arrow}
       </button>
     )
   }
+  // stroke (default) — soft pill with no border.
   return (
     <button
       type="button"
-      aria-label={`${direction === "prev" ? "Previous" : "Next"} slide`}
+      aria-label={aria}
       onClick={onClick}
-      className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors`}
+      className={`absolute ${sideCls} top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors`}
       style={{ color }}
     >
-      <Icon size={size} strokeWidth={2} />
+      {arrow}
     </button>
   )
 }
@@ -817,23 +861,30 @@ function Navigator({
   selectedIdx: number
   onJump: (i: number) => void
 }) {
+  // ITEM 6.2 — "numbers" renders a single "X / Y" counter (per spec)
+  // rather than a row of per-slide buttons. Click jumps to the next
+  // slide; aria-live keeps a screen reader updated.
+  if (style === "numbers") {
+    return (
+      <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2 px-4">
+        <button
+          type="button"
+          onClick={() => onJump((selectedIdx + 1) % count)}
+          aria-label={`Slide ${selectedIdx + 1} of ${count} — click for next`}
+          aria-live="polite"
+          className="inline-flex items-center justify-center min-w-[64px] h-8 px-3 rounded-full bg-white/15 backdrop-blur-sm border border-white/25 text-white text-[12px] font-bold tabular-nums"
+        >
+          {String(selectedIdx + 1).padStart(2, "0")}
+          <span className="opacity-50 mx-1.5">/</span>
+          {String(count).padStart(2, "0")}
+        </button>
+      </div>
+    )
+  }
   return (
     <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-2 px-4">
       {Array.from({ length: count }).map((_, i) => {
         const active = i === selectedIdx
-        if (style === "numbers") {
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => onJump(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              className={`min-w-[28px] h-7 px-2 rounded-md text-[11px] font-bold ${active ? "bg-white text-[#1a1a2e]" : "bg-white/30 text-white hover:bg-white/50"}`}
-            >
-              {i + 1}
-            </button>
-          )
-        }
         if (style === "dashes") {
           return (
             <button
