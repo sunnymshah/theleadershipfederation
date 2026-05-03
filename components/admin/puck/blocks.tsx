@@ -37,6 +37,10 @@ import { CarouselInner } from "./CarouselInner"
 import { HeroSliderInner } from "./HeroSliderInner"
 import { FormBlockClient, type FormField } from "./FormBlockClient"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
+import {
+  useInlineEdit, isEditorRender,
+  patchBlockProps, patchBlockArrayItem,
+} from "@/lib/inline-edit"
 
 export const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -172,6 +176,131 @@ export function getMeta(puck: { metadata?: Record<string, unknown> }): BuilderMe
     timeFormat: m.timeFormat ?? {},
     mapSettings: m.mapSettings ?? {},
   }
+}
+
+/* ── Inline-edit primitives shared across blocks (ITEMS 3 + 4) ──────
+ *
+ * `EditableText` wraps a single string prop on a top-level block.
+ * `EditableArrayText` wraps a string field inside an array entry
+ * (used by StatsRow.stats[i] / Faqs.faqs[i]).
+ *
+ * Both gate the contentEditable wrapper on isEditorRender(puck) so the
+ * public renderer never gets contentEditable nodes.
+ */
+type Tag = "h1" | "h2" | "h3" | "h4" | "p" | "span" | "div"
+
+function EditableText({
+  as = "span",
+  value,
+  blockId,
+  propKey,
+  className,
+  style,
+  multiline,
+  editor,
+}: {
+  as?: Tag
+  value: string
+  blockId: string | undefined
+  propKey: string
+  className?: string
+  style?: CSSProperties
+  multiline?: boolean
+  editor: boolean
+}) {
+  if (!editor || !blockId) {
+    const Static = as
+    return <Static className={className} style={style}>{value}</Static>
+  }
+  return (
+    <EditableTextInner
+      as={as}
+      value={value}
+      blockId={blockId}
+      propKey={propKey}
+      className={className}
+      style={style}
+      multiline={multiline}
+    />
+  )
+}
+function EditableTextInner({
+  as, value, blockId, propKey, className, style, multiline,
+}: {
+  as: Tag
+  value: string
+  blockId: string
+  propKey: string
+  className?: string
+  style?: CSSProperties
+  multiline?: boolean
+}) {
+  const bag = useInlineEdit(value, (next) => {
+    patchBlockProps(blockId, () => ({ [propKey]: next }))
+  }, { multiline })
+  const Tag = as
+  return <Tag className={className} style={style} {...bag} />
+}
+
+function EditableArrayText({
+  as = "span",
+  value,
+  blockId,
+  arrayKey,
+  index,
+  itemKey,
+  className,
+  style,
+  multiline,
+  editor,
+}: {
+  as?: Tag
+  value: string
+  blockId: string | undefined
+  arrayKey: string
+  index: number
+  itemKey: string
+  className?: string
+  style?: CSSProperties
+  multiline?: boolean
+  editor: boolean
+}) {
+  if (!editor || !blockId) {
+    const Static = as
+    return <Static className={className} style={style}>{value}</Static>
+  }
+  return (
+    <EditableArrayTextInner
+      as={as}
+      value={value}
+      blockId={blockId}
+      arrayKey={arrayKey}
+      index={index}
+      itemKey={itemKey}
+      className={className}
+      style={style}
+      multiline={multiline}
+    />
+  )
+}
+function EditableArrayTextInner({
+  as, value, blockId, arrayKey, index, itemKey, className, style, multiline,
+}: {
+  as: Tag
+  value: string
+  blockId: string
+  arrayKey: string
+  index: number
+  itemKey: string
+  className?: string
+  style?: CSSProperties
+  multiline?: boolean
+}) {
+  const bag = useInlineEdit(value, (next) => {
+    patchBlockArrayItem(blockId, arrayKey, index, { [itemKey]: next })
+  }, { multiline })
+  const Tag = as
+  return <Tag className={className} style={style} {...bag} />
 }
 
 /* ── Shared layout prop (applied by <SectionShell/>) ───────────────── */
@@ -888,20 +1017,39 @@ export type RichTextProps = {
   layout?: LayoutProps
 }
 
-export function RichText({ title, subtitle, body, layout }: RichTextProps) {
+export function RichText({
+  title, subtitle, body, layout, puck,
+}: RichTextProps & { puck?: { metadata?: Record<string, unknown>; id?: string } }) {
   if (!body && !title) return <SectionPlaceholder label="Rich text" />
+  // ITEM 3.1 — title + subtitle inline-editable. Body stays inspector-
+  // only because it's markdown — pasting markdown source into a
+  // contentEditable would surprise the user.
+  const editor = isEditorRender(puck)
+  const blockId = puck?.id
   return (
     <SectionShell layout={layout}>
       <div className="max-w-3xl mx-auto px-6">
-        {subtitle && (
-          <p className="text-xs font-bold uppercase tracking-[0.22em] mb-4" style={{ color: "var(--lf-primary, #e7ab1c)" }}>
-            {subtitle}
-          </p>
+        {(subtitle || editor) && (
+          <EditableText
+            as="p"
+            editor={editor}
+            blockId={blockId}
+            propKey="subtitle"
+            value={subtitle ?? ""}
+            className="text-xs font-bold uppercase tracking-[0.22em] mb-4"
+            style={{ color: "var(--lf-primary, #e7ab1c)" }}
+          />
         )}
-        {title && (
-          <h2 className="text-3xl sm:text-4xl font-bold mb-5 tracking-tight" style={sfFont}>
-            {title}
-          </h2>
+        {(title || editor) && (
+          <EditableText
+            as="h2"
+            editor={editor}
+            blockId={blockId}
+            propKey="title"
+            value={title ?? ""}
+            className="text-3xl sm:text-4xl font-bold mb-5 tracking-tight"
+            style={sfFont}
+          />
         )}
         {body && (
           <div className="prose prose-neutral max-w-none leading-relaxed text-[16px]" style={{ opacity: 0.9 }}>
@@ -971,32 +1119,70 @@ function AnimatedNumber({ value }: { value: string }) {
   return <span ref={ref}>{parsed.prefix}{out}{parsed.suffix}</span>
 }
 
-export function StatsRow({ title, stats, animated, layout }: StatsRowProps) {
+export function StatsRow({
+  title, stats, animated, layout, puck,
+}: StatsRowProps & { puck?: { metadata?: Record<string, unknown>; id?: string } }) {
   if (!stats || stats.length === 0) return <SectionPlaceholder label="Stats (add rows in the right-hand inspector)" />
+  const editor = isEditorRender(puck)
+  const blockId = puck?.id
   const baseBg = layout?.backgroundColor || layout?.backgroundImage ? "" : "bg-[#F4F8FF]"
   return (
     <SectionShell layout={layout} baseClass={baseBg}>
       <div className="max-w-5xl mx-auto px-6">
-        {title && (
-          <h2 className="text-center text-2xl sm:text-3xl font-bold mb-10 tracking-tight" style={sfFont}>
-            {title}
-          </h2>
+        {(title || editor) && (
+          <EditableText
+            as="h2"
+            editor={editor}
+            blockId={blockId}
+            propKey="title"
+            value={title ?? ""}
+            className="text-center text-2xl sm:text-3xl font-bold mb-10 tracking-tight"
+            style={sfFont}
+          />
         )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
             <div key={i} className="text-center">
-              <div
-                className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent tabular-nums"
-                style={{
-                  ...sfFont,
-                  backgroundImage: "linear-gradient(to right, var(--lf-primary, #e7ab1c), color-mix(in srgb, var(--lf-primary, #e7ab1c) 80%, black))",
-                }}
-              >
-                {animated ? <AnimatedNumber value={stat.value} /> : stat.value}
-              </div>
-              <div className="text-xs uppercase tracking-[0.15em] mt-2 font-semibold opacity-70">
-                {stat.label}
-              </div>
+              {/* In editor mode the animated counter is replaced with an
+                  editable static value — animating a contentEditable
+                  fights with caret + paint and overrides the user's
+                  typed digits. Public renderer keeps the animation. */}
+              {editor && blockId ? (
+                <EditableArrayText
+                  as="div"
+                  editor={editor}
+                  blockId={blockId}
+                  arrayKey="stats"
+                  index={i}
+                  itemKey="value"
+                  value={stat.value ?? ""}
+                  className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent tabular-nums"
+                  style={{
+                    ...sfFont,
+                    backgroundImage: "linear-gradient(to right, var(--lf-primary, #e7ab1c), color-mix(in srgb, var(--lf-primary, #e7ab1c) 80%, black))",
+                  }}
+                />
+              ) : (
+                <div
+                  className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent tabular-nums"
+                  style={{
+                    ...sfFont,
+                    backgroundImage: "linear-gradient(to right, var(--lf-primary, #e7ab1c), color-mix(in srgb, var(--lf-primary, #e7ab1c) 80%, black))",
+                  }}
+                >
+                  {animated ? <AnimatedNumber value={stat.value} /> : stat.value}
+                </div>
+              )}
+              <EditableArrayText
+                as="div"
+                editor={editor}
+                blockId={blockId}
+                arrayKey="stats"
+                index={i}
+                itemKey="label"
+                value={stat.label ?? ""}
+                className="text-xs uppercase tracking-[0.15em] mt-2 font-semibold opacity-70"
+              />
             </div>
           ))}
         </div>
@@ -1621,8 +1807,13 @@ export type CtaButtonProps = {
 export function CtaButton({
   title, subtitle, ctaLabel, ctaUrl, variant, layout,
   puck,
-}: CtaButtonProps & { puck: { metadata?: Record<string, unknown> } }) {
-  if (!ctaLabel || !ctaUrl) return <SectionPlaceholder label="CTA button (set label + URL in the inspector)" />
+}: CtaButtonProps & { puck: { metadata?: Record<string, unknown>; id?: string } }) {
+  const editor = isEditorRender(puck)
+  const blockId = puck?.id
+  // In editor mode keep the section visible even without a CTA URL so
+  // the user can click into title / subtitle / label even before
+  // setting the URL in the inspector.
+  if ((!ctaLabel || !ctaUrl) && !editor) return <SectionPlaceholder label="CTA button (set label + URL in the inspector)" />
   const btnCls =
     variant === "outline" ? "border-2 border-[#1a1a2e] text-[#1a1a2e] hover:bg-[#1a1a2e] hover:text-white" :
     variant === "secondary" ? "bg-[#1a1a2e] text-white hover:bg-[#2a2a4e]" :
@@ -1634,22 +1825,53 @@ export function CtaButton({
   return (
     <SectionShell layout={layout}>
       <div className="max-w-4xl mx-auto px-6 text-center">
-        {title && (
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3 tracking-tight" style={sfFont}>
-            {title}
-          </h2>
+        {(title || editor) && (
+          <EditableText
+            as="h2"
+            editor={editor}
+            blockId={blockId}
+            propKey="title"
+            value={title ?? ""}
+            className="text-3xl sm:text-4xl font-bold mb-3 tracking-tight"
+            style={sfFont}
+          />
         )}
-        {subtitle && <p className="opacity-80 mb-7 max-w-xl mx-auto">{subtitle}</p>}
-        <Link
-          href={resolveUrl(ctaUrl, getMeta(puck).event.slug)}
-          target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
-          rel={urlIsExternal(ctaUrl) ? "noopener noreferrer" : undefined}
-          className={`inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold transition-colors ${btnCls}`}
-          style={btnStyle}
-        >
-          {ctaLabel}
-          <ChevronRight size={14} />
-        </Link>
+        {(subtitle || editor) && (
+          <EditableText
+            as="p"
+            editor={editor}
+            blockId={blockId}
+            propKey="subtitle"
+            value={subtitle ?? ""}
+            className="opacity-80 mb-7 max-w-xl mx-auto"
+          />
+        )}
+        {/* In editor mode the anchor wrapper becomes a span so the
+            contentEditable label can live inside without racing the
+            link's click handler. */}
+        {editor && blockId ? (
+          <span className={`inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold transition-colors ${btnCls}`} style={btnStyle}>
+            <EditableText
+              as="span"
+              editor={editor}
+              blockId={blockId}
+              propKey="ctaLabel"
+              value={ctaLabel ?? ""}
+            />
+            <ChevronRight size={14} />
+          </span>
+        ) : (
+          <Link
+            href={resolveUrl(ctaUrl, getMeta(puck).event.slug)}
+            target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
+            rel={urlIsExternal(ctaUrl) ? "noopener noreferrer" : undefined}
+            className={`inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold transition-colors ${btnCls}`}
+            style={btnStyle}
+          >
+            {ctaLabel}
+            <ChevronRight size={14} />
+          </Link>
+        )}
       </div>
     </SectionShell>
   )
@@ -2001,9 +2223,13 @@ const ROUND: Record<TextBoxProps["rounded"], string> = {
 export function TextBox({
   content, fontSize, fontWeight, fontFamily, italic, underline,
   textColor, backgroundColor, paddingY, paddingX, width, alignment, rounded,
-  border, layout,
-}: TextBoxProps) {
-  if (!content) return <SectionPlaceholder label="Text box (type content in the inspector)" />
+  border, layout, puck,
+}: TextBoxProps & { puck?: { metadata?: Record<string, unknown>; id?: string } }) {
+  const editor = isEditorRender(puck)
+  const blockId = puck?.id
+  // Editor mode keeps the placeholder OFF when content is empty so
+  // there's a visible target to click into.
+  if (!content && !editor) return <SectionPlaceholder label="Text box (type content in the inspector)" />
   const ff = fontFamily === "inherit" ? undefined : FONT_STACKS[fontFamily]
   const boxStyle: CSSProperties = {
     ...(textColor ? { color: textColor } : {}),
@@ -2027,9 +2253,19 @@ export function TextBox({
   return (
     <SectionShell layout={layout}>
       <div className={`${WIDTH[width]} mx-auto px-6`}>
-        <div className={innerCls} style={boxStyle}>
-          {content}
-        </div>
+        {/* ITEM 3.2 — content inline-editable, multiline (Enter inserts a
+            newline; the renderer already preserves whitespace via
+            whitespace-pre-wrap so it round-trips). */}
+        <EditableText
+          as="div"
+          editor={editor}
+          blockId={blockId}
+          propKey="content"
+          value={content ?? ""}
+          className={innerCls}
+          style={boxStyle}
+          multiline
+        />
       </div>
     </SectionShell>
   )
