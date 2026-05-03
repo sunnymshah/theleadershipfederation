@@ -35,7 +35,7 @@ export function ProfilePanel<T>({
   onClose: () => void
   onModeChange: (next: "view" | "edit") => void
   onSave: (next: T) => Promise<{ success: boolean; error?: string }> | { success: boolean; error?: string }
-  onDelete?: () => Promise<{ success: boolean; error?: string }> | void
+  onDelete?: () => void | Promise<void> | Promise<{ success: boolean; error?: string }>
   viewBody: (item: T) => ReactNode
   editForm: (item: T, onChange: (next: T) => void) => ReactNode
 }) {

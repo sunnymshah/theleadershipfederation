@@ -127,9 +127,11 @@ export async function createSpeaker(formData: FormData) {
     const name        = formData.get("name") as string
     const designation = formData.get("designation") as string
     const company     = formData.get("company") as string
+    const country     = formData.get("country") as string
     const bio         = formData.get("bio") as string
     const imageUrl    = formData.get("imageUrl") as string
     const sortOrder   = parseInt(formData.get("sortOrder") as string) || 0
+    const featured    = formData.get("featured") === "on" || formData.get("featured") === "true"
 
     // Handle file upload if a headshot file was provided
     const headshot = formData.get("headshot") as File | null
@@ -152,9 +154,11 @@ export async function createSpeaker(formData: FormData) {
         name,
         designation: designation || null,
         company: company || null,
+        country: country || null,
         bio: bio || null,
         image_url: finalImageUrl,
         sort_order: sortOrder,
+        featured,
       })
       .select()
       .single()
@@ -182,9 +186,11 @@ export async function updateSpeaker(speakerId: string, formData: FormData) {
     const name        = formData.get("name") as string
     const designation = formData.get("designation") as string
     const company     = formData.get("company") as string
+    const country     = formData.get("country") as string
     const bio         = formData.get("bio") as string
     const imageUrl    = formData.get("imageUrl") as string
     const sortOrder   = parseInt(formData.get("sortOrder") as string) || 0
+    const featured    = formData.get("featured") === "on" || formData.get("featured") === "true"
 
     // Handle file upload
     const headshot = formData.get("headshot") as File | null
@@ -204,9 +210,11 @@ export async function updateSpeaker(speakerId: string, formData: FormData) {
         name,
         designation: designation || null,
         company: company || null,
+        country: country || null,
         bio: bio || null,
         image_url: finalImageUrl,
         sort_order: sortOrder,
+        featured,
         updated_at: new Date().toISOString(),
       })
       .eq("id", speakerId)
@@ -281,6 +289,58 @@ export async function deleteSpeaker(speakerId: string) {
     const { error } = await adminDb.from("speakers").delete().eq("id", speakerId)
     if (error) return { success: false, error: error.message }
     if (existing?.event_id) await invalidateCaches(supabase, existing.event_id)
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
+/* ── Manager parity helpers (full row + featured toggle) ─────────── */
+
+export type SpeakerRow = {
+  id: string
+  event_id: string
+  name: string
+  designation: string | null
+  company: string | null
+  country: string | null
+  bio: string | null
+  image_url: string | null
+  slug: string | null
+  featured: boolean
+  sort_order: number
+  linkedin_url: string | null
+  twitter_url: string | null
+  email: string | null
+  created_at: string
+}
+
+export async function listSpeakersFull(eventId: string): Promise<{ success: boolean; rows: SpeakerRow[]; error?: string }> {
+  try {
+    await requirePermission("speakers", "view")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("speakers")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true })
+    if (error) return { success: false, rows: [], error: error.message }
+    return { success: true, rows: (data ?? []) as SpeakerRow[] }
+  } catch (err) {
+    return { success: false, rows: [], error: (err as Error).message }
+  }
+}
+
+export async function setSpeakerFeatured(speakerId: string, featured: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("speakers", "edit")
+    const admin = createAdminClient()
+    const { error } = await admin
+      .from("speakers")
+      .update({ featured, updated_at: new Date().toISOString() })
+      .eq("id", speakerId)
+    if (error) return { success: false, error: error.message }
     return { success: true }
   } catch (err) {
     return { success: false, error: (err as Error).message }
