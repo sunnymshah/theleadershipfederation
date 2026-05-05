@@ -286,3 +286,13 @@ html .lf-clean blockquote[style] {
   background: transparent !important;
 }
 
+
+/* Cookie banner slide-in (ITEM 2.1). 200ms ease-out from below the
+ * viewport so the banner doesn't appear abruptly. */
+@keyframes lf-cookie-slide-in {
+  0%   { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.lf-cookie-banner {
+  animation: lf-cookie-slide-in 200ms ease-out;
+}

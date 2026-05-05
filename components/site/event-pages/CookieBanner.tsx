@@ -1,32 +1,63 @@
 "use client"
 
+/**
+ * Soft white cookie consent card (ITEM 2 — Zoho parity).
+ *
+ * Position: fixed bottom-right (centered-bottom on mobile). Rounded
+ * card, subtle shadow, slide-in animation. Persists dismissal in
+ * localStorage with a 365-day expiry: `lf-cookies-{eventId}` →
+ * JSON `{ accepted: true, expires: <ms-since-epoch> }`. On load the
+ * banner first checks the expiry; lapsed entries are treated as
+ * never-shown so the user is re-asked annually.
+ */
+
 import { useSyncExternalStore, useState } from "react"
 import { X } from "lucide-react"
 
+const ONE_YEAR_MS = 365 * 24 * 60 * 60_000
+
 function subscribe() { return () => {} }
+
+function readDismissed(storageKey: string): boolean {
+  try {
+    if (typeof window === "undefined") return false
+    const raw = window.localStorage.getItem(storageKey)
+    if (!raw) return false
+    // Backwards compat — older entries were just "1".
+    if (raw === "1") return true
+    try {
+      const parsed = JSON.parse(raw) as { accepted?: boolean; expires?: number }
+      if (parsed?.accepted && (parsed.expires ?? 0) > Date.now()) return true
+      // Expired — clear so the user is re-asked.
+      window.localStorage.removeItem(storageKey)
+      return false
+    } catch {
+      // Malformed entry; treat as never-dismissed and clean up.
+      window.localStorage.removeItem(storageKey)
+      return false
+    }
+  } catch {
+    return false
+  }
+}
 
 export function CookieBanner({
   eventId,
   copy,
   policyUrl,
   acceptLabel,
+  manageLabel = "Manage",
 }: {
   eventId: string
   copy: string
   policyUrl?: string
   acceptLabel: string
+  manageLabel?: string
 }) {
   const storageKey = `lf-cookies-${eventId}`
-  // Read localStorage via useSyncExternalStore so React doesn't fight us
-  // and we don't trigger setState-in-effect lint warnings. The snapshot
-  // returns "1" (dismissed) or null. SSR snapshot is null (banner shows
-  // briefly until hydration) — matches Zoho Backstage's behaviour.
   const dismissed = useSyncExternalStore(
     subscribe,
-    () => {
-      try { return typeof window !== "undefined" ? window.localStorage.getItem(storageKey) : null }
-      catch { return null }
-    },
+    () => readDismissed(storageKey) ? "1" : null,
     () => null,
   )
   const [hidden, setHidden] = useState(false)
@@ -34,7 +65,10 @@ export function CookieBanner({
 
   function dismiss() {
     try {
-      window.localStorage.setItem(storageKey, "1")
+      window.localStorage.setItem(storageKey, JSON.stringify({
+        accepted: true,
+        expires: Date.now() + ONE_YEAR_MS,
+      }))
     } catch {}
     setHidden(true)
   }
@@ -43,21 +77,24 @@ export function CookieBanner({
     <div
       role="region"
       aria-label="Cookie notice"
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:bottom-6 sm:right-6 sm:max-w-md z-[60] rounded-xl bg-white shadow-2xl border border-[#1a1a2e]/[0.08] p-4 sm:p-5"
+      className="lf-cookie-banner fixed bottom-4 left-4 right-4 sm:left-auto sm:bottom-6 sm:right-6 sm:w-96 sm:max-w-[calc(100vw-2rem)] z-[60] rounded-xl bg-white shadow-2xl border border-[#1a1a2e]/[0.08] p-4 sm:p-5"
     >
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] leading-relaxed text-[#1a1a2e]">
-            {copy}{" "}
+          <p className="text-[13px] leading-relaxed text-gray-700">
+            {copy}
             {policyUrl ? (
-              <a
-                href={policyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-[var(--lf-primary,#e7ab1c)] hover:text-[#1a1a2e]"
-              >
-                Learn more
-              </a>
+              <>
+                {" "}
+                <a
+                  href={policyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-[var(--lf-primary,#e7ab1c)] hover:text-[#1a1a2e]"
+                >
+                  Learn more
+                </a>
+              </>
             ) : null}
           </p>
         </div>
@@ -70,11 +107,21 @@ export function CookieBanner({
           <X size={14} />
         </button>
       </div>
-      <div className="mt-3 flex justify-end">
+      <div className="mt-3 flex items-center justify-end gap-3">
+        {policyUrl && (
+          <a
+            href={policyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[12px] font-medium text-[#1a1a2e]/70 hover:text-[#1a1a2e] underline-offset-4 hover:underline"
+          >
+            {manageLabel}
+          </a>
+        )}
         <button
           type="button"
           onClick={dismiss}
-          className="inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-wider bg-[var(--lf-primary,#e7ab1c)] text-white hover:bg-[#d49c10]"
+          className="inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-wider bg-[var(--lf-primary,#e7ab1c)] text-white hover:bg-[#d49c10] transition-colors"
         >
           {acceptLabel}
         </button>
