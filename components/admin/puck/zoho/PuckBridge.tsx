@@ -207,6 +207,47 @@ export function duplicateBlockById(id: string): boolean {
   return true
 }
 
+/**
+ * ITEM 5 — select the block with the given id and scroll it into view
+ * inside the Puck iframe canvas. Powers the "Review N placeholder
+ * sections before publishing" jump-to from the publish dropdown.
+ */
+export function selectAndScrollToBlockById(id: string): boolean {
+  const dispatch = getPuckDispatch()
+  const data = getPuckData()
+  if (!dispatch || !data) return false
+  const arr = Array.isArray(data.content) ? data.content : []
+  const idx = arr.findIndex((c) => (c as unknown as { props?: { id?: string } })?.props?.id === id)
+  if (idx === -1) return false
+  // Set Puck's itemSelector → highlights the block + lights up the
+  // inspector's field list. Puck's setUi action accepts a partial UI
+  // patch.
+  dispatch({
+    type: "setUi",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ui: { itemSelector: { index: idx, zone: ROOT_ZONE } } as any,
+  })
+  // Scroll the iframe canvas to the block. Puck renders each component
+  // as a wrapper with `data-puck-component-id={props.id}`. We try the
+  // host document first (when not iframe-rendered) and then the
+  // iframe content document if available.
+  const tryScroll = (root: Document | null) => {
+    if (!root) return false
+    const el = root.querySelector(`[data-puck-component-id="${id}"]`)
+      ?? root.querySelector(`[data-rfd-draggable-id*="${id}"]`)
+    if (el && "scrollIntoView" in el) {
+      (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" })
+      return true
+    }
+    return false
+  }
+  if (tryScroll(document)) return true
+  // Fall back to the puck iframe.
+  const frame = document.querySelector("iframe#preview-frame, iframe[title='Preview frame']") as HTMLIFrameElement | null
+  tryScroll(frame?.contentDocument ?? null)
+  return true
+}
+
 /** Move a block up/down by one within the root zone. */
 export function moveBlockById(id: string, delta: -1 | 1): boolean {
   const dispatch = getPuckDispatch()

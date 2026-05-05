@@ -36,8 +36,9 @@ import {
   Plus, Pencil, Trash2, Home, FileText, RefreshCw, ChevronLeft, ChevronRight, Copy,
   History, Undo2, Monitor, Tablet, Smartphone, Minus,
   HelpCircle, Calendar, X, MoreHorizontal, MessageSquare,
-  Briefcase, BedDouble,
+  Briefcase, BedDouble, AlertTriangle,
 } from "lucide-react"
+import { findPlaceholderBlocks } from "@/lib/placeholder-detect"
 
 import { puckConfig } from "./puck-config"
 import type { BuilderMetadata } from "./blocks"
@@ -52,7 +53,7 @@ import { AIWizardDialog } from "./AIWizardDialog"
 import { UndoRedoButtons } from "./UndoRedoButtons"
 import { PrimaryRail, type RailKey } from "./zoho/PrimaryRail"
 import { SectionsPanel } from "./zoho/SectionsPanel"
-import { PuckBridge, insertBlockAtEnd, insertBlockAtIndex } from "./zoho/PuckBridge"
+import { PuckBridge, insertBlockAtEnd, insertBlockAtIndex, selectAndScrollToBlockById } from "./zoho/PuckBridge"
 import { InlineEditTip } from "./InlineEditTip"
 import { ALLOWED_OPTIONAL_SECTIONS, isStandardPageKind } from "@/lib/standard-pages"
 import { SectionActionBarOverflow } from "./zoho/SectionContextMenu"
@@ -355,11 +356,23 @@ export function PuckEventBuilder({
         setActiveRail("sections")
       }
     }
+    // ITEM 5 — publish menu's "Review N placeholder sections" entry
+    // dispatches this event with the block id. After a possible page
+    // switch settles, we hand off to the bridge to select + scroll.
+    const onScrollToBlock = (e: Event) => {
+      const detail = (e as CustomEvent<{ blockId: string }>).detail
+      if (!detail?.blockId) return
+      selectAndScrollToBlockById(detail.blockId)
+      // Open the inspector overlay so the admin lands on the form for
+      // the placeholder block immediately.
+      setInspectorOverlayOpen(true)
+    }
     window.addEventListener("builder:open-ab-dialog", onAbDialog)
     window.addEventListener("builder:open-inspector", onOpenInspector)
     window.addEventListener("builder:close-inspector", onCloseInspector)
     window.addEventListener("builder:open-rail", onOpenRail)
     window.addEventListener("builder:open-sections-at-index", onOpenSectionsAtIndex)
+    window.addEventListener("builder:scroll-to-block", onScrollToBlock)
     window.addEventListener("keydown", onEscClose)
     return () => {
       window.removeEventListener("keydown", onKey)
@@ -368,6 +381,7 @@ export function PuckEventBuilder({
       window.removeEventListener("builder:close-inspector", onCloseInspector)
       window.removeEventListener("builder:open-rail", onOpenRail)
       window.removeEventListener("builder:open-sections-at-index", onOpenSectionsAtIndex)
+      window.removeEventListener("builder:scroll-to-block", onScrollToBlock)
       window.removeEventListener("keydown", onEscClose)
     }
   // We intentionally re-create the handler each render so it sees fresh
@@ -411,6 +425,42 @@ export function PuckEventBuilder({
       setPublishMsg(res.error || "Publish failed.")
     }
   }, [eventId, activePage, homeData, pages])
+
+  /* ── ITEM 5: data-hygiene placeholder review ───────────────────────
+   * Walk every page (home + sub-pages) for blocks that still carry
+   * seed copy. The publish dropdown surfaces the count + a jump-to
+   * action; PublishCombo renders nothing if the count is 0.
+   */
+  type PlaceholderRef = { page: ActivePage; blockId: string; type: string }
+  const placeholderBlocksForPublish: PlaceholderRef[] = useMemo(() => {
+    const refs: PlaceholderRef[] = []
+    const homeContent = (homeData?.content ?? []) as ReadonlyArray<{ type?: string; props?: Record<string, unknown> }>
+    for (const ph of findPlaceholderBlocks(homeContent)) {
+      refs.push({ page: "home", blockId: ph.id, type: ph.type })
+    }
+    for (const [slug, p] of Object.entries(pages)) {
+      const c = ((p.data as { content?: unknown })?.content ?? []) as ReadonlyArray<{ type?: string; props?: Record<string, unknown> }>
+      for (const ph of findPlaceholderBlocks(c)) {
+        refs.push({ page: slug, blockId: ph.id, type: ph.type })
+      }
+    }
+    return refs
+  }, [homeData, pages])
+
+  const handleReviewPlaceholders = useCallback(() => {
+    const first = placeholderBlocksForPublish[0]
+    if (!first) return
+    if (first.page !== activePage) setActivePage(first.page)
+    // Hand off to Puck — broadcast a custom event the editor canvas
+    // listens for, so it can scroll the placeholder block into view +
+    // open the inspector. Done on a microtask so a page switch settles
+    // before the canvas tries to find the block.
+    setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent("builder:scroll-to-block", { detail: { blockId: first.blockId } }),
+      )
+    }, 30)
+  }, [placeholderBlocksForPublish, activePage])
 
   /* ── Add / rename / delete sub-pages ─────────────────────────────── */
   /* Modal state — replaces window.prompt / window.confirm. */
@@ -672,9 +722,11 @@ export function PuckEventBuilder({
             <PublishCombo
               publishState={publishState}
               dirtyCount={dirtyPages.size}
+              placeholderBlocks={placeholderBlocksForPublish}
               onPublish={handlePublish}
               onSchedule={() => setScheduleOpen(true)}
               onRevert={handleRevert}
+              onReviewPlaceholders={handleReviewPlaceholders}
             />
             <span className="w-px h-5 bg-[var(--bs-border,#e5e7eb)] mx-1" />
             <Link
@@ -1421,15 +1473,20 @@ function TopBarOverflowMenu({
 function PublishCombo({
   publishState,
   dirtyCount,
+  placeholderBlocks = [],
   onPublish,
   onSchedule,
   onRevert,
+  onReviewPlaceholders,
 }: {
   publishState: "idle" | "publishing" | "published" | "error"
   dirtyCount: number
+  /** ITEM 5 — sections that still carry seeded sample copy. */
+  placeholderBlocks?: ReadonlyArray<{ page: string; blockId: string; type: string }>
   onPublish: () => void
   onSchedule: () => void
   onRevert: () => void
+  onReviewPlaceholders?: () => void
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
@@ -1516,6 +1573,26 @@ function PublishCombo({
             <Calendar size={13} strokeWidth={1.5} />
             Schedule publish…
           </button>
+          {placeholderBlocks.length > 0 && (
+            <>
+              <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false)
+                  onReviewPlaceholders?.()
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-amber-700 hover:bg-amber-50"
+              >
+                <AlertTriangle size={13} strokeWidth={1.5} />
+                <span>
+                  Review {placeholderBlocks.length} placeholder
+                  {placeholderBlocks.length === 1 ? " section" : " sections"} before publishing
+                </span>
+              </button>
+            </>
+          )}
           <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
           <button
             type="button"
