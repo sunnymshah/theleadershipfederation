@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react"
 import { ActionBar, usePuck } from "@measured/puck"
 import {
   Copy, ArrowUp, ArrowDown, Eye, EyeOff, Lock, Unlock, BookmarkPlus,
-  Trash2, MoreHorizontal, Beaker, SlidersHorizontal,
+  Trash2, MoreHorizontal, Beaker, SlidersHorizontal, AlertTriangle,
 } from "lucide-react"
 import {
   duplicateBlockById, moveBlockById, removeBlockById,
@@ -25,6 +25,7 @@ import {
 import { ABTestCreateDialog } from "../ABTestCreateDialog"
 import { saveAsTemplate as saveTemplateAction } from "@/app/actions/templateActions"
 import { CORE_SECTIONS, isStandardPageKind, DEFAULT_PAGE_LABELS, type StandardPageKind } from "@/lib/standard-pages"
+import { isPlaceholderBlock } from "@/lib/placeholder-detect"
 
 /** Detect the active standard page kind from the URL. The builder URL
  *  is /admin/builder/{eventId}; the active page is in PuckEventBuilder
@@ -66,6 +67,10 @@ export function SectionActionBarOverflow({
   const activeKind = getActiveKind()
   const isCore = !!selectedBlock && (CORE_SECTIONS[activeKind] ?? []).includes(selectedBlock.type)
   const pageLabel = DEFAULT_PAGE_LABELS[activeKind] ?? "this"
+  // ITEM 5 — placeholder warning. Surfaces an amber AlertTriangle on the
+  // section toolbar so admins notice they're about to publish seed copy.
+  const isPlaceholder = !!selectedBlock
+    && isPlaceholderBlock(selectedBlock.type, selectedBlock.props as Record<string, unknown>)
 
   function toggleHidden() {
     if (selectedIndex === undefined || !selectedBlock) return
@@ -113,6 +118,19 @@ export function SectionActionBarOverflow({
               onClick={() => { /* informational only */ }}
             >
               <Lock size={14} strokeWidth={1.5} />
+            </ActionBar.Action>
+          )}
+          {isPlaceholder && (
+            <ActionBar.Action
+              label="This section has placeholder content"
+              onClick={() => { /* informational only */ }}
+            >
+              <AlertTriangle
+                size={14}
+                strokeWidth={1.5}
+                className="lf-placeholder-warning"
+                style={{ color: "#f59e0b" }}
+              />
             </ActionBar.Action>
           )}
         </ActionBar.Group>

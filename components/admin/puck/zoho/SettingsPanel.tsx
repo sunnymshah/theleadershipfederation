@@ -272,7 +272,7 @@ function renderGroupFields(group: BuilderSettingsGroup, init: Record<string, unk
       <>
         <Field label="Custom domain"            name="domain"        defaultValue={s(init.domain)} placeholder="events.yourdomain.com" />
         <p className="text-[11px] text-[var(--z-text-muted,#6b7280)] -mt-1">
-          DNS records you'll need to add: a CNAME pointing your custom domain at <code className="font-mono">cname.vercel-dns.com</code>. Verification UI ships in a follow-up.
+          DNS records you&apos;ll need to add: a CNAME pointing your custom domain at <code className="font-mono">cname.vercel-dns.com</code>. Verification UI ships in a follow-up.
         </p>
         <BoolField label="Force HTTPS redirect" name="forceHttps"    defaultChecked={b(init.forceHttps, true)} />
       </>
