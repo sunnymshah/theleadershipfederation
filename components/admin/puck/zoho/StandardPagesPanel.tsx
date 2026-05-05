@@ -29,13 +29,11 @@ import {
   updateStandardPage,
   reorderStandardPages,
   resetStandardPage,
-  addStandardPage,
   deleteStandardPage,
-  listAvailableStandardPageKinds,
   updateStandardPageSettings,
 } from "@/app/actions/standardPageActions"
+import { AddPageDialog } from "./AddPageDialog"
 import type { StandardPageKind, StandardPageRow } from "@/lib/standard-pages"
-import { DEFAULT_PAGE_LABELS } from "@/lib/standard-pages"
 import { normalizeSlug } from "@/lib/slug"
 import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
 
@@ -67,18 +65,13 @@ export function StandardPagesPanel({
 }) {
   const [rows, setRows] = useState<StandardPageRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [available, setAvailable] = useState<StandardPageKind[]>([])
   const [openSettingsKind, setOpenSettingsKind] = useState<StandardPageKind | null>(null)
   const [showPicker, setShowPicker] = useState(false)
   const [, startTransition] = useTransition()
 
   async function refresh() {
-    const [list, avail] = await Promise.all([
-      listStandardPages(eventId),
-      listAvailableStandardPageKinds(eventId),
-    ])
+    const list = await listStandardPages(eventId)
     setRows(list.pages)
-    setAvailable(avail.kinds)
   }
 
   useEffect(() => {
@@ -118,16 +111,8 @@ export function StandardPagesPanel({
     void reorderStandardPages(eventId, next.map((r) => r.kind))
   }
 
-  async function onAddKind(kind: StandardPageKind) {
-    const res = await addStandardPage(eventId, kind)
-    if (res.success) {
-      await refresh()
-      setShowPicker(false)
-      onJump(kind)
-    } else if (res.error) {
-      alert(res.error)
-    }
-  }
+  // Add-page flow now lives inside AddPageDialog (ITEM 3); the dialog
+  // reuses addStandardPage internally and calls back through onAdded.
 
   return (
     <SecondaryPanel title="Pages" onClose={onClose}>
@@ -156,49 +141,18 @@ export function StandardPagesPanel({
             )
           })}
 
-          {/* "+ Add page" picker (A1) */}
+          {/* ITEM 3 — "+ Add page" now opens the AddPageDialog modal
+              with a thumbnailed gallery of available kinds + a Blank
+              tile. Replaces the inline list picker. */}
           <div className="pt-2">
-            {showPicker ? (
-              <div className="rounded-md border border-[var(--z-border,#e5e7eb)] bg-white p-2 space-y-1">
-                <div className="flex items-center justify-between px-1 pb-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)]">
-                    Add a page
-                  </span>
-                  <button onClick={() => setShowPicker(false)} aria-label="Close picker" className="z-btn z-btn-icon !w-5 !h-5">
-                    <X size={11} strokeWidth={2} />
-                  </button>
-                </div>
-                {available.length === 0 ? (
-                  <p className="px-1 py-2 text-[11px] text-[var(--z-text-muted,#6b7280)]">
-                    All canonical pages are already on this event.
-                  </p>
-                ) : (
-                  available.map((kind) => {
-                    const Icon = KIND_ICONS[kind]
-                    return (
-                      <button
-                        key={kind}
-                        type="button"
-                        onClick={() => void onAddKind(kind)}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-[12px] font-medium text-[var(--z-text,#1f2937)] hover:bg-[var(--z-bg-alt,#f7f8fa)]"
-                      >
-                        <Icon size={13} strokeWidth={1.5} className="text-[var(--z-text-muted,#6b7280)]" />
-                        {DEFAULT_PAGE_LABELS[kind]}
-                      </button>
-                    )
-                  })
-                )}
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowPicker(true)}
-                className="w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md border border-dashed border-[var(--z-border-strong,#d1d5db)] text-[12px] font-medium text-[var(--z-text-muted,#6b7280)] hover:text-[var(--z-info,#3e7af7)] hover:border-[var(--z-info,#3e7af7)]"
-              >
-                <Plus size={12} strokeWidth={1.5} />
-                Add page
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowPicker(true)}
+              className="w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md border border-dashed border-[var(--z-border-strong,#d1d5db)] text-[12px] font-medium text-[var(--z-text-muted,#6b7280)] hover:text-[var(--z-info,#3e7af7)] hover:border-[var(--z-info,#3e7af7)]"
+            >
+              <Plus size={12} strokeWidth={1.5} />
+              Add page
+            </button>
           </div>
 
           <p className="px-3 pt-3 text-[11px] text-[var(--z-text-muted,#6b7280)] leading-relaxed">
@@ -220,6 +174,17 @@ export function StandardPagesPanel({
             await refresh()
             // Drop back to home if the active page was just deleted.
             if (openSettingsKind === activeKind) onJump("home")
+          }}
+        />
+      )}
+      {/* ITEM 3 — Add Page template picker */}
+      {showPicker && (
+        <AddPageDialog
+          eventId={eventId}
+          onClose={() => setShowPicker(false)}
+          onAdded={async (kind) => {
+            await refresh()
+            onJump(kind)
           }}
         />
       )}
