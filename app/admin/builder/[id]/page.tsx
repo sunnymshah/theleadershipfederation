@@ -284,6 +284,18 @@ export default async function FullscreenBuilderPage({
       booking_url: (h.booking_url as string | null) ?? null,
       description: (h.description as string | null) ?? null,
     })),
+    // ITEM 4.4 — text overrides + default locale flow into Puck metadata
+    // so the editor preview matches what the public renderer ships.
+    textOverrides: (() => {
+      const v = (event as { text_overrides?: unknown }).text_overrides
+      return (v && typeof v === "object" && !Array.isArray(v)
+        ? (v as Record<string, Record<string, string>>)
+        : {})
+    })(),
+    defaultLocale: (() => {
+      const v = (event as { default_locale?: unknown }).default_locale
+      return typeof v === "string" && v.length > 0 ? v : "en"
+    })(),
   }
 
   const initialData = (draftRes.success && draftRes.data

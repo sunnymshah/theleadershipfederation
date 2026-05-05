@@ -861,6 +861,8 @@ export type BuilderSettingsGroup =
   // ITEM 8 / 10
   | "navigation" | "notification" | "timeFormat" | "map"
   | "searchVis" | "thumbnail" | "favicon"
+  // ITEM 4 — Customize Text overrides
+  | "text"
 
 export async function getBuilderSettings(
   eventId: string,
@@ -1093,5 +1095,65 @@ export async function getPublicBuilderNav(
       .map(([slug, p]) => ({ slug, title: p.title }))
   } catch {
     return []
+  }
+}
+
+/* ── ITEM 4 — Customize Text overrides ──────────────────────────── */
+
+export async function getTextOverrides(
+  eventId: string,
+): Promise<{ success: boolean; overrides: Record<string, Record<string, string>>; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from("events")
+      .select("text_overrides")
+      .eq("id", eventId)
+      .maybeSingle()
+    if (error) return { success: false, overrides: {}, error: error.message }
+    const raw = (data?.text_overrides ?? {}) as unknown
+    const overrides = (raw && typeof raw === "object" && !Array.isArray(raw))
+      ? (raw as Record<string, Record<string, string>>)
+      : {}
+    return { success: true, overrides }
+  } catch (err) {
+    return { success: false, overrides: {}, error: (err as Error).message }
+  }
+}
+
+export async function saveTextOverridesForLocale(
+  eventId: string,
+  locale: string,
+  values: Record<string, string>,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requirePermission("events", "edit")
+    const admin = createAdminClient()
+    const { data: row } = await admin
+      .from("events")
+      .select("text_overrides")
+      .eq("id", eventId)
+      .maybeSingle()
+    const current = (row?.text_overrides ?? {}) as Record<string, Record<string, string>>
+    // Strip empty values so the JSONB stays minimal.
+    const cleaned: Record<string, string> = {}
+    for (const [k, v] of Object.entries(values)) {
+      if (typeof v === "string" && v.trim().length > 0) cleaned[k] = v
+    }
+    const next = { ...current, [locale]: cleaned }
+    const { error } = await admin
+      .from("events")
+      .update({ text_overrides: next, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+    if (error) return { success: false, error: error.message }
+    try {
+      const { data: ev } = await admin.from("events").select("slug").eq("id", eventId).maybeSingle()
+      const slug = (ev?.slug as string | null) ?? null
+      if (slug) try { revalidatePath(`/events/${slug}`) } catch {}
+    } catch {}
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
   }
 }

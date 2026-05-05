@@ -17,6 +17,7 @@ import { createAdminClient } from "@/utils/supabase/admin"
 import { listVisibleStandardPagesPublic } from "@/app/actions/standardPageActions"
 import { publicPageHref, RAIL_PAGE_KINDS, type StandardPageKind } from "@/lib/standard-pages"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
+import { getString, type TextOverrides } from "@/lib/i18n"
 import { EventTopNavMobile } from "./EventTopNavMobile"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 
@@ -47,13 +48,14 @@ export async function EventTopNav({
   let defaultLocale = "en"
   let logoUrl: string | null = null
   let eventTitle = ""
+  let textOverrides: TextOverrides = {}
   type NX = { id: string; label: string; url: string; parent_id?: string | null; sort_order: number; visible: boolean }
   let extraLinks: NX[] = []
   try {
     const admin = createAdminClient()
     const { data } = await admin
       .from("events")
-      .select("locales, default_locale, logo_url, title, nav_extra_links")
+      .select("locales, default_locale, logo_url, title, nav_extra_links, text_overrides")
       .eq("id", eventId)
       .maybeSingle()
     if (data) {
@@ -65,8 +67,13 @@ export async function EventTopNav({
       if (Array.isArray(raw)) {
         extraLinks = (raw as NX[]).filter((x) => x && x.label && x.url && x.visible !== false)
       }
+      const tov = (data as { text_overrides?: unknown }).text_overrides
+      if (tov && typeof tov === "object" && !Array.isArray(tov)) {
+        textOverrides = tov as TextOverrides
+      }
     }
   } catch {}
+  const currentLocale = locale ?? defaultLocale
   const logoSrc = logoUrl ? parseFocalPoint(logoUrl).src : null
 
   // ITEM 8: build a tree out of extraLinks (parent_id → children).
@@ -119,12 +126,20 @@ export async function EventTopNav({
       children: kids.length > 0 ? kids.map((k) => ({ label: k.label, href: k.url })) : undefined,
     } as unknown as TopItem)
   }
-  const railItems = rail.map((p) => ({
-    kind: p.kind as StandardPageKind,
-    label: p.label,
-    href: withLocale(publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }), locale),
-    active: p.kind === currentKind,
-  }))
+  // ITEM 4.4 — Override register/signin labels per-locale via the
+  // text-overrides table when set; falls back to the row's label
+  // (which itself defaults to "Register Now" / "Sign In").
+  const railItems = rail.map((p) => {
+    let label = p.label
+    if (p.kind === "register") label = getString("nav.register", currentLocale, textOverrides) || p.label
+    if (p.kind === "signin")   label = getString("nav.signin",   currentLocale, textOverrides) || p.label
+    return {
+      kind: p.kind as StandardPageKind,
+      label,
+      href: withLocale(publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }), locale),
+      active: p.kind === currentKind,
+    }
+  })
 
   const showLangSwitcher = locales.length > 1
 

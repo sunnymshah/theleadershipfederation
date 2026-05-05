@@ -18,6 +18,7 @@ import { PrivacyFooter } from "@/components/site/event-pages/PrivacyFooter"
 import { MicrositeVisibilityGate } from "@/components/site/event-pages/MicrositeVisibilityGate"
 import { NotificationBanner } from "@/components/site/event-pages/NotificationBanner"
 import { getMicrositeSettings } from "@/lib/microsite-settings"
+import { getString, type TextOverrides } from "@/lib/i18n"
 
 export default async function EventSlugLayout({
   children,
@@ -108,14 +109,26 @@ export default async function EventSlugLayout({
       </main>
       <PrivacyFooter notice={settings.privacy?.notice} />
       <CustomBodyCode code={settings.code?.bodyCode} />
-      {showCookieBanner && event ? (
-        <CookieBanner
-          eventId={event.id}
-          copy={cookies.copy ?? "We use cookies to improve your experience."}
-          policyUrl={cookies.policyUrl}
-          acceptLabel={cookies.acceptLabel ?? "Accept"}
-        />
-      ) : null}
+      {showCookieBanner && event ? (() => {
+        // ITEM 4.4 — text-overrides resolve over the cookies group
+        // settings: explicit cookies.copy / acceptLabel still win,
+        // then per-locale text override, then the English default.
+        const tov = ((event as { text_overrides?: unknown }).text_overrides
+          ?? {}) as TextOverrides
+        const locale = (event as { default_locale?: string | null }).default_locale ?? "en"
+        const copy   = cookies.copy        ?? getString("cookie.message", locale, tov)
+        const accept = cookies.acceptLabel ?? getString("cookie.accept",  locale, tov)
+        const manage = getString("cookie.manage", locale, tov)
+        return (
+          <CookieBanner
+            eventId={event.id}
+            copy={copy}
+            policyUrl={cookies.policyUrl}
+            acceptLabel={accept}
+            manageLabel={manage}
+          />
+        )
+      })() : null}
     </div>
   )
 }
