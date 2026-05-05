@@ -81,6 +81,12 @@ export async function EventTopNav({
   const main = pages.filter((p) => !RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
   const rail = pages.filter((p) => RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
 
+  // ITEM 1.1: defensively guarantee a Home tab as the FIRST item — if
+  // the close-out migration hasn't run yet on this DB, or an admin has
+  // hidden the home row, the visible page list might not include
+  // kind='home'. Without this, the nav renders "AGENDA SPEAKERS …"
+  // with no obvious entry point back to the event home.
+  const hasHome = main.some((p) => p.kind === "home")
   const items = main.map((p) => ({
     kind: p.kind as StandardPageKind,
     label: p.label,
@@ -91,6 +97,15 @@ export async function EventTopNav({
       href: withLocale(`/events/${eventSlug}/${c.slug}`, locale),
     })) ?? undefined,
   }))
+  if (!hasHome) {
+    items.unshift({
+      kind: "home" as StandardPageKind,
+      label: "Home",
+      href: withLocale(`/events/${eventSlug}`, locale),
+      active: currentKind === "home",
+      children: undefined,
+    })
+  }
 
   // ITEM 8: append custom links + their nested children.
   type TopItem = (typeof items)[number]
@@ -119,9 +134,12 @@ export async function EventTopNav({
       className="sticky top-0 z-30 bg-white border-b border-[#1a1a2e]/[0.08] shadow-sm"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4 sm:gap-6">
-        {/* A2: left-edge event logo (when set on events.logo_url). 40px
-            tall — matches the Zoho Backstage left-of-nav reference. */}
-        {logoSrc && (
+        {/* A2 + ITEM 1.3: left-edge event logo (when events.logo_url
+            is set). 40px tall — matches the Zoho Backstage left-of-nav
+            reference. When the logo is unset, render a small wordmark
+            of the event title in the LF brand voice so the nav still
+            has a clear left anchor. */}
+        {logoSrc ? (
           <Link
             href={withLocale(`/events/${eventSlug}`, locale)}
             className="shrink-0 flex items-center"
@@ -134,7 +152,16 @@ export async function EventTopNav({
               className="h-10 w-auto max-w-[180px] object-contain"
             />
           </Link>
-        )}
+        ) : eventTitle ? (
+          <Link
+            href={withLocale(`/events/${eventSlug}`, locale)}
+            className="shrink-0 hidden md:inline-flex items-center text-[12px] font-bold uppercase tracking-[0.18em] text-[#1a1a2e] hover:opacity-80 max-w-[200px] truncate"
+            aria-label={`${eventTitle} home`}
+            title={eventTitle}
+          >
+            {eventTitle}
+          </Link>
+        ) : null}
         {/* Desktop main tabs */}
         <ul className="hidden md:flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
           {items.map((it) => {

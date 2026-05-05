@@ -10,7 +10,6 @@ import { SpeakerGrid } from "@/components/site/SpeakerGrid"
 import { getEventSections } from "@/app/actions/eventSectionActions"
 import { EventSectionsRenderer } from "@/components/site/EventSections"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
-import { EventPageNav } from "@/components/site/event-pages/EventPageNav"
 import { EventTopNav } from "@/components/site/event-pages/EventTopNav"
 import { StandardPageRender } from "@/components/site/event-pages/StandardPageRender"
 import { getStandardPagePublicData } from "@/app/actions/standardPageActions"
@@ -249,8 +248,12 @@ export default async function EventDetailPage({ params }: Props) {
   if (builderData && Array.isArray(builderData.content) && builderData.content.length > 0) {
     return (
       <>
+        {/* ITEM 1.1: EventTopNav is the authoritative public nav. The
+            legacy EventPageNav was mounted here as a second strip and
+            produced the floating "Home" badge visible mid-screen on
+            /events/mumbai. Removed — EventTopNav already covers home +
+            every standard page. */}
         <EventTopNav eventId={event.id} eventSlug={event.slug} currentKind="home" />
-        <EventPageNav eventId={event.id} eventSlug={event.slug} currentPageSlug={null} />
         <PuckPublicRenderer
         data={builderData}
         metadata={{
