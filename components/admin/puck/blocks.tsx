@@ -41,6 +41,7 @@ import {
   useInlineEdit, isEditorRender,
   patchBlockProps, patchBlockArrayItem,
 } from "@/lib/inline-edit"
+import { getString, type StringKey, type TextOverrides } from "@/lib/i18n"
 
 export const sfFont = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -147,6 +148,11 @@ export type BuilderMetadata = {
   timeFormat?: { dateFormat?: string; timeFormat?: string; showTimezone?: boolean }
   /** ITEM 10.3 — VenueMap reads provider/zoom/directions. */
   mapSettings?: { provider?: "google" | "openstreetmap"; defaultZoom?: number; showDirectionsButton?: boolean }
+  /** ITEM 4.4 — per-locale string overrides (events.text_overrides) +
+   *  the resolved current locale. Blocks pull these into getString()
+   *  so the admin's Customize Text panel beats the English defaults. */
+  textOverrides?: TextOverrides
+  defaultLocale?: string
 }
 
 /** Pull metadata off the puck context. Components receive `puck.metadata`
@@ -175,7 +181,18 @@ export function getMeta(puck: { metadata?: Record<string, unknown> }): BuilderMe
     hotels: m.hotels ?? [],
     timeFormat: m.timeFormat ?? {},
     mapSettings: m.mapSettings ?? {},
+    textOverrides: m.textOverrides ?? {},
+    defaultLocale: m.defaultLocale ?? "en",
   }
+}
+
+/** ITEM 4.4 — resolve a public-string with the meta-bound overrides. */
+export function metaString(
+  meta: BuilderMetadata,
+  key: StringKey,
+  vars?: Record<string, string | number>,
+): string {
+  return getString(key, meta.defaultLocale ?? "en", meta.textOverrides ?? {}, vars)
 }
 
 /* ── Inline-edit primitives shared across blocks (ITEMS 3 + 4) ──────
@@ -795,10 +812,17 @@ export function Hero({
   showCountdown = true, showSocialHandles = true, showButtons = true,
   puck,
 }: HeroProps & { puck: { metadata?: Record<string, unknown>; dragRef?: unknown; id?: string } }) {
-  const { event } = getMeta(puck)
+  const metaFull = getMeta(puck)
+  const { event } = metaFull
   const bg = backgroundImage || event.cover_image_url
   const shownTitle = title || event.title
   const logo = useEventLogo ? event.logo_url ?? null : null
+  // ITEM 4.4 — when the admin hasn't supplied custom CTA labels, fall
+  // back to the per-locale Customize-Text override (or the English
+  // default in lib/i18n.ts).
+  const resolvedCtaLabel = (ctaLabel?.trim()) || metaString(metaFull, "hero.cta.default")
+  const resolvedSecondaryCtaLabel =
+    (secondaryCtaLabel?.trim()) || metaString(metaFull, "hero.cta.secondary")
   if (typeof window !== "undefined" && bg && !shownTitle) {
     console.warn("[Hero] background image present but no title for alt text — provide a Title or event.title")
   }
@@ -902,9 +926,9 @@ export function Hero({
         {showCountdown && event.start_date && (
           <HeroInlineCountdown to={event.start_date} centered={centered} />
         )}
-        {showButtons && ((ctaLabel && ctaUrl) || (secondaryCtaLabel && secondaryCtaUrl)) ? (
+        {showButtons && ((resolvedCtaLabel && ctaUrl) || (resolvedSecondaryCtaLabel && secondaryCtaUrl)) ? (
           <div className={`mt-8 flex flex-wrap items-center gap-3 ${centered ? "justify-center" : ""}`}>
-            {ctaLabel && ctaUrl && (
+            {resolvedCtaLabel && ctaUrl && (
               <Link
                 href={resolveUrl(ctaUrl, event.slug)}
                 target={urlIsExternal(ctaUrl) ? "_blank" : undefined}
@@ -912,18 +936,18 @@ export function Hero({
                 className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-[#1a1a2e] text-sm font-bold transition-colors hover:brightness-95"
                 style={{ backgroundColor: "var(--lf-primary, #e7ab1c)" }}
               >
-                {ctaLabel}
+                {resolvedCtaLabel}
                 <ChevronRight size={14} />
               </Link>
             )}
-            {secondaryCtaLabel && secondaryCtaUrl && (
+            {resolvedSecondaryCtaLabel && secondaryCtaUrl && (
               <Link
                 href={resolveUrl(secondaryCtaUrl, event.slug)}
                 target={urlIsExternal(secondaryCtaUrl) ? "_blank" : undefined}
                 rel={urlIsExternal(secondaryCtaUrl) ? "noopener noreferrer" : undefined}
                 className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-white border-2 border-white/80 text-sm font-bold hover:bg-white/10 transition-colors"
               >
-                {secondaryCtaLabel}
+                {resolvedSecondaryCtaLabel}
               </Link>
             )}
           </div>
@@ -1330,8 +1354,11 @@ export function Agenda({
   title, subtitle, layout, groupByDay, showTracks, showDuration, showSpeakers, linkToDetailPages,
   puck,
 }: AgendaProps & { puck: { metadata?: Record<string, unknown> } }) {
-  const { sessions, event, timeFormat: tf = {} } = getMeta(puck)
-  if (sessions.length === 0) return <SectionPlaceholder label="Agenda (empty — add sessions to this event)" dark />
+  const meta = getMeta(puck)
+  const { sessions, event, timeFormat: tf = {} } = meta
+  if (sessions.length === 0) {
+    return <SectionPlaceholder label={metaString(meta, "agenda.empty")} dark />
+  }
   const hasOverride = layout?.backgroundColor || layout?.backgroundImage
   const baseBg = hasOverride ? "" : "bg-[#1a1a2e] text-white"
   // ITEM 10.2 — local time helper that honours timeFormat settings.
@@ -1382,6 +1409,8 @@ export function Agenda({
             linkToDetailPages: linkToDetailPages ?? false,
           }}
           timeOpts={{ timeFormat: tf.timeFormat, showTimezone: tf.showTimezone }}
+          dayLabelTemplate={metaString(meta, "agenda.day_label", { n: "{n}" })}
+          allTracksLabel={metaString(meta, "agenda.allTracks")}
         />
       </div>
     </SectionShell>
@@ -1391,6 +1420,7 @@ export function Agenda({
 /** Client-only inner with the interactive day tabs / track chips. */
 function AgendaInteractive({
   dayKeys, byDay, tracks, eventSlug, options, timeOpts,
+  dayLabelTemplate, allTracksLabel,
 }: {
   dayKeys: string[]
   byDay: Map<string, SessionShape[]>
@@ -1405,6 +1435,11 @@ function AgendaInteractive({
   }
   /** ITEM 10.2 — honours timeFormat builder setting. */
   timeOpts?: { timeFormat?: string; showTimezone?: boolean }
+  /** ITEM 4.4 — locale-resolved day label (e.g. "Day {n}") + all-tracks
+   *  filter chip. The template uses {n} so we can substitute the index
+   *  per-tab without re-running getString. */
+  dayLabelTemplate?: string
+  allTracksLabel?: string
 }) {
   // For non-interactive use we still render correctly. The "use client" at
   // the top of this module makes the hooks below safe.
@@ -1437,7 +1472,9 @@ function AgendaInteractive({
                     : "bg-white/10 text-white/80 hover:bg-white/20"
                 }`}
               >
-                <span className="font-bold">Day {i + 1}</span>
+                <span className="font-bold">
+                  {(dayLabelTemplate ?? "Day {n}").replace("{n}", String(i + 1))}
+                </span>
                 {sample && <span className="opacity-70">{formatDayKey(sample)}</span>}
               </button>
             )
@@ -1453,7 +1490,7 @@ function AgendaInteractive({
               activeTrack === "" ? "bg-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e]" : "bg-white/10 text-white/80 hover:bg-white/20"
             }`}
           >
-            All tracks
+            {allTracksLabel ?? "All tracks"}
           </button>
           {tracks.map((t) => (
             <button
@@ -3066,6 +3103,17 @@ export function Footer({
   const resolvedLogo = eventLogo
     ? parseFocalPoint(eventLogo).src
     : (logoUrl ?? "")
+  // ITEM 4.4 — locale-aware copyright fallback. The admin still has
+  // a free-text override via the `copyright` prop; when it's empty the
+  // resolver substitutes the current year into the i18n template.
+  const resolvedCopyright = (copyright?.trim()
+    ? copyright
+    : meta
+      ? metaString(meta, "footer.copyright", { year: new Date().getFullYear() })
+      : `© ${new Date().getFullYear()} The Leadership Federation. All rights reserved.`)
+  const poweredByLabel = meta
+    ? metaString(meta, "footer.poweredBy")
+    : "Powered by The Leadership Federation"
   const grouped = new Map<string, Array<{ label: string; url: string }>>()
   for (const l of links ?? []) {
     const g = l.group?.trim() || "Links"
@@ -3125,7 +3173,7 @@ export function Footer({
               })()}
               {!mediaImage && !resolvedLogo && (
                 <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/65 mb-3">
-                  Powered by The Leadership Federation
+                  {poweredByLabel}
                 </p>
               )}
               {textField && (
@@ -3133,7 +3181,7 @@ export function Footer({
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{textField}</ReactMarkdown>
                 </div>
               )}
-              <p className="text-[12px] text-white/55 leading-relaxed">{copyright}</p>
+              <p className="text-[12px] text-white/55 leading-relaxed">{resolvedCopyright}</p>
             </div>
           )}
 
@@ -3203,7 +3251,7 @@ export function Footer({
         </div>
         {showPoweredBy && (
           <p className="mt-8 pt-6 border-t border-white/10 text-[11px] text-white/45">
-            Powered by The Leadership Federation event platform.
+            {poweredByLabel} event platform.
           </p>
         )}
       </div>

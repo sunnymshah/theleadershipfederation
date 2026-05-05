@@ -88,7 +88,13 @@ export async function StandardPageRender({
       .eq("event_id", event.id)
       .order("sort_order"),
     // ITEM 2.4 — pull socialHandles + ITEM 10 settings from builder_settings.
-    supabase.from("events").select("builder_settings").eq("id", event.id).maybeSingle(),
+    // ITEM 4.4 — also read text_overrides + default_locale so blocks resolve
+    // locale-aware strings via the metaString helper.
+    supabase
+      .from("events")
+      .select("builder_settings, text_overrides, default_locale")
+      .eq("id", event.id)
+      .maybeSingle(),
     // ITEM 6 — exhibitors + categories are anon-readable per RLS.
     supabase.from("exhibitors").select("*").eq("event_id", event.id).order("sort_order"),
     supabase.from("event_exhibitor_categories").select("*").eq("event_id", event.id).order("sort_order"),
@@ -104,6 +110,14 @@ export async function StandardPageRender({
   const socialHandles = (general.socialHandles ?? {}) as Record<string, string>
   const timeFormat = (builderSettings.timeFormat ?? {}) as Record<string, unknown>
   const mapSettings = (builderSettings.map ?? {}) as Record<string, unknown>
+  // ITEM 4.4 — text overrides + default locale. The current locale comes
+  // from the [lang] route segment when present, else the event default.
+  const textOverrides = ((builderRes.data as { text_overrides?: unknown } | null)?.text_overrides
+    ?? {}) as Record<string, Record<string, string>>
+  const defaultLocale =
+    ((builderRes.data as { default_locale?: string | null } | null)?.default_locale)
+    ?? "en"
+  const currentLocale = locale ?? defaultLocale
   const exhibitors = (exhibRes.data ?? []) as Array<Record<string, unknown>>
   const exhibitorCategories = (catRes.data ?? []) as Array<Record<string, unknown>>
   const hotels = (hotelRes.data ?? []) as Array<Record<string, unknown>>
@@ -209,6 +223,10 @@ export async function StandardPageRender({
             defaultZoom: Number(mapSettings.defaultZoom ?? 14),
             showDirectionsButton: mapSettings.showDirectionsButton !== false,
           },
+          // ITEM 4.4 — pass text-overrides through so blocks (Hero CTAs,
+          // Footer copyright, Agenda day label, etc.) resolve via getString.
+          textOverrides,
+          defaultLocale: currentLocale,
         }}
       />
     </>

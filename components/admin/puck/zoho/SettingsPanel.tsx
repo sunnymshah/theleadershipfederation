@@ -16,6 +16,7 @@ import {
   ArrowLeft, Globe, Search, Lock, Cookie,
   Code2, Loader2, Check, Plus, Trash2,
   Navigation as NavIcon, Bell, Clock as ClockIcon, Map as MapIcon, Image as ImageIco, Smile,
+  Type as TypeIcon, ChevronDown, ChevronRight,
 } from "lucide-react"
 import { SecondaryPanel } from "./SecondaryPanel"
 import {
@@ -23,9 +24,13 @@ import {
   getEventLogoUrl, saveEventLogoUrl,
   getNavExtraLinks, saveNavExtraLinks,
   getEventImageColumn, saveEventImageColumn,
+  getTextOverrides, saveTextOverridesForLocale,
   type BuilderSettingsGroup, type NavExtraLink,
 } from "@/app/actions/eventBuilderActions"
 import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
+import {
+  DEFAULT_STRINGS, STRING_NAMESPACES, type StringKey,
+} from "@/lib/i18n"
 
 type GroupDef = { key: BuilderSettingsGroup; label: string; desc: string; Icon: typeof Globe }
 
@@ -33,6 +38,7 @@ type GroupDef = { key: BuilderSettingsGroup; label: string; desc: string; Icon: 
 // Favicon are added by ITEM 10. Navigation is added by ITEM 8.
 const GROUPS: GroupDef[] = [
   { key: "general",       label: "General",        desc: "Microsite name, tagline, time zone, social",  Icon: Globe },
+  { key: "text",          label: "Customize text", desc: "Per-locale override of every visible string", Icon: TypeIcon },
   { key: "seo",           label: "SEO",            desc: "Title, description, OG card",                 Icon: Search },
   { key: "domain",        label: "Custom domain",  desc: "events.yourdomain.com",                       Icon: Globe },
   { key: "privacy",       label: "Privacy",        desc: "GDPR notices, data-retention",                Icon: Lock },
@@ -166,6 +172,24 @@ function SettingsForm({
     onSaved(next)
     setSavedFlash(true)
     window.setTimeout(() => setSavedFlash(false), 1500)
+  }
+
+  // ITEM 4 — the Customize Text editor is a different shape (locale
+  // picker + table) so we render it inline instead of the standard
+  // FormData-collected fields.
+  if (groupKey === "text") {
+    return (
+      <aside className="w-[480px] shrink-0 h-full bg-[var(--z-bg-alt,#f7f8fa)] border-r border-[var(--z-border,#e5e7eb)] flex flex-col">
+        <div className="shrink-0 h-12 px-4 flex items-center gap-2 border-b border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg,#fff)]">
+          <button type="button" onClick={onBack} aria-label="Back" className="z-btn z-btn-icon">
+            <ArrowLeft size={14} strokeWidth={1.5} />
+          </button>
+          <groupDef.Icon size={14} strokeWidth={1.5} className="text-[var(--z-text-muted,#6b7280)]" />
+          <h2 className="text-[13px] font-bold text-[var(--z-text,#1f2937)]">{groupDef.label}</h2>
+        </div>
+        <CustomizeTextEditor eventId={eventId} />
+      </aside>
+    )
   }
 
   // Code + Webhooks + Navigation need wider real estate for the
@@ -495,6 +519,154 @@ function collectFormValues(form: HTMLFormElement, group: BuilderSettingsGroup): 
     out.socialHandles = sh
   }
   return out
+}
+
+/* ── Customize Text editor (ITEM 4.3) ────────────────────────────
+ *
+ * Per-locale string-override editor. Top: locale picker. Body:
+ * collapsible namespace sections (Navigation / Hero / Cookie / etc.)
+ * each with one row per overridable key showing the default English
+ * value next to a single-line input. Save button at the bottom
+ * persists overrides for the current locale via
+ * saveTextOverridesForLocale.
+ */
+function CustomizeTextEditor({ eventId }: { eventId: string }) {
+  const [overrides, setOverrides] = useState<Record<string, Record<string, string>>>({})
+  const [locale, setLocale] = useState<string>("en")
+  const [draft, setDraft] = useState<Record<string, string>>({})
+  const [locales, setLocales] = useState<string[]>(["en"])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [savedFlash, setSavedFlash] = useState(false)
+  const [openNs, setOpenNs] = useState<Set<string>>(() => new Set(["nav", "hero"]))
+
+  useEffect(() => {
+    let cancelled = false
+    void Promise.all([
+      getTextOverrides(eventId),
+      getBuilderSettings(eventId),
+    ]).then(([res, settingsRes]) => {
+      if (cancelled) return
+      setOverrides(res.overrides)
+      const langs = (() => {
+        const lng = (settingsRes.settings.languages ?? {}) as Record<string, unknown>
+        const list = Array.isArray(lng.locales) ? (lng.locales as string[]) : ["en"]
+        return list.length > 0 ? list : ["en"]
+      })()
+      setLocales(langs)
+      setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [eventId])
+
+  // Whenever the user picks a locale, seed the draft from saved overrides.
+  useEffect(() => {
+    setDraft({ ...(overrides[locale] ?? {}) })
+  }, [locale, overrides])
+
+  function setKey(key: string, value: string) {
+    setDraft((prev) => ({ ...prev, [key]: value }))
+  }
+
+  function toggleNs(ns: string) {
+    setOpenNs((prev) => {
+      const next = new Set(prev)
+      if (next.has(ns)) next.delete(ns); else next.add(ns)
+      return next
+    })
+  }
+
+  async function save() {
+    setSaving(true); setError(null)
+    const res = await saveTextOverridesForLocale(eventId, locale, draft)
+    setSaving(false)
+    if (!res.success) {
+      setError(res.error ?? "Save failed")
+      return
+    }
+    setOverrides((prev) => ({ ...prev, [locale]: { ...draft } }))
+    setSavedFlash(true)
+    window.setTimeout(() => setSavedFlash(false), 1500)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 size={16} className="animate-spin text-[var(--z-text-muted,#6b7280)]" />
+      </div>
+    )
+  }
+
+  // Group every key by namespace (everything before the first dot).
+  const grouped: Record<string, Array<{ key: StringKey; defaultValue: string }>> = {}
+  for (const key of Object.keys(DEFAULT_STRINGS) as StringKey[]) {
+    const ns = key.split(".")[0]
+    ;(grouped[ns] ??= []).push({ key, defaultValue: DEFAULT_STRINGS[key] })
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <div className="shrink-0 px-3 py-2 border-b border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg,#fff)] flex items-center gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--z-text-muted,#6b7280)]">Locale</span>
+        <select
+          value={locale}
+          onChange={(e) => setLocale(e.target.value)}
+          className="z-input !h-7 !text-[12px] !py-0 flex-1"
+        >
+          {locales.map((l) => <option key={l} value={l}>{l}</option>)}
+        </select>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+        <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">
+          Override the public copy for this locale. Empty inputs fall back to the default English string. Variables in <code className="font-mono">{`{curly_braces}`}</code> are interpolated at render.
+        </p>
+        {STRING_NAMESPACES.map(({ ns, label }) => {
+          const rows = grouped[ns]
+          if (!rows || rows.length === 0) return null
+          const expanded = openNs.has(ns)
+          return (
+            <div key={ns} className="rounded-md border border-[var(--z-border,#e5e7eb)] bg-white">
+              <button
+                type="button"
+                onClick={() => toggleNs(ns)}
+                className="w-full flex items-center gap-1.5 px-3 py-2 text-left text-[12px] font-bold text-[var(--z-text,#1f2937)] hover:bg-[var(--z-bg-alt,#f7f8fa)]"
+              >
+                {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                {label}
+                <span className="ml-auto text-[10px] font-medium text-[var(--z-text-muted,#6b7280)]">{rows.length} keys</span>
+              </button>
+              {expanded && (
+                <div className="border-t border-[var(--z-border,#e5e7eb)] divide-y divide-[var(--z-border,#e5e7eb)]">
+                  {rows.map(({ key, defaultValue }) => (
+                    <div key={key} className="px-3 py-2 grid grid-cols-1 gap-1">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--z-text-muted,#6b7280)]">{key}</span>
+                      <p className="text-[10px] text-[var(--z-text-muted,#6b7280)] italic">Default: {defaultValue}</p>
+                      <input
+                        value={draft[key] ?? ""}
+                        onChange={(e) => setKey(key, e.target.value)}
+                        placeholder={defaultValue}
+                        className="z-input !h-7 !text-[12px] !py-0"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {error && <p className="text-[12px] text-[var(--z-danger,#dc2626)] bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
+      </div>
+      <div className="shrink-0 px-3 py-3 border-t border-[var(--z-border,#e5e7eb)] bg-[var(--z-bg-alt,#f7f8fa)] flex items-center gap-2">
+        {savedFlash && <span className="text-[12px] text-[var(--z-success,#10b981)] mr-auto">Saved.</span>}
+        {!savedFlash && <span className="flex-1" />}
+        <button type="button" onClick={save} disabled={saving} className="z-btn-primary">
+          {saving && <Loader2 size={12} className="animate-spin" />}
+          Save overrides
+        </button>
+      </div>
+    </div>
+  )
 }
 
 /* ── Navigation section (ITEM 8) ─────────────────────────────────── */
