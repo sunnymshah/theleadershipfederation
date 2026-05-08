@@ -29,8 +29,38 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import {
   Calendar, MapPin, User, Mic2, Ticket, ChevronRight, Building2, Quote, Check,
-  Briefcase,
+  Briefcase, Users, Clock, Award, Star, TrendingUp, Sparkles, Globe, ListOrdered,
+  CircleDot,
 } from "lucide-react"
+
+/* PART C2 — small curated icon lookup for blocks that take an icon
+ * name string (StatsRow.stats[].icon, ListBlock.items[].icon). Keeps
+ * the bundle predictable; the inspector exposes the same labels via a
+ * select field. */
+const STAT_ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>> = {
+  users: Users,
+  user: User,
+  calendar: Calendar,
+  clock: Clock,
+  mic: Mic2,
+  ticket: Ticket,
+  building: Building2,
+  briefcase: Briefcase,
+  award: Award,
+  star: Star,
+  trending: TrendingUp,
+  sparkles: Sparkles,
+  globe: Globe,
+  pin: MapPin,
+  list: ListOrdered,
+  dot: CircleDot,
+}
+function StatIcon({ name, size = 22, className }: { name?: string; size?: number; className?: string }) {
+  if (!name) return null
+  const Cmp = STAT_ICONS[name.toLowerCase()]
+  if (!Cmp) return null
+  return <Cmp size={size} strokeWidth={1.6} className={className} />
+}
 import { resolveUrl, urlIsExternal } from "./UrlPicker"
 import { GalleryLightbox } from "./GalleryLightbox"
 import { CarouselInner } from "./CarouselInner"
@@ -80,6 +110,8 @@ export type SessionShape = {
   track: string | null
   /** Optional slug for Agenda's linkToDetailPages (B19). */
   slug?: string | null
+  /** PART C3 — sessions.featured drives the FeaturedSessions block. */
+  featured?: boolean | null
 }
 export type SponsorShape = { id: string; name: string; logo_url: string | null; tier: string | null; website: string | null }
 export type TicketShape  = {
@@ -1167,6 +1199,21 @@ export function StatsRow({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
             <div key={i} className="text-center">
+              {/* PART C2 — per-stat icon (when set in the inspector).
+                  Resolved against the curated STAT_ICONS map; unknown
+                  names render nothing instead of throwing. */}
+              {stat.icon ? (
+                <div
+                  className="mx-auto mb-3 inline-flex items-center justify-center w-10 h-10 rounded-full"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 14%, transparent)",
+                    color: "var(--lf-primary, #e7ab1c)",
+                  }}
+                  aria-hidden
+                >
+                  <StatIcon name={stat.icon} size={20} />
+                </div>
+              ) : null}
               {/* In editor mode the animated counter is replaced with an
                   editable static value — animating a contentEditable
                   fights with caret + paint and overrides the user's
@@ -1710,6 +1757,70 @@ export function SponsorsGrid({
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 items-center">
           {sponsors.map((sp) => <SponsorCard key={sp.id} sponsor={sp} />)}
+        </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── SPONSOR CATEGORY (single-tier featured) ──────────────────────── */
+/* PART C1 — Zoho parity: alongside the all-tier "Sponsors" grid, admins
+ * can drop a per-tier highlight block ("Title Sponsors", "Platinum"
+ * etc.) wherever they want on the page. Reads sponsors from Puck
+ * metadata, filters by the categoryName prop (case-insensitive match
+ * on .tier), and lays them out larger / fewer-per-row than the main
+ * grid for visual prominence. */
+
+export type SponsorCategoryProps = {
+  /** Tier name to feature. Matches sponsor.tier case-insensitively. */
+  categoryName: string
+  /** Optional heading override; defaults to "{categoryName} Sponsors". */
+  heading?: string
+  layout?: LayoutProps
+}
+
+export function SponsorCategory({
+  categoryName, heading, layout,
+  puck,
+}: SponsorCategoryProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { sponsors } = getMeta(puck)
+  const wanted = (categoryName ?? "").trim().toLowerCase()
+  if (!wanted) {
+    return <SectionPlaceholder label="Sponsor Category (set the tier in the inspector)" />
+  }
+  const list = sponsors.filter((s) => (s.tier ?? "").toLowerCase() === wanted)
+  if (list.length === 0) {
+    return <SectionPlaceholder label={`Sponsor Category — no sponsors with tier "${categoryName}" yet`} />
+  }
+  const hasOverride = layout?.backgroundColor || layout?.backgroundImage
+  const baseBg = hasOverride ? "" : "bg-white"
+  const tierLabel = TIER_LABELS[wanted] ?? wanted.replace(/^./, (c) => c.toUpperCase())
+  // Featured tiers get bigger cards. Fall back to platinum styling for
+  // anything not in the headline ladder so the block always looks
+  // intentional, never cramped.
+  const cols = wanted === "title" || wanted === "platinum"
+    ? "grid-cols-1 sm:grid-cols-2"
+    : (TIER_COLS[wanted] ?? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4")
+  return (
+    <SectionShell layout={layout} baseClass={baseBg}>
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-10">
+          <span
+            className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] mb-3 px-3 py-1 rounded-full border"
+            style={{
+              color: "var(--lf-primary, #e7ab1c)",
+              backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 14%, transparent)",
+              borderColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 28%, transparent)",
+            }}
+          >
+            Featured Partners
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight" style={sfFont}>
+            {heading?.trim() || `${tierLabel} Sponsors`}
+          </h2>
+        </div>
+        <div className={`grid gap-6 items-center ${cols}`}>
+          {list.map((sp) => <SponsorCard key={sp.id} sponsor={sp} />)}
         </div>
       </div>
     </SectionShell>
@@ -3892,6 +4003,206 @@ export function HotelsListing({ title, columns, layout, puck }: HotelsListingPro
             ))}
           </div>
         )}
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── FEATURED SESSIONS ─────────────────────────────────────────────
+ * PART C3 — Zoho parity. Surfaces sessions where sessions.featured=true
+ * in compact 2-col cards with time, title, track, speakers. Falls
+ * back to a friendly placeholder when no sessions are featured yet.
+ */
+
+export type FeaturedSessionsProps = {
+  title: string
+  subtitle: string
+  /** Cap the number of cards (oldest start_time wins ties). */
+  limit: number
+  layout?: LayoutProps
+}
+
+export function FeaturedSessions({
+  title, subtitle, limit, layout, puck,
+}: FeaturedSessionsProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const meta = getMeta(puck)
+  const { sessions, event, timeFormat: tf = {} } = meta
+  const featured = sessions
+    .filter((s) => s.featured === true)
+    .slice(0, Math.max(1, Math.min(20, limit ?? 6)))
+  if (featured.length === 0) {
+    return (
+      <SectionPlaceholder
+        label="Featured sessions (toggle the star on a session in the Sessions manager)"
+      />
+    )
+  }
+  const fmtT = (iso: string) => fmtTime(iso, { timeFormat: tf.timeFormat, showTimezone: tf.showTimezone })
+  const hasOverride = layout?.backgroundColor || layout?.backgroundImage
+  const baseBg = hasOverride ? "" : "bg-[#1a1a2e] text-white"
+  return (
+    <SectionShell layout={layout} baseClass={baseBg} dark>
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="text-center mb-10">
+          <span
+            className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] mb-3 px-3 py-1 rounded-full border"
+            style={{
+              color: "var(--lf-primary, #e7ab1c)",
+              backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 14%, transparent)",
+              borderColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 28%, transparent)",
+            }}
+          >
+            Don&apos;t miss
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight" style={sfFont}>
+            {title || "Featured sessions"}
+          </h2>
+          {subtitle && <p className="mt-3 text-white/70 max-w-2xl mx-auto">{subtitle}</p>}
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {featured.map((s) => {
+            const inner = (
+              <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5 hover:bg-white/[0.07] transition-colors h-full">
+                <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.18em] text-[var(--lf-primary,#e7ab1c)] font-bold mb-2">
+                  <Clock size={11} />
+                  <span>{fmtT(s.starts_at)}</span>
+                  {s.track && (
+                    <>
+                      <span className="opacity-40">·</span>
+                      <span className="opacity-80">{s.track}</span>
+                    </>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold leading-snug mb-1.5" style={sfFont}>
+                  {s.title}
+                </h3>
+                {s.speaker_names && s.speaker_names.length > 0 && (
+                  <p className="text-[12px] text-white/60">{s.speaker_names.join(", ")}</p>
+                )}
+              </div>
+            )
+            return s.slug ? (
+              <Link key={s.id} href={`/events/${event.slug}/sessions/${s.slug}`} className="block">
+                {inner}
+              </Link>
+            ) : (
+              <div key={s.id}>{inner}</div>
+            )
+          })}
+        </div>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── LIST BLOCK ────────────────────────────────────────────────────
+ * PART C4 — Zoho's generic numbered/bulleted/icon list with optional
+ * link target per item. Three styles + 1/2/3 columns + optional
+ * heading/subtitle.
+ */
+
+export type ListBlockProps = {
+  title: string
+  subtitle: string
+  items: Array<{ icon?: string; label: string; body?: string; link?: string }>
+  style: "numbered" | "bullet" | "icons"
+  columns: 1 | 2 | 3
+  layout?: LayoutProps
+}
+
+export function ListBlock({
+  title, subtitle, items, style, columns, layout,
+}: ListBlockProps) {
+  if (!items || items.length === 0) {
+    return <SectionPlaceholder label="List (add items in the inspector)" />
+  }
+  const cols = columns === 3 ? "md:grid-cols-3"
+             : columns === 2 ? "md:grid-cols-2"
+             :                 "md:grid-cols-1"
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-5xl mx-auto px-6">
+        {(title || subtitle) && (
+          <div className="text-center mb-10">
+            {title && (
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight" style={sfFont}>{title}</h2>
+            )}
+            {subtitle && <p className="mt-3 text-[#1a1a2e]/60 max-w-2xl mx-auto">{subtitle}</p>}
+          </div>
+        )}
+        <ol className={`grid grid-cols-1 ${cols} gap-6`}>
+          {items.map((it, i) => {
+            const inner = (
+              <div className="flex items-start gap-3">
+                <span
+                  className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full text-[12px] font-bold"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--lf-primary, #e7ab1c) 14%, transparent)",
+                    color: "var(--lf-primary, #e7ab1c)",
+                  }}
+                  aria-hidden
+                >
+                  {style === "icons"
+                    ? <StatIcon name={it.icon} size={16} />
+                    : style === "numbered"
+                      ? <span>{i + 1}</span>
+                      : <CircleDot size={12} strokeWidth={2.4} />}
+                </span>
+                <div>
+                  <div className="text-[14px] font-semibold text-[#1a1a2e]">{it.label}</div>
+                  {it.body && (
+                    <div className="text-[13px] text-[#1a1a2e]/70 mt-0.5 leading-relaxed">{it.body}</div>
+                  )}
+                </div>
+              </div>
+            )
+            return (
+              <li key={`${it.label}-${i}`}>
+                {it.link ? (
+                  <Link href={it.link} className="block hover:opacity-90 transition-opacity">
+                    {inner}
+                  </Link>
+                ) : inner}
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+    </SectionShell>
+  )
+}
+
+/* ── EVENT DESCRIPTION ─────────────────────────────────────────────
+ * PART C5 — Zoho parity. Pulls events.description as the default and
+ * lets the admin override per page. When override is empty AND
+ * event.description is empty, renders a friendly placeholder.
+ */
+
+export type EventDescriptionProps = {
+  /** Override text — when empty, fall back to event.description. */
+  override: string
+  /** Optional heading; defaults to "About this event". */
+  heading?: string
+  layout?: LayoutProps
+}
+
+export function EventDescription({
+  override, heading, layout, puck,
+}: EventDescriptionProps & { puck: { metadata?: Record<string, unknown> } }) {
+  const { event } = getMeta(puck)
+  const body = (override?.trim()) || (event.description ?? "")
+  if (!body.trim()) {
+    return <SectionPlaceholder label="Event description (set events.description or add an override)" />
+  }
+  return (
+    <SectionShell layout={layout}>
+      <div className="max-w-3xl mx-auto px-6">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-5" style={sfFont}>
+          {heading?.trim() || "About this event"}
+        </h2>
+        <div className="prose prose-sm sm:prose-base max-w-none text-[#1a1a2e]/80 leading-relaxed">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+        </div>
       </div>
     </SectionShell>
   )

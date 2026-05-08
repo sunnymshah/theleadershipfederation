@@ -67,20 +67,26 @@ export const PLACEHOLDER_TEXTS: ReadonlySet<string> = new Set([
   "Thanks — you'll get a confirmation by email.",
   // CTA defaults
   "Go to admin sign-in",
+  // PART C4 — ListBlock seed items
+  "First item", "Second item", "Third item",
+  "Short description.",
 ])
 
 /** Block-prop pairs that we inspect when looking for placeholder text.
  *  Keep this scoped — we don't want to false-flag, e.g., a SpeakersGrid
  *  with `title="Featured Speakers"` (that's standard copy admins keep). */
 const FIELDS_BY_TYPE: Record<string, string[]> = {
-  Hero:        ["subtitle"],
-  RichText:    ["body", "title", "subtitle"],
-  Countdown:   ["title"],
-  StatsRow:    ["__statsArray"],
-  Faqs:        ["__faqsArray"],
-  TabsBlock:   ["__tabsArray"],
-  FormBlock:   ["subtitle", "successMessage"],
-  CtaButton:   ["ctaLabel"],
+  Hero:             ["subtitle"],
+  RichText:         ["body", "title", "subtitle"],
+  Countdown:        ["title"],
+  StatsRow:         ["__statsArray"],
+  Faqs:             ["__faqsArray"],
+  TabsBlock:        ["__tabsArray"],
+  FormBlock:        ["subtitle", "successMessage"],
+  CtaButton:        ["ctaLabel"],
+  // PART C4 + C5 — list / event-description blocks added in close-out.
+  ListBlock:        ["__listArray"],
+  EventDescription: ["override"],
 }
 
 function arrayHasPlaceholder(items: unknown, keys: string[]): boolean {
@@ -115,6 +121,10 @@ export function isPlaceholderBlock(
     }
     if (f === "__tabsArray") {
       if (arrayHasPlaceholder(props.items, ["title", "body"])) return true
+      continue
+    }
+    if (f === "__listArray") {
+      if (arrayHasPlaceholder(props.items, ["label", "body"])) return true
       continue
     }
     const v = props[f]
