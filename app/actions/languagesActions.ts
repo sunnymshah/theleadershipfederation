@@ -7,21 +7,22 @@ import { STANDARD_PAGE_KINDS } from "@/lib/standard-pages"
 
 export async function getEventLanguages(
   eventId: string,
-): Promise<{ locales: string[]; default_locale: string }> {
+): Promise<{ locales: string[]; default_locale: string; locales_hidden: string[] }> {
   try {
     await requirePermission("events", "edit")
     const admin = createAdminClient()
     const { data } = await admin
       .from("events")
-      .select("locales, default_locale")
+      .select("locales, default_locale, locales_hidden")
       .eq("id", eventId)
       .maybeSingle()
     return {
       locales: ((data?.locales as string[] | null) ?? ["en"]).filter(Boolean),
       default_locale: (data?.default_locale as string) ?? "en",
+      locales_hidden: ((data?.locales_hidden as string[] | null) ?? []).filter(Boolean),
     }
   } catch {
-    return { locales: ["en"], default_locale: "en" }
+    return { locales: ["en"], default_locale: "en", locales_hidden: [] }
   }
 }
 
@@ -29,16 +30,30 @@ export async function setEventLanguages(
   eventId: string,
   locales: string[],
   defaultLocale: string,
+  /** PART C10 — locales hidden from the public top-nav switcher. They
+   *  remain valid translation targets for content authoring; they're
+   *  just not surfaced to anonymous visitors. */
+  hidden: string[] = [],
 ): Promise<{ success: boolean; error?: string }> {
   try {
     await requirePermission("events", "edit")
     const cleaned = Array.from(new Set(locales.filter(isSupportedLocale)))
     if (cleaned.length === 0) cleaned.push("en")
     const def = isSupportedLocale(defaultLocale) && cleaned.includes(defaultLocale) ? defaultLocale : cleaned[0]
+    // Hidden must be a strict subset of active + must never include the
+    // default (the default is always visible — it's how visitors land).
+    const hiddenClean = Array.from(new Set(
+      hidden.filter(isSupportedLocale).filter((h) => cleaned.includes(h) && h !== def),
+    ))
     const admin = createAdminClient()
     const { error } = await admin
       .from("events")
-      .update({ locales: cleaned, default_locale: def, updated_at: new Date().toISOString() })
+      .update({
+        locales: cleaned,
+        default_locale: def,
+        locales_hidden: hiddenClean,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", eventId)
     if (error) return { success: false, error: error.message }
     return { success: true }

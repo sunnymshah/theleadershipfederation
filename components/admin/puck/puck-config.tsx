@@ -1998,16 +1998,72 @@ export const puckConfig: Config<BuilderComponents> = {
         navButtons: {
           type: "array", label: "Navigation buttons",
           arrayFields: {
-            label: { type: "text", label: "Label" },
-            url:   { type: "text", label: "URL" },
+            // PART C8 — Setup tab fields. Labels prefixed so the admin
+            // visually groups them apart from Design tokens below.
+            label: { type: "text", label: "Setup · Label" },
+            url:   { type: "text", label: "Setup · URL" },
+            icon:  {
+              type: "select",
+              label: "Setup · Icon",
+              options: [
+                { label: "None",       value: "" },
+                { label: "Users",      value: "users" },
+                { label: "Calendar",   value: "calendar" },
+                { label: "Mic",        value: "mic" },
+                { label: "Ticket",     value: "ticket" },
+                { label: "Building",   value: "building" },
+                { label: "Award",      value: "award" },
+                { label: "Star",       value: "star" },
+                { label: "Globe",      value: "globe" },
+                { label: "Pin",        value: "pin" },
+                { label: "Sparkles",   value: "sparkles" },
+              ],
+            },
+            // PART C8 — Design tab fields.
             style: {
-              type: "radio", label: "Style",
+              type: "radio", label: "Design · Preset",
               options: [
                 { label: "Primary",   value: "primary" },
                 { label: "Secondary", value: "secondary" },
                 { label: "Outline",   value: "outline" },
               ],
             },
+            size: {
+              type: "radio", label: "Design · Size",
+              options: [
+                { label: "Small",  value: "sm" },
+                { label: "Medium", value: "md" },
+                { label: "Large",  value: "lg" },
+              ],
+            },
+            shape: {
+              type: "radio", label: "Design · Shape",
+              options: [
+                { label: "Pill",    value: "pill" },
+                { label: "Rounded", value: "rounded" },
+                { label: "Square",  value: "square" },
+              ],
+            },
+            color:        { type: "text", label: "Design · Text colour (hex)" },
+            borderStyle: {
+              type: "select", label: "Design · Border style",
+              options: [
+                { label: "None",   value: "none" },
+                { label: "Solid",  value: "solid" },
+                { label: "Dashed", value: "dashed" },
+                { label: "Dotted", value: "dotted" },
+              ],
+            },
+            borderWidth: {
+              type: "select", label: "Design · Border width (px)",
+              options: [
+                { label: "1", value: 1 },
+                { label: "2", value: 2 },
+                { label: "3", value: 3 },
+                { label: "4", value: 4 },
+              ],
+            },
+            borderColor:  { type: "text", label: "Design · Border colour (hex)" },
           },
           getItemSummary: (item: unknown) => (item as { label?: string })?.label || "Button",
         },
