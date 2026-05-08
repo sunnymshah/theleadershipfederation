@@ -9,8 +9,16 @@
 
 import Script from "next/script"
 import { getEvent } from "@/lib/get-event"
-import { getPublicBuilderNav } from "@/app/actions/eventBuilderActions"
-import { EventPageNav } from "@/components/site/EventPageNav"
+// PART E1 — legacy EventPageNav (the outer chrome that produced the
+// "double nav row" complaint on /events/mumbai) was mounted here. The
+// Zoho-style EventTopNav rendered by StandardPageRender / the slug
+// page's legacy fallback is the single, authoritative public nav. The
+// "← TLF" escape link the legacy nav supplied is now reachable from
+// the EventTopNav's left logo (clicks through to /events/[slug]) and
+// from the Footer "Powered by The Leadership Federation" line.
+// getPublicBuilderNav was only consumed by the removed mount; dropped
+// from this layout. The standard-pages nav fetches its own page list
+// inside EventTopNav.
 import { AnalyticsScripts } from "@/components/site/event-pages/AnalyticsScripts"
 import { CookieBanner } from "@/components/site/event-pages/CookieBanner"
 import { CustomBodyCode } from "@/components/site/event-pages/CustomCodeInject"
@@ -19,6 +27,7 @@ import { MicrositeVisibilityGate } from "@/components/site/event-pages/Microsite
 import { NotificationBanner } from "@/components/site/event-pages/NotificationBanner"
 import { getMicrositeSettings } from "@/lib/microsite-settings"
 import { getString, type TextOverrides } from "@/lib/i18n"
+// (getPublicBuilderNav import removed alongside the legacy nav mount.)
 
 export default async function EventSlugLayout({
   children,
@@ -30,10 +39,8 @@ export default async function EventSlugLayout({
   const { slug } = await params
   const event = await getEvent(slug)
 
-  const pages = event ? await getPublicBuilderNav(event.id) : []
   const settings = event ? await getMicrositeSettings(event.id) : {}
 
-  const safeSlug = event?.slug?.trim() ?? null
   const cookies = settings.cookies ?? {}
   const showCookieBanner = !!event && cookies.show !== false
   const headCode = settings.code?.headCode ?? ""
@@ -74,11 +81,11 @@ export default async function EventSlugLayout({
           displayUntil={notif!.displayUntil}
         />
       )}
-      <EventPageNav
-        eventSlug={safeSlug}
-        eventTitle={event?.title ?? null}
-        pages={pages}
-      />
+      {/* PART E1 — legacy EventPageNav removed (was the outer chrome
+          row with "Home" pill + truncated title + "TLF site" link).
+          EventTopNav (the Zoho-style nav) is now the only public nav;
+          it's mounted by either StandardPageRender or the slug page's
+          legacy fallback. */}
       {/* Admin-controlled <head> code. Rendered as an afterInteractive
           script so it lands in the document but doesn't block paint. */}
       {headCode ? (

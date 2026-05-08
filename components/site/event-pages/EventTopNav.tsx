@@ -248,6 +248,17 @@ export async function EventTopNav({
               </Link>
             )
           )}
+          {/* PART E1 — "TLF site" escape link re-homed from the
+              now-removed outer chrome. Hidden on smaller breakpoints
+              so it doesn't crowd Register/Sign In. */}
+          <Link
+            href="/"
+            className="hidden xl:inline-flex items-center text-[10px] font-medium tracking-[0.18em] uppercase text-[#1a1a2e]/45 hover:text-[#1a1a2e]/85 transition-colors pl-3 ml-1 border-l border-[#1a1a2e]/[0.08]"
+            aria-label="Back to The Leadership Federation"
+            title="Back to TLF main site"
+          >
+            ← TLF
+          </Link>
         </div>
 
         {/* Mobile menu */}
