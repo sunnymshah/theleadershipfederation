@@ -17,7 +17,8 @@ import Link from "next/link"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
-import { Hammer, Calendar, MapPin, ExternalLink, ArrowRight, Users, Ticket, ClipboardList, Building2 } from "lucide-react"
+import { Hammer, Calendar, MapPin, ExternalLink, ArrowRight, Users, Ticket, ClipboardList, Building2, AlertTriangle } from "lucide-react"
+import { findPlaceholderBlocks } from "@/lib/placeholder-detect"
 
 export const metadata = { title: "Page Builder" }
 export const dynamic = "force-dynamic"
@@ -31,6 +32,10 @@ type EventRow = {
   end_date: string | null
   venue: string | null
   cover_image_url: string | null
+  /** PART B2 — populated from a builder_data + event_standard_pages
+   *  walk so the card can render an amber badge when an admin is
+   *  about to publish blocks that still carry seeded sample copy. */
+  placeholderCount?: number
 }
 
 type DraftMeta = {
@@ -84,7 +89,7 @@ export default async function BuilderHubPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const admin = createAdminClient()
-      const [{ data: eventRows }, { data: draftRows }] = await Promise.all([
+      const [{ data: eventRows }, { data: draftRows }, builderDataRes, stdPagesRes] = await Promise.all([
         admin
           .from("events")
           .select("id, slug, title, status, start_date, end_date, venue, cover_image_url")
@@ -94,11 +99,34 @@ export default async function BuilderHubPage() {
           .from("event_builder_drafts")
           .select("event_id, updated_at, is_published")
           .limit(500),
+        // PART B2 — pull the live home-page Puck content for every event
+        // so the hub can tally placeholder blocks per event.
+        admin
+          .from("events")
+          .select("id, builder_data")
+          .limit(100),
+        admin
+          .from("event_standard_pages")
+          .select("event_id, settings")
+          .limit(2000),
       ])
       events = (eventRows as EventRow[]) ?? []
       for (const d of (draftRows as DraftMeta[]) ?? []) {
         draftsByEvent[d.event_id] = d
       }
+      // Walk the home + sub-page Puck content for each event and count
+      // any block whose props still match seeded sample copy.
+      const counts: Record<string, number> = {}
+      type RawContent = ReadonlyArray<{ type?: string; props?: Record<string, unknown> }>
+      for (const row of (builderDataRes.data ?? []) as Array<{ id: string; builder_data: { content?: unknown } | null }>) {
+        const c = (row.builder_data?.content ?? []) as RawContent
+        counts[row.id] = (counts[row.id] ?? 0) + findPlaceholderBlocks(c).length
+      }
+      for (const row of (stdPagesRes.data ?? []) as Array<{ event_id: string; settings: { puckData?: { content?: unknown } } | null }>) {
+        const c = (row.settings?.puckData?.content ?? []) as RawContent
+        counts[row.event_id] = (counts[row.event_id] ?? 0) + findPlaceholderBlocks(c).length
+      }
+      events = events.map((e) => ({ ...e, placeholderCount: counts[e.id] ?? 0 }))
     }
   } catch (e) {
     envMissing = /SUPABASE_SERVICE_ROLE_KEY/i.test((e as Error)?.message ?? "")
@@ -196,6 +224,19 @@ function EventBuilderCard({
           {isPublishedBuild && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[#c9a84c]/90 text-white">
               Build Live
+            </span>
+          )}
+          {/* PART B2 — placeholder warning. Renders only when at
+              least one block still carries seeded sample copy (matched
+              via lib/placeholder-detect against the full home + sub-pages
+              walk). Admin opens the builder to fix. */}
+          {(event.placeholderCount ?? 0) > 0 && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-500/95 text-white"
+              title={`${event.placeholderCount} section${event.placeholderCount === 1 ? "" : "s"} still carry placeholder content. Open the builder to review.`}
+            >
+              <AlertTriangle size={10} strokeWidth={2} />
+              {event.placeholderCount} placeholder{event.placeholderCount === 1 ? "" : "s"}
             </span>
           )}
         </div>
