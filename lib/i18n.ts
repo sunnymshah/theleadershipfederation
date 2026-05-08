@@ -55,6 +55,11 @@ export type StringKey =
   | "common.close"
   // Notification banner
   | "notification.dismiss"
+  // PART D5 — strings backfilled into the i18n table during close-out.
+  | "venue.directions"
+  | "venue.share"
+  | "venue.addToCalendar"
+  | "common.readMore"
 
 export const DEFAULT_STRINGS: Record<StringKey, string> = {
   "nav.register":          "Register Now",
@@ -86,11 +91,17 @@ export const DEFAULT_STRINGS: Record<StringKey, string> = {
   "common.learnMore":      "Learn more",
   "common.close":          "Close",
   "notification.dismiss":  "Dismiss",
+  // PART D5 — backfill defaults.
+  "venue.directions":      "Get directions",
+  "venue.share":           "Share",
+  "venue.addToCalendar":   "Add to calendar",
+  "common.readMore":       "Read more",
 }
 
 /** Group key → human label, used by the admin Customize Text panel. */
 export const STRING_NAMESPACES: Array<{ ns: string; label: string }> = [
   { ns: "nav",          label: "Navigation" },
+  { ns: "venue",        label: "Venue" },
   { ns: "hero",         label: "Hero defaults" },
   { ns: "cookie",       label: "Cookie banner" },
   { ns: "footer",       label: "Footer" },

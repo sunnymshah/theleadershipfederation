@@ -2718,7 +2718,8 @@ export function VenueMap({ title, address, lat, lng, height, layout, puck }: Ven
             className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium hover:underline"
             style={{ color: "var(--lf-primary, #e7ab1c)" }}
           >
-            Get directions
+            {/* PART D5 — locale-aware "Get directions" via Customize Text. */}
+            {puck ? metaString(getMeta(puck), "venue.directions") : "Get directions"}
             <ChevronRight size={14} />
           </a>
         )}
