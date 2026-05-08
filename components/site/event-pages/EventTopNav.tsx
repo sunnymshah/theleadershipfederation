@@ -51,15 +51,26 @@ export async function EventTopNav({
   let textOverrides: TextOverrides = {}
   type NX = { id: string; label: string; url: string; parent_id?: string | null; sort_order: number; visible: boolean }
   let extraLinks: NX[] = []
+  // PART C9 — register/sign-in style overrides from
+  // events.builder_settings.navigation. Default to Zoho-parity:
+  // register=primary (filled), signin=text (link).
+  type NavStyle = "primary" | "secondary" | "outline" | "text"
+  let registerStyle: NavStyle = "primary"
+  let signinStyle:   NavStyle = "text"
   try {
     const admin = createAdminClient()
     const { data } = await admin
       .from("events")
-      .select("locales, default_locale, logo_url, title, nav_extra_links, text_overrides")
+      .select("locales, default_locale, logo_url, title, nav_extra_links, text_overrides, builder_settings, locales_hidden")
       .eq("id", eventId)
       .maybeSingle()
     if (data) {
-      locales = ((data.locales as string[] | null) ?? []).filter(Boolean)
+      // PART C10 — drop hidden locales before they reach the switcher.
+      const hidden = ((data as { locales_hidden?: unknown }).locales_hidden ?? []) as string[]
+      const hiddenSet = new Set(Array.isArray(hidden) ? hidden : [])
+      locales = ((data.locales as string[] | null) ?? [])
+        .filter(Boolean)
+        .filter((lc) => !hiddenSet.has(lc))
       defaultLocale = (data.default_locale as string) ?? "en"
       logoUrl = (data.logo_url as string | null) ?? null
       eventTitle = (data.title as string | null) ?? ""
@@ -71,6 +82,15 @@ export async function EventTopNav({
       if (tov && typeof tov === "object" && !Array.isArray(tov)) {
         textOverrides = tov as TextOverrides
       }
+      // PART C9 — pluck the navigation styles off builder_settings.
+      const bs = (data as { builder_settings?: unknown }).builder_settings
+      const nav = bs && typeof bs === "object" && !Array.isArray(bs)
+        ? (((bs as Record<string, unknown>).navigation ?? {}) as Record<string, unknown>)
+        : {}
+      const r = nav.registerStyle as NavStyle | undefined
+      const s = nav.signinStyle as NavStyle | undefined
+      if (r === "primary" || r === "secondary" || r === "outline" || r === "text") registerStyle = r
+      if (s === "primary" || s === "secondary" || s === "outline" || s === "text") signinStyle   = s
     }
   } catch {}
   const currentLocale = locale ?? defaultLocale
@@ -228,26 +248,32 @@ export async function EventTopNav({
               available={locales}
             />
           )}
-          {railItems.map((it) =>
-            it.kind === "register" ? (
+          {/* PART C9 — apply per-kind style override from
+              events.builder_settings.navigation. Defaults match the
+              previous behaviour (register=primary, signin=text). */}
+          {railItems.map((it) => {
+            const style: NavStyle = it.kind === "register" ? registerStyle
+                                  : it.kind === "signin"   ? signinStyle
+                                  :                          "text"
+            const cls =
+              style === "primary"
+                ? "inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] bg-[var(--lf-primary,#e7ab1c)] text-white hover:bg-[#d49c10] transition-colors"
+              : style === "secondary"
+                ? "inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] bg-[#1a1a2e] text-white hover:bg-[#1a1a2e]/85 transition-colors"
+              : style === "outline"
+                ? "inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] border border-[#1a1a2e]/25 text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors"
+                : "text-[12px] font-bold uppercase tracking-[0.05em] text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
+            return (
               <Link
                 key={it.kind}
                 href={it.href}
-                data-ab-convert
-                className="inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] bg-[var(--lf-primary,#e7ab1c)] text-white hover:bg-[#d49c10] transition-colors"
-              >
-                {it.label}
-              </Link>
-            ) : (
-              <Link
-                key={it.kind}
-                href={it.href}
-                className="text-[12px] font-bold uppercase tracking-[0.05em] text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
+                data-ab-convert={it.kind === "register" ? "" : undefined}
+                className={cls}
               >
                 {it.label}
               </Link>
             )
-          )}
+          })}
           {/* PART E1 — "TLF site" escape link re-homed from the
               now-removed outer chrome. Hidden on smaller breakpoints
               so it doesn't crowd Register/Sign In. */}

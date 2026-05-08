@@ -24,7 +24,7 @@
  * puck-config.tsx.
  */
 
-import { useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
   useSensor, useSensors,
@@ -47,6 +47,7 @@ import {
   buildDefaultElements,
   type HeroElement, type HeroElementKind, type HeroElementButton, type EventNameFormat,
 } from "./blocks"
+import { ImageUploadCrop } from "@/components/admin/ImageUploadCrop"
 
 const KIND_OPTIONS: Array<{ kind: HeroElementKind; label: string; Icon: typeof Type }> = [
   { kind: "eventName",        label: "Event Name",        Icon: Type },
@@ -114,11 +115,25 @@ export function HeroElementsField({
     onChange(arrayMove(list, oldIdx, newIdx))
   }
 
+  // PART C7 — Manage Elements dialog state. Mirrors Zoho's bulk
+  // toggle-visibility + reorder + add/remove modal so authors can edit
+  // all 10 element kinds at once instead of expanding rows one by one.
+  const [manageOpen, setManageOpen] = useState(false)
+
   return (
     <div className="space-y-2 px-3 py-2 lf-zoho-field" data-z-cat="settings">
-      <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)]">
-        {field.label ?? "Elements"}
-      </span>
+      <div className="flex items-center justify-between">
+        <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--z-text-muted,#6b7280)]">
+          {field.label ?? "Elements"}
+        </span>
+        <button
+          type="button"
+          onClick={() => setManageOpen(true)}
+          className="text-[10.5px] font-semibold tracking-[0.06em] uppercase text-[var(--z-info,#3e7af7)] hover:underline"
+        >
+          Manage elements
+        </button>
+      </div>
 
       <DndContext
         sensors={sensors}
@@ -169,7 +184,181 @@ export function HeroElementsField({
           Add element
         </button>
       )}
+      {manageOpen && (
+        <ManageElementsDialog
+          list={list}
+          onClose={() => setManageOpen(false)}
+          onChange={onChange}
+        />
+      )}
     </div>
+  )
+}
+
+/* ── PART C7 — Manage Elements dialog ──────────────────────────────
+ * Bulk add / remove / reorder over all 10 HeroElementKind values in
+ * one place. Saves as a single onChange dispatch so undo / autosave
+ * sees one snapshot, never one-per-tap.
+ */
+function ManageElementsDialog({
+  list, onClose, onChange,
+}: {
+  list: HeroElement[]
+  onClose: () => void
+  onChange: (next: HeroElement[]) => void
+}) {
+  const [draft, setDraft] = useState<HeroElement[]>(list)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  function toggleKind(kind: HeroElementKind) {
+    const exists = draft.find((el) => el.kind === kind)
+    if (exists) {
+      setDraft(draft.filter((el) => el.id !== exists.id))
+    } else {
+      const id = `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+      const seed: HeroElement = { id, kind }
+      if (kind === "buttonGroup") {
+        seed.buttons = [{ id: `b-${Date.now()}`, label: "Register Now", type: "register", style: "primary" }]
+      }
+      if (kind === "dateTime") {
+        seed.showDate = true; seed.showTime = false; seed.showVenue = false
+        seed.widgetSize = "md"; seed.iconStyle = "outline"
+      }
+      setDraft([...draft, seed])
+    }
+  }
+  function reorder(e: DragEndEvent) {
+    const { active, over } = e
+    if (!over || active.id === over.id) return
+    const oldIdx = draft.findIndex((el) => el.id === active.id)
+    const newIdx = draft.findIndex((el) => el.id === over.id)
+    if (oldIdx < 0 || newIdx < 0) return
+    setDraft(arrayMove(draft, oldIdx, newIdx))
+  }
+  function save() {
+    onChange(draft)
+    onClose()
+  }
+  // Esc closes, click on backdrop closes.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose])
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Manage hero elements"
+    >
+      <div className="bg-white rounded-xl shadow-xl border border-[var(--z-border,#e5e7eb)] w-[min(540px,92vw)] max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="px-5 py-4 border-b border-[var(--z-border,#e5e7eb)] flex items-center justify-between">
+          <h3 className="text-[14px] font-bold text-[var(--z-text,#1f2937)]">Manage hero elements</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="z-btn z-btn-icon !w-7 !h-7"
+            aria-label="Close"
+          ><X size={13} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {/* Reorder + remove existing — drag list */}
+          <section>
+            <h4 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--z-text-muted,#6b7280)] mb-2">In this hero</h4>
+            {draft.length === 0 ? (
+              <p className="text-[12px] text-[var(--z-text-muted,#6b7280)] italic">No elements yet — toggle one on below.</p>
+            ) : (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorder}>
+                <SortableContext items={draft.map((el) => el.id)} strategy={verticalListSortingStrategy}>
+                  <ul className="space-y-1.5">
+                    {draft.map((el) => {
+                      const opt = KIND_OPTIONS.find((o) => o.kind === el.kind)
+                      const Icon = opt?.Icon ?? Type
+                      return (
+                        <ManageRow key={el.id} id={el.id}>
+                          <Icon size={12} strokeWidth={1.5} className="text-[var(--z-text-muted,#6b7280)]" />
+                          <span className="text-[12px] font-medium text-[var(--z-text,#1f2937)] flex-1 truncate">
+                            {opt?.label ?? el.kind}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setDraft(draft.filter((x) => x.id !== el.id))}
+                            aria-label="Remove"
+                            className="z-btn z-btn-icon !w-6 !h-6 hover:!text-red-600"
+                          ><Trash2 size={11} /></button>
+                        </ManageRow>
+                      )
+                    })}
+                  </ul>
+                </SortableContext>
+              </DndContext>
+            )}
+          </section>
+          {/* Toggle on/off — every kind */}
+          <section>
+            <h4 className="text-[11px] uppercase tracking-[0.18em] font-bold text-[var(--z-text-muted,#6b7280)] mb-2">Available element kinds</h4>
+            <ul className="grid grid-cols-2 gap-1.5">
+              {KIND_OPTIONS.map(({ kind, label, Icon }) => {
+                const on = draft.some((el) => el.kind === kind)
+                return (
+                  <li key={kind}>
+                    <button
+                      type="button"
+                      onClick={() => toggleKind(kind)}
+                      className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-md border text-[12px] font-medium transition-colors ${
+                        on
+                          ? "border-[var(--z-info,#3e7af7)] bg-[var(--z-info,#3e7af7)]/10 text-[var(--z-info,#3e7af7)]"
+                          : "border-[var(--z-border,#e5e7eb)] bg-white text-[var(--z-text,#1f2937)] hover:bg-[var(--z-bg-alt,#f7f8fa)]"
+                      }`}
+                    >
+                      <Icon size={13} strokeWidth={1.5} />
+                      <span className="flex-1 text-left">{label}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.1em]">{on ? "On" : "Off"}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        </div>
+        <div className="px-5 py-3 border-t border-[var(--z-border,#e5e7eb)] flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="z-btn z-btn-secondary !text-[12px]"
+          >Cancel</button>
+          <button
+            type="button"
+            onClick={save}
+            className="z-btn z-btn-primary !text-[12px]"
+          >Save changes</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+function ManageRow({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <li
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+      }}
+      className="flex items-center gap-1.5 px-2 py-1.5 rounded border border-[var(--z-border,#e5e7eb)] bg-white"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label="Drag to reorder"
+        className="cursor-grab text-[var(--z-text-subtle,#9ca3af)] hover:text-[var(--z-text,#1f2937)] p-1 -ml-0.5"
+      ><GripVertical size={13} strokeWidth={1.5} /></button>
+      {children}
+    </li>
   )
 }
 
@@ -268,6 +457,11 @@ function KindFields({
       return <ButtonsEditor buttons={el.buttons ?? []} onChange={(buttons) => onPatch({ buttons })} />
     case "primaryMedia":
     case "secondaryMedia":
+      // PART C6 — Zoho parity. Image rows get a real upload-and-crop
+      // widget (ImageUploadCrop reuses the same component as the rest
+      // of the admin so storage policy + bucket + crop UX match).
+      // Video rows fall back to a paste-URL input. Both kinds expose
+      // alt text + alignment + media size.
       return (
         <>
           <Mini label="Media kind">
@@ -276,11 +470,52 @@ function KindFields({
               <option value="video">Video</option>
             </select>
           </Mini>
-          <Mini label="URL">
-            <input value={el.url ?? ""} onChange={(e) => onPatch({ url: e.target.value })} className="z-input" placeholder="https://…" />
-          </Mini>
+          {(el.mediaKind ?? "image") === "image" ? (
+            <Mini label="Image">
+              <ImageUploadCrop
+                value={el.url ?? ""}
+                onChange={(url) => onPatch({ url: url ?? "" })}
+                folder="sections"
+                aspectRatio={16 / 9}
+                label=""
+              />
+            </Mini>
+          ) : (
+            <Mini label="Video URL">
+              <input
+                value={el.url ?? ""}
+                onChange={(e) => onPatch({ url: e.target.value })}
+                className="z-input"
+                placeholder="https://… (YouTube, Vimeo, .mp4)"
+              />
+            </Mini>
+          )}
           <Mini label="Alt text">
             <input value={el.alt ?? ""} onChange={(e) => onPatch({ alt: e.target.value })} className="z-input" />
+          </Mini>
+          <Mini label="Alignment">
+            <select
+              value={el.alignment ?? "center"}
+              onChange={(e) => onPatch({ alignment: e.target.value as "left" | "center" | "right" })}
+              className="z-input"
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </Mini>
+          <Mini label="Media size">
+            <select
+              value={el.mediaSize ?? "md"}
+              onChange={(e) => onPatch({ mediaSize: e.target.value as "xs" | "sm" | "md" | "lg" | "xl" })}
+              className="z-input"
+            >
+              <option value="xs">Extra small</option>
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+              <option value="xl">Extra large</option>
+            </select>
           </Mini>
         </>
       )

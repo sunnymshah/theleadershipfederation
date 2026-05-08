@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState, useTransition } from "react"
-import { Check, Loader2, Plus, X, Sparkles } from "lucide-react"
+import { Check, Loader2, Plus, X, Sparkles, Eye, EyeOff, ChevronUp, ChevronDown } from "lucide-react"
 import { SecondaryPanel } from "./SecondaryPanel"
 import { SUPPORTED_LOCALES, LOCALE_LABELS, LOCALE_FLAGS } from "@/lib/locales"
 import { getEventLanguages, setEventLanguages, getLocaleCoverage } from "@/app/actions/languagesActions"
@@ -16,6 +16,8 @@ import { aiAutoTranslateEvent } from "@/app/actions/aiActions"
 export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?: () => void }) {
   const [active, setActive] = useState<string[]>(["en"])
   const [defaultLocale, setDefaultLocale] = useState("en")
+  // PART C10 — locales hidden from the public top-nav switcher.
+  const [hidden, setHidden] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [pending, start] = useTransition()
   const [adding, setAdding] = useState(false)
@@ -29,17 +31,19 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
       if (cancelled) return
       setActive(langs.locales.length > 0 ? langs.locales : ["en"])
       setDefaultLocale(langs.default_locale ?? "en")
+      setHidden(langs.locales_hidden ?? [])
       setCoverage(cov.coverage)
       setLoading(false)
     })
     return () => { cancelled = true }
   }, [eventId, translateMsg])
 
-  function persist(nextActive: string[], nextDefault: string) {
+  function persist(nextActive: string[], nextDefault: string, nextHidden: string[] = hidden) {
     setActive(nextActive)
     setDefaultLocale(nextDefault)
+    setHidden(nextHidden)
     start(async () => {
-      await setEventLanguages(eventId, nextActive, nextDefault)
+      await setEventLanguages(eventId, nextActive, nextDefault, nextHidden)
     })
   }
 
@@ -51,7 +55,28 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
 
   function remove(lc: string) {
     if (lc === defaultLocale) return alert("Can't remove the default locale.")
-    persist(active.filter((l) => l !== lc), defaultLocale)
+    persist(active.filter((l) => l !== lc), defaultLocale, hidden.filter((h) => h !== lc))
+  }
+
+  // PART C10 — Hide / unhide a locale from the public switcher. The
+  // default locale is always visible (it's how visitors land) and is
+  // protected by setEventLanguages on the server too.
+  function toggleHidden(lc: string) {
+    if (lc === defaultLocale) return
+    const next = hidden.includes(lc) ? hidden.filter((h) => h !== lc) : [...hidden, lc]
+    persist(active, defaultLocale, next)
+  }
+
+  // PART C10 — Move a locale up/down in the active list. Drag would be
+  // nicer; chevron buttons keep the change set tiny + accessible.
+  function move(lc: string, dir: -1 | 1) {
+    const idx = active.indexOf(lc)
+    if (idx < 0) return
+    const j = idx + dir
+    if (j < 0 || j >= active.length) return
+    const next = [...active]
+    ;[next[idx], next[j]] = [next[j], next[idx]]
+    persist(next, defaultLocale)
   }
 
   async function autoTranslateAll(toLocale: string) {
@@ -81,7 +106,7 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
             Per-locale Puck data lives at <code className="font-mono">event_standard_pages.settings.{`{locale}`}.puckData</code>.
           </p>
           <ul className="space-y-1">
-            {active.map((lc) => (
+            {active.map((lc, idx) => (
               <li
                 key={lc}
                 className="flex items-center gap-2 rounded-md px-2.5 py-1.5 hover:bg-[var(--z-bg-alt,#f7f8fa)]"
@@ -106,6 +131,23 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
                     )
                   })()}
                 </span>
+                {/* PART C10 — reorder up/down (default locale stays
+                    movable; default is just the visitor-landing locale,
+                    not necessarily first in the switcher). */}
+                <button
+                  type="button"
+                  onClick={() => move(lc, -1)}
+                  disabled={idx === 0}
+                  aria-label={`Move ${lc} up`}
+                  className="z-btn z-btn-icon !w-5 !h-5 disabled:opacity-30"
+                ><ChevronUp size={11} /></button>
+                <button
+                  type="button"
+                  onClick={() => move(lc, 1)}
+                  disabled={idx === active.length - 1}
+                  aria-label={`Move ${lc} down`}
+                  className="z-btn z-btn-icon !w-5 !h-5 disabled:opacity-30"
+                ><ChevronDown size={11} /></button>
                 <label className="flex items-center gap-1 text-[11px] text-[var(--z-text-muted,#6b7280)]">
                   <input
                     type="radio"
@@ -115,6 +157,19 @@ export function LanguagesPanel({ eventId, onClose }: { eventId: string; onClose?
                   />
                   default
                 </label>
+                {/* PART C10 — visibility toggle. Default locale is
+                    always visible — it's how visitors land. */}
+                {lc !== defaultLocale && (
+                  <button
+                    type="button"
+                    onClick={() => toggleHidden(lc)}
+                    aria-label={hidden.includes(lc) ? "Unhide" : "Hide"}
+                    title={hidden.includes(lc) ? "Locale is hidden from the public switcher — click to unhide" : "Hide from the public switcher"}
+                    className={`z-btn z-btn-icon !w-6 !h-6 ${hidden.includes(lc) ? "text-[var(--z-text-subtle,#9ca3af)]" : ""}`}
+                  >
+                    {hidden.includes(lc) ? <EyeOff size={11} /> : <Eye size={11} />}
+                  </button>
+                )}
                 {lc !== defaultLocale && (
                   <button
                     type="button"

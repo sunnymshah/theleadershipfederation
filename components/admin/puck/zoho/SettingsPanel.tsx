@@ -670,12 +670,21 @@ function CustomizeTextEditor({ eventId }: { eventId: string }) {
 }
 
 /* ── Navigation section (ITEM 8) ─────────────────────────────────── */
+type NavButtonStyle = "primary" | "secondary" | "outline" | "text"
 function NavigationSection({ eventId }: { eventId: string }) {
   const [rows, setRows] = useState<NavExtraLink[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState(false)
+  // PART C9 — standard-nav button style overrides (Register / Sign In).
+  // Stored under events.builder_settings.navigation.{registerStyle,signinStyle}.
+  // Default: register=primary, signin=text. EventTopNav reads these and
+  // swaps its rail-item classes accordingly.
+  const [registerStyle, setRegisterStyle] = useState<NavButtonStyle>("primary")
+  const [signinStyle,   setSigninStyle]   = useState<NavButtonStyle>("text")
+  const [stylesSaving,  setStylesSaving]  = useState(false)
+  const [stylesSaved,   setStylesSaved]   = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -684,8 +693,27 @@ function NavigationSection({ eventId }: { eventId: string }) {
       setRows(res.rows)
       setLoading(false)
     })
+    void getBuilderSettings(eventId).then((res) => {
+      if (cancelled) return
+      const nav = (res.settings?.navigation ?? {}) as Record<string, unknown>
+      const r = nav.registerStyle as NavButtonStyle | undefined
+      const s = nav.signinStyle as NavButtonStyle | undefined
+      if (r) setRegisterStyle(r)
+      if (s) setSigninStyle(s)
+    })
     return () => { cancelled = true }
   }, [eventId])
+
+  async function persistStyles() {
+    setStylesSaving(true)
+    const res = await saveBuilderSettingsGroup(eventId, "navigation", {
+      registerStyle, signinStyle,
+    })
+    setStylesSaving(false)
+    if (!res.success) { setError(res.error ?? "Save failed"); return }
+    setStylesSaved(true)
+    window.setTimeout(() => setStylesSaved(false), 1500)
+  }
 
   function update(idx: number, patch: Partial<NavExtraLink>) {
     setRows((rs) => rs.map((r, i) => (i === idx ? { ...r, ...patch } : r)))
@@ -720,6 +748,29 @@ function NavigationSection({ eventId }: { eventId: string }) {
   if (loading) return <div className="flex items-center gap-2 text-[11px] text-[var(--z-text-muted,#6b7280)]"><Loader2 size={12} className="animate-spin" /> Loading…</div>
   return (
     <>
+      {/* PART C9 — Standard nav buttons (Register / Sign In) styling. */}
+      <section className="rounded-md border border-[var(--z-border,#e5e7eb)] bg-white p-3 space-y-2">
+        <div>
+          <h3 className="text-[12px] font-bold text-[var(--z-text,#1f2937)]">Standard nav buttons</h3>
+          <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">
+            Override the button style used for the canonical Register + Sign In tabs in the public top nav.
+          </p>
+        </div>
+        <NavStyleRadio label="Register button" value={registerStyle} onChange={setRegisterStyle} />
+        <NavStyleRadio label="Sign in button"  value={signinStyle}   onChange={setSigninStyle} />
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => void persistStyles()}
+            disabled={stylesSaving}
+            className="z-btn-primary !text-[12px]"
+          >
+            {stylesSaving && <Loader2 size={12} className="animate-spin" />}
+            Save button styles
+          </button>
+          {stylesSaved && <span className="text-[12px] text-[var(--z-success,#10b981)]">Saved.</span>}
+        </div>
+      </section>
       <p className="text-[11px] text-[var(--z-text-muted,#6b7280)]">
         Custom links appear in the public top nav alongside the canonical pages.
         Mark a link as nested under another to create a hover dropdown.
@@ -979,3 +1030,40 @@ function BoolField({
 function s(v: unknown): string { return typeof v === "string" ? v : "" }
 function n(v: unknown): string { return typeof v === "number" ? String(v) : (typeof v === "string" ? v : "") }
 function b(v: unknown, fallback: boolean): boolean { return typeof v === "boolean" ? v : fallback }
+
+/* PART C9 — radio group for Register / SignIn button style. */
+function NavStyleRadio({
+  label, value, onChange,
+}: {
+  label: string
+  value: NavButtonStyle
+  onChange: (v: NavButtonStyle) => void
+}) {
+  const opts: Array<{ v: NavButtonStyle; lbl: string }> = [
+    { v: "primary",   lbl: "Primary" },
+    { v: "secondary", lbl: "Secondary" },
+    { v: "outline",   lbl: "Outline" },
+    { v: "text",      lbl: "Text link" },
+  ]
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] font-medium text-[var(--z-text-muted,#6b7280)] w-[110px] shrink-0">{label}</span>
+      <div className="flex flex-wrap gap-1 flex-1">
+        {opts.map((o) => (
+          <button
+            key={o.v}
+            type="button"
+            onClick={() => onChange(o.v)}
+            className={`px-2.5 h-7 rounded-md text-[11px] font-semibold border transition-colors ${
+              value === o.v
+                ? "border-[var(--z-info,#3e7af7)] bg-[var(--z-info,#3e7af7)]/10 text-[var(--z-info,#3e7af7)]"
+                : "border-[var(--z-border,#e5e7eb)] bg-white text-[var(--z-text-muted,#6b7280)] hover:text-[var(--z-text,#1f2937)]"
+            }`}
+          >
+            {o.lbl}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}

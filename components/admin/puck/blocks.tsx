@@ -736,6 +736,10 @@ export type HeroElement = {
   url?: string
   alt?: string
   mediaKind?: "image" | "video"
+  /** PART C6 — per-media alignment + display size, exposed in the
+   *  inspector for primaryMedia / secondaryMedia rows. */
+  alignment?: "left" | "center" | "right"
+  mediaSize?: "xs" | "sm" | "md" | "lg" | "xl"
   // dateTime
   showVenue?: boolean
   showDate?: boolean
@@ -3191,8 +3195,27 @@ export type FooterProps = {
   /** Social handles object — uses the same socialHandles shape as the
    *  Hero. Preferred over socialLinks when set; the right-most column. */
   useEventSocialHandles?: boolean
-  /** Tertiary call-to-action buttons row — center-right column. */
-  navButtons?: Array<{ label: string; url: string; style: "primary" | "secondary" | "outline" }>
+  /** Tertiary call-to-action buttons row — center-right column.
+   *  PART C8 — Setup tab: label / url / icon. Design tab:
+   *  color / borderStyle / borderWidth / size / shape (pill / rounded
+   *  / square). Style preset is kept as a default; design overrides
+   *  win when set. */
+  navButtons?: Array<{
+    label: string
+    url: string
+    style: "primary" | "secondary" | "outline"
+    icon?: string
+    /** Design tab — explicit foreground colour. */
+    color?: string
+    /** Design tab — border colour (used with borderStyle). */
+    borderColor?: string
+    borderStyle?: "none" | "solid" | "dashed" | "dotted"
+    borderWidth?: 1 | 2 | 3 | 4
+    /** Design tab — relative button height. */
+    size?: "sm" | "md" | "lg"
+    /** Design tab — corner shape. */
+    shape?: "pill" | "rounded" | "square"
+  }>
   /** Free-text rich field rendered under the media image / logo. */
   textField?: string
   /** Visibility toggles (matches Zoho's footer-customisation pattern). */
@@ -3262,6 +3285,20 @@ export function Footer({
     if (style === "secondary") return "bg-white/10 text-white hover:bg-white/15 border border-white/15"
     return "border border-white/40 text-white hover:bg-white/10"
   }
+  /* PART C8 — design-tab tokens for nav buttons. Setup tab supplies
+   * label/url/icon/style; Design tab supplies size, shape, color,
+   * borderStyle, borderWidth, borderColor. The renderer composes the
+   * preset (style) with explicit overrides on top. */
+  function navBtnSizeCls(size?: "sm" | "md" | "lg") {
+    return size === "sm" ? "px-3 py-1.5 text-[11px]"
+         : size === "lg" ? "px-5 py-2.5 text-[13px]"
+         :                 "px-4 py-2 text-[12px]"
+  }
+  function navBtnShapeCls(shape?: "pill" | "rounded" | "square") {
+    return shape === "pill"   ? "rounded-full"
+         : shape === "square" ? "rounded-none"
+         :                      "rounded-md"
+  }
 
   return (
     <SectionShell layout={{ ...(layout ?? {}), paddingY: layout?.paddingY ?? "md", backgroundColor: layout?.backgroundColor || "#0a0a14", textColor: layout?.textColor || "#ffffff" }} dark>
@@ -3315,17 +3352,28 @@ export function Footer({
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 mb-3">Quick links</p>
               <div className="flex flex-col gap-2 items-start">
-                {navButtons.map((b) => (
-                  <a
-                    key={`${b.label}-${b.url}`}
-                    href={b.url}
-                    target={b.url.startsWith("http") ? "_blank" : undefined}
-                    rel={b.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                    className={`inline-flex items-center px-4 py-2 rounded-md text-[12px] font-bold transition-colors ${btnCls(b.style)}`}
-                  >
-                    {b.label}
-                  </a>
-                ))}
+                {navButtons.map((b) => {
+                  const inlineStyle: CSSProperties = {}
+                  if (b.color) inlineStyle.color = b.color
+                  if (b.borderStyle && b.borderStyle !== "none") {
+                    inlineStyle.borderStyle = b.borderStyle
+                    inlineStyle.borderWidth = `${b.borderWidth ?? 1}px`
+                    if (b.borderColor) inlineStyle.borderColor = b.borderColor
+                  }
+                  return (
+                    <a
+                      key={`${b.label}-${b.url}`}
+                      href={b.url}
+                      target={b.url.startsWith("http") ? "_blank" : undefined}
+                      rel={b.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                      style={inlineStyle}
+                      className={`inline-flex items-center gap-1.5 font-bold transition-colors ${btnCls(b.style)} ${navBtnSizeCls(b.size)} ${navBtnShapeCls(b.shape)}`}
+                    >
+                      {b.icon ? <StatIcon name={b.icon} size={13} /> : null}
+                      {b.label}
+                    </a>
+                  )
+                })}
               </div>
             </div>
           )}
