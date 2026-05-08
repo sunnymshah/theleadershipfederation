@@ -29,7 +29,7 @@ import type { ReactElement } from "react"
 import {
   Root,
   Hero, RichText, StatsRow, SpeakersGrid, Agenda, TicketsCta, buildDefaultElements,
-  SponsorsGrid, Video, Gallery, CtaButton, Faqs,
+  SponsorsGrid, SponsorCategory, Video, Gallery, CtaButton, Faqs,
   Spacer, Divider, ImageBlock, TwoColumn, Testimonial, LogosStrip, Newsletter,
   TextBox,
   Countdown, VenueMap, StickyCta, SocialBar,
@@ -39,10 +39,11 @@ import {
   EmbedHtml, Footer, SpeakerBioCard, ScheduleSummary, CtaWithImage,
   MediaWithTextGroup, TestimonialsGroup, FloorPlan,
   ExhibitorsListing, ExhibitorCategoryBlock, HotelsListing,
+  FeaturedSessions, ListBlock, EventDescription,
   type RootProps,
   type HeroProps, type RichTextProps, type StatsRowProps,
   type SpeakersGridProps, type AgendaProps, type TicketsCtaProps,
-  type SponsorsGridProps, type VideoProps, type GalleryProps,
+  type SponsorsGridProps, type SponsorCategoryProps, type VideoProps, type GalleryProps,
   type CtaButtonProps, type FaqsProps,
   type SpacerProps, type DividerProps, type ImageBlockProps,
   type TwoColumnProps, type TestimonialProps, type LogosStripProps,
@@ -58,6 +59,7 @@ import {
   type MediaWithTextGroupProps, type TestimonialsGroupProps,
   type FloorPlanProps, type ExhibitorsListingProps,
   type ExhibitorCategoryProps, type HotelsListingProps,
+  type FeaturedSessionsProps, type ListBlockProps, type EventDescriptionProps,
   type LayoutProps,
   type HeroElement,
 } from "./blocks"
@@ -76,6 +78,7 @@ export type BuilderComponents = {
   Agenda: AgendaProps
   TicketsCta: TicketsCtaProps
   SponsorsGrid: SponsorsGridProps
+  SponsorCategory: SponsorCategoryProps
   Video: VideoProps
   Gallery: GalleryProps
   CtaButton: CtaButtonProps
@@ -109,6 +112,9 @@ export type BuilderComponents = {
   ExhibitorsListing: ExhibitorsListingProps
   ExhibitorCategoryBlock: ExhibitorCategoryProps
   HotelsListing: HotelsListingProps
+  FeaturedSessions: FeaturedSessionsProps
+  ListBlock: ListBlockProps
+  EventDescription: EventDescriptionProps
 }
 
 /* ── Shared layout field ─────────────────────────────────────────────
@@ -176,12 +182,12 @@ const defaultLayout: LayoutProps = { paddingY: "lg", backgroundColor: "", backgr
 export const puckConfig: Config<BuilderComponents> = {
   categories: {
     Headers:  { title: "Headers",         components: ["Hero", "Countdown", "Carousel"] },
-    Story:    { title: "Story",           components: ["RichText", "TextBox", "StatsRow", "TwoColumn", "Testimonial", "TestimonialsGroup", "MediaWithTextGroup", "TabsBlock", "AccordionBlock"] },
+    Story:    { title: "Story",           components: ["RichText", "TextBox", "EventDescription", "ListBlock", "StatsRow", "TwoColumn", "Testimonial", "TestimonialsGroup", "MediaWithTextGroup", "TabsBlock", "AccordionBlock"] },
     Discovery:{ title: "Discovery",       components: ["EventCardGrid"] },
     Speakers: { title: "Speakers",        components: ["SpeakersGrid", "SpeakerBioCard"] },
-    Program:  { title: "Program",         components: ["Agenda", "ScheduleSummary"] },
+    Program:  { title: "Program",         components: ["Agenda", "FeaturedSessions", "ScheduleSummary"] },
     Tickets:  { title: "Tickets",         components: ["TicketsCta", "TicketsPricing"] },
-    Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "LogosStrip", "ExhibitorsListing", "ExhibitorCategoryBlock"] },
+    Sponsors: { title: "Sponsors",        components: ["SponsorsGrid", "SponsorCategory", "LogosStrip", "ExhibitorsListing", "ExhibitorCategoryBlock"] },
     Media:    { title: "Media",           components: ["Video", "Gallery", "ImageBlock", "ImageHotspots"] },
     Venue:    { title: "Venue",           components: ["VenueMap", "FloorPlan", "HotelsListing"] },
     CTAs:     { title: "Call-to-actions", components: ["CtaButton", "CtaWithImage", "FormBlock", "Newsletter", "StickyCta", "SocialBar"] },
@@ -835,7 +841,29 @@ export const puckConfig: Config<BuilderComponents> = {
           arrayFields: {
             value: { type: "text", label: "Value (e.g. 500+, 1.2k, 10)" },
             label: { type: "text", label: "Label" },
-            icon:  { type: "text", label: "Lucide icon name (optional, e.g. Users)" },
+            icon:  {
+              type: "select",
+              label: "Icon",
+              options: [
+                { label: "None",       value: "" },
+                { label: "Users",      value: "users" },
+                { label: "User",       value: "user" },
+                { label: "Calendar",   value: "calendar" },
+                { label: "Clock",      value: "clock" },
+                { label: "Mic",        value: "mic" },
+                { label: "Ticket",     value: "ticket" },
+                { label: "Building",   value: "building" },
+                { label: "Briefcase",  value: "briefcase" },
+                { label: "Award",      value: "award" },
+                { label: "Star",       value: "star" },
+                { label: "Trending",   value: "trending" },
+                { label: "Sparkles",   value: "sparkles" },
+                { label: "Globe",      value: "globe" },
+                { label: "Pin",        value: "pin" },
+                { label: "List",       value: "list" },
+                { label: "Dot",        value: "dot" },
+              ],
+            },
           },
         },
         layout: layoutField,
@@ -958,6 +986,113 @@ export const puckConfig: Config<BuilderComponents> = {
       render: (p) => <Agenda {...p} />,
     },
 
+    /* ── FEATURED SESSIONS (PART C3) ─────────────────────────────── */
+    FeaturedSessions: {
+      label: "Featured sessions",
+      defaultProps: {
+        title: "Featured sessions",
+        subtitle: "",
+        limit: 6,
+        layout: defaultLayout,
+      },
+      fields: {
+        title:    { type: "text",   label: "Heading" },
+        subtitle: { type: "text",   label: "Subtitle" },
+        limit:    { type: "number", label: "Max sessions", min: 1, max: 20 },
+        layout:   layoutField,
+      },
+      render: (p) => <FeaturedSessions {...p} />,
+    },
+
+    /* ── LIST BLOCK (PART C4) ────────────────────────────────────── */
+    ListBlock: {
+      label: "List",
+      defaultProps: {
+        title: "",
+        subtitle: "",
+        items: [
+          { icon: "", label: "First item", body: "Short description.", link: "" },
+          { icon: "", label: "Second item", body: "Short description.", link: "" },
+          { icon: "", label: "Third item", body: "Short description.", link: "" },
+        ],
+        style: "numbered",
+        columns: 1,
+        layout: defaultLayout,
+      },
+      fields: {
+        title:    { type: "text", label: "Heading" },
+        subtitle: { type: "text", label: "Subtitle" },
+        style: {
+          type: "radio",
+          label: "Style",
+          options: [
+            { label: "Numbered",  value: "numbered" },
+            { label: "Bulleted",  value: "bullet" },
+            { label: "Icons",     value: "icons" },
+          ],
+        },
+        columns: {
+          type: "radio",
+          label: "Columns",
+          options: [
+            { label: "1", value: 1 },
+            { label: "2", value: 2 },
+            { label: "3", value: 3 },
+          ],
+        },
+        items: {
+          type: "array",
+          label: "Items",
+          getItemSummary: (it) => it.label || "Item",
+          defaultItemProps: { icon: "", label: "Item", body: "", link: "" },
+          arrayFields: {
+            label: { type: "text", label: "Label" },
+            body:  { type: "textarea", label: "Description (optional)" },
+            link:  { type: "text", label: "Link URL (optional)" },
+            icon: {
+              type: "select",
+              label: "Icon (when style = Icons)",
+              options: [
+                { label: "None",       value: "" },
+                { label: "Users",      value: "users" },
+                { label: "Calendar",   value: "calendar" },
+                { label: "Clock",      value: "clock" },
+                { label: "Mic",        value: "mic" },
+                { label: "Ticket",     value: "ticket" },
+                { label: "Building",   value: "building" },
+                { label: "Briefcase",  value: "briefcase" },
+                { label: "Award",      value: "award" },
+                { label: "Star",       value: "star" },
+                { label: "Trending",   value: "trending" },
+                { label: "Sparkles",   value: "sparkles" },
+                { label: "Globe",      value: "globe" },
+                { label: "Pin",        value: "pin" },
+                { label: "List",       value: "list" },
+                { label: "Dot",        value: "dot" },
+              ],
+            },
+          },
+        },
+        layout: layoutField,
+      },
+      render: (p) => <ListBlock {...p} />,
+    },
+
+    /* ── EVENT DESCRIPTION (PART C5) ─────────────────────────────── */
+    EventDescription: {
+      label: "Event description",
+      defaultProps: { override: "", heading: "About this event", layout: defaultLayout },
+      fields: {
+        heading:  { type: "text", label: "Heading" },
+        override: {
+          type: "textarea",
+          label: "Override text (Markdown — leave empty to use events.description)",
+        },
+        layout: layoutField,
+      },
+      render: (p) => <EventDescription {...p} />,
+    },
+
     /* ── TICKETS ─────────────────────────────────────────────────── */
     TicketsCta: {
       label: "Tickets",
@@ -988,6 +1123,33 @@ export const puckConfig: Config<BuilderComponents> = {
         layout: layoutField,
       },
       render: (p) => <SponsorsGrid {...p} />,
+    },
+
+    /* ── SPONSOR CATEGORY (single tier featured) ─────────────────── */
+    SponsorCategory: {
+      label: "Sponsor category",
+      defaultProps: {
+        categoryName: "platinum",
+        heading: "",
+        layout: defaultLayout,
+      },
+      fields: {
+        categoryName: {
+          type: "select",
+          label: "Tier",
+          options: [
+            { label: "Title",    value: "title" },
+            { label: "Platinum", value: "platinum" },
+            { label: "Gold",     value: "gold" },
+            { label: "Silver",   value: "silver" },
+            { label: "Bronze",   value: "bronze" },
+            { label: "Partner",  value: "partner" },
+          ],
+        },
+        heading: { type: "text", label: "Heading override (optional)" },
+        layout: layoutField,
+      },
+      render: (p) => <SponsorCategory {...p} />,
     },
 
     /* ── VIDEO ───────────────────────────────────────────────────── */

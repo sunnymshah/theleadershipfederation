@@ -142,7 +142,7 @@ export default async function FullscreenBuilderPage({
       .order("sort_order", { ascending: true }),
     admin
       .from("sessions")
-      .select("id, title, start_time, end_time, track, slug")
+      .select("id, title, start_time, end_time, track, slug, featured")
       .eq("event_id", id)
       .order("start_time", { ascending: true }),
     admin
@@ -226,6 +226,8 @@ export default async function FullscreenBuilderPage({
       speaker_names: null,
       track: (s.track as string | null) ?? null,
       slug: (s.slug as string | null) ?? null,
+      // PART C3 — featured flag for FeaturedSessions block.
+      featured: ((s as { featured?: boolean | null }).featured) ?? false,
     })),
     sponsors: (sponsorsRes.data ?? []).map((s) => ({
       id: s.id as string,

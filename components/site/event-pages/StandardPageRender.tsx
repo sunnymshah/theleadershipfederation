@@ -170,6 +170,8 @@ export async function StandardPageRender({
             speaker_names: null,
             track: s.track ?? null,
             slug: s.slug ?? null,
+            // PART C3 — featured flag drives the FeaturedSessions block.
+            featured: (s as { featured?: boolean | null }).featured ?? false,
           })),
           sponsors: sponsors.map((s) => ({
             id: s.id,
