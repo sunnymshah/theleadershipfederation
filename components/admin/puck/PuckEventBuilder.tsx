@@ -631,13 +631,16 @@ export function PuckEventBuilder({
                 className="w-2 h-2 rounded-full bg-[var(--lf-primary,#e7ab1c)] shrink-0"
                 title="Event color"
               />
-              <Link
-                href={`/admin/events/${eventId}`}
-                className="text-[14px] font-bold text-[var(--bs-text,#1f2937)] truncate max-w-[360px] hover:text-[var(--bs-text-muted,#6b7280)] transition-colors leading-[18px]"
+              {/* PART A1 — title is plain text inside the editor takeover.
+                  Zoho Backstage doesn't bounce the user back to the
+                  admin event page; the X close button (right zone)
+                  goes to /admin/builder (the hub) instead. */}
+              <span
+                className="text-[14px] font-bold text-[var(--bs-text,#1f2937)] truncate max-w-[360px] leading-[18px]"
                 title={eventTitle}
               >
                 {eventTitle}
-              </Link>
+              </span>
               <StatusPill status={eventStatus} />
             </div>
             {/* Row B: date + locale + autosave */}
@@ -1107,28 +1110,9 @@ function PageTab({
   )
 }
 
-function DataLink({
-  href,
-  icon: Icon,
-  label,
-}: {
-  href: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
-  label: string
-}) {
-  return (
-    <Link
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2.5 px-3 py-2 text-[12px] text-[#1a1a2e]/80 hover:bg-gray-50 hover:text-[#1a1a2e] transition-colors"
-    >
-      <Icon size={13} className="text-gray-400" />
-      <span className="flex-1">{label}</span>
-      <ExternalLink size={10} className="text-gray-300" />
-    </Link>
-  )
-}
+/* PART A1 — DataLink helper deleted along with the "Event data"
+ * dropdown that escaped to /admin/events/[id]?tab=… The DATA rail
+ * now hosts every data manager inline. */
 
 /**
  * ActiveRailPanel — dispatches to the right Zoho-style panel based on
@@ -1346,8 +1330,11 @@ function TopBarOverflowMenu({
   refreshing: boolean
   dataMenuOpen: boolean
   setDataMenuOpen: React.Dispatch<React.SetStateAction<boolean>>
-  /** ITEM 6 + 7 — open in-builder data managers from the dropdown. */
-  onOpenRail?: (rail: "exhibitors" | "hotels") => void
+  /** ITEM 6 + 7 — open in-builder data managers from the dropdown.
+   *  PART A1: widened to RailKey so the cleaned-up overflow menu can
+   *  open Data + Settings panels inline (replaces the
+   *  /admin/events/[id]?tab=… escape links). */
+  onOpenRail?: (rail: RailKey) => void
   onRefreshData: () => void
   onOpenHistory: () => void
   onRevert: () => void
@@ -1394,49 +1381,29 @@ function TopBarOverflowMenu({
             <RefreshCw size={13} strokeWidth={1.5} className={refreshing ? "animate-spin" : ""} />
             Refresh event data
           </button>
-          <div className="relative">
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => setDataMenuOpen((v) => !v)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-              aria-expanded={dataMenuOpen}
-              aria-haspopup="menu"
-            >
-              <Database size={13} strokeWidth={1.5} />
-              <span className="flex-1 text-left">Event data</span>
-              <ChevronRight size={12} className="opacity-50" />
-            </button>
-            {dataMenuOpen && (
-              <div className="absolute left-full top-0 ml-1 w-56 rounded-md bg-white shadow-lg border border-[var(--bs-border,#e5e7eb)] py-1">
-                <DataLink href={`/admin/events/${eventId}?tab=speakers`}     icon={Users}         label="Speakers" />
-                <DataLink href={`/admin/events/${eventId}?tab=agenda`}       icon={ClipboardList} label="Sessions & Agenda" />
-                <DataLink href={`/admin/events/${eventId}?tab=tickets`}      icon={Ticket}        label="Tickets" />
-                <DataLink href={`/admin/events/${eventId}?tab=sponsors`}     icon={Building2}     label="Sponsors" />
-                {/* ITEM 6 + 7 — exhibitors + hotels open as in-builder panels */}
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => { onOpenRail?.("exhibitors"); setDataMenuOpen(false); setOpen(false) }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-                >
-                  <Briefcase size={13} strokeWidth={1.5} />
-                  <span className="flex-1 text-left">Exhibitors</span>
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => { onOpenRail?.("hotels"); setDataMenuOpen(false); setOpen(false) }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
-                >
-                  <BedDouble size={13} strokeWidth={1.5} />
-                  <span className="flex-1 text-left">Hotels</span>
-                </button>
-                <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
-                <DataLink href={`/admin/events/${eventId}?tab=settings`}     icon={Settings}      label="Event settings" />
-              </div>
-            )}
-          </div>
+          {/* PART A1 — old "Event data" sub-menu pointed at /admin/events/[id]?tab=…
+              and broke the editor takeover. The DATA rail now hosts every
+              data manager (Speakers/Sessions/Tickets/Sponsors/Exhibitors/Hotels)
+              inline; this dropdown opens it directly. Settings live in the
+              SETTINGS rail. */}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenRail?.("data") }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+          >
+            <Database size={13} strokeWidth={1.5} />
+            <span className="flex-1 text-left">Open Data panel</span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenRail?.("settings") }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[var(--bs-text,#1f2937)] hover:bg-[var(--bs-bg-alt,#f7f8fa)]"
+          >
+            <Settings size={13} strokeWidth={1.5} />
+            <span className="flex-1 text-left">Open Settings panel</span>
+          </button>
           <div className="h-px bg-[var(--bs-border,#e5e7eb)] my-1" />
           <button
             type="button"
