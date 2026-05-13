@@ -195,6 +195,12 @@ export const ADMIN_WORKSPACES: AdminWorkspace[] = [
           { label: "FAQs",    href: "/admin/faqs",    permission: { module: "content", action: "view" } },
         ],
       },
+      {
+        title: "Tools",
+        items: [
+          { label: "LinkedIn Architect", href: "/admin/linkedin-architect", permission: { module: "content", action: "view" } },
+        ],
+      },
     ],
   },
   {

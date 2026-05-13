@@ -143,6 +143,7 @@ export const NAV_RESOURCE_MAP: Record<string, string> = {
   "/admin/inner-circle": "attendees",
   "/admin/faqs": "content",
   "/admin/testimonials": "content",
+  "/admin/linkedin-architect": "content",
 }
 
 /**
