@@ -64,33 +64,32 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
   const days = getDaysUntil(e.start_date)
 
   return (
-    <section className="relative overflow-hidden isolate">
-      {/* ── Layer 1: blurred ambient backdrop ───────────────────────
-          The collage photo, blurred into a soft colour wash. scale-125
-          hides the blur's transparent edges. */}
-      <div className="absolute inset-0 -z-10">
+    <section className="relative overflow-hidden isolate bg-[#1a1a2e]">
+      {/* NOTE: `aria-hidden` must NOT be used on the backdrop layers —
+          globals.css has a decorative-killer rule that `display:none`s
+          any aria-hidden element carrying a blur class or gradient
+          style. The image is marked decorative via `alt=""` (the
+          correct way); the scrim is a plain presentational div. The
+          section also carries a solid `bg-[#1a1a2e]` as a guaranteed
+          dark fallback so text is legible even if a layer is stripped. */}
+      {/* ── Layer 1: blurred ambient backdrop ─────────────────────── */}
+      <div className="absolute inset-0 z-0">
         <Image
           src={COVER_IMAGE}
           alt=""
           fill
           unoptimized
-          aria-hidden
-          className="object-cover scale-125 blur-2xl"
+          className="object-cover scale-125 blur-2xl opacity-60"
         />
       </div>
 
-      {/* ── Layer 2: near-opaque navy scrim + gold glow ─────────────
-          Guarantees a dark backing for every word regardless of the
-          photo behind it. The warm gold radial (top-right) and the
-          navy linear are stacked in ONE background so this stays a
-          single `inset-0` element. */}
+      {/* ── Layer 2: near-opaque navy scrim + gold glow ───────────── */}
       <div
-        aria-hidden
-        className="absolute inset-0 -z-10"
+        className="absolute inset-0 z-0"
         style={{
           background:
             "radial-gradient(540px circle at 88% 0%, rgba(231,171,28,0.20) 0%, transparent 55%), " +
-            "linear-gradient(120deg, rgba(10,10,20,0.97) 0%, rgba(26,26,46,0.94) 45%, rgba(26,26,46,0.97) 100%)",
+            "linear-gradient(120deg, rgba(10,10,20,0.92) 0%, rgba(26,26,46,0.86) 45%, rgba(26,26,46,0.92) 100%)",
         }}
       />
 
