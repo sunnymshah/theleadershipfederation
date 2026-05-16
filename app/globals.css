@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-serif);
+  /* Montserrat is the whole site's typeface. Both tokens point at it
+   * so `font-sans`, `font-serif`, and any legacy var() reference all
+   * resolve to Montserrat. */
+  --font-sans: var(--font-montserrat);
+  --font-serif: var(--font-montserrat);
+  --font-inter: var(--font-montserrat);
 }
 
 /* ─── Base resets & rendering ─────────────────────────────────────────────── */
@@ -190,8 +194,15 @@ body {
 
 /* Strip every section / div / aside / header / footer background-image
  * (gradients, patterns) — leave background-color alone so opt-in
- * neutrals below still apply. */
-.lf-clean :where(section, div, aside, header, footer, nav, article, span) {
+ * neutrals below still apply.
+ *
+ * EXCEPTION: full-bleed `absolute inset-0` overlay divs are exempt.
+ * Those are functional photo-darkening scrims (navy gradient over an
+ * event cover image so white text stays legible) — every one in the
+ * codebase uses a dark colour, never cream, so keeping them does not
+ * reintroduce a warm wash. Decorative aria-hidden gradient blobs are
+ * still killed separately further down (display:none). */
+.lf-clean :where(section, div:not([class~="inset-0"]), aside, header, footer, nav, article, span) {
   background-image: none !important;
 }
 
@@ -220,6 +231,45 @@ body {
 .lf-clean :where([class~="bg-[#2a2a4e]"]) { background-color: #2a2a4e !important; }
 .lf-clean :where([class~="bg-[#0a0a14]"]) { background-color: #0a0a14 !important; }
 .lf-clean :where([class~="bg-[#F4F8FF]"]) { background-color: #F4F8FF !important; }
+
+/* ── Pitch-white fix — re-allow HIGH-opacity dark surfaces ────────────
+ * The blanket `:where(section, div, …) { background-color: transparent }`
+ * cleanup above strips decorative washes — but it also nuked legitimate
+ * OPAQUE dark UI: the fixed countdown bar, dark event badges, and
+ * image-darkening overlays. With the page now pure white that left
+ * white text stranded on white. We re-allow the high-opacity
+ * (>= 50%) navy tokens explicitly so those surfaces stay dark and
+ * their white text stays readable. Low-opacity tints (/5, /10,
+ * /[0.04] …) are intentionally left stripped — they never carried
+ * white text, they were just faint washes. */
+.lf-clean :where([class~="bg-[#1a1a2e]/50"]) { background-color: rgba(26, 26, 46, 0.50) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/55"]) { background-color: rgba(26, 26, 46, 0.55) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/60"]) { background-color: rgba(26, 26, 46, 0.60) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/65"]) { background-color: rgba(26, 26, 46, 0.65) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/70"]) { background-color: rgba(26, 26, 46, 0.70) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/75"]) { background-color: rgba(26, 26, 46, 0.75) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/80"]) { background-color: rgba(26, 26, 46, 0.80) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/85"]) { background-color: rgba(26, 26, 46, 0.85) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/90"]) { background-color: rgba(26, 26, 46, 0.90) !important; }
+.lf-clean :where([class~="bg-[#1a1a2e]/95"]) { background-color: rgba(26, 26, 46, 0.95) !important; }
+.lf-clean :where([class~="bg-[#0a0a14]/80"]) { background-color: rgba(10, 10, 20, 0.80) !important; }
+.lf-clean :where([class~="bg-[#0a0a14]/90"]) { background-color: rgba(10, 10, 20, 0.90) !important; }
+.lf-clean :where([class~="bg-[#0a0a14]/95"]) { background-color: rgba(10, 10, 20, 0.95) !important; }
+.lf-clean :where([class~="bg-[#2a2a4e]/80"]) { background-color: rgba(42, 42, 78, 0.80) !important; }
+.lf-clean :where([class~="bg-[#2a2a4e]/90"]) { background-color: rgba(42, 42, 78, 0.90) !important; }
+.lf-clean :where([class~="bg-[#2a2a4e]/95"]) { background-color: rgba(42, 42, 78, 0.95) !important; }
+/* Frosted-glass white tints — used on cards layered over dark sections
+ * (e.g. the featured-event countdown). The cleanup forces div bg
+ * transparent; these re-allow the faint white wash that, combined with
+ * backdrop-blur, produces the glass look. */
+.lf-clean :where([class~="bg-white/[0.05]"]) { background-color: rgba(255, 255, 255, 0.05) !important; }
+.lf-clean :where([class~="bg-white/[0.07]"]) { background-color: rgba(255, 255, 255, 0.07) !important; }
+.lf-clean :where([class~="bg-white/[0.08]"]) { background-color: rgba(255, 255, 255, 0.08) !important; }
+.lf-clean :where([class~="bg-white/[0.1]"])  { background-color: rgba(255, 255, 255, 0.10) !important; }
+.lf-clean :where([class~="bg-white/10"])     { background-color: rgba(255, 255, 255, 0.10) !important; }
+.lf-clean :where([class~="bg-white/[0.12]"]) { background-color: rgba(255, 255, 255, 0.12) !important; }
+.lf-clean :where([class~="bg-white/[0.15]"]) { background-color: rgba(255, 255, 255, 0.15) !important; }
+.lf-clean :where([class~="bg-white/15"])     { background-color: rgba(255, 255, 255, 0.15) !important; }
 /* LF gold (and its hover variant) — used as the bg of badges, icon
  * tiles, edition pills, and various inline accent <div>s. Without
  * these rules the surrounding `:where(div, ...)` cleanup forces them
@@ -247,9 +297,13 @@ body {
   display: none !important;
 }
 
-/* ─── Headings → Playfair Display (matches /events page) ───────────── */
-/* High-specificity with html prefix + attr selectors to beat both
- * styled-jsx classes and inline style="font-family: ..." attributes. */
+/* ─── Montserrat everywhere ─────────────────────────────────────────
+ * One typeface for the whole site. The selectors below carry enough
+ * specificity (html prefix + [style] attribute variants) to beat both
+ * styled-jsx classes and inline `style="font-family: …"` attributes,
+ * so the dozens of components that hard-code an SF-Pro inline style
+ * are all overridden. Headings keep a tighter heading weight + optical
+ * tracking — only the FAMILY changes. */
 html .lf-clean h1,
 html .lf-clean h2,
 html .lf-clean h3,
@@ -264,22 +318,29 @@ html .lf-clean h4[style],
 html .lf-clean h5[style],
 html .lf-clean h6[style],
 html .lf-clean blockquote[style] {
-  font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.01em !important;
+  font-family: var(--font-montserrat), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: -0.02em !important;
 }
 
-/* Body / paragraph / list / inputs → SF Pro / system. */
-.lf-clean,
-.lf-clean p,
-.lf-clean li,
-.lf-clean a,
-.lf-clean label,
-.lf-clean input,
-.lf-clean textarea,
-.lf-clean select,
-.lf-clean button {
-  font-family: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+/* Montserrat across the ENTIRE site — public marketing, event
+ * microsites, admin console, login. `html` prefix + the `*[style]`
+ * variant give enough specificity to beat inline `style="font-family"`
+ * attributes (the dozens of components with hard-coded SF-Pro inline
+ * styles). `code / pre / kbd / samp` keep a monospace stack — code is
+ * the one place a proportional font would hurt. */
+html,
+body,
+html *:not(code):not(pre):not(kbd):not(samp),
+html *[style]:not(code):not(pre):not(kbd):not(samp) {
+  font-family: var(--font-montserrat), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+html code,
+html pre,
+html kbd,
+html samp,
+html code[style],
+html pre[style] {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
 }
 
 /* Text-gradient headlines lose their visual treatment once backgrounds
@@ -383,53 +444,16 @@ html .lf-clean blockquote[style] {
   transform: translateY(1px);
 }
 
-/* ── 3. Scroll-driven reveal animations (CSS-only) ───────────────────
- * Uses the modern `animation-timeline: view()` API — no JS, no
- * IntersectionObserver. Browsers without support (Safari / Firefox as
- * of now) simply skip the animation and show content normally, because
- * the whole block is gated behind `@supports`. Reduced-motion users
- * are excluded via the media query.
- *
- * Elements already in the viewport on load are past the entry range,
- * so they render at the final keyframe (opacity 1) — no flash. */
-/* The reveal uses the INDEPENDENT `translate` property (not
- * `transform`) on purpose: cards also get a `transform: translateY()`
- * hover-lift, and `translate` composes with `transform` instead of
- * fighting it. If the reveal animated `transform`, the always-active
- * scroll timeline would permanently override the hover lift. */
-@keyframes lf-reveal-up {
-  from { opacity: 0; translate: 0 28px; }
-  to   { opacity: 1; translate: 0 0; }
-}
-@keyframes lf-reveal-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    /* Sections fade in — opacity only, so no `transform` containing
-     * block is created (keeps any sticky/fixed descendants safe). */
-    .lf-clean main > section,
-    .lf-clean main > div > section {
-      animation: lf-reveal-fade linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 45%;
-    }
-
-    /* Cards rise + fade — cards never wrap fixed/sticky elements, so
-     * the transform is safe here. */
-    .lf-clean
-      :where(div, article, li)[class~="bg-white"]:where(
-        [class~="rounded-lg"], [class~="rounded-xl"],
-        [class~="rounded-2xl"], [class~="rounded-3xl"]
-      ) {
-      animation: lf-reveal-up linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 40%;
-    }
-  }
-}
+/* ── 3. Scroll-reveal — REMOVED ──────────────────────────────────────
+ * Earlier this block used `animation-timeline: view()` to fade/rise
+ * sections + cards on scroll. In practice the scroll timeline left
+ * below-the-fold sections permanently stuck at `opacity: 0` (they
+ * never revealed even when scrolled into view), so whole stretches of
+ * the page rendered blank. Content visibility must never depend on a
+ * scroll-animation evaluating correctly — so every reveal that gated
+ * `opacity`/`clip-path` has been removed. All content now renders
+ * immediately and unconditionally. The non-gating polish (hover lift,
+ * shadows, focus ring, scroll-progress bar, etc.) is kept below. */
 
 
 /* ════════════════════════════════════════════════════════════════════
@@ -468,23 +492,10 @@ html .lf-clean blockquote[style] {
   color: #1a1a2e;
 }
 
-/* ── EFFECT 5 · Heading scroll-reveal ────────────────────────────────
- * Section headings (h2/h3) rise + fade as they scroll in. h1 is left
- * to the hero's own bespoke entrance animation. Uses the independent
- * `translate` property so it never collides with `transform`. */
-@keyframes lf-head-rise {
-  from { opacity: 0; translate: 0 20px; }
-  to   { opacity: 1; translate: 0 0; }
-}
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .lf-clean main :where(h2, h3) {
-      animation: lf-head-rise linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 35%;
-    }
-  }
-}
+/* ── EFFECT 5 · Heading scroll-reveal — REMOVED ──────────────────────
+ * Removed for the same reason as the section/card reveals: the scroll
+ * timeline left headings stuck invisible. Headings now render
+ * immediately. */
 
 /* ── EFFECT 6 · Image hover-zoom inside cards ────────────────────────
  * Hovering a white rounded card gently scales any image it contains.
@@ -571,25 +582,10 @@ html .lf-clean blockquote[style] {
   transition: box-shadow 160ms ease;
 }
 
-/* ── EFFECT 12 · Image clip-wipe reveal on scroll ────────────────────
- * Images inside cards wipe in from the bottom as they enter view. */
-@keyframes lf-img-wipe {
-  from { clip-path: inset(0 0 14% 0); opacity: 0.55; }
-  to   { clip-path: inset(0 0 0 0);   opacity: 1; }
-}
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .lf-clean
-      :where(div, article, li, figure)[class~="bg-white"]:where(
-        [class~="rounded-lg"], [class~="rounded-xl"],
-        [class~="rounded-2xl"], [class~="rounded-3xl"]
-      ) :where(img) {
-      animation: lf-img-wipe linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 50%;
-    }
-  }
-}
+/* ── EFFECT 12 · Image clip-wipe reveal — REMOVED ────────────────────
+ * Removed: the scroll timeline left card images clipped + dimmed
+ * (opacity 0.55) and never finished revealing them. Images render
+ * fully immediately. The hover-zoom (EFFECT 6) is kept. */
 
 /* ── EFFECT 13 · Animated underline on nav links ─────────────────────
  * Top-nav links grow a centred gold underline on hover. */
@@ -613,23 +609,9 @@ html .lf-clean blockquote[style] {
   left: 0;
 }
 
-/* ── EFFECT 14 · Staggered list-item reveal on scroll ────────────────
- * Plain list items (not card-styled) rise + fade in sequence. The
- * per-item delay is faked with nth-child since scroll-timeline can't
- * carry a stagger directly. */
-@keyframes lf-li-rise {
-  from { opacity: 0; translate: 0 16px; }
-  to   { opacity: 1; translate: 0 0; }
-}
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .lf-clean main :where(ul, ol) > li:not([class~="bg-white"]) {
-      animation: lf-li-rise linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 30%;
-    }
-  }
-}
+/* ── EFFECT 14 · Staggered list-item reveal — REMOVED ────────────────
+ * Removed: same scroll-timeline problem — list items stayed at
+ * opacity 0. List items render immediately. */
 
 /* ── EFFECT 15 · Button hover scale-lift ─────────────────────────────
  * Buttons + inline-flex link-buttons grow a hair on hover. `scale`
