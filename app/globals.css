@@ -281,19 +281,27 @@ body {
 .lf-clean :where([class~="bg-[#25D366]"]) { background-color: #25D366 !important; }
 
 /* Kill decorative absolute-positioned background blobs / glows —
- * they're typically aria-hidden + pointer-events-none + blur-3xl. */
-.lf-clean [aria-hidden="true"][class*="blur-3xl"],
-.lf-clean [aria-hidden="true"][class*="blur-2xl"],
-.lf-clean [aria-hidden="true"][class*="rounded-full"][class*="opacity"] {
+ * they're typically aria-hidden + pointer-events-none + blur-3xl.
+ *
+ * CRITICAL EXCEPTION: never hide a full-bleed `inset-0` element. Those
+ * are functional layers — blurred backdrops, gradient scrims, image
+ * overlays — that a section depends on for text contrast. Hiding one
+ * leaves white text stranded on white. Decorative blobs are small +
+ * positioned (top/left/right offsets), never inset-0, so `:not([class~=
+ * "inset-0"])` cleanly separates the two. */
+.lf-clean [aria-hidden="true"][class*="blur-3xl"]:not([class~="inset-0"]),
+.lf-clean [aria-hidden="true"][class*="blur-2xl"]:not([class~="inset-0"]),
+.lf-clean [aria-hidden="true"][class*="rounded-full"][class*="opacity"]:not([class~="inset-0"]) {
   display: none !important;
 }
 
-/* Inline-style decorative backgrounds — same hide treatment. */
-.lf-clean [aria-hidden="true"][style*="radial-gradient"],
-.lf-clean [aria-hidden="true"][style*="linear-gradient"],
-.lf-clean [aria-hidden="true"][style*="background-image"],
-.lf-clean [aria-hidden][style*="radial-gradient"],
-.lf-clean [aria-hidden][style*="linear-gradient"] {
+/* Inline-style decorative backgrounds — same hide treatment, same
+ * inset-0 exception. */
+.lf-clean [aria-hidden="true"][style*="radial-gradient"]:not([class~="inset-0"]),
+.lf-clean [aria-hidden="true"][style*="linear-gradient"]:not([class~="inset-0"]),
+.lf-clean [aria-hidden="true"][style*="background-image"]:not([class~="inset-0"]),
+.lf-clean [aria-hidden][style*="radial-gradient"]:not([class~="inset-0"]),
+.lf-clean [aria-hidden][style*="linear-gradient"]:not([class~="inset-0"]) {
   display: none !important;
 }
 
