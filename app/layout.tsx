@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
-import { InteractiveBackground } from "@/components/site/InteractiveBackground"
 import "./globals.css"
 
 const inter = Inter({
@@ -37,12 +36,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
-      <body className="min-h-full text-[#1a1a2e] font-sans relative">
-        {/* Site-wide interactive backdrop. Lives at the root so it sits
-            behind everything (public site + admin); admin pages have
-            their own opaque dark chrome so it only reads on the
-            marketing surface, where body/.lf-clean are transparent. */}
-        <InteractiveBackground />
+      {/* Pitch-white surface. The old InteractiveBackground canvas (a
+          continuous requestAnimationFrame cream-orb loop) was removed —
+          the site now sits on a flat pure-white base, which is both the
+          requested look and a perf win (no GPU repaint loop, ~4 KB less
+          JS). Dark sections (Hero / Footer / dark builder blocks) paint
+          their own opaque backgrounds on top, so they're unaffected. */}
+      <body className="min-h-full bg-white text-[#1a1a2e] font-sans relative">
         {children}
       </body>
     </html>

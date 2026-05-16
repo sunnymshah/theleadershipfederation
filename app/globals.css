@@ -17,14 +17,17 @@ html {
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
   text-size-adjust: 100%;
+  /* Pitch-white base for the whole app. */
+  background-color: #ffffff;
 }
 
 body {
-  /* Transparent so the fixed-position canvas behind <body> shows through
-   * unbranded sections. Per-section opaque backgrounds (white cards,
-   * dark CTA bands, etc.) still cover the canvas where needed for
-   * legibility. */
-  background-color: transparent;
+  /* Pitch-white surface. Previously transparent so the
+   * InteractiveBackground cream-orb canvas could show through — that
+   * canvas has been removed, so the body is now a flat pure white.
+   * Dark sections (Hero / Footer / dark builder blocks) still paint
+   * their own opaque backgrounds on top. */
+  background-color: #ffffff;
   color: #1a1a2e;
   overflow-x: hidden;
 }
@@ -40,7 +43,7 @@ body {
   width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #F4F8FF;
+  background: #ffffff;
 }
 ::-webkit-scrollbar-thumb {
   background: rgba(26, 26, 46, 0.15);
@@ -177,11 +180,12 @@ body {
  * ───────────────────────────────────────────────────────────────────── */
 
 .lf-clean {
-  /* Transparent — let the site-wide vanta CLOUDS canvas show through. */
-  background-color: transparent !important;
+  /* Pitch-white marketing surface (was transparent for the removed
+   * InteractiveBackground canvas). */
+  background-color: #ffffff !important;
 }
 .lf-clean main {
-  background-color: transparent !important;
+  background-color: #ffffff !important;
 }
 
 /* Strip every section / div / aside / header / footer background-image
@@ -295,4 +299,134 @@ html .lf-clean blockquote[style] {
 }
 .lf-cookie-banner {
   animation: lf-cookie-slide-in 200ms ease-out;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+ * PITCH-WHITE REDESIGN — backgrounds, shadows, animations
+ *
+ * Goal: a flat pure-white surface across the whole app (public site +
+ * admin), keeping the intentionally-dark sections (Hero / Footer /
+ * dark builder blocks) untouched — those paint their own opaque
+ * backgrounds, so the rules below never reach them.
+ *
+ * Three layers:
+ *   1. White base for the admin shell.
+ *   2. Soft elevation shadows + hover-lift on cards.
+ *   3. Scroll-driven reveal animations (CSS-only, no JS) that degrade
+ *      gracefully on browsers without scroll-timeline support.
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Admin shell → pitch white ────────────────────────────────── */
+.lf-admin-shell {
+  background-color: #ffffff;
+}
+.lf-admin-shell main {
+  background-color: #ffffff;
+}
+
+/* ── 2. Card elevation + hover lift ──────────────────────────────────
+ * A "card" here = a white element with a rounded corner. Resting state
+ * gets a soft two-part shadow (tight contact shadow + wide ambient
+ * shadow). Cards that ALSO carry a `border` class — the canonical card
+ * signature in this codebase — additionally lift on hover. Requiring
+ * the border for the lift keeps full-width layout panels from bouncing.
+ *
+ * `:where()` keeps specificity low so a component can still override
+ * with its own utility when it needs to. */
+.lf-clean
+  :where(div, article, li, a, figure)[class~="bg-white"]:where(
+    [class~="rounded-lg"], [class~="rounded-xl"],
+    [class~="rounded-2xl"], [class~="rounded-3xl"]
+  ) {
+  box-shadow:
+    0 1px 2px rgba(26, 26, 46, 0.04),
+    0 6px 20px -8px rgba(26, 26, 46, 0.10);
+  transition:
+    box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform  240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hover lift — only for white + rounded + bordered cards. */
+.lf-clean
+  :where(div, article, li, a, figure)[class~="bg-white"][class~="border"]:where(
+    [class~="rounded-lg"], [class~="rounded-xl"],
+    [class~="rounded-2xl"], [class~="rounded-3xl"]
+  ):hover {
+  box-shadow:
+    0 2px 6px rgba(26, 26, 46, 0.06),
+    0 18px 40px -12px rgba(26, 26, 46, 0.20);
+  transform: translateY(-3px);
+}
+
+/* Admin cards get the resting elevation too (no hover-lift — admin is
+ * dense, bouncing rows would be noisy). */
+.lf-admin-shell
+  :where(div, article, li, section)[class~="bg-white"]:where(
+    [class~="rounded-lg"], [class~="rounded-xl"],
+    [class~="rounded-2xl"], [class~="rounded-3xl"]
+  ) {
+  box-shadow:
+    0 1px 2px rgba(26, 26, 46, 0.04),
+    0 4px 14px -6px rgba(26, 26, 46, 0.08);
+}
+
+/* Buttons + interactive pills get a crisp press-feedback transition. */
+.lf-clean :where(button, a[class~="inline-flex"]) {
+  transition:
+    box-shadow 180ms ease,
+    transform  180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.lf-clean :where(button, a[class~="inline-flex"]):active {
+  transform: translateY(1px);
+}
+
+/* ── 3. Scroll-driven reveal animations (CSS-only) ───────────────────
+ * Uses the modern `animation-timeline: view()` API — no JS, no
+ * IntersectionObserver. Browsers without support (Safari / Firefox as
+ * of now) simply skip the animation and show content normally, because
+ * the whole block is gated behind `@supports`. Reduced-motion users
+ * are excluded via the media query.
+ *
+ * Elements already in the viewport on load are past the entry range,
+ * so they render at the final keyframe (opacity 1) — no flash. */
+/* The reveal uses the INDEPENDENT `translate` property (not
+ * `transform`) on purpose: cards also get a `transform: translateY()`
+ * hover-lift, and `translate` composes with `transform` instead of
+ * fighting it. If the reveal animated `transform`, the always-active
+ * scroll timeline would permanently override the hover lift. */
+@keyframes lf-reveal-up {
+  from { opacity: 0; translate: 0 28px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@keyframes lf-reveal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Sections fade in — opacity only, so no `transform` containing
+     * block is created (keeps any sticky/fixed descendants safe). */
+    .lf-clean main > section,
+    .lf-clean main > div > section {
+      animation: lf-reveal-fade linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+
+    /* Cards rise + fade — cards never wrap fixed/sticky elements, so
+     * the transform is safe here. */
+    .lf-clean
+      :where(div, article, li)[class~="bg-white"]:where(
+        [class~="rounded-lg"], [class~="rounded-xl"],
+        [class~="rounded-2xl"], [class~="rounded-3xl"]
+      ) {
+      animation: lf-reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
 }
