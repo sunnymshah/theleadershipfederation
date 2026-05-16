@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from "next"
-import { Inter, Playfair_Display } from "next/font/google"
+import { Montserrat } from "next/font/google"
 import "./globals.css"
 
-const inter = Inter({
+/* Montserrat is the single typeface for the whole site. Loaded via
+ * next/font (self-hosted, zero layout shift, no extra network request)
+ * — the proper Next.js way; <link> tags to fonts.googleapis.com are not
+ * needed. The variable axis covers weights 100–900 + italics, so every
+ * existing font-weight utility keeps working. The `--font-inter` and
+ * `--font-serif` CSS variables are kept pointing at Montserrat so any
+ * legacy `var(--font-*)` reference resolves to it too. */
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-})
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-serif",
+  variable: "--font-montserrat",
   display: "swap",
 })
 
@@ -35,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
+    <html lang="en" className={`${montserrat.variable} h-full antialiased`}>
       {/* Pitch-white surface. The old InteractiveBackground canvas (a
           continuous requestAnimationFrame cream-orb loop) was removed —
           the site now sits on a flat pure-white base, which is both the
