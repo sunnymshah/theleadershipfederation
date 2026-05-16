@@ -430,3 +430,251 @@ html .lf-clean blockquote[style] {
     }
   }
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+ * PITCH-WHITE — TEXT OPTIMISATION + 12 EXTRA EFFECTS
+ *
+ * Tuned for the flat white surface. The whole block is CSS-only — no
+ * component edits, no JS. Scroll-driven pieces are gated behind
+ * `@supports (animation-timeline: …)` and `prefers-reduced-motion`, so
+ * unsupported browsers and motion-averse users get a clean static page.
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* ── TEXT OPTIMISATION ───────────────────────────────────────────────
+ * On a pure-white surface, crisp glyph rendering + proper kerning and
+ * ligatures make the type read sharper. Body text is dark navy
+ * (#1a1a2e) which clears WCAG AAA on white. */
+.lf-clean,
+.lf-admin-shell {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+/* Headings get tighter optical tracking + balanced wrapping so they
+ * sit confidently on the white space. */
+.lf-clean :where(h1, h2, h3) {
+  text-wrap: balance;
+  letter-spacing: -0.018em;
+}
+/* Paragraph copy gets pretty-wrapping (no orphan last word). */
+.lf-clean :where(p, li) {
+  text-wrap: pretty;
+}
+/* Selection on white reads better with the brand gold tint. */
+.lf-clean ::selection {
+  background-color: rgba(231, 171, 28, 0.22);
+  color: #1a1a2e;
+}
+
+/* ── EFFECT 5 · Heading scroll-reveal ────────────────────────────────
+ * Section headings (h2/h3) rise + fade as they scroll in. h1 is left
+ * to the hero's own bespoke entrance animation. Uses the independent
+ * `translate` property so it never collides with `transform`. */
+@keyframes lf-head-rise {
+  from { opacity: 0; translate: 0 20px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lf-clean main :where(h2, h3) {
+      animation: lf-head-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+/* ── EFFECT 6 · Image hover-zoom inside cards ────────────────────────
+ * Hovering a white rounded card gently scales any image it contains.
+ * `scale` (independent property) composes with the card's hover
+ * `transform` lift. Cards with `overflow-hidden` clip it cleanly. */
+.lf-clean
+  :where(div, article, li, a, figure)[class~="bg-white"]:where(
+    [class~="rounded-lg"], [class~="rounded-xl"],
+    [class~="rounded-2xl"], [class~="rounded-3xl"]
+  ) :where(img) {
+  transition: scale 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lf-clean
+  :where(div, article, li, a, figure)[class~="bg-white"]:where(
+    [class~="rounded-lg"], [class~="rounded-xl"],
+    [class~="rounded-2xl"], [class~="rounded-3xl"]
+  ):hover :where(img) {
+  scale: 1.06;
+}
+
+/* ── EFFECT 7 · Animated gold underline on content links ─────────────
+ * Links inside paragraphs / list items get a gold underline that
+ * grows from the left on hover. Buttons-styled-as-links are excluded
+ * by only matching `p a` / `li a` (content prose). */
+.lf-clean :where(p, li) a:not([class~="inline-flex"]) {
+  background-image: linear-gradient(#e7ab1c, #e7ab1c);
+  background-size: 0% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lf-clean :where(p, li) a:not([class~="inline-flex"]):hover {
+  background-size: 100% 2px;
+}
+
+/* ── EFFECT 8 · Primary-button gold glow on hover ────────────────────
+ * The gold CTA buttons bloom a soft gold halo on hover. */
+.lf-clean :where(a, button)[class~="bg-[#e7ab1c]"]:hover {
+  box-shadow:
+    0 0 0 4px rgba(231, 171, 28, 0.16),
+    0 12px 32px -8px rgba(231, 171, 28, 0.55);
+}
+
+/* ── EFFECT 9 · Card border warms to gold on hover ───────────────────
+ * Extends the existing hover-lift: bordered white cards shift their
+ * border toward the brand gold as they lift. */
+.lf-clean
+  :where(div, article, li, a, figure)[class~="bg-white"][class~="border"]:where(
+    [class~="rounded-lg"], [class~="rounded-xl"],
+    [class~="rounded-2xl"], [class~="rounded-3xl"]
+  ) {
+  transition:
+    box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform  240ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 240ms ease;
+}
+.lf-clean
+  :where(div, article, li, a, figure)[class~="bg-white"][class~="border"]:where(
+    [class~="rounded-lg"], [class~="rounded-xl"],
+    [class~="rounded-2xl"], [class~="rounded-3xl"]
+  ):hover {
+  border-color: rgba(231, 171, 28, 0.55);
+}
+
+/* ── EFFECT 10 · Icon scale-pop on button hover ──────────────────────
+ * SVG icons inside buttons / inline-flex links pop slightly on hover —
+ * gives chevrons + arrows a touch of life. */
+.lf-clean :where(button, a[class~="inline-flex"]) :where(svg) {
+  transition: scale 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lf-clean :where(button, a[class~="inline-flex"]):hover :where(svg) {
+  scale: 1.14;
+}
+
+/* ── EFFECT 11 · Animated gold focus-visible ring ────────────────────
+ * Keyboard focus gets a smooth, on-brand gold ring instead of the
+ * default browser outline. Accessibility + polish in one. */
+.lf-clean :where(a, button, input, textarea, select):focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 5px rgba(231, 171, 28, 0.65);
+  border-radius: 6px;
+  transition: box-shadow 160ms ease;
+}
+
+/* ── EFFECT 12 · Image clip-wipe reveal on scroll ────────────────────
+ * Images inside cards wipe in from the bottom as they enter view. */
+@keyframes lf-img-wipe {
+  from { clip-path: inset(0 0 14% 0); opacity: 0.55; }
+  to   { clip-path: inset(0 0 0 0);   opacity: 1; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lf-clean
+      :where(div, article, li, figure)[class~="bg-white"]:where(
+        [class~="rounded-lg"], [class~="rounded-xl"],
+        [class~="rounded-2xl"], [class~="rounded-3xl"]
+      ) :where(img) {
+      animation: lf-img-wipe linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 50%;
+    }
+  }
+}
+
+/* ── EFFECT 13 · Animated underline on nav links ─────────────────────
+ * Top-nav links grow a centred gold underline on hover. */
+.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#e7ab1c]"]) {
+  position: relative;
+}
+.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#e7ab1c]"])::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background-color: #e7ab1c;
+  border-radius: 2px;
+  transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1),
+              left 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#e7ab1c]"]):hover::after {
+  width: 100%;
+  left: 0;
+}
+
+/* ── EFFECT 14 · Staggered list-item reveal on scroll ────────────────
+ * Plain list items (not card-styled) rise + fade in sequence. The
+ * per-item delay is faked with nth-child since scroll-timeline can't
+ * carry a stagger directly. */
+@keyframes lf-li-rise {
+  from { opacity: 0; translate: 0 16px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lf-clean main :where(ul, ol) > li:not([class~="bg-white"]) {
+      animation: lf-li-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
+}
+
+/* ── EFFECT 15 · Button hover scale-lift ─────────────────────────────
+ * Buttons + inline-flex link-buttons grow a hair on hover. `scale`
+ * composes with the existing `:active` translateY press. */
+.lf-clean :where(button, a[class~="inline-flex"]):not([disabled]):hover {
+  scale: 1.03;
+}
+.lf-clean :where(button, a[class~="inline-flex"]) {
+  transition:
+    box-shadow 180ms ease,
+    transform  180ms ease,
+    scale      180ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+/* ── EFFECT 16 · Scroll-progress bar ─────────────────────────────────
+ * A thin gold bar pinned to the top of the viewport that fills left→
+ * right as the page scrolls. Zero markup — it's a `::before` on the
+ * `.lf-clean` wrapper, driven by the root `scroll()` timeline. On
+ * browsers without scroll-timeline it simply never appears (width 0),
+ * so there's no broken static bar. */
+.lf-clean::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  height: 3px;
+  width: 100%;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #e7ab1c, #d49c10);
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes lf-scroll-progress {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+    .lf-clean::before {
+      animation: lf-scroll-progress linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
