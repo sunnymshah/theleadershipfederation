@@ -99,16 +99,17 @@ export default async function InnerCirclePage() {
   return (
     <main className="min-h-screen">
       {/* Hero */}
-      <section className="relative pt-20 sm:pt-28 pb-16 sm:pb-24 px-4 sm:px-6 overflow-hidden bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f3460]">
+      {/* Solid navy base (a `bg-gradient-*` here gets stripped by the
+          .lf-clean cleanup → white-on-white). The gold depth glow is an
+          `inset-0` layer, which the cleanup keeps. */}
+      <section className="relative pt-20 sm:pt-28 pb-16 sm:pb-24 px-4 sm:px-6 overflow-hidden bg-[#1a1a2e]">
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            width: "900px",
-            height: "600px",
-            borderRadius: "50%",
-            background: "radial-gradient(ellipse at center, rgba(231,171,28,0.12) 0%, transparent 55%)",
-          }}
           aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 55% 45% at 50% 32%, rgba(231,171,28,0.16) 0%, transparent 70%)",
+          }}
         />
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -134,9 +135,9 @@ export default async function InnerCirclePage() {
               style={sfFont}
             >
               The Inner{" "}
-              <span className="bg-gradient-to-r from-[#e7ab1c] to-[#f0c040] bg-clip-text text-transparent">
-                Circle
-              </span>
+              {/* Solid gold (not bg-clip-text — the cleanup force-darkens
+                  gradient text, which would vanish on this dark hero). */}
+              <span className="text-[#e7ab1c]">Circle</span>
             </h1>
           </AnimateOnScroll>
 
@@ -448,16 +449,14 @@ export default async function InnerCirclePage() {
       )}
 
       {/* Final CTA */}
-      <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden bg-gradient-to-b from-[#1a1a2e] to-[#0f3460]">
+      <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden bg-[#1a1a2e]">
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            width: "700px",
-            height: "400px",
-            borderRadius: "50%",
-            background: "radial-gradient(ellipse at center, rgba(231,171,28,0.12) 0%, transparent 55%)",
-          }}
           aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 55% 60% at 50% 50%, rgba(231,171,28,0.14) 0%, transparent 70%)",
+          }}
         />
 
         <div className="relative z-10 max-w-3xl mx-auto text-center">

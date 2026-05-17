@@ -7,9 +7,10 @@ import { TestimonialTicker } from "@/components/sections/TestimonialTicker"
 import { NumbersReveal } from "@/components/sections/NumbersReveal"
 import { SpeakerMarquee } from "@/components/sections/SpeakerMarquee"
 import { FeaturedEventCallout } from "@/components/sections/FeaturedEventCallout"
-import { ExclusivityCTA } from "@/components/sections/ExclusivityCTA"
 import { BeASpeaker } from "@/components/sections/BeASpeaker"
-import { NewsletterSection } from "@/components/sections/NewsletterSection"
+// ExclusivityCTA + NewsletterSection were the last two homepage
+// sections — merged into one closing section, ClosingCTA.
+import { ClosingCTA } from "@/components/sections/ClosingCTA"
 
 export const revalidate = 60
 
@@ -100,11 +101,9 @@ export default async function HomePage() {
       {/* Be a Speaker — dark, speaker application CTA */}
       <BeASpeaker eventCount={eventCount ?? 0} speakerCount={speakerCount ?? 0} />
 
-      {/* CTA + press logos — light, closing section */}
-      <ExclusivityCTA />
-
-      {/* Newsletter — warm background, subscription form */}
-      <NewsletterSection />
+      {/* Closing section — press strip + primary CTA + newsletter,
+          merged into one dark band that flows into the footer. */}
+      <ClosingCTA />
     </main>
   )
 }
