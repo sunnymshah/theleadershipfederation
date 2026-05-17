@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, X, ArrowRight } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const sfText = {
@@ -106,23 +106,11 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* CTA + Mobile toggle — right */}
+          {/* Mobile toggle — right.
+              The black "Register" CTA button was removed: "Register"
+              already appears as a nav link AND in the sticky countdown
+              bar, so a third black button was repetitive. */}
           <div className="flex items-center gap-2 shrink-0 ml-auto">
-            <Link
-              href="/events"
-              className={cn(
-                "hidden lg:inline-flex items-center gap-1.5 px-5 py-2",
-                "text-[13.5px] font-semibold tracking-[-0.01em] rounded-[10px]",
-                "bg-[#1a1a2e] text-white",
-                "hover:bg-[#2a2a4e] transition-all duration-200",
-                "active:scale-[0.97]"
-              )}
-              style={sfText}
-            >
-              Register
-              <ArrowRight size={13} strokeWidth={2.2} />
-            </Link>
-
             <button
               className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-[#1a1a2e]/80 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.05] transition-all duration-200"
               onClick={() => setMobileOpen((v) => !v)}
@@ -165,16 +153,6 @@ export function Navbar() {
                 </Link>
               )
             })}
-            <div className="pt-3 px-1">
-              <Link
-                href="/events"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 text-[13px] font-semibold rounded-full bg-[#1a1a2e] text-white"
-                style={sfText}
-              >
-                Register
-                <ArrowRight size={13} strokeWidth={2.2} />
-              </Link>
-            </div>
           </div>
         </div>
       </nav>
