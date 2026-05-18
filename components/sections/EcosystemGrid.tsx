@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { CalendarDays, Crown, Mic2, ArrowRight } from "lucide-react"
+import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -67,6 +68,7 @@ export function EcosystemGrid() {
 
   return (
     <section ref={ref} className="relative py-12 lg:py-16 overflow-hidden">
+      <SectionAmbient variant="a" />
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section header */}
         <div

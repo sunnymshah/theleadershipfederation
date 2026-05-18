@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -58,6 +59,7 @@ export function SpeakerMarquee({ speakers }: Props) {
     <section className="relative py-12 lg:py-16 overflow-hidden">
       {/* Top edge gold line */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#e7ab1c]/30 to-transparent" />
+      <SectionAmbient variant="a" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="text-center mb-8">
