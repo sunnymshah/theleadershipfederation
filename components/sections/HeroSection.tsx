@@ -239,8 +239,8 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
               </MagneticButton>
               <MagneticButton>
                 <Link
-                  href="/platforms"
-                  className="inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-medium text-[#1a1a2e]/80 border border-[#1a1a2e]/[0.12] hover:border-[#e7ab1c]/40 hover:text-[#1a1a2e] transition-all duration-200"
+                  href="/inner-circle"
+                  className="lf-glass inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-semibold text-[#1a1a2e] hover:text-[#1a1a2e] transition-all duration-200"
                 >
                   Join Inner Circle
                 </Link>
