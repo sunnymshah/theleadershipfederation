@@ -110,7 +110,7 @@ export function EcosystemGrid() {
               unoptimized
               className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] via-[#1a1a2e]/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/55 via-transparent to-transparent" />
 
             {/* Stat badge */}
             <div className="absolute top-5 right-5 bg-[#e7ab1c] rounded-xl px-4 py-2.5 shadow-[0_4px_16px_rgba(231,171,28,0.35)]">
@@ -122,8 +122,8 @@ export function EcosystemGrid() {
               </div>
             </div>
 
-            {/* Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-7 lg:p-9">
+            {/* Content — floating dark liquid-glass panel */}
+            <div className="absolute bottom-4 left-4 right-4 lf-glass-dark rounded-2xl p-5 lg:p-6">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-[#e7ab1c] flex items-center justify-center shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
                   <CalendarDays size={20} strokeWidth={1.8} className="text-white" />
@@ -163,7 +163,7 @@ export function EcosystemGrid() {
                     unoptimized
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/90 via-[#1a1a2e]/50 to-[#1a1a2e]/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/55 via-transparent to-transparent" />
 
                   {/* Stat badge */}
                   <div className="absolute top-4 right-4 bg-[#e7ab1c] rounded-lg px-3 py-2 shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
@@ -175,8 +175,8 @@ export function EcosystemGrid() {
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                  {/* Content — floating dark liquid-glass panel */}
+                  <div className="absolute bottom-3.5 left-3.5 right-3.5 lf-glass-dark rounded-2xl p-4">
                     <div className="flex items-center gap-2.5 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-[#e7ab1c] flex items-center justify-center shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
                         <Icon size={16} strokeWidth={1.8} className="text-white" />

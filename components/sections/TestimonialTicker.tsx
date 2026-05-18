@@ -88,7 +88,7 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
         </div>
 
         {/* Quote card */}
-        <div className="relative bg-white rounded-3xl shadow-sm border border-[#1a1a2e]/[0.06] px-6 sm:px-12 lg:px-16 py-12 sm:py-16">
+        <div className="relative lf-glass rounded-3xl px-6 sm:px-12 lg:px-16 py-12 sm:py-16">
           {/* Large decorative quote mark */}
           <div
             className="absolute top-4 left-6 sm:left-10 text-[100px] sm:text-[140px] leading-none font-serif text-[#e7ab1c]/15 select-none pointer-events-none"
