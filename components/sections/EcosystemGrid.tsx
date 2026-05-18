@@ -21,7 +21,7 @@ const pillars = [
     href: "/events",
     stat: "50+",
     statLabel: "Events",
-    image: "https://img.einpresswire.com/large/757972/3rd-edition-middle-east-asia-le.png",
+    image: "/events/middle-east-asia.jpg",
   },
   {
     icon: Crown,
@@ -31,7 +31,7 @@ const pillars = [
     href: "/platforms",
     stat: "500+",
     statLabel: "Members",
-    image: "https://img.einpresswire.com/large/713803/4th-asia-leadership-awards.png",
+    image: "/events/asia-leadership-awards.jpg",
   },
   {
     icon: Mic2,
@@ -41,7 +41,7 @@ const pillars = [
     href: "/media",
     stat: "60+",
     statLabel: "Episodes",
-    image: "https://img.einpresswire.com/large/733210/bharat-leadership-awards.png",
+    image: "/events/bharat-leadership-awards.jpg",
   },
 ]
 
@@ -96,7 +96,7 @@ export function EcosystemGrid() {
           {/* Featured card — tall */}
           <Link
             href={pillars[0].href}
-            className="group relative block rounded-3xl overflow-hidden bg-[#1a1a2e] min-h-[420px] lg:min-h-[480px]"
+            className="group relative block rounded-3xl overflow-hidden bg-[#fafafa] min-h-[420px] lg:min-h-[480px]"
             style={{
               opacity: visible ? 1 : 0,
               transform: visible ? "translateY(0) scale(1)" : "translateY(30px) scale(0.98)",
@@ -107,7 +107,7 @@ export function EcosystemGrid() {
               src={pillars[0].image}
               alt={pillars[0].title}
               fill
-              unoptimized
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/55 via-transparent to-transparent" />
@@ -149,7 +149,7 @@ export function EcosystemGrid() {
                 <Link
                   key={p.title}
                   href={p.href}
-                  className="group relative block rounded-3xl overflow-hidden bg-[#1a1a2e] flex-1 min-h-[220px]"
+                  className="group relative block rounded-3xl overflow-hidden bg-[#fafafa] flex-1 min-h-[220px]"
                   style={{
                     opacity: visible ? 1 : 0,
                     transform: visible ? "translateY(0) scale(1)" : "translateY(30px) scale(0.98)",
@@ -160,7 +160,7 @@ export function EcosystemGrid() {
                     src={p.image}
                     alt={p.title}
                     fill
-                    unoptimized
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/55 via-transparent to-transparent" />

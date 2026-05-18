@@ -25,9 +25,10 @@ interface FeaturedEventCalloutProps {
   }
 }
 
-/** Event cover — sharp inside the registration card, blurred behind. */
-const COVER_IMAGE =
-  "https://img.einpresswire.com/large/713803/4th-asia-leadership-awards.png"
+/** Event cover — sharp inside the registration card, blurred behind.
+ *  Hosted locally in /public so it loads instantly + reliably and is
+ *  optimised by next/image (WebP/AVIF, resized, edge-cached). */
+const COVER_IMAGE = "/events/asia-leadership-awards.jpg"
 
 function fmtDateRange(start: string, end: string): string {
   const s = new Date(start)
@@ -102,7 +103,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
           src={COVER_IMAGE}
           alt=""
           fill
-          unoptimized
+          sizes="100vw"
           className="object-cover scale-125 blur-2xl opacity-60"
         />
       </div>
@@ -173,7 +174,8 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
                 src={COVER_IMAGE}
                 alt={e.title}
                 fill
-                unoptimized
+                priority
+                sizes="(max-width: 1024px) 100vw, 480px"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/30 to-transparent" />

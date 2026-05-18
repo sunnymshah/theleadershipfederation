@@ -703,13 +703,18 @@ html pre[style] {
     inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
 }
 
-/* Reusable liquid-glass surface (cards, panels, popovers). */
+/* Reusable liquid-glass surface for LIGHT sections (cards, panels).
+ * Tuned to read crisply on a white page: a translucent near-white
+ * fill, a fine dark hairline edge (a white border vanishes on white),
+ * a bright inner rim-light for the glass sheen, and a soft layered
+ * floating shadow. */
 .lf-glass {
-  background: rgba(255, 255, 255, 0.55) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(26, 26, 46, 0.07);
   box-shadow:
-    0 8px 30px -10px rgba(26, 26, 46, 0.18),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.66);
+    0 1px 2px rgba(26, 26, 46, 0.04),
+    0 14px 40px -14px rgba(26, 26, 46, 0.18),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
 }
 
 /* Dark liquid-glass — for glass surfaces sitting on dark sections. */
