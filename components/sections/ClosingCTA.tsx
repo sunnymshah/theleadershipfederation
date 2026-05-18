@@ -64,7 +64,8 @@ export function ClosingCTA() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 62% 48% at 50% 0%, rgba(231,171,28,0.18) 0%, transparent 66%)",
+            "radial-gradient(ellipse 62% 48% at 50% 0%, rgba(231,171,28,0.18) 0%, transparent 66%), " +
+            "radial-gradient(ellipse 46% 42% at 10% 102%, rgba(231,171,28,0.13) 0%, transparent 70%)",
         }}
       />
 

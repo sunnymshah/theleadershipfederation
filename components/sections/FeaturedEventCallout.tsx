@@ -112,6 +112,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
         style={{
           background:
             "radial-gradient(560px circle at 85% 5%, rgba(231,171,28,0.22) 0%, transparent 55%), " +
+            "radial-gradient(460px circle at 8% 100%, rgba(231,171,28,0.14) 0%, transparent 60%), " +
             "linear-gradient(120deg, rgba(10,10,20,0.93) 0%, rgba(26,26,46,0.87) 45%, rgba(26,26,46,0.93) 100%)",
         }}
       />

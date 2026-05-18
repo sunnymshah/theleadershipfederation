@@ -19,7 +19,7 @@ interface SpeakerData {
 
 function SpeakerCard({ name, role, initials, imageUrl }: SpeakerData) {
   return (
-    <div className="mx-3 shrink-0 flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-white shadow-sm border border-[#1a1a2e]/[0.06] hover:border-[#e7ab1c]/40 hover:shadow-md transition-all duration-500 group">
+    <div className="mx-3 shrink-0 flex items-center gap-3.5 px-5 py-3 rounded-2xl lf-glass hover:border-[#e7ab1c]/45 transition-all duration-500 group">
       <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#e7ab1c]/25 to-[#e7ab1c]/10 flex items-center justify-center shrink-0 group-hover:from-[#e7ab1c]/35 group-hover:to-[#e7ab1c]/15 transition-all duration-500 overflow-hidden relative">
         {imageUrl ? (
           <Image src={imageUrl} alt={name} fill className="object-cover" sizes="44px" />

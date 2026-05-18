@@ -57,7 +57,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
   return (
     <section
       ref={ref}
-      className="relative py-12 lg:py-16 bg-[#1a1a2e] overflow-hidden"
+      className="relative py-12 lg:py-16 overflow-hidden"
     >
       {/* Background decorative elements */}
       <div
@@ -98,7 +98,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                 Become a Speaker
               </span>
               <h2
-                className="text-[clamp(1.8rem,4vw,2.8rem)] leading-[1.08] text-white font-bold tracking-[-0.02em] mb-5"
+                className="text-[clamp(1.8rem,4vw,2.8rem)] leading-[1.08] text-[#1a1a2e] font-bold tracking-[-0.02em] mb-5"
                 style={sfDisplay}
               >
                 Share Your Expertise
@@ -107,7 +107,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                 <span className="text-[#e7ab1c]">Global Stage</span>
               </h2>
               <p
-                className="text-white/70 text-[15px] leading-[1.7] max-w-md mb-8"
+                className="text-[#1a1a2e]/70 text-[15px] leading-[1.7] max-w-md mb-8"
                 style={sfText}
               >
                 Join a distinguished roster of speakers at The Leadership Federation&apos;s
@@ -135,13 +135,13 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                     </div>
                     <div>
                       <h3
-                        className="text-[15px] font-semibold text-white mb-1"
+                        className="text-[15px] font-semibold text-[#1a1a2e] mb-1"
                         style={sfText}
                       >
                         {benefit.title}
                       </h3>
                       <p
-                        className="text-[13px] text-white/60 leading-[1.6]"
+                        className="text-[13px] text-[#1a1a2e]/60 leading-[1.6]"
                         style={sfText}
                       >
                         {benefit.description}
@@ -161,7 +161,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
               transition: "all 0.9s cubic-bezier(0.16,1,0.3,1) 0.2s",
             }}
           >
-            <div className="relative rounded-3xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm p-8 lg:p-10">
+            <div className="relative rounded-3xl lf-glass p-8 lg:p-10">
               {/* Decorative corner accent */}
               <div className="absolute top-0 right-0 w-20 h-20 overflow-hidden rounded-tr-3xl">
                 <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#e7ab1c]/15 to-transparent" />
@@ -178,13 +178,13 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                 </div>
 
                 <h3
-                  className="text-[22px] font-bold text-white mb-3 tracking-[-0.01em]"
+                  className="text-[22px] font-bold text-[#1a1a2e] mb-3 tracking-[-0.01em]"
                   style={sfDisplay}
                 >
                   Ready to take the stage?
                 </h3>
                 <p
-                  className="text-[14px] text-white/65 leading-[1.7] mb-8"
+                  className="text-[14px] text-[#1a1a2e]/65 leading-[1.7] mb-8"
                   style={sfText}
                 >
                   Apply to be a speaker at our upcoming events. We are looking for
@@ -207,7 +207,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                         {stat.value}
                       </div>
                       <div
-                        className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5"
+                        className="text-[10px] text-[#1a1a2e]/50 uppercase tracking-wider mt-0.5"
                         style={sfText}
                       >
                         {stat.label}
@@ -229,7 +229,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                 </Link>
 
                 <p
-                  className="text-center text-[11px] text-white/40 mt-4"
+                  className="text-center text-[11px] text-[#1a1a2e]/40 mt-4"
                   style={sfText}
                 >
                   Applications reviewed within 5 business days

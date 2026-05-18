@@ -79,7 +79,7 @@ export function NumbersReveal() {
           {stats.map((stat, i) => (
             <div
               key={stat.label}
-              className="text-center group bg-white rounded-2xl shadow-sm border border-[#1a1a2e]/[0.06] hover:shadow-md hover:border-[#e7ab1c]/30 transition-all duration-500 px-4 py-8"
+              className="text-center group lf-glass rounded-2xl hover:border-[#e7ab1c]/35 transition-all duration-500 px-4 py-8"
               style={{
                 opacity: visible ? 1 : 0,
                 transform: visible ? "translateY(0) scale(1)" : "translateY(40px) scale(0.9)",
