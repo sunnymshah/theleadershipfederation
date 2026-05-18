@@ -1,5 +1,7 @@
 "use client"
 
+import Image from "next/image"
+
 const partners = [
   { name: "Tata",                   src: "/partners/tata.jpg" },
   { name: "Reliance Jio",           src: "/partners/reliance-jio.png" },
@@ -48,11 +50,17 @@ export function LogoMarquee() {
               key={`${p.name}-${i}`}
               className="mx-10 shrink-0 flex items-center gap-4 hover:opacity-100 transition-opacity duration-300"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              {/* next/image: serves WebP/AVIF + correct resolution per
+                  device instead of the raw PNG/JPG. width/height are the
+                  intrinsic upper bound; the className constrains the
+                  rendered size and object-contain keeps aspect ratio. */}
+              <Image
                 src={p.src}
                 alt={p.name}
+                width={140}
+                height={52}
                 loading="lazy"
+                sizes="(max-width: 640px) 80px, (max-width: 1024px) 110px, 140px"
                 className="h-[32px] sm:h-[42px] lg:h-[52px] w-auto max-w-[80px] sm:max-w-[110px] lg:max-w-[140px] object-contain"
                 style={{ filter: "brightness(0) opacity(0.7)" }}
               />
