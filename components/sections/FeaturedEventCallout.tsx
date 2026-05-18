@@ -96,7 +96,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
   const dayCount = getDayCount(e.start_date, e.end_date)
 
   return (
-    <section className="relative overflow-hidden isolate bg-[#1a1a2e]">
+    <section className="relative overflow-hidden isolate bg-[#0a0a14]">
       {/* Blurred ambient backdrop. */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -112,9 +112,10 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
         className="absolute inset-0 z-0"
         style={{
           background:
-            "radial-gradient(560px circle at 85% 5%, rgba(231,171,28,0.22) 0%, transparent 55%), " +
-            "radial-gradient(460px circle at 8% 100%, rgba(231,171,28,0.14) 0%, transparent 60%), " +
-            "linear-gradient(120deg, rgba(10,10,20,0.93) 0%, rgba(26,26,46,0.87) 45%, rgba(26,26,46,0.93) 100%)",
+            "radial-gradient(560px circle at 85% 5%, rgba(231,171,28,0.26) 0%, transparent 55%), " +
+            "radial-gradient(520px circle at 6% 96%, rgba(116,108,255,0.20) 0%, transparent 60%), " +
+            "radial-gradient(460px circle at 8% 100%, rgba(231,171,28,0.14) 0%, transparent 62%), " +
+            "linear-gradient(120deg, rgba(8,8,16,0.94) 0%, rgba(12,12,22,0.88) 45%, rgba(10,10,20,0.94) 100%)",
         }}
       />
       {/* White edge-fades into the pitch-white page. */}

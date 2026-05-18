@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Loader2, Check, Mail } from "lucide-react"
 import { MagneticButton } from "@/components/ui/MagneticButton"
+import { SectionAmbient } from "@/components/ui/SectionAmbient"
 import { subscribeToNewsletter } from "@/app/actions/newsletterActions"
 
 /**
@@ -57,17 +58,10 @@ export function ClosingCTA() {
   }
 
   return (
-    <section className="relative overflow-hidden isolate bg-[#1a1a2e]">
-      {/* Gold depth glow — inset-0 so the .lf-clean cleanup keeps it. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 62% 48% at 50% 0%, rgba(231,171,28,0.18) 0%, transparent 66%), " +
-            "radial-gradient(ellipse 46% 42% at 10% 102%, rgba(231,171,28,0.13) 0%, transparent 70%)",
-        }}
-      />
+    <section className="relative overflow-hidden isolate bg-[#0a0a14]">
+      {/* Aurora mesh — gives the dark band colour depth for the glass to
+          refract, so it reads as liquid glass not a flat navy slab. */}
+      <SectionAmbient variant="b" tone="dark" />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 py-16 lg:py-24">
         {/* ── Press trust strip ──────────────────────────────────── */}
@@ -116,13 +110,13 @@ export function ClosingCTA() {
             </MagneticButton>
             <Link
               href="/inner-circle"
-              className="inline-flex items-center px-7 py-[14px] rounded-full text-[14px] font-bold text-white border border-white/25 hover:border-white/60 hover:bg-white/10 transition-all duration-200"
+              className="lf-glass-pill inline-flex items-center px-7 py-[14px] rounded-full text-[14px] font-bold text-white active:scale-[0.98]"
             >
               Join Inner Circle
             </Link>
             <Link
               href="/partners"
-              className="inline-flex items-center px-7 py-[14px] rounded-full text-[14px] font-bold text-white border border-white/25 hover:border-white/60 hover:bg-white/10 transition-all duration-200"
+              className="lf-glass-pill inline-flex items-center px-7 py-[14px] rounded-full text-[14px] font-bold text-white active:scale-[0.98]"
             >
               Partner With Us
             </Link>
@@ -130,7 +124,7 @@ export function ClosingCTA() {
         </div>
 
         {/* ── Newsletter — frosted-glass card ────────────────────── */}
-        <div className="mt-16 max-w-xl mx-auto rounded-3xl bg-white/[0.05] border border-white/10 backdrop-blur-xl px-7 py-9 sm:px-10 sm:py-10 text-center">
+        <div className="lf-glass-panel mt-16 max-w-xl mx-auto rounded-3xl px-7 py-9 sm:px-10 sm:py-10 text-center">
           <div className="w-13 h-13 rounded-2xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/25 flex items-center justify-center mx-auto mb-5 p-3">
             <Mail size={22} className="text-[#e7ab1c]" strokeWidth={1.8} />
           </div>
