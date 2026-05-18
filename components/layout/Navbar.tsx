@@ -7,11 +7,6 @@ import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const sfText = {
-  fontFamily:
-    "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
-}
-
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
@@ -25,6 +20,15 @@ const navLinks = [
   { label: "Register", href: "/register" },
 ]
 
+/**
+ * Navbar — Apple iOS-26 "Liquid Glass" floating navigation.
+ *
+ * The bar is detached from the viewport edges (a floating glass pill),
+ * built on the `.lf-liquid-nav` material in globals.css: a translucent
+ * blurred + saturated surface with a bright rim-highlight and a soft
+ * drop shadow. It firms up slightly once the page is scrolled
+ * (`data-scrolled`). The mobile menu is a matching floating glass card.
+ */
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -33,11 +37,11 @@ export function Navbar() {
   useEffect(() => {
     const sentinel = document.createElement("div")
     sentinel.style.cssText =
-      "position:absolute;top:16px;left:0;width:1px;height:1px;pointer-events:none"
+      "position:absolute;top:8px;left:0;width:1px;height:1px;pointer-events:none"
     document.body.prepend(sentinel)
     const observer = new IntersectionObserver(
       ([entry]) => setScrolled(!entry.isIntersecting),
-      { threshold: 0 }
+      { threshold: 0 },
     )
     observer.observe(sentinel)
     return () => {
@@ -46,42 +50,32 @@ export function Navbar() {
     }
   }, [])
 
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [pathname])
-
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href)
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        mobileOpen
-          ? "bg-[#F4F8FF]"
-          : scrolled
-            ? "bg-white/70 backdrop-blur-2xl backdrop-saturate-[1.8] border-b border-[#1a1a2e]/[0.05]"
-            : "bg-white/40 backdrop-blur-xl backdrop-saturate-[1.4]"
-      )}
-    >
-      <nav className="max-w-[1280px] mx-auto px-5 sm:px-7 lg:px-10">
-        <div className="flex items-center h-[62px] lg:h-[68px] gap-4">
+    <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-5 lg:px-6 pt-3 sm:pt-4">
+      {/* ── Floating liquid-glass bar ───────────────────────────────── */}
+      <nav
+        data-scrolled={scrolled}
+        className="lf-liquid-nav max-w-[1240px] mx-auto rounded-[20px] px-3.5 sm:px-5 lg:px-6"
+      >
+        <div className="flex items-center h-[56px] lg:h-[60px] gap-3">
           {/* Logo — left */}
-          <Link href="/" className="shrink-0">
+          <Link href="/" className="shrink-0 flex items-center">
             <Image
               src="/logo-tlf.png"
               alt="The Leadership Federation"
               width={150}
               height={40}
-              className="h-[28px] lg:h-[30px] w-auto object-contain"
+              className="h-[26px] lg:h-[28px] w-auto object-contain"
               priority
             />
           </Link>
 
-          {/* Desktop nav — Apple-clean text-only, centered.
-              Larger type, underline on active, no pills. */}
+          {/* Desktop nav — centered, text-only with a gold active rule. */}
           <div className="hidden lg:flex items-center justify-center flex-1">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               {navLinks.map(({ label, href }) => {
                 const active = isActive(href)
                 return (
@@ -89,16 +83,15 @@ export function Navbar() {
                     key={href}
                     href={href}
                     className={cn(
-                      "relative px-3 py-1.5 text-[14px] tracking-[-0.01em] whitespace-nowrap transition-colors duration-200",
+                      "relative px-3 py-1.5 text-[13.5px] tracking-[-0.01em] whitespace-nowrap rounded-full transition-all duration-200",
                       active
                         ? "text-[#1a1a2e] font-semibold"
-                        : "text-[#1a1a2e]/70 hover:text-[#1a1a2e] font-normal"
+                        : "text-[#1a1a2e]/65 hover:text-[#1a1a2e] font-medium hover:bg-white/50",
                     )}
-                    style={sfText}
                   >
                     {label}
                     {active && (
-                      <span className="absolute left-3 right-3 -bottom-0.5 h-[2px] rounded-full bg-[#e7ab1c]" />
+                      <span className="absolute left-1/2 -translate-x-1/2 -bottom-0.5 h-[2.5px] w-5 rounded-full bg-[#e7ab1c]" />
                     )}
                   </Link>
                 )
@@ -106,56 +99,58 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Mobile toggle — right.
-              The black "Register" CTA button was removed: "Register"
-              already appears as a nav link AND in the sticky countdown
-              bar, so a third black button was repetitive. */}
-          <div className="flex items-center gap-2 shrink-0 ml-auto">
+          {/* Mobile toggle — right. (The repetitive black "Register"
+              button was removed; "Register" stays as a nav link.) */}
+          <div className="flex items-center shrink-0 ml-auto lg:ml-0">
             <button
-              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-[#1a1a2e]/80 hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.05] transition-all duration-200"
+              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-full text-[#1a1a2e]/80 hover:text-[#1a1a2e] hover:bg-white/60 transition-all duration-200"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? (
-                <X size={18} strokeWidth={1.8} />
+                <X size={19} strokeWidth={1.9} />
               ) : (
-                <Menu size={18} strokeWidth={1.8} />
+                <Menu size={19} strokeWidth={1.9} />
               )}
             </button>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        <div
-          className={cn(
-            "lg:hidden overflow-hidden transition-all duration-300 ease-in-out bg-[#F4F8FF] border-t border-[#1a1a2e]/[0.06]",
-            mobileOpen
-              ? "max-h-[700px] opacity-100"
-              : "max-h-0 opacity-0 border-t-transparent"
-          )}
-        >
-          <div className="pb-5 pt-3 space-y-0.5">
-            {navLinks.map(({ label, href }) => {
-              const active = isActive(href)
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    "flex items-center py-2.5 px-3 rounded-xl text-[14px] transition-all duration-200",
-                    active
-                      ? "text-[#1a1a2e] font-semibold bg-[#e7ab1c]/[0.08]"
-                      : "text-[#1a1a2e]/75 font-medium hover:text-[#1a1a2e] hover:bg-[#1a1a2e]/[0.04]"
-                  )}
-                  style={sfText}
-                >
-                  {label}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
       </nav>
+
+      {/* ── Mobile menu — floating glass card ───────────────────────── */}
+      <div
+        className={cn(
+          "lg:hidden max-w-[1240px] mx-auto origin-top transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          mobileOpen
+            ? "mt-2 opacity-100 scale-100 pointer-events-auto"
+            : "mt-0 opacity-0 scale-95 pointer-events-none",
+        )}
+      >
+        <div className="lf-liquid-nav rounded-[20px] p-2">
+          {navLinks.map(({ label, href }) => {
+            const active = isActive(href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center py-2.5 px-3.5 rounded-2xl text-[14px] transition-all duration-200",
+                  active
+                    ? "text-[#1a1a2e] font-semibold bg-white/65"
+                    : "text-[#1a1a2e]/75 font-medium hover:text-[#1a1a2e] hover:bg-white/50",
+                )}
+              >
+                {label}
+                {active && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#e7ab1c]" />
+                )}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
     </header>
   )
 }
