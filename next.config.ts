@@ -76,8 +76,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "media.telanganatoday.com", pathname: "/**" },
       { protocol: "https", hostname: "lfaoenulcskvhgckylsh.supabase.co", pathname: "/**" },
     ],
-    minimumCacheTTL: 3600,
-    formats: ['image/webp', 'image/avif'],
+    // 30-day optimized-image cache (was 1h). Event covers / speaker
+    // headshots rarely change, so re-optimizing them hourly was wasted
+    // CPU + slower repeat loads. Longer TTL = the CDN serves the
+    // already-optimized variant straight from cache.
+    minimumCacheTTL: 2_592_000,
+    // AVIF first: Next serves the FIRST format the browser accepts, and
+    // AVIF is ~20-30% smaller than WebP. Modern browsers get the
+    // smallest file; older ones fall back to WebP automatically.
+    formats: ['image/avif', 'image/webp'],
   },
   async headers() {
     return [
