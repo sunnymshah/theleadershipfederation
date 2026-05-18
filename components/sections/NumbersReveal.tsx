@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
+import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const stats = [
   { value: 30, suffix: "+", label: "Countries", sublabel: "Across Asia, Middle East & Beyond" },
@@ -54,16 +55,7 @@ export function NumbersReveal() {
       ref={ref}
       className="relative py-12 lg:py-16 overflow-hidden"
     >
-      {/* Ambient gold glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-        style={{
-          width: "900px",
-          height: "500px",
-          borderRadius: "50%",
-          background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
-        }}
-      />
+      <SectionAmbient variant="c" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="text-center mb-16">

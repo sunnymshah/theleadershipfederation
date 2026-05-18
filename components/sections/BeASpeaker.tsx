@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { Globe, Award, Users, ArrowRight } from "lucide-react"
+import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -59,23 +60,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
       ref={ref}
       className="relative py-12 lg:py-16 overflow-hidden"
     >
-      {/* Background decorative elements */}
-      <div
-        className="absolute top-0 right-0 pointer-events-none"
-        style={{
-          width: "500px",
-          height: "500px",
-          background: "radial-gradient(ellipse at top right, rgba(231,171,28,0.06) 0%, transparent 60%)",
-        }}
-      />
-      <div
-        className="absolute bottom-0 left-0 pointer-events-none"
-        style={{
-          width: "400px",
-          height: "400px",
-          background: "radial-gradient(ellipse at bottom left, rgba(231,171,28,0.04) 0%, transparent 60%)",
-        }}
-      />
+      <SectionAmbient variant="b" />
 
       {/* Gold accent line at top */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c]/30 to-transparent" />
