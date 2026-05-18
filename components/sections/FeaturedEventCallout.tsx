@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Calendar, MapPin, Sparkles, Ticket, Clock } from "lucide-react"
+import {
+  ArrowRight,
+  Calendar,
+  MapPin,
+  Sparkles,
+  Ticket,
+  Clock,
+  CalendarDays,
+  ShieldCheck,
+} from "lucide-react"
 
 interface FeaturedEventCalloutProps {
   event?: {
@@ -33,6 +42,14 @@ function fmtDateRange(start: string, end: string): string {
   return `${s.toLocaleDateString("en-US", opts)} - ${e.toLocaleDateString("en-US", opts)}, ${s.getFullYear()}`
 }
 
+/** Inclusive day count of the event window (min 1). */
+function getDayCount(start: string, end: string): number {
+  const s = new Date(start)
+  const e = new Date(end)
+  const d = Math.round((e.getTime() - s.getTime()) / 86_400_000) + 1
+  return Number.isFinite(d) && d > 0 ? d : 1
+}
+
 type Parts = { days: number; hours: number; minutes: number }
 function getParts(target: string): Parts | null {
   const diff = new Date(target).getTime() - Date.now()
@@ -51,14 +68,14 @@ function getParts(target: string): Parts | null {
  *    atmosphere only, never detail that fights the copy.
  *  • A near-opaque navy scrim + a solid bg-[#1a1a2e] guarantee a dark
  *    backing so every word is legible.
+ *  • The left column carries the headline + frosted info chips.
  *  • The right column is a self-contained REGISTRATION CARD: the sharp
- *    event photo, a live ticking countdown, and one primary "Register
- *    Now" action — the rebuilt event-register CTA.
+ *    event photo, a live ticking countdown, the date, one primary
+ *    "Register Now" action and a trust line.
  *
  * Content is always rendered (no scroll-gated opacity). The countdown
  * is seeded with a lazy initializer and ticks via an interval; the
- * digits carry `suppressHydrationWarning` since server- and
- * client-render times differ by a few seconds.
+ * digits carry `suppressHydrationWarning`.
  */
 export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
   const startDate = event?.start_date
@@ -74,6 +91,8 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
 
   if (!event) return null
   const e = event
+  const dateLabel = fmtDateRange(e.start_date, e.end_date)
+  const dayCount = getDayCount(e.start_date, e.end_date)
 
   return (
     <section className="relative overflow-hidden isolate bg-[#1a1a2e]">
@@ -111,21 +130,26 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               </span>
             </div>
 
-            <h2 className="text-[clamp(1.9rem,4.4vw,3.1rem)] leading-[1.08] text-white font-bold tracking-[-0.02em]">
+            <h2 className="text-[clamp(2rem,4.6vw,3.3rem)] leading-[1.06] text-white font-bold tracking-[-0.025em]">
               {e.title}
             </h2>
 
-            <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-white/90 text-[14px] font-medium">
-              <span className="inline-flex items-center gap-2">
-                <Calendar size={15} strokeWidth={2} className="text-[#e7ab1c]" />
-                {fmtDateRange(e.start_date, e.end_date)}
+            {/* Frosted info chips */}
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.07] border border-white/10 text-[13px] font-semibold text-white">
+                <Calendar size={14} className="text-[#e7ab1c]" />
+                {dateLabel}
               </span>
               {e.venue && (
-                <span className="inline-flex items-center gap-2">
-                  <MapPin size={15} strokeWidth={2} className="text-[#e7ab1c]" />
+                <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.07] border border-white/10 text-[13px] font-semibold text-white">
+                  <MapPin size={14} className="text-[#e7ab1c]" />
                   {e.venue}
                 </span>
               )}
+              <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.07] border border-white/10 text-[13px] font-semibold text-white">
+                <CalendarDays size={14} className="text-[#e7ab1c]" />
+                {dayCount}-Day Programme
+              </span>
             </div>
 
             {e.description && (
@@ -140,7 +164,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             </div>
           </div>
 
-          {/* ── Right — REGISTRATION CARD (rebuilt event-register CTA) ─ */}
+          {/* ── Right — REGISTRATION CARD (the event-register CTA) ──── */}
           <div className="rounded-3xl overflow-hidden border border-white/12 bg-[#0a0a14] shadow-[0_30px_70px_-20px_rgba(0,0,0,0.75)]">
             {/* Sharp event photo */}
             <div className="relative aspect-[16/9]">
@@ -162,6 +186,12 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
 
             {/* Card body */}
             <div className="p-6 sm:p-7">
+              {/* Compact date line */}
+              <div className="flex items-center justify-center gap-2 text-[13px] font-semibold text-white/75 mb-5">
+                <Calendar size={14} className="text-[#e7ab1c]" />
+                {dateLabel}
+              </div>
+
               {/* Live countdown */}
               <div className="flex items-center justify-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#e7ab1c] mb-3">
                 <Clock size={12} />
@@ -207,10 +237,16 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
                 />
               </Link>
 
+              {/* Trust line */}
+              <div className="flex items-center justify-center gap-1.5 mt-3.5 text-[11.5px] text-white/45">
+                <ShieldCheck size={13} className="text-emerald-400/80" />
+                Secure checkout · Instant confirmation
+              </div>
+
               {/* Secondary action */}
               <Link
                 href={`/events/${e.slug}`}
-                className="block text-center mt-3.5 text-[13px] font-semibold text-white/60 hover:text-white transition-colors"
+                className="block text-center mt-3 text-[13px] font-semibold text-white/60 hover:text-white transition-colors"
               >
                 View full event details →
               </Link>

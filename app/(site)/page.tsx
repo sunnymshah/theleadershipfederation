@@ -83,6 +83,10 @@ export default async function HomePage() {
       {/* Trust bar — logos scrolling */}
       <LogoMarquee />
 
+      {/* Featured event — placed high, right under the hero + trust bar
+          so the upcoming event gets prime real estate. */}
+      <FeaturedEventCallout event={featuredEvent ? { title: featuredEvent.title, slug: featuredEvent.slug, start_date: featuredEvent.start_date, end_date: featuredEvent.end_date, venue: featuredEvent.venue, description: featuredEvent.description } : undefined} />
+
       {/* Ecosystem — bento grid, 3 pillars */}
       <EcosystemGrid />
 
@@ -91,9 +95,6 @@ export default async function HomePage() {
 
       {/* Numbers — dark, animated counters */}
       <NumbersReveal />
-
-      {/* Featured event — cinematic full-bleed */}
-      <FeaturedEventCallout event={featuredEvent ? { title: featuredEvent.title, slug: featuredEvent.slug, start_date: featuredEvent.start_date, end_date: featuredEvent.end_date, venue: featuredEvent.venue, description: featuredEvent.description } : undefined} />
 
       {/* Speaker network — dark, two-row marquee */}
       <SpeakerMarquee speakers={speakers} />
