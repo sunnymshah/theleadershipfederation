@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const stats = [
   { value: 30, suffix: "+", label: "Countries", sublabel: "Across Asia, Middle East & Beyond" },
@@ -53,16 +52,14 @@ export function NumbersReveal() {
   return (
     <section
       ref={ref}
-      className="relative py-12 lg:py-16 overflow-hidden"
+      className="relative bg-[#f5f5f7] py-12 lg:py-16 overflow-hidden"
     >
-      <SectionAmbient variant="c" />
-
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="text-center mb-16">
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#0071e3] font-semibold">
             The Impact
           </span>
-          <h2 className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-[#1a1a2e] tracking-[-0.02em]">
+          <h2 className="mt-3 text-[clamp(1.6rem,3.5vw,2.4rem)] font-bold text-[#1d1d1f] tracking-[-0.02em]">
             Numbers That Speak
           </h2>
         </div>
@@ -71,26 +68,26 @@ export function NumbersReveal() {
           {stats.map((stat, i) => (
             <div
               key={stat.label}
-              className="text-center group lf-glass rounded-2xl hover:border-[#e7ab1c]/35 transition-all duration-500 px-4 py-8"
+              className="text-center group lf-glass rounded-2xl hover:border-[#0071e3]/35 transition-all duration-500 px-4 py-8"
               style={{
                 opacity: visible ? 1 : 0,
                 transform: visible ? "translateY(0) scale(1)" : "translateY(40px) scale(0.9)",
                 transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${i * 150}ms`,
               }}
             >
-              <div className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-[#1a1a2e] leading-none tracking-tight">
+              <div className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-[#1d1d1f] leading-none tracking-tight">
                 <Counter target={stat.value} suffix={stat.suffix} active={visible} />
               </div>
-              <div className="mt-3 text-[14px] font-semibold text-[#e7ab1c] tracking-wide">
+              <div className="mt-3 text-[14px] font-semibold text-[#0071e3] tracking-wide">
                 {stat.label}
               </div>
-              <div className="mt-1.5 text-[12px] text-[#1a1a2e]/55 font-medium">
+              <div className="mt-1.5 text-[12px] text-[#1d1d1f]/55 font-medium">
                 {stat.sublabel}
               </div>
 
               {/* Gold underline accent */}
               <div
-                className="mx-auto mt-5 h-[2px] rounded-full bg-gradient-to-r from-transparent via-[#e7ab1c]/60 to-transparent"
+                className="mx-auto mt-5 h-[2px] rounded-full bg-gradient-to-r from-transparent via-[#0071e3]/60 to-transparent"
                 style={{
                   width: visible ? "60px" : "0px",
                   transition: `width 1s ease ${i * 150 + 600}ms`,

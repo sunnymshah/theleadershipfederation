@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { CalendarDays, Crown, Mic2, ArrowRight } from "lucide-react"
-import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -67,8 +66,7 @@ export function EcosystemGrid() {
   }, [])
 
   return (
-    <section ref={ref} className="relative py-12 lg:py-16 overflow-hidden">
-      <SectionAmbient variant="a" />
+    <section ref={ref} className="relative bg-white py-12 lg:py-16 overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section header */}
         <div
@@ -79,16 +77,16 @@ export function EcosystemGrid() {
             transition: "all 0.8s cubic-bezier(0.16,1,0.3,1)",
           }}
         >
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#0071e3] font-semibold">
             Three Pillars
           </span>
           <h2
-            className="mt-3 text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-[#1a1a2e] font-bold tracking-[-0.02em]"
+            className="mt-3 text-[clamp(1.8rem,4vw,3rem)] leading-[1.1] text-[#1d1d1f] font-bold tracking-[-0.02em]"
             style={sfDisplay}
           >
             The Ecosystem
           </h2>
-          <p className="mt-3 text-[#1a1a2e]/70 text-[15px]" style={sfText}>
+          <p className="mt-3 text-[#1d1d1f]/70 text-[15px]" style={sfText}>
             One mission. Global impact.
           </p>
         </div>
@@ -112,10 +110,10 @@ export function EcosystemGrid() {
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/55 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1d1d1f]/55 via-transparent to-transparent" />
 
             {/* Stat badge */}
-            <div className="absolute top-5 right-5 bg-[#e7ab1c] rounded-xl px-4 py-2.5 shadow-[0_4px_16px_rgba(231,171,28,0.35)]">
+            <div className="absolute top-5 right-5 bg-[#0071e3] rounded-xl px-4 py-2.5 shadow-[0_4px_16px_rgba(0,113,227,0.35)]">
               <div className="text-[22px] font-bold text-white leading-none" style={sfDisplay}>
                 {pillars[0].stat}
               </div>
@@ -127,7 +125,7 @@ export function EcosystemGrid() {
             {/* Content — floating dark liquid-glass panel */}
             <div className="absolute bottom-4 left-4 right-4 lf-glass-dark rounded-2xl p-5 lg:p-6">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c] flex items-center justify-center shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
+                <div className="w-10 h-10 rounded-xl bg-[#0071e3] flex items-center justify-center shadow-[0_4px_12px_rgba(0,113,227,0.35)]">
                   <CalendarDays size={20} strokeWidth={1.8} className="text-white" />
                 </div>
                 <h3 className="text-[20px] lg:text-[22px] font-bold text-white" style={sfDisplay}>
@@ -137,7 +135,7 @@ export function EcosystemGrid() {
               <p className="text-[14px] text-white/85 leading-[1.7] max-w-sm mb-5" style={sfText}>
                 {pillars[0].description}
               </p>
-              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#0071e3] group-hover:gap-2.5 transition-all duration-200">
                 Explore Events <ArrowRight size={13} />
               </span>
             </div>
@@ -165,10 +163,10 @@ export function EcosystemGrid() {
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/55 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1d1d1f]/55 via-transparent to-transparent" />
 
                   {/* Stat badge */}
-                  <div className="absolute top-4 right-4 bg-[#e7ab1c] rounded-lg px-3 py-2 shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
+                  <div className="absolute top-4 right-4 bg-[#0071e3] rounded-lg px-3 py-2 shadow-[0_4px_12px_rgba(0,113,227,0.35)]">
                     <div className="text-[18px] font-bold text-white leading-none" style={sfDisplay}>
                       {p.stat}
                     </div>
@@ -180,7 +178,7 @@ export function EcosystemGrid() {
                   {/* Content — floating dark liquid-glass panel */}
                   <div className="absolute bottom-3.5 left-3.5 right-3.5 lf-glass-dark rounded-2xl p-4">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-[#e7ab1c] flex items-center justify-center shadow-[0_4px_12px_rgba(231,171,28,0.35)]">
+                      <div className="w-8 h-8 rounded-lg bg-[#0071e3] flex items-center justify-center shadow-[0_4px_12px_rgba(0,113,227,0.35)]">
                         <Icon size={16} strokeWidth={1.8} className="text-white" />
                       </div>
                       <h3 className="text-[17px] font-bold text-white" style={sfDisplay}>
@@ -190,7 +188,7 @@ export function EcosystemGrid() {
                     <p className="text-[13px] text-white/85 leading-[1.6] max-w-xs mb-3" style={sfText}>
                       {p.description}
                     </p>
-                    <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#e7ab1c] group-hover:gap-2.5 transition-all duration-200">
+                    <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#0071e3] group-hover:gap-2.5 transition-all duration-200">
                       Learn more <ArrowRight size={12} />
                     </span>
                   </div>

@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -61,10 +60,8 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
   return (
     <section
       ref={sectionRef}
-      className="relative py-12 lg:py-16 overflow-hidden"
+      className="relative bg-[#f5f5f7] py-12 lg:py-16 overflow-hidden"
     >
-      <SectionAmbient variant="b" />
-
       <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section label */}
         <div
@@ -75,7 +72,7 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
             transition: "all 0.8s cubic-bezier(0.16,1,0.3,1)",
           }}
         >
-          <span className="text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-[#0071e3] font-semibold">
             What Leaders Say
           </span>
         </div>
@@ -84,7 +81,7 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
         <div className="relative lf-glass rounded-3xl px-6 sm:px-12 lg:px-16 py-12 sm:py-16">
           {/* Large decorative quote mark */}
           <div
-            className="absolute top-4 left-6 sm:left-10 text-[100px] sm:text-[140px] leading-none font-serif text-[#e7ab1c]/15 select-none pointer-events-none"
+            className="absolute top-4 left-6 sm:left-10 text-[100px] sm:text-[140px] leading-none font-serif text-[#0071e3]/15 select-none pointer-events-none"
             aria-hidden
           >
             &ldquo;
@@ -93,23 +90,23 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
           <div className="relative w-full text-center min-h-[200px] flex flex-col justify-center">
             <blockquote key={activeIndex} className="testimonial-quote-enter">
               <p
-                className="text-[20px] sm:text-[26px] lg:text-[30px] text-[#1a1a2e] font-medium leading-[1.45] tracking-[-0.01em]"
+                className="text-[20px] sm:text-[26px] lg:text-[30px] text-[#1d1d1f] font-medium leading-[1.45] tracking-[-0.01em]"
                 style={sfDisplay}
               >
                 {active.quote}
               </p>
               <footer className="mt-8 flex flex-col items-center gap-1">
-                <div className="w-8 h-[1px] bg-[#e7ab1c]/50 mb-4" />
+                <div className="w-8 h-[1px] bg-[#0071e3]/50 mb-4" />
                 <cite className="not-italic">
                   <span
-                    className="text-[15px] font-semibold text-[#1a1a2e]"
+                    className="text-[15px] font-semibold text-[#1d1d1f]"
                     style={sfText}
                   >
                     {active.author}
                   </span>
                   {(active.role || active.company) && (
                     <span
-                      className="block text-[13px] text-[#1a1a2e]/55 mt-0.5"
+                      className="block text-[13px] text-[#1d1d1f]/55 mt-0.5"
                       style={sfText}
                     >
                       {[active.role, active.company].filter(Boolean).join(", ")}
@@ -137,8 +134,8 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
                     width: i === activeIndex ? "32px" : "8px",
                     backgroundColor:
                       i === activeIndex
-                        ? "rgba(231,171,28,0.85)"
-                        : "rgba(26,26,46,0.18)",
+                        ? "rgba(0,113,227,0.85)"
+                        : "rgba(29,29,31,0.18)",
                   }}
                 />
               </button>
