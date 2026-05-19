@@ -168,7 +168,7 @@ function CreatePollModal({
       <div className="absolute inset-0 bg-[#1a1a2e]/30" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-[#ededf0] w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#e8e8e8]">
           <h2 className="text-base font-semibold text-[#333]">Create New Poll</h2>
@@ -644,7 +644,7 @@ export default function AdminPollsPage() {
             />
           </button>
           {dropdownOpen && (
-            <div className="absolute top-full left-0 mt-1 w-full bg-white border border-[#e0e0e0] rounded-lg shadow-xl z-40 py-1 max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 mt-1 w-full bg-white border border-[#ededf0] rounded-lg shadow-[0_4px_20px_rgba(15,23,42,0.07)] z-40 py-1 max-h-60 overflow-y-auto">
               {events.map((ev) => (
                 <button
                   key={ev.id}
@@ -854,7 +854,7 @@ export default function AdminPollsPage() {
 
       {/* ── Toast ────────────────────────────────────────────────── */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 bg-[#333] text-white rounded-xl shadow-2xl text-sm">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 bg-[#333] text-white rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.12)] text-sm">
           <span>{toast}</span>
           <button onClick={() => setToast(null)} className="text-white/40 hover:text-white">
             <X size={14} />

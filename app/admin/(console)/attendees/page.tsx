@@ -388,7 +388,7 @@ export default function AdminAttendeesPage() {
 
       {/* ── Bulk Actions Bar ──────────────────────────────────────────── */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-white border border-[#e0e0e0] rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-white border border-[#ededf0] rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.12)] px-6 py-3 flex items-center gap-4">
           <span className="text-sm font-semibold text-[#333]">{selectedIds.size} selected</span>
           <div className="w-px h-6 bg-[#e0e0e0]" />
           <button onClick={handleBulkCheckIn} disabled={bulkLoading} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
@@ -401,7 +401,7 @@ export default function AdminAttendeesPage() {
             <button disabled={bulkLoading} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-[#666] hover:bg-[#fafafa] transition-colors disabled:opacity-50">
               Status <ChevronDown size={12} />
             </button>
-            <div className="absolute bottom-full left-0 mb-1 hidden group-hover:block bg-white border border-[#e0e0e0] rounded-lg shadow-lg py-1 min-w-[140px]">
+            <div className="absolute bottom-full left-0 mb-1 hidden group-hover:block bg-white border border-[#ededf0] rounded-lg shadow-[0_4px_20px_rgba(15,23,42,0.07)] py-1 min-w-[140px]">
               {["registered", "confirmed", "checked_in", "waitlisted", "cancelled"].map(s => (
                 <button key={s} onClick={() => handleBulkStatus(s)} className="block w-full text-left px-3 py-2 text-xs text-[#555] hover:bg-[#fafafa] transition-colors capitalize">
                   {s.replace("_", " ")}
@@ -433,7 +433,7 @@ export default function AdminAttendeesPage() {
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => { setDrawerOpen(false); setEditingAttendee(null) }} />
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#ededf0] z-50 shadow-[-8px_0_28px_rgba(15,23,42,0.06)] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-[#333]">{editingAttendee ? "Edit Attendee" : "Add Attendee"}</h3>
               <button onClick={() => { setDrawerOpen(false); setEditingAttendee(null) }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"><X size={18} /></button>

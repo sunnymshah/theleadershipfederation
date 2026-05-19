@@ -382,7 +382,7 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
     <div className="space-y-8">
       {/* Countdown / Status Banner */}
       {isUpcoming && (
-        <div className="rounded-xl bg-gradient-to-r from-[#0071e3]/10 via-[#0071e3]/5 to-transparent border border-[#0071e3]/20 p-5 flex items-center justify-between">
+        <div className="rounded-xl bg-[#0071e3]/[0.05] border border-[#0071e3]/20 p-5 flex items-center justify-between">
           <div>
             <p className="text-[#0071e3] font-semibold text-sm">Event Countdown</p>
             <p className="text-[#777] text-xs mt-0.5">Your event is coming up. Make sure everything is ready.</p>

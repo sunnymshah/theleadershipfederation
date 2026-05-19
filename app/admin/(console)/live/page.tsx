@@ -236,7 +236,7 @@ export default function LiveDashboardPage() {
               <ChevronDown size={14} className={cn("transition-transform", dropdownOpen && "rotate-180")} />
             </button>
             {dropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-72 bg-[#1a1a2e] border border-white/[0.1] rounded-lg shadow-2xl z-50 py-1">
+              <div className="absolute top-full left-0 mt-1 w-72 bg-[#1a1a2e] border border-white/[0.1] rounded-lg shadow-[0_4px_20px_rgba(15,23,42,0.18)] z-50 py-1">
                 {events.map((ev) => (
                   <button
                     key={ev.id}
