@@ -370,6 +370,10 @@ export type LayoutProps = {
   cssClass?: string
   /** Advanced — when true, renders pointer-events:none for non-admin viewers. */
   locked?: boolean
+  /** Corner rounding for the section. */
+  radius?: "none" | "sm" | "md" | "lg" | "xl"
+  /** Hide this section on phone-width screens. */
+  hideOnMobile?: boolean
 }
 
 const padY = {
@@ -431,11 +435,19 @@ function SectionShell({
   const extraClass = (l.cssClass ?? "").trim()
   const lockedClass = l.locked ? "pointer-events-none select-none" : ""
 
+  // Micro-settings — corner rounding + responsive visibility.
+  const radiusClass =
+    l.radius === "sm" ? "rounded-xl overflow-hidden" :
+    l.radius === "md" ? "rounded-2xl overflow-hidden" :
+    l.radius === "lg" ? "rounded-3xl overflow-hidden" :
+    l.radius === "xl" ? "rounded-[2.5rem] overflow-hidden" : ""
+  const hideClass = l.hideOnMobile ? "hidden sm:block" : ""
+
   return (
     <section
       id={anchorId}
       data-lf-hidden={hidden ? "true" : undefined}
-      className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""} ${extraClass} ${lockedClass}`.trim()}
+      className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""} ${extraClass} ${lockedClass} ${radiusClass} ${hideClass}`.trim()}
       style={style}
     >
       {children}

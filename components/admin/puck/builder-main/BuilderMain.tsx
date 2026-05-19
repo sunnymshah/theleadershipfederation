@@ -20,7 +20,7 @@ import { useCallback, useRef, useState } from "react"
 import Link from "next/link"
 import { Puck, type Data } from "@measured/puck"
 import "@measured/puck/puck.css"
-import { ArrowLeft, ExternalLink, Plus, X, Home, History, Globe, Loader2, RotateCcw } from "lucide-react"
+import { ArrowLeft, ExternalLink, Plus, X, Home, History, Globe, Loader2, RotateCcw, LayoutTemplate } from "lucide-react"
 import { puckConfig } from "../puck-config"
 import type { BuilderMetadata } from "../blocks"
 import {
@@ -44,6 +44,36 @@ type SaveState = "idle" | "saving" | "saved" | "error"
 
 const HOME = "home"
 const blankData: Data = { content: [], root: { props: {} }, zones: {} } as unknown as Data
+
+// Starter templates — ordered lists of block types. Each is expanded to a
+// full page using every block's own defaultProps from puckConfig, so a
+// template drops in a complete, edit-ready layout.
+const STARTER_TEMPLATES: Array<{ id: string; name: string; description: string; blocks: string[] }> = [
+  {
+    id: "conference",
+    name: "Conference",
+    description: "Hero, stats, speakers, agenda, tickets, sponsors, FAQ.",
+    blocks: ["Hero", "StatsRow", "SpeakersGrid", "Agenda", "TicketsPricing", "SponsorsGrid", "Faqs"],
+  },
+  {
+    id: "summit",
+    name: "Summit",
+    description: "Hero, about, speakers, schedule, sponsors, closing CTA.",
+    blocks: ["Hero", "EventDescription", "SpeakersGrid", "ScheduleSummary", "SponsorsGrid", "CtaButton"],
+  },
+  {
+    id: "expo",
+    name: "Expo / Trade Show",
+    description: "Hero, stats, exhibitors, sponsors, venue, hotels, FAQ.",
+    blocks: ["Hero", "StatsRow", "ExhibitorsListing", "SponsorsGrid", "VenueMap", "HotelsListing", "Faqs"],
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    description: "A lean page — hero, a short intro, ticket call-to-action.",
+    blocks: ["Hero", "RichText", "TicketsCta"],
+  },
+]
 
 interface BuilderMainProps {
   eventId: string
@@ -84,6 +114,7 @@ export function BuilderMain({
   const [showSeo, setShowSeo] = useState(false)
   const [seo, setSeo] = useState<{ title: string; description: string; ogImage: string } | null>(null)
   const [seoSaving, setSeoSaving] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
 
   const pageList = sortPages(pages) // [slug, BuilderPage][]
 
@@ -253,6 +284,24 @@ export function BuilderMain({
     setShowSeo(false)
   }, [eventId, seo])
 
+  // Templates — replace the active page's content with a starter layout.
+  const applyTemplate = useCallback(
+    (blocks: string[]) => {
+      if (!window.confirm("Apply this template? It replaces the current page's content.")) return
+      const comps = puckConfig.components as Record<string, { defaultProps?: Record<string, unknown> }>
+      const content = blocks.map((type, i) => ({
+        type,
+        props: { ...(comps[type]?.defaultProps ?? {}), id: `${type}-${Date.now()}-${i}` },
+      }))
+      const data = { content, root: { props: {} }, zones: {} } as unknown as Data
+      dataByPage.current[activeSlug] = data
+      setShowTemplates(false)
+      setPuckKey((k) => k + 1)
+      scheduleSave(activeSlug, data)
+    },
+    [activeSlug, scheduleSave],
+  )
+
   const statusLabel =
     saveState === "saving" ? "Saving…"
     : saveState === "saved" ? "All changes saved"
@@ -286,6 +335,14 @@ export function BuilderMain({
             {statusLabel}
           </span>
         )}
+        <button
+          type="button"
+          onClick={() => setShowTemplates(true)}
+          title="Starter templates"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[#1d1d1f]/60 hover:text-[#1d1d1f] hover:bg-black/[0.05] transition-colors"
+        >
+          <LayoutTemplate size={15} />
+        </button>
         <button
           type="button"
           onClick={openHistory}
@@ -466,6 +523,30 @@ export function BuilderMain({
               </div>
             </div>
           )}
+        </Modal>
+      )}
+      {/* ── Starter templates ──────────────────────────────────────── */}
+      {showTemplates && (
+        <Modal title="Starter templates" onClose={() => setShowTemplates(false)}>
+          <p className="text-[12px] text-[#1d1d1f]/55 mb-3">
+            Pick a layout to drop a full set of sections onto the current page.
+            Auto-filled blocks (speakers, agenda, sponsors) populate from the
+            event&rsquo;s own data.
+          </p>
+          <ul className="space-y-2">
+            {STARTER_TEMPLATES.map((t) => (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  onClick={() => applyTemplate(t.blocks)}
+                  className="w-full text-left p-3 rounded-xl border border-[#e5e7eb] hover:border-[#0071e3] hover:bg-[#0071e3]/[0.03] transition-colors"
+                >
+                  <p className="text-[13px] font-semibold text-[#1d1d1f]">{t.name}</p>
+                  <p className="text-[12px] text-[#1d1d1f]/55 mt-0.5">{t.description}</p>
+                </button>
+              </li>
+            ))}
+          </ul>
         </Modal>
       )}
     </div>
