@@ -93,7 +93,7 @@ export default async function RegisterPage() {
 
   const { data: upcomingEvents } = await supabase
     .from("events")
-    .select("id, title")
+    .select("id, title, slug")
     .eq("status", "published")
     .gte("start_date", new Date().toISOString())
     .order("start_date", { ascending: true })

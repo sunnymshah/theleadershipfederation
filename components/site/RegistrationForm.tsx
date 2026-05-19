@@ -69,7 +69,7 @@ const PARTICIPATION_TYPES = [
 type ParticipationType = (typeof PARTICIPATION_TYPES)[number]["value"]
 
 interface RegistrationFormProps {
-  events: { id: string; title: string }[]
+  events: { id: string; title: string; slug?: string | null }[]
 }
 
 export function RegistrationForm({ events }: RegistrationFormProps) {
@@ -81,6 +81,14 @@ export function RegistrationForm({ events }: RegistrationFormProps) {
     typeParam && PARTICIPATION_TYPES.some((t) => t.value === typeParam)
       ? typeParam
       : null
+
+  // Pre-select an event when arriving via a deep link such as
+  // `/register?event=<id-or-slug>` — used by the external EventCreate
+  // microsite's "Register" button so the visitor lands on the right event.
+  const eventParam = searchParams.get("event")
+  const initialEventId = eventParam
+    ? events.find((e) => e.id === eventParam || e.slug === eventParam)?.id ?? ""
+    : ""
 
   const [selectedType, setSelectedType] = useState<ParticipationType | null>(
     initialType
@@ -260,7 +268,7 @@ export function RegistrationForm({ events }: RegistrationFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <select
               name="event_id"
-              defaultValue=""
+              defaultValue={initialEventId}
               className={selectArrowStyle}
             >
               <option value="">Select Event (optional)</option>

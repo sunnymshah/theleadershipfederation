@@ -709,17 +709,34 @@ html pre[style] {
 }
 
 /* Reusable liquid-glass surface for LIGHT sections (cards, panels).
- * Tuned to read crisply on a white page: a translucent near-white
- * fill, a fine dark hairline edge (a white border vanishes on white),
- * a bright inner rim-light for the glass sheen, and a soft layered
- * floating shadow. */
+ * A translucent, heavily-blurred + saturated pane with a fine hairline
+ * edge, a bright specular top rim for the glass sheen, and a soft, deep
+ * floating shadow. The translucency lets the section tone behind it
+ * refract through — that is what reads as "liquid glass". */
 .lf-glass {
-  background: rgba(255, 255, 255, 0.72) !important;
-  border: 1px solid rgba(26, 26, 46, 0.07);
+  background: rgba(255, 255, 255, 0.62) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  backdrop-filter: blur(30px) saturate(200%);
+  border: 1px solid rgba(17, 17, 22, 0.06);
   box-shadow:
-    0 1px 2px rgba(26, 26, 46, 0.04),
-    0 14px 40px -14px rgba(26, 26, 46, 0.18),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+    0 1px 2px rgba(17, 17, 22, 0.04),
+    0 22px 54px -22px rgba(17, 17, 22, 0.22),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 -24px 48px -40px rgba(17, 17, 22, 0.06);
+}
+
+/* Stronger, more opaque liquid glass — for large content panels where
+ * body copy and form fields must stay crisply legible. Keeps the rim +
+ * blur sheen but firms up the fill. */
+.lf-glass-strong {
+  background: rgba(255, 255, 255, 0.86) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(190%);
+  backdrop-filter: blur(34px) saturate(190%);
+  border: 1px solid rgba(17, 17, 22, 0.07);
+  box-shadow:
+    0 1px 2px rgba(17, 17, 22, 0.04),
+    0 30px 70px -26px rgba(17, 17, 22, 0.28),
+    inset 0 1px 0 0 rgba(255, 255, 255, 1);
 }
 
 /* Dark liquid-glass — for glass surfaces sitting on dark sections. */

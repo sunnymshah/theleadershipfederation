@@ -2,17 +2,24 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowRight, Loader2, Check, Mail } from "lucide-react"
-import { MagneticButton } from "@/components/ui/MagneticButton"
+import {
+  ArrowRight,
+  Loader2,
+  Check,
+  Mail,
+  CalendarDays,
+  Crown,
+  Handshake,
+} from "lucide-react"
 import { subscribeToNewsletter } from "@/app/actions/newsletterActions"
 
 /**
- * ClosingCTA — the single closing section of the homepage.
+ * ClosingCTA — the creative closing finale of the homepage.
  *
- * One light band (Soft Monochrome) that:
- *   • carries the "As featured in" press trust-strip,
- *   • makes the primary "Your seat at the table awaits" call-to-action,
- *   • and folds the newsletter signup into a clean white card.
+ *   • A bold closing headline.
+ *   • A "where do you fit?" liquid-glass card with three path rows.
+ *   • A liquid-glass newsletter card.
+ *   • A quiet press trust-strip.
  *
  * Content is always rendered — no scroll-gated opacity.
  */
@@ -24,6 +31,27 @@ const PRESS_LOGOS = [
   "Business Standard",
   "Economic Times",
   "YourStory",
+]
+
+const PATHS = [
+  {
+    icon: CalendarDays,
+    title: "Attend an event",
+    desc: "Conclaves, summits & awards",
+    href: "/events",
+  },
+  {
+    icon: Crown,
+    title: "Join the Inner Circle",
+    desc: "Invite-only leadership network",
+    href: "/inner-circle",
+  },
+  {
+    icon: Handshake,
+    title: "Partner with us",
+    desc: "Sponsorship & collaboration",
+    href: "/partners",
+  },
 ]
 
 export function ClosingCTA() {
@@ -54,105 +82,113 @@ export function ClosingCTA() {
   }
 
   return (
-    <section className="relative bg-[#f5f5f7]">
-      <div className="relative max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 py-16 lg:py-24">
-        {/* ── Press trust strip ──────────────────────────────────── */}
-        <div className="text-center">
-          <span className="text-[10px] tracking-[0.24em] uppercase text-[#1d1d1f]/45 font-semibold">
-            As Featured In
+    <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+      {/* Tonal backdrop. */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(56% 50% at 50% -4%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+            "radial-gradient(52% 56% at 10% 70%, rgba(0,113,227,0.12) 0%, transparent 70%), " +
+            "radial-gradient(50% 54% at 92% 88%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+        }}
+      />
+
+      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
+        {/* ── Closing headline ───────────────────────────────────── */}
+        <div className="text-center max-w-2xl mx-auto">
+          <span className="text-[12px] tracking-[0.2em] uppercase text-[#0071e3] font-semibold">
+            One Last Thing
           </span>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-            {PRESS_LOGOS.map((name) => (
-              <span
-                key={name}
-                className="text-[12px] font-semibold text-[#1d1d1f]/50 hover:text-[#1d1d1f]/85 transition-colors duration-300 whitespace-nowrap"
-              >
-                {name}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="w-12 h-px bg-[#1d1d1f]/12 mx-auto my-14" />
-
-        {/* ── Primary call-to-action ─────────────────────────────── */}
-        <div className="text-center">
-          <h2 className="text-[clamp(2rem,4.6vw,3.3rem)] leading-[1.05] text-[#1d1d1f] font-bold tracking-[-0.03em]">
+          <h2 className="mt-4 text-[clamp(2.4rem,5.4vw,4rem)] leading-[1.0] text-[#1d1d1f] font-bold tracking-[-0.04em]">
             Your seat at the
             <br />
             <span className="text-[#0071e3]">table awaits</span>
           </h2>
-          <p className="mt-5 text-[#1d1d1f]/65 text-[16px] leading-relaxed max-w-md mx-auto">
-            Whether you are a leader, enterprise, or institution — there is a
-            place for you in the conversation that shapes tomorrow.
+          <p className="mt-5 text-[#1d1d1f]/60 text-[17px] leading-relaxed max-w-md mx-auto">
+            Leader, enterprise, or institution — there is a place for you in
+            the conversation that shapes tomorrow.
           </p>
-
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <MagneticButton>
-              <Link
-                href="/events"
-                className="group inline-flex items-center gap-2.5 px-9 py-[15px] rounded-full font-bold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_10px_30px_-8px_rgba(0,113,227,0.45)]"
-              >
-                Explore Events
-                <ArrowRight
-                  size={15}
-                  className="group-hover:translate-x-1 transition-transform duration-200"
-                />
-              </Link>
-            </MagneticButton>
-            <Link
-              href="/inner-circle"
-              className="inline-flex items-center px-7 py-[14px] rounded-full text-[14px] font-bold text-[#1d1d1f] bg-white border border-black/[0.08] hover:border-black/20 transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-            >
-              Join Inner Circle
-            </Link>
-            <Link
-              href="/partners"
-              className="inline-flex items-center px-7 py-[14px] rounded-full text-[14px] font-bold text-[#1d1d1f] bg-white border border-black/[0.08] hover:border-black/20 transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-            >
-              Partner With Us
-            </Link>
-          </div>
         </div>
 
-        {/* ── Newsletter — clean white card ──────────────────────── */}
-        <div className="mt-16 max-w-xl mx-auto rounded-3xl bg-white border border-black/[0.07] shadow-[0_24px_60px_-24px_rgba(0,0,0,0.22)] px-7 py-9 sm:px-10 sm:py-10 text-center">
-          <div className="w-13 h-13 rounded-2xl bg-[#0071e3]/[0.08] border border-[#0071e3]/15 flex items-center justify-center mx-auto mb-5 p-3">
-            <Mail size={22} className="text-[#0071e3]" strokeWidth={1.8} />
+        {/* ── Two creative glass cards ───────────────────────────── */}
+        <div className="mt-14 grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Paths card */}
+          <div className="lf-glass-strong rounded-[28px] p-6 sm:p-8">
+            <h3 className="text-[15px] font-bold text-[#1d1d1f] tracking-[-0.01em]">
+              Where do you fit?
+            </h3>
+            <p className="mt-1 text-[13px] text-[#1d1d1f]/55">
+              Pick the door that suits you.
+            </p>
+            <div className="mt-5 space-y-2.5">
+              {PATHS.map(({ icon: Icon, title, desc, href }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="group flex items-center gap-4 rounded-2xl bg-white/60 border border-black/[0.05] px-4 py-3.5 hover:bg-white transition-all duration-200"
+                >
+                  <span className="shrink-0 w-11 h-11 rounded-xl bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center group-hover:bg-[#0071e3] transition-colors duration-200">
+                    <Icon
+                      size={19}
+                      strokeWidth={1.9}
+                      className="text-[#0071e3] group-hover:text-white transition-colors duration-200"
+                    />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[14px] font-semibold text-[#1d1d1f] truncate">
+                      {title}
+                    </span>
+                    <span className="block text-[12px] text-[#1d1d1f]/55 truncate">
+                      {desc}
+                    </span>
+                  </span>
+                  <ArrowRight
+                    size={16}
+                    className="shrink-0 text-[#1d1d1f]/35 group-hover:text-[#0071e3] group-hover:translate-x-1 transition-all duration-200"
+                  />
+                </Link>
+              ))}
+            </div>
           </div>
-          <span className="text-[11px] tracking-[0.24em] uppercase text-[#0071e3] font-bold">
-            Stay Connected
-          </span>
-          <h3 className="mt-2.5 text-[clamp(1.5rem,3vw,2rem)] leading-[1.1] text-[#1d1d1f] font-bold tracking-[-0.02em]">
-            Join Our Community
-          </h3>
-          <p className="mt-3 text-[#1d1d1f]/60 text-[14px] leading-[1.7] max-w-sm mx-auto">
-            Event updates, leadership insights, speaker announcements, and
-            exclusive invitations — straight to your inbox.
-          </p>
 
-          <div className="mt-7">
-            {status === "success" ? (
-              <div className="flex flex-col items-center gap-2.5 py-4">
-                <div className="w-11 h-11 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
-                  <Check size={22} className="text-emerald-600" />
-                </div>
-                <p className="text-[15px] font-semibold text-[#1d1d1f]">
-                  Thank you for subscribing!
-                </p>
-                <p className="text-[13px] text-[#1d1d1f]/55">
-                  You will receive our next update in your inbox.
+          {/* Newsletter card */}
+          <div className="lf-glass-strong rounded-[28px] p-6 sm:p-8 flex flex-col">
+            <div className="flex items-center gap-3">
+              <span className="w-11 h-11 rounded-xl bg-[#0071e3] flex items-center justify-center shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
+                <Mail size={19} className="text-white" strokeWidth={1.9} />
+              </span>
+              <div>
+                <h3 className="text-[15px] font-bold text-[#1d1d1f] tracking-[-0.01em]">
+                  Stay in the loop
+                </h3>
+                <p className="text-[12px] text-[#1d1d1f]/55">
+                  Insights & invitations, monthly.
                 </p>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="flex flex-col sm:flex-row gap-3">
+            </div>
+
+            <div className="mt-6 flex-1 flex flex-col justify-center">
+              {status === "success" ? (
+                <div className="flex flex-col items-center gap-2.5 py-6 text-center">
+                  <div className="w-11 h-11 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
+                    <Check size={22} className="text-emerald-600" />
+                  </div>
+                  <p className="text-[15px] font-semibold text-[#1d1d1f]">
+                    You&apos;re on the list.
+                  </p>
+                  <p className="text-[13px] text-[#1d1d1f]/55">
+                    Our next update will land in your inbox.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-2.5">
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="flex-1 min-w-0 px-5 py-3 rounded-full bg-[#f5f5f7] border border-black/[0.08] text-[14px] text-[#1d1d1f] placeholder-[#1d1d1f]/40 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 focus:bg-white transition-all"
+                    className="w-full px-5 py-3.5 rounded-full bg-white border border-black/[0.08] text-[14px] text-[#1d1d1f] placeholder-[#1d1d1f]/40 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 transition-all"
                   />
                   <input
                     type="email"
@@ -160,39 +196,55 @@ export function ClosingCTA() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     required
-                    className="flex-1 min-w-0 px-5 py-3 rounded-full bg-[#f5f5f7] border border-black/[0.08] text-[14px] text-[#1d1d1f] placeholder-[#1d1d1f]/40 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 focus:bg-white transition-all"
+                    className="w-full px-5 py-3.5 rounded-full bg-white border border-black/[0.08] text-[14px] text-[#1d1d1f] placeholder-[#1d1d1f]/40 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 transition-all"
                   />
-                </div>
-                <button
-                  type="submit"
-                  disabled={status === "loading"}
-                  className="group w-full inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full text-[14px] font-bold text-white bg-[#0071e3] hover:bg-[#0077ed] disabled:opacity-60 transition-all duration-200 shadow-[0_8px_24px_-8px_rgba(0,113,227,0.45)]"
-                >
-                  {status === "loading" ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" />
-                      Subscribing…
-                    </>
-                  ) : (
-                    <>
-                      Subscribe
-                      <ArrowRight
-                        size={14}
-                        className="group-hover:translate-x-1 transition-transform duration-200"
-                      />
-                    </>
+                  <button
+                    type="submit"
+                    disabled={status === "loading"}
+                    className="group w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-[14px] font-bold text-white bg-[#0071e3] hover:bg-[#0077ed] disabled:opacity-60 transition-all duration-200 shadow-[0_12px_30px_-10px_rgba(0,113,227,0.6)]"
+                  >
+                    {status === "loading" ? (
+                      <>
+                        <Loader2 size={15} className="animate-spin" />
+                        Subscribing…
+                      </>
+                    ) : (
+                      <>
+                        Subscribe
+                        <ArrowRight
+                          size={14}
+                          className="group-hover:translate-x-1 transition-transform duration-200"
+                        />
+                      </>
+                    )}
+                  </button>
+                  {status === "error" && (
+                    <p className="text-[13px] text-red-500 text-center">{errorMsg}</p>
                   )}
-                </button>
-                {status === "error" && (
-                  <p className="text-[13px] text-red-500">{errorMsg}</p>
-                )}
-              </form>
-            )}
+                  <p className="text-[11px] text-[#1d1d1f]/35 text-center pt-1">
+                    No spam, ever. Unsubscribe anytime.
+                  </p>
+                </form>
+              )}
+            </div>
           </div>
+        </div>
 
-          <p className="mt-5 text-[11px] text-[#1d1d1f]/35">
-            No spam, ever. Unsubscribe at any time.
-          </p>
+        {/* ── Press trust strip ──────────────────────────────────── */}
+        <div className="mt-16 text-center">
+          <span className="text-[10px] tracking-[0.24em] uppercase text-[#1d1d1f]/40 font-semibold">
+            As Featured In
+          </span>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-2.5">
+            {PRESS_LOGOS.map((logo) => (
+              <span
+                key={logo}
+                className="text-[12px] font-semibold text-[#1d1d1f]/45 hover:text-[#1d1d1f]/80 transition-colors duration-300 whitespace-nowrap"
+              >
+                {logo}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </section>
