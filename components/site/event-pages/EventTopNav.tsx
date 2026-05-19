@@ -17,6 +17,7 @@ import { listVisibleStandardPagesPublic } from "@/app/actions/standardPageAction
 import { publicPageHref, RAIL_PAGE_KINDS, type StandardPageKind } from "@/lib/standard-pages"
 import { parseFocalPoint } from "@/components/admin/ImageUploadCrop"
 import { getString, type TextOverrides } from "@/lib/i18n"
+import { sortPages, type BuilderPagesMap } from "@/lib/event-builder-pages"
 import { EventTopNavMobile } from "./EventTopNavMobile"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 
@@ -50,11 +51,13 @@ export async function EventTopNav({
   let extraLinks: NX[] = []
   type NavStyle = "primary" | "secondary" | "outline" | "text"
   let registerStyle: NavStyle = "primary"
+  // Builder sub-pages (from builder-main) double as nav links.
+  let builderPages: Array<{ slug: string; title: string }> = []
   try {
     const admin = createAdminClient()
     const { data } = await admin
       .from("events")
-      .select("locales, default_locale, logo_url, title, nav_extra_links, text_overrides, builder_settings, locales_hidden")
+      .select("locales, default_locale, logo_url, title, nav_extra_links, text_overrides, builder_settings, locales_hidden, builder_pages")
       .eq("id", eventId)
       .maybeSingle()
     if (data) {
@@ -80,6 +83,10 @@ export async function EventTopNav({
         : {}
       const r = nav.registerStyle as NavStyle | undefined
       if (r === "primary" || r === "secondary" || r === "outline" || r === "text") registerStyle = r
+      const bp = (data as { builder_pages?: unknown }).builder_pages
+      if (bp && typeof bp === "object" && !Array.isArray(bp)) {
+        builderPages = sortPages(bp as BuilderPagesMap).map(([slug, p]) => ({ slug, title: p.title }))
+      }
     }
   } catch {}
   const currentLocale = locale ?? defaultLocale
@@ -116,6 +123,16 @@ export async function EventTopNav({
       children: undefined,
     },
   ]
+  // Builder sub-pages — appear as nav links right after Home.
+  for (const bp of builderPages) {
+    items.push({
+      kind: "__page__" + bp.slug,
+      label: bp.title,
+      href: withLocale(`/events/${eventSlug}/p/${bp.slug}`, locale),
+      active: false,
+      children: undefined,
+    })
+  }
   for (const ex of topExtras) {
     const kids = childrenByParent.get(ex.id) ?? []
     items.push({
