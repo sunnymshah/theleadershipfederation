@@ -137,7 +137,29 @@ async function getServerClient() {
  * `e instanceof Error ? e.message : "fallback"` pattern always hit
  * the fallback branch and hid the real root cause).
  */
+/** Friendly message shown when the CRM tables haven't been migrated yet. */
+const CRM_TABLES_MISSING_MSG =
+  "CRM database tables aren't set up yet. A super admin must run the " +
+  "supabase/migrations/add-crm-leads.sql migration in the Supabase SQL Editor."
+
+/** True when the DB error is PostgREST's "table not in schema cache" (PGRST205). */
+function isMissingCrmTable(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false
+  const obj = e as { message?: unknown; code?: unknown }
+  const code = typeof obj.code === "string" ? obj.code : ""
+  const msg = typeof obj.message === "string" ? obj.message : ""
+  return (
+    code === "PGRST205" ||
+    code === "42P01" || // undefined_table
+    /could not find the table 'public\.crm_/i.test(msg) ||
+    /relation "crm_/i.test(msg)
+  )
+}
+
 function extractError(e: unknown, fallback: string): string {
+  // A missing CRM table is the #1 cause of "leads cannot be assigned" —
+  // surface a clear, actionable message instead of the raw PGRST code.
+  if (isMissingCrmTable(e)) return CRM_TABLES_MISSING_MSG
   if (e instanceof Error) return e.message
   if (e && typeof e === "object") {
     const obj = e as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
@@ -236,7 +258,7 @@ export async function listLeads(filters?: {
     if (error) throw error
     return { success: true, leads: (data as CrmLead[]) ?? [] }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to load leads" }
+    return { success: false, error: extractError(e, "Failed to load leads") }
   }
 }
 
@@ -250,7 +272,7 @@ export async function getLead(
     if (error) throw error
     return { success: true, lead: data as CrmLead }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Lead not found" }
+    return { success: false, error: extractError(e, "Lead not found") }
   }
 }
 
@@ -600,7 +622,7 @@ export async function importLeads(
     revalidate()
     return { success: true, result }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Import failed" }
+    return { success: false, error: extractError(e, "Import failed") }
   }
 }
 
@@ -623,7 +645,7 @@ export async function listNotes(
     await attachAuthorEmails(notes, (n) => n.author_id)
     return { success: true, notes }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to load notes" }
+    return { success: false, error: extractError(e, "Failed to load notes") }
   }
 }
 
@@ -646,7 +668,7 @@ export async function addNote(
     await logActivity(leadId, "note", body.trim().slice(0, 200), {}, ctx.userId)
     return { success: true, note: data as LeadNote }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to add note" }
+    return { success: false, error: extractError(e, "Failed to add note") }
   }
 }
 
@@ -660,7 +682,7 @@ export async function deleteNote(
     if (error) throw error
     return { success: true }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to delete note" }
+    return { success: false, error: extractError(e, "Failed to delete note") }
   }
 }
 
@@ -684,7 +706,7 @@ export async function listActivities(
     await attachAuthorEmails(activities, (a) => a.actor_id)
     return { success: true, activities }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to load activity" }
+    return { success: false, error: extractError(e, "Failed to load activity") }
   }
 }
 
@@ -709,7 +731,7 @@ export async function listTasks(filter: {
     await attachAuthorEmails(tasks, (t) => t.assignee_id)
     return { success: true, tasks }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to load tasks" }
+    return { success: false, error: extractError(e, "Failed to load tasks") }
   }
 }
 
@@ -752,7 +774,7 @@ export async function addTask(input: {
     }
     return { success: true, task: data as LeadTask }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to add task" }
+    return { success: false, error: extractError(e, "Failed to add task") }
   }
 }
 
@@ -781,7 +803,7 @@ export async function updateTask(
     if (error) throw error
     return { success: true, task: data as LeadTask }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to update task" }
+    return { success: false, error: extractError(e, "Failed to update task") }
   }
 }
 
@@ -795,7 +817,7 @@ export async function deleteTask(
     if (error) throw error
     return { success: true }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to delete task" }
+    return { success: false, error: extractError(e, "Failed to delete task") }
   }
 }
 
@@ -852,7 +874,7 @@ export async function getLeadStats(): Promise<{
       },
     }
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Failed to load stats" }
+    return { success: false, error: extractError(e, "Failed to load stats") }
   }
 }
 
