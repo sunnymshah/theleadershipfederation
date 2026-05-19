@@ -183,6 +183,23 @@ const layoutField = {
         { label: "Hide", value: true },
       ],
     },
+    minHeight: {
+      type: "select",
+      label: "Minimum height",
+      options: [
+        { label: "Auto (default)", value: "auto" },
+        { label: "Tall (60% screen)", value: "tall" },
+        { label: "Full screen", value: "full" },
+      ],
+    },
+    centerContent: {
+      type: "radio",
+      label: "Centre content vertically",
+      options: [
+        { label: "No", value: false },
+        { label: "Yes", value: true },
+      ],
+    },
     anchor: { type: "text", label: "Anchor (advanced — renders as id=, used for #links)" },
     cssClass: { type: "text", label: "CSS class (advanced — appended to wrapper)" },
     locked: {

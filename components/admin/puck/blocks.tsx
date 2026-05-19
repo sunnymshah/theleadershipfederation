@@ -374,6 +374,10 @@ export type LayoutProps = {
   radius?: "none" | "sm" | "md" | "lg" | "xl"
   /** Hide this section on phone-width screens. */
   hideOnMobile?: boolean
+  /** Minimum section height — useful for backdrop-image sections. */
+  minHeight?: "auto" | "tall" | "full"
+  /** Vertically centre the section's content (pairs with minHeight). */
+  centerContent?: boolean
 }
 
 const padY = {
@@ -442,12 +446,20 @@ function SectionShell({
     l.radius === "lg" ? "rounded-3xl overflow-hidden" :
     l.radius === "xl" ? "rounded-[2.5rem] overflow-hidden" : ""
   const hideClass = l.hideOnMobile ? "hidden sm:block" : ""
+  const minHeightClass =
+    l.minHeight === "tall" ? "min-h-[60vh]" :
+    l.minHeight === "full" ? "min-h-screen" : ""
+  // When a min-height is set, optionally centre the content vertically.
+  const centerClass =
+    l.centerContent && l.minHeight && l.minHeight !== "auto"
+      ? "flex flex-col justify-center"
+      : ""
 
   return (
     <section
       id={anchorId}
       data-lf-hidden={hidden ? "true" : undefined}
-      className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""} ${extraClass} ${lockedClass} ${radiusClass} ${hideClass}`.trim()}
+      className={`${padding} ${align} ${baseClass} ${forcesWhite ? "text-white" : ""} ${extraClass} ${lockedClass} ${radiusClass} ${hideClass} ${minHeightClass} ${centerClass}`.trim()}
       style={style}
     >
       {children}
