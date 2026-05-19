@@ -278,6 +278,13 @@ export default function EventDetailPage() {
                     <ExternalLink size={10} />
                   </Link>
                 )}
+                <Link
+                  href={`/admin/builder-main/${event.id}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0071e3] text-white text-[12px] font-semibold hover:bg-[#0077ed] transition-colors"
+                >
+                  <LayoutDashboard size={13} />
+                  Edit Page
+                </Link>
               </div>
             </div>
 
