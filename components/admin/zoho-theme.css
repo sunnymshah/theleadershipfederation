@@ -15,20 +15,20 @@
   --z-bg-alt:       #f7f8fa;
   --z-bg-canvas:    #eef0f3;
   --z-bg-rail:      #ffffff;
-  --z-bg-rail-active: #fff1f0;
+  --z-bg-rail-active: #eff6ff;
 
   /* Borders */
   --z-border:        #e5e7eb;
   --z-border-strong: #d1d5db;
 
   /* Text */
-  --z-text:        #1f2937;
+  --z-text:        #1d1d1f;
   --z-text-muted:  #6b7280;
   --z-text-subtle: #9ca3af;
 
-  /* Accent (Zoho red) */
-  --z-accent:       #f0483e;
-  --z-accent-hover: #d63d33;
+  /* Accent — TLF Apple-blue, matched to the public homepage theme */
+  --z-accent:       #0071e3;
+  --z-accent-hover: #0077ed;
 
   /* Semantic */
   --z-info:    #3e7af7;
@@ -46,8 +46,8 @@
   --z-shadow:    0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
   --z-shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.10);
 
-  /* Type */
-  --z-font: -apple-system, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  /* Type — Montserrat, matched to the public site */
+  --z-font: var(--font-montserrat), -apple-system, "Segoe UI", Roboto, sans-serif;
   font-family: var(--z-font);
   color: var(--z-text);
 }

@@ -49,7 +49,7 @@ interface Event {
 
 // ── Status badge config ──────────────────────────────────────────────────
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
-  draft:     { bg: "bg-yellow-500/10", text: "text-yellow-600" },
+  draft:     { bg: "bg-amber-500/10", text: "text-amber-600" },
   published: { bg: "bg-emerald-500/10", text: "text-emerald-600" },
   completed: { bg: "bg-blue-500/10",   text: "text-blue-600" },
   cancelled: { bg: "bg-red-500/10",    text: "text-red-600" },
@@ -228,7 +228,7 @@ export default function AdminEventsPage() {
       {/* ── Page Header ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-[#333] mb-1">Events</h2>
+          <h2 className="text-2xl font-bold text-[#1d1d1f] mb-1">Events</h2>
           <p className="text-sm text-[#888]">
             Create, edit, and manage all events
           </p>
@@ -236,7 +236,7 @@ export default function AdminEventsPage() {
         {can("events", "create") && (
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#0071e3] text-white text-sm font-bold hover:bg-[#0077ed] transition-colors"
           >
             <Plus size={16} />
             New Event
@@ -255,7 +255,7 @@ export default function AdminEventsPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search events by name or venue…"
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#bbb] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#bbb] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
         />
       </div>
 
@@ -310,11 +310,11 @@ export default function AdminEventsPage() {
               {filtered.map((event) => (
                 <tr
                   key={event.id}
-                  className="border-b border-[#eee] last:border-0 hover:bg-[#fafafa] transition-colors"
+                  className="border-b border-[#eee] last:border-0 hover:bg-[#f5f5f7] transition-colors"
                 >
                   <td className="px-5 py-4">
                     <Link href={`/admin/events/${event.id}`} className="block group/link">
-                      <div className="font-medium text-[#333] group-hover/link:text-[#c9a84c] transition-colors">
+                      <div className="font-medium text-[#1d1d1f] group-hover/link:text-[#0071e3] transition-colors">
                         {event.title}
                       </div>
                       <div className="text-[11px] text-[#aaa] mt-0.5">
@@ -341,7 +341,7 @@ export default function AdminEventsPage() {
                     <div className="flex items-center justify-end gap-1">
                       <Link
                         href={`/admin/events/${event.id}`}
-                        className="p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+                        className="p-2 rounded-md text-[#aaa] hover:text-[#0071e3] hover:bg-[#0071e3]/10 transition-colors"
                         title="Manage event"
                       >
                         <ExternalLink size={15} />
@@ -349,7 +349,7 @@ export default function AdminEventsPage() {
                       {can("events", "create") && (
                         <button
                           onClick={() => openCloneModal(event)}
-                          className="p-2 rounded-md text-[#aaa] hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors"
+                          className="p-2 rounded-md text-[#aaa] hover:text-[#0071e3] hover:bg-[#0071e3]/10 transition-colors"
                           title="Clone event"
                         >
                           <Copy size={15} />
@@ -400,7 +400,7 @@ export default function AdminEventsPage() {
           <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
             {/* Drawer header */}
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-lg font-semibold text-[#333]">
+              <h3 className="text-lg font-semibold text-[#1d1d1f]">
                 {editingEvent ? "Edit Event" : "Create New Event"}
               </h3>
               <button
@@ -423,7 +423,7 @@ export default function AdminEventsPage() {
                   name="title"
                   required
                   defaultValue={editingEvent?.title ?? ""}
-                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
                   placeholder="Asia Leadership Summit 2025"
                 />
               </div>
@@ -438,7 +438,7 @@ export default function AdminEventsPage() {
                   name="slug"
                   required
                   defaultValue={editingEvent?.slug ?? ""}
-                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
                   placeholder="asia-leadership-summit-2025"
                 />
               </div>
@@ -454,7 +454,7 @@ export default function AdminEventsPage() {
                     name="startDate"
                     required
                     defaultValue={editingEvent ? new Date(editingEvent.start_date).toISOString().slice(0, 16) : ""}
-                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
                   />
                 </div>
                 <div>
@@ -466,7 +466,7 @@ export default function AdminEventsPage() {
                     name="endDate"
                     required
                     defaultValue={editingEvent ? new Date(editingEvent.end_date).toISOString().slice(0, 16) : ""}
-                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
                   />
                 </div>
               </div>
@@ -481,7 +481,7 @@ export default function AdminEventsPage() {
                   name="venue"
                   required
                   defaultValue={editingEvent?.venue ?? ""}
-                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
                   placeholder="Jio World Centre, Mumbai"
                 />
               </div>
@@ -495,7 +495,7 @@ export default function AdminEventsPage() {
                   name="description"
                   rows={3}
                   defaultValue=""
-                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors resize-none"
                   placeholder="Brief overview of the event…"
                 />
               </div>
@@ -530,7 +530,7 @@ export default function AdminEventsPage() {
                   </div>
                 ) : (
                   /* PICKER — empty state */
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e0e0e0] rounded-lg cursor-pointer hover:border-[#c9a84c]/50 hover:bg-[#c9a84c]/5 transition-colors">
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e0e0e0] rounded-lg cursor-pointer hover:border-[#0071e3]/50 hover:bg-[#0071e3]/5 transition-colors">
                     <ImagePlus size={24} className="text-[#bbb] mb-2" />
                     <span className="text-xs text-[#999]">Click to upload event cover photo</span>
                     <span className="text-[10px] text-[#ccc] mt-1">JPG, PNG, WebP — max 5 MB</span>
@@ -564,7 +564,7 @@ export default function AdminEventsPage() {
                 <select
                   name="status"
                   defaultValue={editingEvent?.status ?? "published"}
-                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
                 >
                   <option value="published">Published (Live on website)</option>
                   <option value="draft">Draft (Hidden from website)</option>
@@ -588,14 +588,14 @@ export default function AdminEventsPage() {
                 <button
                   type="button"
                   onClick={() => { setDrawerOpen(false); setEditingEvent(null) }}
-                  className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors"
+                  className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#f5f5f7] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-lg bg-[#0071e3] text-white text-sm font-bold hover:bg-[#0077ed] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -624,7 +624,7 @@ export default function AdminEventsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl border border-[#e0e0e0] shadow-2xl w-full max-w-md">
               <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#333]">Clone Event</h3>
+                <h3 className="text-lg font-semibold text-[#1d1d1f]">Clone Event</h3>
                 <button
                   onClick={() => { setCloneModalOpen(false); setCloningEvent(null) }}
                   className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-gray-100 transition-colors"
@@ -646,7 +646,7 @@ export default function AdminEventsPage() {
                     type="text"
                     value={cloneTitle}
                     onChange={(e) => setCloneTitle(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors"
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors"
                     placeholder="New event title"
                   />
                 </div>
@@ -659,7 +659,7 @@ export default function AdminEventsPage() {
                     type="text"
                     value={cloneSlug}
                     onChange={(e) => setCloneSlug(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono"
+                    className="w-full px-3 py-2.5 bg-white border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors font-mono"
                     placeholder="new-event-slug"
                   />
                 </div>
@@ -674,14 +674,14 @@ export default function AdminEventsPage() {
                   <button
                     type="button"
                     onClick={() => { setCloneModalOpen(false); setCloningEvent(null) }}
-                    className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#fafafa] transition-colors"
+                    className="flex-1 py-2.5 rounded-lg border border-[#e0e0e0] text-sm text-[#777] hover:text-[#444] hover:bg-[#f5f5f7] transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleClone}
                     disabled={cloning || !cloneTitle || !cloneSlug}
-                    className="flex-1 py-2.5 rounded-lg bg-[#c9a84c] text-[#1a1a2e] text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 rounded-lg bg-[#0071e3] text-white text-sm font-bold hover:bg-[#0077ed] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                   >
                     {cloning ? (
                       <>
