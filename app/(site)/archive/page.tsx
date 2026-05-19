@@ -26,6 +26,30 @@ function extractEdition(title: string): string {
   return match ? match[1] : ""
 }
 
+/* Cover images for the seeded legacy events — GCC conclaves use their
+ * own event thumbnails; awards & summits use the real series photo.
+ * A cover_image_url set in the DB always takes precedence. */
+const LEGACY_COVERS: Record<string, string> = {
+  "legacy-gcc-5": "/events/legacy/gcc-5.png",
+  "legacy-gcc-ai": "/events/legacy/gcc-ai.png",
+  "legacy-gcc-4": "/events/legacy/gcc-4.png",
+  "legacy-gcc-3": "/events/legacy/gcc-3.png",
+  "legacy-gcc-2": "/events/legacy/gcc-2.png",
+  "legacy-gcc-1": "/events/legacy/gcc-1.png",
+  "legacy-ala-7": "/events/asia-leadership-awards.jpg",
+  "legacy-ala-6": "/events/asia-leadership-awards.jpg",
+  "legacy-ala-5": "/events/asia-leadership-awards.jpg",
+  "legacy-ala-4": "/events/asia-leadership-awards.jpg",
+  "legacy-ala-3": "/events/asia-leadership-awards.jpg",
+  "legacy-ala-2": "/events/asia-leadership-awards.jpg",
+  "legacy-meala-3": "/events/middle-east-asia.jpg",
+  "legacy-meala-2": "/events/middle-east-asia.jpg",
+  "legacy-blea-2": "/events/bharat-leadership-awards.jpg",
+  "legacy-blea-1": "/events/bharat-leadership-awards.jpg",
+  "legacy-issa-2": "/events/asia-leadership-awards.jpg",
+  "legacy-issa-1": "/events/asia-leadership-awards.jpg",
+}
+
 export default async function ArchivePage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
@@ -63,7 +87,7 @@ export default async function ArchivePage() {
       series: (e.series as string | null) ?? "The Leadership Federation",
       edition: extractEdition(e.title),
       description: e.description || "",
-      coverImage: e.cover_image_url || undefined,
+      coverImage: e.cover_image_url || LEGACY_COVERS[e.slug as string] || undefined,
       slug: e.slug,
       externalUrl: (e.external_url as string | null) ?? undefined,
     }))
