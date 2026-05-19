@@ -397,7 +397,7 @@ export default function AdminEventsPage() {
           />
 
           {/* Drawer */}
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-[#ededf0] z-50 shadow-[-8px_0_28px_rgba(15,23,42,0.06)] overflow-y-auto">
             {/* Drawer header */}
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-[#1d1d1f]">
@@ -622,7 +622,7 @@ export default function AdminEventsPage() {
             onClick={() => { setCloneModalOpen(false); setCloningEvent(null) }}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl border border-[#e0e0e0] shadow-2xl w-full max-w-md">
+            <div className="bg-white rounded-xl border border-[#ededf0] shadow-[0_4px_20px_rgba(15,23,42,0.07)] w-full max-w-md">
               <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-[#1d1d1f]">Clone Event</h3>
                 <button
