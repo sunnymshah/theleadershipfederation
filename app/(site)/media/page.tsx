@@ -1,5 +1,5 @@
 import {
-  ArrowRight, Newspaper, Video, ExternalLink, Mail, Radio, Megaphone,
+  ArrowRight, Newspaper, Video, ExternalLink, Mail, Radio, Megaphone, Sparkles,
 } from "lucide-react"
 import Link from "next/link"
 import { Linkedin, Instagram, Facebook } from "@/components/icons/SocialIcons"
@@ -43,6 +43,8 @@ const PRESS = [
     outlet: "Business Standard",
     title: "The Leadership Federation hosts a high-impact GCC & AI leadership gathering in Bengaluru",
     date: "April 2026",
+    excerpt:
+      "Honouring the leaders driving global enterprise transformation as Global Capability Centres and AI converge.",
     url: "https://www.business-standard.com/content/press-releases-ani/the-leadership-federation-hosts-a-high-impact-gcc-and-ai-leadership-gathering-in-bengaluru-honors-leaders-driving-global-enterprise-transformation-126041100705_1.html",
   },
   {
@@ -108,70 +110,150 @@ export default async function MediaPage() {
     /* empty state */
   }
   const realVideos = videos.filter((v) => v.youtube_id)
+  const outletNames = outlets.length > 0 ? outlets.map((o) => o.name) : OUTLET_NAMES
+  const lead = PRESS[0]
+  const rest = PRESS.slice(1)
 
   return (
     <main className="bg-white">
-      {/* ══════════════ Hero ══════════════ */}
+      {/* ══════════════ HERO ══════════════ */}
       <section className="relative bg-white pt-32 lg:pt-40 pb-14 lg:pb-16 overflow-hidden">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(58% 56% at 50% 0%, rgba(0,113,227,0.08) 0%, transparent 70%)",
+              "radial-gradient(60% 58% at 50% 0%, rgba(0,113,227,0.1) 0%, transparent 70%)",
           }}
         />
         <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
           <AnimateOnScroll animation="fade-up">
-            <span className="inline-flex items-center gap-2 text-[11px] sm:text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
-              <Newspaper size={14} /> Newsroom
+            <span className="inline-flex items-center gap-2 lf-glass rounded-full px-4 py-1.5 text-[11px] sm:text-[12px] font-bold text-[#0071e3] uppercase tracking-[0.2em]">
+              <Newspaper size={13} /> Newsroom
             </span>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={110}>
-            <h1 className="mt-4 sm:mt-5 text-[clamp(2.4rem,5.6vw,4.4rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.02]">
-              The Federation
+            <h1 className="mt-6 text-[clamp(2.7rem,6.4vw,5.2rem)] font-bold text-[#1d1d1f] tracking-[-0.045em] leading-[0.98]">
+              The Federation,
               <br />
               <span className="text-[#0071e3]">in the press</span>
             </h1>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={220}>
-            <p className="mt-5 sm:mt-6 text-[15px] sm:text-[18px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
-              How the national and trade press cover our conclaves, awards and
-              the leaders who convene at them — plus event video and media
-              enquiries, all in one place.
+            <p className="mt-6 text-[15px] sm:text-[18px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
+              How India&apos;s national and trade press cover our conclaves,
+              awards and the leaders who convene at them — with event video
+              and media enquiries, all in one room.
             </p>
           </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={300}>
+            <div className="mt-9 flex flex-wrap items-stretch justify-center gap-3">
+              {[
+                { v: `${PRESS.length}`, l: "Featured Stories" },
+                { v: `${OUTLET_NAMES.length}+`, l: "Press Outlets" },
+                { v: "Pan-India", l: "Coverage" },
+              ].map((s) => (
+                <div key={s.l} className="lf-glass rounded-2xl px-6 py-4 text-center">
+                  <p className="text-[22px] font-bold text-[#1d1d1f] leading-none tracking-[-0.02em]">
+                    {s.v}
+                  </p>
+                  <p className="text-[10.5px] uppercase tracking-[0.12em] text-[#1d1d1f]/50 font-semibold mt-1.5">
+                    {s.l}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </AnimateOnScroll>
         </div>
+
+        {/* Outlet marquee */}
+        <AnimateOnScroll animation="fade-up" delay={380}>
+          <div className="relative z-10 mt-12 sm:mt-14">
+            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 z-10 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+            <div className="flex animate-marquee w-max gap-3">
+              {[...outletNames, ...outletNames].map((name, i) => (
+                <span
+                  key={`${name}-${i}`}
+                  className="lf-glass rounded-full px-6 py-3 text-[14px] font-bold text-[#1d1d1f] whitespace-nowrap"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </AnimateOnScroll>
       </section>
 
-      {/* ══════════════ Featured Coverage ══════════════ */}
+      {/* ══════════════ FEATURED COVERAGE ══════════════ */}
       <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background:
               "radial-gradient(54% 46% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
-              "radial-gradient(50% 56% at 88% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+              "radial-gradient(50% 56% at 88% 96%, rgba(0,113,227,0.1) 0%, transparent 72%)",
           }}
         />
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-12">
             <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               Featured Coverage
             </span>
             <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
-              Recent press
+              The story, as the press told it
             </h2>
-            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
-              Selected reporting from India&apos;s national and business press.
-            </p>
           </AnimateOnScroll>
 
+          {/* Lead story — large showpiece */}
+          <AnimateOnScroll animation="fade-up">
+            <a
+              href={lead.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="lf-glass-strong group relative block rounded-[32px] overflow-hidden p-8 sm:p-12 lg:p-14 mb-5 shadow-[0_44px_100px_-46px_rgba(10,10,20,0.45)]"
+            >
+              <div
+                className="absolute -top-24 -right-20 w-80 h-80 rounded-full pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(0,113,227,0.16) 0%, transparent 70%)",
+                }}
+              />
+              <div className="relative">
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0071e3] text-white text-[10px] font-bold uppercase tracking-[0.16em]">
+                    <Sparkles size={11} /> Latest Coverage
+                  </span>
+                  <span className="inline-flex items-center gap-2 text-[12.5px] font-bold text-[#0071e3] uppercase tracking-[0.12em]">
+                    <Newspaper size={14} /> {lead.outlet}
+                  </span>
+                  <span className="text-[12.5px] font-semibold text-[#1d1d1f]/45">
+                    {lead.date}
+                  </span>
+                </div>
+                <h3 className="text-[clamp(1.5rem,3.4vw,2.6rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.12] max-w-3xl">
+                  {lead.title}
+                </h3>
+                {lead.excerpt && (
+                  <p className="mt-4 text-[15px] text-[#1d1d1f]/60 leading-[1.7] max-w-xl">
+                    {lead.excerpt}
+                  </p>
+                )}
+                <span className="inline-flex items-center gap-2 mt-7 px-7 py-[14px] rounded-full font-bold text-[14px] text-white bg-[#0071e3] group-hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-12px_rgba(0,113,227,0.7)]">
+                  Read the full article
+                  <ExternalLink size={15} />
+                </span>
+              </div>
+            </a>
+          </AnimateOnScroll>
+
+          {/* Remaining coverage */}
           <StaggerChildren
             animation="fade-up"
             stagger={70}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
           >
-            {PRESS.map((p) => (
+            {rest.map((p) => (
               <a
                 key={p.url}
                 href={p.url}
@@ -180,18 +262,18 @@ export default async function MediaPage() {
                 className="lf-glass group flex flex-col rounded-[22px] p-7 transition-all duration-300 hover:-translate-y-1.5"
               >
                 <div className="flex items-center justify-between gap-3 mb-4">
-                  <span className="inline-flex items-center gap-2 text-[12px] font-bold text-[#0071e3] uppercase tracking-[0.12em]">
-                    <Newspaper size={13} /> {p.outlet}
+                  <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#0071e3] uppercase tracking-[0.1em]">
+                    <Newspaper size={12} /> {p.outlet}
                   </span>
-                  <span className="text-[11.5px] font-semibold text-[#1d1d1f]/45">
+                  <span className="text-[11px] font-semibold text-[#1d1d1f]/45">
                     {p.date}
                   </span>
                 </div>
-                <h3 className="text-[17px] font-bold text-[#1d1d1f] leading-[1.35] tracking-[-0.015em] flex-1">
+                <h3 className="text-[15.5px] font-bold text-[#1d1d1f] leading-[1.4] tracking-[-0.015em] flex-1">
                   {p.title}
                 </h3>
-                <span className="inline-flex items-center gap-1.5 mt-5 text-[13px] font-bold text-[#0071e3] group-hover:gap-2.5 transition-all duration-200">
-                  Read article <ExternalLink size={13} />
+                <span className="inline-flex items-center gap-1.5 mt-5 text-[12.5px] font-bold text-[#0071e3] group-hover:gap-2.5 transition-all duration-200">
+                  Read article <ExternalLink size={12} />
                 </span>
               </a>
             ))}
@@ -199,42 +281,14 @@ export default async function MediaPage() {
         </div>
       </section>
 
-      {/* ══════════════ As Featured In ══════════════ */}
-      <section className="relative bg-white py-16 sm:py-20 lg:py-24 overflow-hidden">
-        <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
-          <AnimateOnScroll animation="fade-up">
-            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
-              As Featured In
-            </span>
-            <h2 className="mt-4 text-[clamp(1.6rem,3.4vw,2.4rem)] font-bold text-[#1d1d1f] tracking-[-0.03em]">
-              Trusted by the newsdesks that cover enterprise
-            </h2>
-          </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={120}>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              {(outlets.length > 0 ? outlets.map((o) => o.name) : OUTLET_NAMES).map(
-                (name) => (
-                  <span
-                    key={name}
-                    className="lf-glass rounded-full px-5 py-2.5 text-[13px] font-bold text-[#1d1d1f]"
-                  >
-                    {name}
-                  </span>
-                ),
-              )}
-            </div>
-          </AnimateOnScroll>
-        </div>
-      </section>
-
-      {/* ══════════════ Video Highlights ══════════════ */}
+      {/* ══════════════ VIDEO HIGHLIGHTS ══════════════ */}
       {realVideos.length > 0 && (
-        <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
           <div
             className="absolute inset-0 z-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(54% 46% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%)",
+                "radial-gradient(56% 48% at 50% 0%, rgba(0,113,227,0.06) 0%, transparent 70%)",
             }}
           />
           <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
@@ -290,13 +344,13 @@ export default async function MediaPage() {
         </section>
       )}
 
-      {/* ══════════════ Media Enquiries ══════════════ */}
-      <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
+      {/* ══════════════ MEDIA ENQUIRIES ══════════════ */}
+      <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(54% 56% at 50% 100%, rgba(0,113,227,0.1) 0%, transparent 72%)",
+              "radial-gradient(54% 56% at 50% 100%, rgba(0,113,227,0.12) 0%, transparent 72%)",
           }}
         />
         <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
@@ -344,7 +398,6 @@ export default async function MediaPage() {
                     <Facebook size={15} /> Facebook
                   </a>
                 </div>
-                {/* The Sunny Shah Show — a platform, linked, not the focus */}
                 <Link
                   href="/platforms"
                   className="mt-auto pt-6 group inline-flex items-center gap-3 text-left"
