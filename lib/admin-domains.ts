@@ -93,10 +93,7 @@ export const ADMIN_WORKSPACES: AdminWorkspace[] = [
         title: "Build",
         items: [
           { label: "All events",    href: "/admin/events" },
-          // Page Builder hidden from nav under Plan A — event pages are now
-          // built on external EventCreate microsites. The /admin/builder
-          // routes + Puck code remain intact as a fallback; just not linked.
-          // { label: "Page Builder",  href: "/admin/builder", permission: { module: "events", action: "edit" } },
+          { label: "Page Builder",  href: "/admin/builder", permission: { module: "events", action: "edit" } },
           { label: "Sessions",      href: "/admin/sessions" },
           { label: "Agenda",        href: "/admin/agenda" },
           { label: "Speakers",      href: "/admin/advisory-board", permission: { module: "speakers", action: "view" } },
