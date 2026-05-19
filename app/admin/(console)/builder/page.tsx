@@ -272,8 +272,8 @@ function EventBuilderCard({
         {/* Primary CTA + live link */}
         <div className="flex items-center gap-2 mb-3">
           <Link
-            href={`/admin/builder/${event.id}`}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#c9a84c] text-[#1a1a2e] text-[13px] font-bold hover:bg-[#d4b85c] transition-colors shadow-[0_2px_8px_rgba(201,168,76,0.25)]"
+            href={`/admin/builder-main/${event.id}`}
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0071e3] text-white text-[13px] font-bold hover:bg-[#0077ed] transition-colors shadow-[0_2px_8px_rgba(0,113,227,0.25)]"
           >
             <Hammer size={14} />
             Open Builder
