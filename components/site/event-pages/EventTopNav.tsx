@@ -1,15 +1,14 @@
 /**
- * ── EventTopNav (Zoho-style standard-page nav, server component) ─────
+ * ── EventTopNav — liquid-glass event navigation (server component) ───
  *
- * Renders the canonical horizontal nav at the top of every public event
- * page. Reads from `event_standard_pages` (visible=true) so admins can
- * hide/reorder via the Pages panel without touching code.
+ * Matches the main site Navbar: a floating, translucent liquid-glass
+ * pill with the logo on the left.
  *
- * Layout matches Zoho Backstage:
- *   - Uppercase tab labels, primary-color underline on active page
- *   - REGISTER NOW + SIGN IN pinned to the right with a separator
- *   - Mobile: hamburger collapses everything but Register
- *   - Optional language switcher when event.locales.length > 1
+ * Link model:
+ *   - HARDCODED:  "Home" (event home) + "Back to LF" (main TLF site).
+ *   - CONFIGURABLE: every other link comes from events.nav_extra_links,
+ *     editable in the page builder. Nothing else auto-appears.
+ *   - "Register" stays pinned right as the event's primary CTA.
  */
 
 import Link from "next/link"
@@ -40,10 +39,8 @@ export async function EventTopNav({
   locale?: string
 }) {
   const pages = await listVisibleStandardPagesPublic(eventId)
-  if (pages.length === 0) return null
 
-  // Pull event locales + logo + nav_extra_links for the switcher,
-  // left-edge logo, and ITEM 8 custom nav merge (best-effort).
+  // Event metadata — logo, title, custom nav links, locales, register style.
   let locales: string[] = []
   let defaultLocale = "en"
   let logoUrl: string | null = null
@@ -51,12 +48,8 @@ export async function EventTopNav({
   let textOverrides: TextOverrides = {}
   type NX = { id: string; label: string; url: string; parent_id?: string | null; sort_order: number; visible: boolean }
   let extraLinks: NX[] = []
-  // PART C9 — register/sign-in style overrides from
-  // events.builder_settings.navigation. Default to Zoho-parity:
-  // register=primary (filled), signin=text (link).
   type NavStyle = "primary" | "secondary" | "outline" | "text"
   let registerStyle: NavStyle = "primary"
-  let signinStyle:   NavStyle = "text"
   try {
     const admin = createAdminClient()
     const { data } = await admin
@@ -65,7 +58,6 @@ export async function EventTopNav({
       .eq("id", eventId)
       .maybeSingle()
     if (data) {
-      // PART C10 — drop hidden locales before they reach the switcher.
       const hidden = ((data as { locales_hidden?: unknown }).locales_hidden ?? []) as string[]
       const hiddenSet = new Set(Array.isArray(hidden) ? hidden : [])
       locales = ((data.locales as string[] | null) ?? [])
@@ -82,21 +74,23 @@ export async function EventTopNav({
       if (tov && typeof tov === "object" && !Array.isArray(tov)) {
         textOverrides = tov as TextOverrides
       }
-      // PART C9 — pluck the navigation styles off builder_settings.
       const bs = (data as { builder_settings?: unknown }).builder_settings
       const nav = bs && typeof bs === "object" && !Array.isArray(bs)
         ? (((bs as Record<string, unknown>).navigation ?? {}) as Record<string, unknown>)
         : {}
       const r = nav.registerStyle as NavStyle | undefined
-      const s = nav.signinStyle as NavStyle | undefined
       if (r === "primary" || r === "secondary" || r === "outline" || r === "text") registerStyle = r
-      if (s === "primary" || s === "secondary" || s === "outline" || s === "text") signinStyle   = s
     }
   } catch {}
   const currentLocale = locale ?? defaultLocale
-  const logoSrc = logoUrl ? parseFocalPoint(logoUrl).src : null
+  // Logo: the event's own logo when set, else the TLF wordmark — so a
+  // real logo image always shows (never a bare text fallback).
+  const logoSrc = logoUrl ? parseFocalPoint(logoUrl).src : "/logo-tlf.png"
 
-  // ITEM 8: build a tree out of extraLinks (parent_id → children).
+  const eventHome = withLocale(`/events/${eventSlug}`, locale)
+
+  // CONFIGURABLE links — top-level custom links from nav_extra_links,
+  // edited in the page builder. Nested children render as a dropdown.
   const topExtras = extraLinks.filter((x) => !x.parent_id).sort((a, b) => a.sort_order - b.sort_order)
   const childrenByParent = new Map<string, NX[]>()
   for (const e of extraLinks) {
@@ -105,215 +99,155 @@ export async function EventTopNav({
     arr.push(e); childrenByParent.set(e.parent_id, arr)
   }
 
-  // The event nav defaults to just Home + Tickets. Other standard pages
-  // (agenda, speakers, sponsors, gallery, …) no longer auto-appear as
-  // tabs — admins add only what they want via custom nav links
-  // (events.nav_extra_links), appended further down as `topExtras`.
-  const NAV_DEFAULT_KINDS = new Set<StandardPageKind>(["home", "tickets"])
-  const main = pages.filter(
-    (p) =>
-      !RAIL_PAGE_KINDS.has(p.kind as StandardPageKind) &&
-      NAV_DEFAULT_KINDS.has(p.kind as StandardPageKind),
-  )
-  const rail = pages.filter((p) => RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
-
-  // ITEM 1.1: defensively guarantee a Home tab as the FIRST item — if
-  // the close-out migration hasn't run yet on this DB, or an admin has
-  // hidden the home row, the visible page list might not include
-  // kind='home'. Without this, the nav renders "AGENDA SPEAKERS …"
-  // with no obvious entry point back to the event home.
-  const hasHome = main.some((p) => p.kind === "home")
-  const items = main.map((p) => ({
-    kind: p.kind as StandardPageKind,
-    label: p.label,
-    href: withLocale(publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }), locale),
-    active: p.kind === currentKind,
-    children: p.children?.map((c) => ({
-      label: c.label,
-      href: withLocale(`/events/${eventSlug}/${c.slug}`, locale),
-    })) ?? undefined,
-  }))
-  if (!hasHome) {
-    items.unshift({
-      kind: "home" as StandardPageKind,
+  // Main tabs = hardcoded Home + the configurable custom links.
+  type NavItem = {
+    kind: string
+    label: string
+    href: string
+    active: boolean
+    children?: Array<{ label: string; href: string }>
+  }
+  const items: NavItem[] = [
+    {
+      kind: "home",
       label: "Home",
-      href: withLocale(`/events/${eventSlug}`, locale),
+      href: eventHome,
       active: currentKind === "home",
       children: undefined,
-    })
-  }
-
-  // Guarantee a Tickets tab right after Home, even when the event has no
-  // visible 'tickets' standard page yet — it links to the event's
-  // tickets page (/events/[slug]/tickets).
-  if (!items.some((it) => it.kind === "tickets")) {
-    items.splice(1, 0, {
-      kind: "tickets" as StandardPageKind,
-      label: "Tickets",
-      href: withLocale(`/events/${eventSlug}/tickets`, locale),
-      active: currentKind === "tickets",
-      children: undefined,
-    })
-  }
-
-  // ITEM 8: append custom links + their nested children.
-  type TopItem = (typeof items)[number]
+    },
+  ]
   for (const ex of topExtras) {
     const kids = childrenByParent.get(ex.id) ?? []
     items.push({
-      kind: ("__extra__" + ex.id) as StandardPageKind,
+      kind: "__extra__" + ex.id,
       label: ex.label,
       href: ex.url,
       active: false,
       children: kids.length > 0 ? kids.map((k) => ({ label: k.label, href: k.url })) : undefined,
-    } as unknown as TopItem)
+    })
   }
-  // ITEM 4.4 — Override register/signin labels per-locale via the
-  // text-overrides table when set; falls back to the row's label
-  // (which itself defaults to "Register Now" / "Sign In").
-  const railItems = rail.map((p) => {
-    let label = p.label
-    if (p.kind === "register") label = getString("nav.register", currentLocale, textOverrides) || p.label
-    if (p.kind === "signin")   label = getString("nav.signin",   currentLocale, textOverrides) || p.label
-    return {
-      kind: p.kind as StandardPageKind,
-      label,
-      href: withLocale(publicPageHref(eventSlug, { kind: p.kind as StandardPageKind, slug: p.slug }), locale),
-      active: p.kind === currentKind,
-    }
-  })
+
+  // Register — the event's primary CTA, pinned right.
+  const registerRow = pages.find((p) => p.kind === "register" && RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
+  const registerItem = registerRow
+    ? {
+        kind: "register",
+        label: getString("nav.register", currentLocale, textOverrides) || registerRow.label,
+        href: withLocale(publicPageHref(eventSlug, { kind: "register", slug: registerRow.slug }), locale),
+        active: false,
+      }
+    : {
+        kind: "register",
+        label: getString("nav.register", currentLocale, textOverrides) || "Register",
+        href: withLocale(`/events/${eventSlug}/tickets`, locale),
+        active: false,
+      }
 
   const showLangSwitcher = locales.length > 1
 
+  const registerCls =
+    registerStyle === "secondary"
+      ? "inline-flex items-center px-4 h-9 rounded-full text-[12.5px] font-semibold bg-[#1a1a2e] text-white hover:bg-[#2a2a4e] transition-colors"
+    : registerStyle === "outline"
+      ? "inline-flex items-center px-4 h-9 rounded-full text-[12.5px] font-semibold border border-[#1a1a2e]/25 text-[#1a1a2e] hover:bg-white/60 transition-colors"
+    : registerStyle === "text"
+      ? "inline-flex items-center px-2 h-9 text-[12.5px] font-semibold text-[#1a1a2e]/75 hover:text-[#1a1a2e] transition-colors"
+      : "inline-flex items-center px-4 h-9 rounded-full text-[12.5px] font-semibold bg-[#0071e3] text-white hover:bg-[#0077ed] transition-colors"
+
   return (
-    <nav
-      aria-label="Event pages"
-      className="sticky top-0 z-30 bg-white border-b border-[#1a1a2e]/[0.08] shadow-sm"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4 sm:gap-6">
-        {/* A2 + ITEM 1.3: left-edge event logo (when events.logo_url
-            is set). 40px tall — matches the Zoho Backstage left-of-nav
-            reference. When the logo is unset, render a small wordmark
-            of the event title in the LF brand voice so the nav still
-            has a clear left anchor. */}
-        {logoSrc ? (
-          <Link
-            href={withLocale(`/events/${eventSlug}`, locale)}
-            className="shrink-0 flex items-center"
-            aria-label={`${eventTitle || "Event"} home`}
-          >
+    <header className="sticky top-0 z-40 px-3 sm:px-5 lg:px-6 pt-3 sm:pt-4">
+      <nav className="lf-liquid-nav max-w-[1240px] mx-auto rounded-[20px] px-3.5 sm:px-5 lg:px-6">
+        <div className="flex items-center h-[56px] lg:h-[60px] gap-3">
+          {/* Logo — left */}
+          <Link href={eventHome} className="shrink-0 flex items-center" aria-label={`${eventTitle || "Event"} home`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={logoSrc}
-              alt={eventTitle ? `${eventTitle} logo` : "Event logo"}
-              className="h-10 w-auto max-w-[180px] object-contain"
+              alt={eventTitle ? `${eventTitle} logo` : "The Leadership Federation"}
+              className="h-[26px] lg:h-[30px] w-auto max-w-[190px] object-contain"
             />
           </Link>
-        ) : eventTitle ? (
-          <Link
-            href={withLocale(`/events/${eventSlug}`, locale)}
-            className="shrink-0 hidden md:inline-flex items-center text-[12px] font-bold uppercase tracking-[0.18em] text-[#1a1a2e] hover:opacity-80 max-w-[200px] truncate"
-            aria-label={`${eventTitle} home`}
-            title={eventTitle}
-          >
-            {eventTitle}
-          </Link>
-        ) : null}
-        {/* Desktop main tabs */}
-        <ul className="hidden md:flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
-          {items.map((it) => {
-            const cls = `inline-flex items-center px-3.5 h-14 -mb-px text-[12px] font-bold uppercase tracking-[0.05em] border-b-2 transition-colors whitespace-nowrap ${
-              it.active
-                ? "border-[var(--lf-primary,#e7ab1c)] text-[#1a1a2e]"
-                : "border-transparent text-[#1a1a2e]/65 hover:text-[#1a1a2e] hover:border-[#1a1a2e]/15"
-            }`
-            if (it.children && it.children.length > 0) {
-              return (
-                <li key={it.kind} className="shrink-0 relative group">
-                  <Link href={it.href} aria-current={it.active ? "page" : undefined} className={`${cls} gap-1`}>
+
+          {/* Desktop nav — centered text links */}
+          <div className="hidden lg:flex items-center justify-center flex-1">
+            <div className="flex items-center gap-0.5">
+              {items.map((it) => {
+                const base =
+                  "relative px-3 py-1.5 text-[13.5px] tracking-[-0.01em] whitespace-nowrap rounded-full transition-all duration-200"
+                const tone = it.active
+                  ? "text-[#1a1a2e] font-semibold"
+                  : "text-[#1a1a2e]/65 hover:text-[#1a1a2e] font-medium hover:bg-white/50"
+                if (it.children && it.children.length > 0) {
+                  return (
+                    <div key={it.kind} className="relative group">
+                      <Link href={it.href} className={`${base} ${tone} inline-flex items-center gap-1`}>
+                        {it.label}
+                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" aria-hidden className="opacity-55">
+                          <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </Link>
+                      <div className="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block">
+                        <div className="lf-glass-strong rounded-2xl min-w-[210px] p-1.5">
+                          {it.children.map((c) => (
+                            <Link
+                              key={c.href}
+                              href={c.href}
+                              className="block px-3 py-2 rounded-xl text-[13px] font-medium text-[#1a1a2e]/75 hover:text-[#1a1a2e] hover:bg-white/60 transition-colors"
+                            >
+                              {c.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <Link key={it.kind} href={it.href} aria-current={it.active ? "page" : undefined} className={`${base} ${tone}`}>
                     {it.label}
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden className="opacity-60">
-                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    {it.active && (
+                      <span className="absolute left-1/2 -translate-x-1/2 -bottom-0.5 h-[2.5px] w-5 rounded-full bg-[#0071e3]" />
+                    )}
                   </Link>
-                  <ul className="absolute left-0 top-full hidden group-hover:block group-focus-within:block min-w-[220px] bg-white border border-[#1a1a2e]/10 shadow-lg z-50">
-                    {it.children.map((c) => (
-                      <li key={c.href}>
-                        <Link
-                          href={c.href}
-                          className="block px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1a2e]/80 hover:bg-[#1a1a2e]/[0.04] hover:text-[#1a1a2e]"
-                        >
-                          {c.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              )
-            }
-            return (
-              <li key={it.kind} className="shrink-0">
-                <Link href={it.href} aria-current={it.active ? "page" : undefined} className={cls}>
-                  {it.label}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+                )
+              })}
+            </div>
+          </div>
 
-        {/* Desktop pinned-right slot (Register + Sign In + lang switcher) */}
-        <div className="hidden md:flex items-center gap-3 shrink-0 pl-4 border-l border-[#1a1a2e]/[0.08]">
-          {showLangSwitcher && (
-            <LanguageSwitcher
-              eventSlug={eventSlug}
-              currentLocale={locale ?? defaultLocale}
-              available={locales}
+          {/* Right — Register CTA + hardcoded "Back to LF" */}
+          <div className="hidden lg:flex items-center gap-2.5 shrink-0 ml-auto">
+            {showLangSwitcher && (
+              <LanguageSwitcher
+                eventSlug={eventSlug}
+                currentLocale={locale ?? defaultLocale}
+                available={locales}
+              />
+            )}
+            <Link href={registerItem.href} data-ab-convert="" className={registerCls}>
+              {registerItem.label}
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 text-[12px] font-medium text-[#1a1a2e]/55 hover:text-[#1a1a2e] transition-colors pl-3 border-l border-[#1a1a2e]/15"
+              aria-label="Back to The Leadership Federation"
+              title="Back to the main TLF site"
+            >
+              ← Back to LF
+            </Link>
+          </div>
+
+          {/* Mobile */}
+          <div className="lg:hidden flex-1">
+            <EventTopNavMobile
+              items={[
+                ...items,
+                registerItem,
+                { kind: "__back__", label: "← Back to LF", href: "/", active: false },
+              ]}
             />
-          )}
-          {/* PART C9 — apply per-kind style override from
-              events.builder_settings.navigation. Defaults match the
-              previous behaviour (register=primary, signin=text). */}
-          {railItems.map((it) => {
-            const style: NavStyle = it.kind === "register" ? registerStyle
-                                  : it.kind === "signin"   ? signinStyle
-                                  :                          "text"
-            const cls =
-              style === "primary"
-                ? "inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] bg-[var(--lf-primary,#e7ab1c)] text-white hover:bg-[#d49c10] transition-colors"
-              : style === "secondary"
-                ? "inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] bg-[#1a1a2e] text-white hover:bg-[#1a1a2e]/85 transition-colors"
-              : style === "outline"
-                ? "inline-flex items-center px-4 h-9 rounded-md text-[12px] font-bold uppercase tracking-[0.05em] border border-[#1a1a2e]/25 text-[#1a1a2e] hover:bg-[#1a1a2e]/5 transition-colors"
-                : "text-[12px] font-bold uppercase tracking-[0.05em] text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition-colors"
-            return (
-              <Link
-                key={it.kind}
-                href={it.href}
-                data-ab-convert={it.kind === "register" ? "" : undefined}
-                className={cls}
-              >
-                {it.label}
-              </Link>
-            )
-          })}
-          {/* PART E1 — "TLF site" escape link re-homed from the
-              now-removed outer chrome. Hidden on smaller breakpoints
-              so it doesn't crowd Register/Sign In. */}
-          <Link
-            href="/"
-            className="hidden lg:inline-flex items-center text-[10px] font-medium tracking-[0.18em] uppercase text-[#1a1a2e]/45 hover:text-[#1a1a2e]/85 transition-colors pl-3 ml-1 border-l border-[#1a1a2e]/[0.08]"
-            aria-label="Back to The Leadership Federation"
-            title="Back to TLF main site"
-          >
-            ← TLF
-          </Link>
+          </div>
         </div>
-
-        {/* Mobile menu */}
-        <div className="md:hidden flex-1">
-          <EventTopNavMobile items={[...items, ...railItems]} />
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   )
 }
