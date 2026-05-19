@@ -10,23 +10,30 @@
  */
 
 .lf-admin-shell {
-  /* Backgrounds */
-  --z-bg:           #ffffff;
-  --z-bg-alt:       #f7f8fa;
-  --z-bg-canvas:    #eef0f3;
-  --z-bg-rail:      #ffffff;
-  --z-bg-rail-active: #eff6ff;
+  /* ── FLAT & AIRY admin theme ──────────────────────────────────────
+   * Minimalist retune: shadows flattened to near-nothing (elevation
+   * comes from hairline borders, not drop-shadows), fills lightened so
+   * panels read as one calm surface, generous whitespace, Apple-blue
+   * accent kept. Token + class names are unchanged so every admin page
+   * inherits the new look with zero per-page edits. */
 
-  /* Borders */
-  --z-border:        #e5e7eb;
-  --z-border-strong: #d1d5db;
+  /* Backgrounds — barely-there steps so the UI reads flat, not layered */
+  --z-bg:           #ffffff;
+  --z-bg-alt:       #fafbfc;
+  --z-bg-canvas:    #f6f7f9;
+  --z-bg-rail:      #ffffff;
+  --z-bg-rail-active: #f0f6ff;
+
+  /* Borders — soft hairlines do the structural work shadows used to */
+  --z-border:        #ededf0;
+  --z-border-strong: #dfe0e4;
 
   /* Text */
   --z-text:        #1d1d1f;
   --z-text-muted:  #6b7280;
   --z-text-subtle: #9ca3af;
 
-  /* Accent — TLF Apple-blue, matched to the public homepage theme */
+  /* Accent — TLF Apple-blue, kept per the redesign brief */
   --z-accent:       #0071e3;
   --z-accent-hover: #0077ed;
 
@@ -36,15 +43,16 @@
   --z-warning: #f59e0b;
   --z-danger:  #dc2626;
 
-  /* Radii */
-  --z-radius-sm: 4px;
-  --z-radius:    6px;
-  --z-radius-lg: 8px;
+  /* Radii — slightly softer for an airier feel */
+  --z-radius-sm: 5px;
+  --z-radius:    8px;
+  --z-radius-lg: 10px;
 
-  /* Shadows */
-  --z-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --z-shadow:    0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
-  --z-shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.10);
+  /* Shadows — flattened. sm/base are now hairline-only (effectively no
+   * drop shadow); only popovers/menus get a soft, low-contrast lift. */
+  --z-shadow-sm: none;
+  --z-shadow:    0 0 0 1px rgba(15, 23, 42, 0.04);
+  --z-shadow-lg: 0 4px 20px rgba(15, 23, 42, 0.07);
 
   /* Type — Montserrat, matched to the public site */
   --z-font: var(--font-montserrat), -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -75,10 +83,10 @@
 .lf-admin-shell .z-rail-item.is-active::before {
   content: "";
   position: absolute;
-  top: 4px;
-  bottom: 4px;
+  top: 8px;
+  bottom: 8px;
   left: -7px;
-  width: 3px;
+  width: 2px;
   border-radius: 0 var(--z-radius-sm) var(--z-radius-sm) 0;
   background: var(--z-accent);
 }
@@ -116,21 +124,22 @@
   width: 100%;
 }
 
-/* Inputs uniform */
+/* Inputs uniform — taller + roomier for the airier feel */
 .lf-admin-shell .z-input {
-  height: 32px;
+  height: 38px;
   border-radius: var(--z-radius-lg);
   border: 1px solid var(--z-border);
   background: var(--z-bg);
   color: var(--z-text);
-  padding: 0 10px;
+  padding: 0 12px;
   font-size: 13px;
   width: 100%;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 .lf-admin-shell .z-input:focus {
-  outline: 2px solid var(--z-info);
-  outline-offset: 0;
-  border-color: var(--z-info);
+  outline: none;
+  border-color: var(--z-accent);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
 }
 .lf-admin-shell textarea.z-input,
 .lf-admin-shell .z-textarea {
@@ -140,36 +149,36 @@
   resize: vertical;
 }
 
-/* Primary button */
+/* Primary button — flat fill, no shadow, roomier hit area */
 .lf-admin-shell .z-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 12px;
-  height: 32px;
+  gap: 7px;
+  padding: 0 16px;
+  height: 38px;
   border-radius: var(--z-radius-lg);
   background: var(--z-accent);
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   transition: background-color 120ms ease;
 }
 .lf-admin-shell .z-btn-primary:hover { background: var(--z-accent-hover); }
-.lf-admin-shell .z-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.lf-admin-shell .z-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Subtle button */
 .lf-admin-shell .z-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 0 10px;
-  height: 32px;
+  gap: 7px;
+  padding: 0 14px;
+  height: 38px;
   border-radius: var(--z-radius-lg);
   color: var(--z-text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   transition: color 120ms ease, background-color 120ms ease;
@@ -179,37 +188,42 @@
   background: var(--z-bg-alt);
 }
 .lf-admin-shell .z-btn-icon {
-  width: 32px;
+  width: 38px;
   padding: 0;
 }
 
-/* Secondary panel item */
+/* Secondary panel item — taller rows, flat active state (tinted fill +
+ * accent rail, no shadow) for the airier nav. */
 .lf-admin-shell .z-panel-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  height: 32px;
+  gap: 9px;
+  padding: 8px 12px;
+  height: 38px;
   border-radius: var(--z-radius);
   font-size: 13px;
-  color: var(--z-text);
+  color: var(--z-text-muted);
   border-left: 2px solid transparent;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
-.lf-admin-shell .z-panel-item:hover { background: var(--z-bg); }
-.lf-admin-shell .z-panel-item.is-active {
+.lf-admin-shell .z-panel-item:hover {
   background: var(--z-bg);
+  color: var(--z-text);
+}
+.lf-admin-shell .z-panel-item.is-active {
+  background: var(--z-bg-rail-active);
   border-left-color: var(--z-accent);
+  color: var(--z-accent);
   font-weight: 600;
 }
 
-/* Empty state */
+/* Empty state — extra breathing room */
 .lf-admin-shell .z-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 32px 24px;
+  padding: 48px 28px;
   color: var(--z-text-muted);
 }
 .lf-admin-shell .z-empty-icon { color: var(--z-text-subtle); margin-bottom: 12px; }
