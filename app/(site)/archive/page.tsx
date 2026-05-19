@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import Link from "next/link"
 import {
-  Calendar, MapPin, ArrowRight, Globe, Users, Handshake, Sparkles, Star,
+  Calendar, MapPin, ArrowRight, Globe, Users, Handshake, Sparkles,
 } from "lucide-react"
 import { AnimateOnScroll } from "@/components/ui/AnimateOnScroll"
 import { ArchiveFilteredGrid } from "@/components/site/ArchiveYearFilter"
@@ -69,7 +69,6 @@ export default async function ArchivePage() {
     }))
     .sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
 
-  const seriesNames = Array.from(new Set(allCards.map((c) => c.series).filter(Boolean)))
   const uniqueCities = new Set(allCards.map((e) => e.city).filter(Boolean))
 
   const stats = [
@@ -160,36 +159,10 @@ export default async function ArchivePage() {
             </AnimateOnScroll>
           )}
 
-          {/* Series chips */}
-          {seriesNames.length > 0 && (
-            <AnimateOnScroll animation="fade-up">
-              <div className="flex flex-wrap gap-2 mb-8">
-                {seriesNames.map((series) => {
-                  const count = allCards.filter((e) => e.series === series).length
-                  return (
-                    <span
-                      key={series}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11.5px] font-semibold bg-[#0071e3]/[0.08] text-[#0071e3] border border-[#0071e3]/15"
-                    >
-                      <Star size={11} className="fill-current" />
-                      {series}
-                      <span className="opacity-55">{count}</span>
-                    </span>
-                  )
-                })}
-              </div>
-            </AnimateOnScroll>
-          )}
-
           {allCards.length > 0 ? (
-            <>
-              <AnimateOnScroll animation="fade-up">
-                <p className="text-[12px] font-bold text-[#1d1d1f]/55 uppercase tracking-[0.2em] mb-6">
-                  Past Editions · {allCards.length} events
-                </p>
-              </AnimateOnScroll>
+            <AnimateOnScroll animation="fade-up">
               <ArchiveFilteredGrid cards={allCards} />
-            </>
+            </AnimateOnScroll>
           ) : (
             <div className="lf-glass-strong rounded-[28px] p-12 sm:p-16 text-center">
               <div className="w-16 h-16 rounded-2xl bg-[#0071e3] flex items-center justify-center mx-auto mb-6 shadow-[0_14px_32px_-10px_rgba(0,113,227,0.7)]">

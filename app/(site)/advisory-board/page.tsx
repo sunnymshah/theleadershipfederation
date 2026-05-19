@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import Image from "next/image"
 import Link from "next/link"
-import { Users, ArrowRight, ExternalLink } from "lucide-react"
+import { ArrowRight, ExternalLink, Gavel, ShieldCheck, Scale, Star } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 import { getPageSections } from "@/app/actions/pageContentActions"
 
@@ -16,15 +16,72 @@ function pickStr(obj: Record<string, unknown> | undefined, key: string, fallback
 export const metadata = {
   title: "Advisory Board & Jury | The Leadership Federation",
   description:
-    "Meet the distinguished global leaders who guide The Leadership Federation's mission and jury our flagship awards.",
+    "Meet the distinguished global leaders who guide The Leadership Federation — an eminent advisory board of CXOs and board directors, and an international jury that upholds the standard of our awards.",
 }
 
-const sfDisplay = {
-  fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
+function initials(name: string): string {
+  return name
+    .replace(/^(Dr\.?|Mr\.?|Ms\.?|Col(?:onel)?\.?)\s+/i, "")
+    .split(/\s+/)
+    .map((w) => w[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
 }
-const sfText = {
-  fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
-}
+
+/* ── Researched from theleadershipfederation.com/advisoryboardandjury ── */
+
+type BoardMember = { name: string; role: string; org: string; bio: string }
+
+const ADVISORY_BOARD: BoardMember[] = [
+  { name: "Mohammed Al Mashroom", role: "Founder & CEO", org: "Dubai Euro Group", bio: "An experienced entrepreneur with a strong track record across international commerce and development." },
+  { name: "Colonel Ajai Lal", role: "Leadership & Executive Coach", org: "TEDx Speaker · Author", bio: "A Colonel in the Indian Army (Veteran) and former Senior Military Observer with the United Nations." },
+  { name: "Robin Joffe", role: "Partner & MD — Middle East, Africa & South Asia", org: "Frost & Sullivan", bio: "A growth strategist with deep on-the-ground experience building companies and businesses globally." },
+  { name: "Devendrasingh Rajput", role: "Chief Business Officer", org: "Indira IVF", bio: "Over 20 years across the diagnostics and healthcare industry, with full P&L responsibility." },
+  { name: "Sandip Patnaik", role: "Sr. Managing Director & Board Director", org: "JLL India", bio: "More than 26 years of professional experience, including 18 years with JLL India." },
+  { name: "Dr. Rajesh Puneyani", role: "VP — Technology & Site Leader", org: "Kenvue India GCC", bio: "Over 28 years of global leadership in technology and digital transformation." },
+  { name: "Kaushik Das", role: "Managing Director", org: "JCPenney India", bio: "25+ years of global experience in transformation, strategy, operations and change management." },
+  { name: "Srinivas Sampath", role: "VP — R&D & Site Leader", org: "Upland India", bio: "Nearly three decades building, scaling and transforming global technology and product organisations." },
+  { name: "Monica Pirgal", role: "Chief Executive Officer", org: "Bhartiya Converge", bio: "A qualified lawyer with twenty-five years of deep, cross-industry leadership experience." },
+  { name: "Neel Pandya", role: "CEO — EMEA, APAC & Global Partnerships", org: "Pixis", bio: "Extensive leadership across the FMCG, telecom, marketing and advertising industries." },
+  { name: "Dr. Ishha Farha Quraishy", role: "Founder", org: "IFQ Technologies", bio: "An AI and Metaverse innovation evangelist with over 14 years in the technology industry." },
+  { name: "Jai Mulani", role: "Chief Executive Officer", org: "IBT", bio: "Transforming the Middle East BPO industry — built a company employing 1,000+ people in Dubai." },
+  { name: "Radhakrishnan Mahalingam", role: "Chief IT Transformations Leader", org: "ICT & Smart Security", bio: "23 years across smart security, master system integration and ICT infrastructure architecture." },
+  { name: "Vaishali Wagle", role: "Founder & CEO", org: "Zenesse", bio: "A leadership strategist and peak-performance coach; two decades in banking technology with Citi and JPMorgan." },
+]
+
+type JuryMember = { name: string; role: string; country?: string }
+
+const JURY: JuryMember[] = [
+  { name: "Dr. Rama Mundra", role: "Dean, Adani Institute of Digital Technology Management", country: "India" },
+  { name: "Yaseen Sahar", role: "Channel Head, SBI Mutual Funds", country: "India" },
+  { name: "Aniruddh Tiwari", role: "Data Analytics Leader & Evangelist", country: "USA" },
+  { name: "Rupal Jain", role: "Semiconductor Industry Leader", country: "USA" },
+  { name: "Prashant Kumar", role: "Data Scientist & Generative AI Evangelist, BOLD", country: "USA" },
+  { name: "Suneeta Modekurty", role: "Business Analytics, Data Science & GenAI Leader", country: "USA" },
+  { name: "Dipen Tamboli", role: "Project Control Manager, Newtron Group", country: "USA" },
+  { name: "Anil Sood", role: "AI Governance & Data Management Leader, EY", country: "Canada & US" },
+  { name: "Gaurav Shah", role: "Director of Software Development, EG4 Electronics" },
+  { name: "Ankur Mehra", role: "Advisory Board Member & Author" },
+  { name: "Harish Padmanabhan", role: "Vice President — SRE, JP Morgan Chase", country: "USA" },
+  { name: "Punit Panjwani", role: "Manager, Control System Integration, Barry-Wehmiller Design Group", country: "USA" },
+  { name: "Pavan Joshi", role: "Vice President of Software Engineering, Fiserv", country: "USA" },
+  { name: "Arpil Mehta", role: "AVP — Fraud Analytics & Innovation, Bank of America", country: "USA" },
+  { name: "Sabyasachi Mondal", role: "Senior Software Engineer, Apple", country: "USA" },
+  { name: "Shreerang Tarte", role: "Head — HR & Business Strategy, JSM Consulting", country: "USA" },
+  { name: "Bhashwanth Kadapagunta", role: "Specialist Leader (Senior Manager), Deloitte", country: "USA" },
+  { name: "Sanjay Jain", role: "Machine Learning Engineer, Atlanta Journal-Constitution", country: "USA" },
+  { name: "Santosh Kumar Singu", role: "Sr. Solution Specialist, Deloitte", country: "USA" },
+  { name: "Ramesh Babu Potla", role: "ERP / SAP Digital Transformation Manager, Corning Inc." },
+  { name: "Anu Shivaraj", role: "Lead Data Scientist, E. & J. Gallo Winery" },
+  { name: "Ravi Shankar", role: "Machine Learning Manager, Overstock" },
+  { name: "Vijitha Uppuluri", role: "Sr. Manager — Data Science, CVS Health" },
+  { name: "Ravi Kumar Vallemoni", role: "Sr. Data Architect, Bank of America" },
+  { name: "Anjan G.", role: "Sr. Software Engineer, Optum" },
+  { name: "Ashmitha Nagraj", role: "Senior Full Stack Engineer, Fidelity" },
+  { name: "Sunil Karthik Kota", role: "Sr. Software Engineer & Technology Leader, Cisco" },
+  { name: "Jagadeeswar Alampally", role: "Software Development Manager, IQVIA" },
+]
 
 export default async function AdvisoryBoardPage() {
   const cookieStore = await cookies()
@@ -39,128 +96,262 @@ export default async function AdvisoryBoardPage() {
     getPageSections("advisory_board"),
   ])
 
-  const boardMembers = members ?? []
+  /* DB members override the researched defaults when present. */
+  const dbBoard = (members ?? []).map((m) => ({
+    name: m.name as string,
+    role: (m.designation as string | null) ?? "",
+    org: (m.company as string | null) ?? "",
+    bio: (m.bio as string | null) ?? "",
+    image_url: (m.image_url as string | null) ?? null,
+    linkedin_url: (m.linkedin_url as string | null) ?? null,
+  }))
+  const board =
+    dbBoard.length > 0
+      ? dbBoard
+      : ADVISORY_BOARD.map((b) => ({ ...b, image_url: null, linkedin_url: null }))
 
   const hero = {
-    eyebrow: pickStr(sections.hero, "eyebrow", "Leadership"),
-    title: pickStr(sections.hero, "title", "Advisory Board & Jury"),
+    eyebrow: pickStr(sections.hero, "eyebrow", "Governance & Standards"),
+    title: pickStr(sections.hero, "title", "The Advisory Board & Jury"),
     description: pickStr(
       sections.hero,
       "description",
-      "The Leadership Federation is guided by an eminent panel of global CXOs, board directors, and domain experts who shape our strategic direction and uphold the highest standards across our awards, conclaves, and initiatives."
+      "The Leadership Federation is guided by an eminent panel of global CXOs and board directors — and its awards are upheld by an independent international jury. Together they set the bar, and hold it.",
     ),
-  }
-
-  const emptyState = {
-    title: pickStr(sections.empty_state, "title", "Coming Soon"),
-    description: pickStr(
-      sections.empty_state,
-      "description",
-      "Our advisory board profiles are being updated. Check back soon to meet the leaders guiding The Leadership Federation."
-    ),
-    ctaLabel: pickStr(sections.empty_state, "cta_label", "Express Interest"),
   }
 
   return (
-    <main className="min-h-screen">
-      {/* Hero */}
-      <section className="relative pt-24 pb-12 px-6 overflow-hidden">
+    <main className="bg-white">
+      {/* ══════════════ Hero ══════════════ */}
+      <section className="relative bg-white pt-32 lg:pt-40 pb-14 lg:pb-16 overflow-hidden">
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
-          style={{ width: "900px", height: "600px", borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)" }}
-          aria-hidden
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(58% 56% at 50% 0%, rgba(0,113,227,0.08) 0%, transparent 70%)",
+          }}
         />
-        <div className="relative z-10 max-w-5xl mx-auto text-center">
+        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
           <AnimateOnScroll animation="fade-up">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <div className="h-px w-8 bg-[#e7ab1c]/40" />
-              <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em]">{hero.eyebrow}</span>
-              <div className="h-px w-8 bg-[#e7ab1c]/40" />
-            </div>
+            <span className="text-[11px] sm:text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              {hero.eyebrow}
+            </span>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={120}>
-            <h1
-              className="text-4xl md:text-5xl font-bold tracking-[-0.02em] text-[#1a1a2e] mb-6"
-              style={sfDisplay}
-            >
-              {hero.title}
+          <AnimateOnScroll animation="fade-up" delay={110}>
+            <h1 className="mt-4 sm:mt-5 text-[clamp(2.4rem,5.6vw,4.4rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.02]">
+              The Advisory Board
+              <br />
+              &amp; <span className="text-[#0071e3]">Jury</span>
             </h1>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={240}>
-            <p className="text-[16px] text-[#1a1a2e]/65 max-w-2xl mx-auto leading-relaxed" style={sfText}>
+          <AnimateOnScroll animation="fade-up" delay={220}>
+            <p className="mt-5 sm:mt-6 text-[15px] sm:text-[18px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
               {hero.description}
             </p>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={300}>
+            <div className="mt-9 flex flex-wrap items-stretch justify-center gap-3">
+              {[
+                { icon: ShieldCheck, value: board.length, label: "Advisory Board" },
+                { icon: Gavel, value: JURY.length, label: "Jury Members" },
+                { icon: Scale, value: "100%", label: "Independent" },
+              ].map((s) => {
+                const Icon = s.icon
+                return (
+                  <div key={s.label} className="lf-glass rounded-2xl px-6 py-4 flex items-center gap-3">
+                    <span className="w-9 h-9 rounded-xl bg-[#0071e3]/[0.1] flex items-center justify-center shrink-0">
+                      <Icon size={17} className="text-[#0071e3]" strokeWidth={2} />
+                    </span>
+                    <span className="text-left">
+                      <span className="block text-[20px] font-bold text-[#1d1d1f] leading-none tabular-nums">
+                        {s.value}
+                      </span>
+                      <span className="block text-[10.5px] uppercase tracking-[0.1em] text-[#1d1d1f]/50 font-semibold mt-1">
+                        {s.label}
+                      </span>
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
           </AnimateOnScroll>
         </div>
       </section>
 
-      {/* Members grid or empty state */}
-      <section className="max-w-6xl mx-auto px-6 pb-16">
-        {boardMembers.length === 0 ? (
-          <div className="rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-[#e7ab1c]/10 flex items-center justify-center mx-auto mb-6">
-              <Users size={28} className="text-[#e7ab1c]" />
-            </div>
-            <h2 className="text-2xl font-bold text-[#1a1a2e] mb-3" style={sfDisplay}>
-              {emptyState.title}
+      {/* ══════════════ Advisory Board ══════════════ */}
+      <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 46% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+              "radial-gradient(50% 56% at 88% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
+            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              The Advisory Board
+            </span>
+            <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+              The leaders who shape the agenda
             </h2>
-            <p className="text-[#1a1a2e]/55 text-[15px] max-w-md mx-auto mb-8" style={sfText}>
-              {emptyState.description}
+            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+              CXOs, founders and board directors from across the GCC, India and
+              beyond — guiding the Federation&apos;s strategic direction.
             </p>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#e7ab1c] text-white text-sm font-semibold hover:bg-[#d49c10] transition-all duration-200 shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
-            >
-              {emptyState.ctaLabel} <ArrowRight size={15} />
-            </Link>
-          </div>
-        ) : (
-          <StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" animation="fade-up" stagger={100}>
-            {boardMembers.map((member) => {
-              const initials = member.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
-              return (
-                <div
-                  key={member.id}
-                  className="group rounded-2xl border border-[#1a1a2e]/[0.06] bg-white shadow-sm p-6 hover:border-[#e7ab1c]/40 hover:shadow-md transition-all duration-300"
-                >
-                  {/* Photo or initials */}
-                  <div className="w-20 h-20 rounded-full mx-auto mb-5 bg-gradient-to-br from-[#e7ab1c]/20 to-[#e7ab1c]/[0.06] flex items-center justify-center overflow-hidden relative">
-                    {member.image_url ? (
-                      <Image src={member.image_url} alt={member.name} fill className="object-cover" sizes="80px" />
+          </AnimateOnScroll>
+
+          <StaggerChildren
+            animation="fade-up"
+            stagger={70}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+          >
+            {board.map((m) => (
+              <div
+                key={m.name}
+                className="lf-glass rounded-[24px] p-7 transition-all duration-300 hover:-translate-y-1.5"
+              >
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-[#0071e3] to-[#4c9df2] flex items-center justify-center shrink-0 shadow-[0_10px_24px_-10px_rgba(0,113,227,0.7)]">
+                    {m.image_url ? (
+                      <Image src={m.image_url} alt={m.name} width={64} height={64} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xl font-bold text-[#e7ab1c]" style={sfDisplay}>{initials}</span>
+                      <span className="text-[20px] font-bold text-white">{initials(m.name)}</span>
                     )}
                   </div>
-
-                  {/* Info */}
-                  <div className="text-center">
-                    <h3 className="text-lg font-bold text-[#1a1a2e] mb-1" style={sfDisplay}>{member.name}</h3>
-                    {(member.designation || member.company) && (
-                      <p className="text-sm text-[#1a1a2e]/55 mb-3" style={sfText}>
-                        {[member.designation, member.company].filter(Boolean).join(", ")}
+                  <div className="min-w-0">
+                    <h3 className="text-[16px] font-bold text-[#1d1d1f] tracking-[-0.015em] leading-tight">
+                      {m.name}
+                    </h3>
+                    {m.org && (
+                      <p className="text-[12.5px] font-semibold text-[#0071e3] mt-1 truncate">
+                        {m.org}
                       </p>
-                    )}
-                    {member.bio && (
-                      <p className="text-xs text-[#1a1a2e]/65 leading-relaxed line-clamp-3 mb-4" style={sfText}>
-                        {member.bio}
-                      </p>
-                    )}
-                    {member.linkedin_url && (
-                      <a
-                        href={member.linkedin_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-[#e7ab1c]/80 hover:text-[#e7ab1c] transition-colors"
-                      >
-                        <ExternalLink size={14} /> LinkedIn
-                      </a>
                     )}
                   </div>
                 </div>
-              )
-            })}
+                {m.role && (
+                  <p className="text-[12.5px] font-semibold text-[#1d1d1f]/70 mb-2">
+                    {m.role}
+                  </p>
+                )}
+                {m.bio && (
+                  <p className="text-[13px] text-[#1d1d1f]/60 leading-[1.65]">
+                    {m.bio}
+                  </p>
+                )}
+                {m.linkedin_url && (
+                  <a
+                    href={m.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-4 text-[12px] font-bold text-[#0071e3] hover:gap-2.5 transition-all duration-200"
+                  >
+                    <ExternalLink size={13} /> LinkedIn
+                  </a>
+                )}
+              </div>
+            ))}
           </StaggerChildren>
-        )}
+        </div>
+      </section>
+
+      {/* ══════════════ The Jury ══════════════ */}
+      <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(56% 48% at 50% 0%, rgba(0,113,227,0.06) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
+            <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              <Gavel size={14} /> The Jury
+            </span>
+            <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+              An independent international jury
+            </h2>
+            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+              Every Leadership Federation award is decided by a panel of senior
+              practitioners — data scientists, engineering leaders and academics
+              across India, the US and Canada — never by the organisers.
+            </p>
+          </AnimateOnScroll>
+
+          <StaggerChildren
+            animation="fade-up"
+            stagger={40}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {JURY.map((j) => (
+              <div
+                key={j.name}
+                className="lf-glass rounded-[18px] p-5 flex items-start gap-3.5 transition-all duration-300 hover:-translate-y-1"
+              >
+                <span className="w-11 h-11 rounded-xl bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center shrink-0">
+                  <span className="text-[13px] font-bold text-[#0071e3]">{initials(j.name)}</span>
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-[14px] font-bold text-[#1d1d1f] tracking-[-0.01em] leading-tight">
+                    {j.name}
+                  </h3>
+                  <p className="text-[12px] text-[#1d1d1f]/60 leading-[1.5] mt-1">
+                    {j.role}
+                  </p>
+                  {j.country && (
+                    <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[#0071e3] bg-[#0071e3]/[0.08] rounded-full px-2 py-0.5">
+                      {j.country}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </StaggerChildren>
+        </div>
+      </section>
+
+      {/* ══════════════ CTA ══════════════ */}
+      <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 56% at 50% 100%, rgba(0,113,227,0.1) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up">
+            <div className="lf-glass-strong rounded-[32px] p-10 sm:p-14 text-center">
+              <span className="inline-flex w-14 h-14 rounded-2xl bg-[#0071e3] items-center justify-center mx-auto mb-6 shadow-[0_14px_32px_-10px_rgba(0,113,227,0.7)]">
+                <Star size={24} className="text-white" fill="currentColor" />
+              </span>
+              <h2 className="text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
+                Lend your judgement
+              </h2>
+              <p className="mt-4 text-[#1d1d1f]/60 text-[16px] leading-relaxed max-w-md mx-auto">
+                We invite accomplished leaders to join the advisory board or
+                serve on the jury for an upcoming awards programme.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 px-9 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-10px_rgba(0,113,227,0.6)]"
+                >
+                  Express Interest <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href="/about"
+                  className="lf-glass inline-flex items-center px-7 py-[15px] rounded-full font-bold text-[15px] text-[#1d1d1f] transition-all duration-200"
+                >
+                  About the Federation
+                </Link>
+              </div>
+            </div>
+          </AnimateOnScroll>
+        </div>
       </section>
     </main>
   )

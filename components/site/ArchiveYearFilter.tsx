@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, MapPin, ArrowRight, ExternalLink } from "lucide-react"
+import { Calendar, MapPin, ArrowRight, ExternalLink, Search, X } from "lucide-react"
 
 export type ArchiveCardData = {
   id: string
@@ -22,9 +22,10 @@ export type ArchiveCardData = {
 }
 
 /**
- * Client wrapper — a year-filter bar above the archive grid. Every card
- * links to that event's own page: legacy editions open their page on
- * theleadershipfederation.com, native events open /events/[slug].
+ * Archive browser — a search bar plus year and series filters above a
+ * glass card grid. Every card links to that event's own page: legacy
+ * editions open their original site, native events open /events/[slug].
+ * All filtering is client-side; the server passes the full card list in.
  */
 export function ArchiveFilteredGrid({ cards }: { cards: ArchiveCardData[] }) {
   const years = useMemo(
@@ -34,12 +35,29 @@ export function ArchiveFilteredGrid({ cards }: { cards: ArchiveCardData[] }) {
         .sort((a, b) => b - a),
     [cards],
   )
-  const [selected, setSelected] = useState<number | "all">("all")
-
-  const visible = useMemo(
-    () => (selected === "all" ? cards : cards.filter((c) => c.year === selected)),
-    [cards, selected],
+  const seriesList = useMemo(
+    () => [...new Set(cards.map((c) => c.series).filter(Boolean))].sort(),
+    [cards],
   )
+
+  const [query, setQuery] = useState("")
+  const [year, setYear] = useState<number | "all">("all")
+  const [series, setSeries] = useState<string | "all">("all")
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return cards.filter((c) => {
+      if (year !== "all" && c.year !== year) return false
+      if (series !== "all" && c.series !== series) return false
+      if (q) {
+        const hay = `${c.title} ${c.venue} ${c.city} ${c.series}`.toLowerCase()
+        if (!hay.includes(q)) return false
+      }
+      return true
+    })
+  }, [cards, query, year, series])
+
+  const filtersActive = query.trim() !== "" || year !== "all" || series !== "all"
 
   function pill(active: boolean) {
     return (
@@ -52,23 +70,85 @@ export function ArchiveFilteredGrid({ cards }: { cards: ArchiveCardData[] }) {
 
   return (
     <div>
-      {/* Year filter */}
-      <div className="flex flex-wrap gap-2 mb-8 sm:mb-10">
-        <button onClick={() => setSelected("all")} className={pill(selected === "all")}>
-          All Years · {cards.length}
+      {/* ── Search ── */}
+      <div className="relative mb-5">
+        <Search
+          size={18}
+          className="absolute left-5 top-1/2 -translate-y-1/2 text-[#1d1d1f]/35"
+        />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search events by name, city or series…"
+          className="w-full h-[52px] pl-12 pr-11 rounded-full bg-white border border-black/[0.08] text-[14.5px] text-[#1d1d1f] placeholder:text-[#1d1d1f]/40 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 focus:border-transparent transition-all shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            aria-label="Clear search"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/[0.05] hover:bg-black/[0.1] flex items-center justify-center text-[#1d1d1f]/55 transition-colors"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* ── Year filter ── */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1d1d1f]/40 mr-1">
+          Year
+        </span>
+        <button onClick={() => setYear("all")} className={pill(year === "all")}>
+          All
         </button>
         {years.map((yr) => (
-          <button
-            key={yr}
-            onClick={() => setSelected(yr)}
-            className={pill(selected === yr)}
-          >
-            {yr} · {cards.filter((c) => c.year === yr).length}
+          <button key={yr} onClick={() => setYear(yr)} className={pill(year === yr)}>
+            {yr}
           </button>
         ))}
       </div>
 
-      {/* Grid */}
+      {/* ── Series filter ── */}
+      {seriesList.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 mb-7">
+          <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1d1d1f]/40 mr-1">
+            Series
+          </span>
+          <button onClick={() => setSeries("all")} className={pill(series === "all")}>
+            All
+          </button>
+          {seriesList.map((s) => (
+            <button key={s} onClick={() => setSeries(s)} className={pill(series === s)}>
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Result count ── */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <p className="text-[12px] font-bold text-[#1d1d1f]/55 uppercase tracking-[0.16em]">
+          {visible.length} {visible.length === 1 ? "event" : "events"}
+          {filtersActive && (
+            <span className="text-[#1d1d1f]/35"> · of {cards.length}</span>
+          )}
+        </p>
+        {filtersActive && (
+          <button
+            onClick={() => {
+              setQuery("")
+              setYear("all")
+              setSeries("all")
+            }}
+            className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#0071e3] hover:gap-2.5 transition-all duration-200"
+          >
+            <X size={13} /> Clear filters
+          </button>
+        )}
+      </div>
+
+      {/* ── Grid ── */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {visible.map((event) => {
           const isExternal = !!event.externalUrl
@@ -155,12 +235,19 @@ export function ArchiveFilteredGrid({ cards }: { cards: ArchiveCardData[] }) {
             </Link>
           )
         })}
-        {visible.length === 0 && (
-          <div className="col-span-full text-center py-12 text-[14px] text-[#1d1d1f]/50">
-            No events for {selected === "all" ? "any year" : selected} yet.
-          </div>
-        )}
       </div>
+
+      {visible.length === 0 && (
+        <div className="lf-glass rounded-[24px] py-16 px-6 text-center mt-1">
+          <div className="w-12 h-12 rounded-2xl bg-[#0071e3]/[0.1] flex items-center justify-center mx-auto mb-4">
+            <Search size={20} className="text-[#0071e3]" />
+          </div>
+          <p className="text-[15px] font-bold text-[#1d1d1f] mb-1">No events found</p>
+          <p className="text-[13px] text-[#1d1d1f]/55">
+            Try a different search or clear the filters.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
