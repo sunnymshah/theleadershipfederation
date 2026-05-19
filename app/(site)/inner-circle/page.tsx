@@ -1,7 +1,7 @@
 import Link from "next/link"
 import {
-  ArrowRight, Users, Shield, BookOpen, CheckCircle2, ChevronDown,
-  Globe, Sparkles, Star, Lock, Crown, TrendingUp, KeyRound,
+  ArrowRight, ArrowUpRight, Users, ChevronDown, Sparkles, Star, Crown,
+  Handshake, TrendingUp, Briefcase, MessageCircle, CalendarClock,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
@@ -12,15 +12,14 @@ export const revalidate = 86400
 export const metadata = {
   title: "The Inner Circle | The Leadership Federation",
   description:
-    "The Inner Circle — an invite-only membership for GCC heads, CXOs and founders. Curated peers, closed-door roundtables and year-round access to The Leadership Federation.",
+    "The Inner Circle — the Federation's members' community for GCC heads, CXOs and decision-makers. Direct access, business collaborations, boardroom conversations and year-round engagement.",
 }
 
-/* Applications run through the Federation's own registration flow —
- * the dedicated portal is invite-gated. */
-const APPLY_URL = "/register?type=inner-circle"
+/* The Inner Circle runs on its own community platform. */
+const INNER_CIRCLE_URL = "https://innercircle.theleadershipfederation.com"
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  Users, Shield, BookOpen, CheckCircle2, Globe, Sparkles, Crown, TrendingUp, Lock,
+  Users, Handshake, TrendingUp, Briefcase, MessageCircle, CalendarClock, Crown, Sparkles,
 }
 function resolveIcon(name?: string | null): LucideIcon {
   if (!name) return Star
@@ -40,27 +39,31 @@ type ICRow = {
 }
 type FaqRow = { id: string; page: string; question: string; answer: string; sort_order: number }
 
-/* ── Baked fallbacks — the page stays premium even with an empty CMS ── */
-const VALUE_PROPS = [
-  { icon: Users, title: "A curated peer network", desc: "Sit alongside GCC heads, CXOs and founders — every member vetted, every introduction intentional." },
-  { icon: Lock, title: "Closed-door roundtables", desc: "Private, off-record sessions where the real conversations happen — capital, strategy and governance." },
-  { icon: Crown, title: "Year-round access", desc: "Priority seats at every conclave, members-only briefings, and a standing line to the Federation." },
+/* ── What the Inner Circle community actually offers (from the live
+ *    platform at innercircle.theleadershipfederation.com) ──────────── */
+const FEATURES = [
+  { icon: Users, title: "Direct GCC & CXO Access", desc: "Engage directly with GCC leaders, CXOs and decision-makers — move beyond event-stage interactions into meaningful, long-term relationships." },
+  { icon: Handshake, title: "Business Collaborations", desc: "Partnerships, strategic alliances and cross-industry collaborations inside a trusted ecosystem built for value-driven engagement." },
+  { icon: TrendingUp, title: "Career Visibility", desc: "Structured introductions and showcase opportunities that let hiring leaders and recruiters discover you directly." },
+  { icon: Briefcase, title: "Hiring & Talent Access", desc: "Recruiters and hiring managers reach a curated pool of professionals across industries — focused, high-quality talent connections." },
+  { icon: MessageCircle, title: "Boardroom-Level Conversations", desc: "Thoughtful discussion on GCC growth, AI adoption and enterprise transformation within a focused digital forum." },
+  { icon: CalendarClock, title: "Event Continuity", desc: "Extend conversations beyond conclaves and roundtables — stay connected with speakers, peers and partners year-round." },
 ]
 const HOW_IT_WORKS = [
-  { n: "01", title: "Apply or be nominated", desc: "Submit an application — or arrive by referral from an existing member or the Advisory Board." },
-  { n: "02", title: "Committee review", desc: "Every application is weighed for calibre and contribution. You hear back within four weeks." },
-  { n: "03", title: "Induction", desc: "Accepted members are introduced to their cohort and granted full year-round access." },
+  { n: "01", title: "Join the community", desc: "Create your member profile on the Inner Circle platform — it takes only a few minutes." },
+  { n: "02", title: "Build your presence", desc: "Add your role, expertise and what you're looking for, so the right peers and recruiters can find you." },
+  { n: "03", title: "Connect & upgrade", desc: "Start conversations, explore collaborations, and upgrade for deeper access to the room." },
 ]
 const TESTIMONIALS = [
-  { quote: "The Inner Circle is the one room where I can speak candidly with peers who genuinely understand the weight of the decisions.", title: "Group Chief Executive", subtitle: "Listed Conglomerate" },
-  { quote: "Two roundtables in, I had a co-investor and a hire. The vetting is what makes it work — everyone in the room belongs there.", title: "Founding Partner", subtitle: "Growth-Stage Fund" },
-  { quote: "It is not networking. It is a standing relationship with the people shaping the next decade of enterprise.", title: "GCC Head", subtitle: "Global Technology Firm" },
+  { quote: "The Inner Circle is the one place I can keep a real conversation going with peers long after the conclave ends.", title: "Group Chief Executive", subtitle: "Listed Conglomerate" },
+  { quote: "I came for the events and stayed for the community — two collaborations started inside the forum.", title: "Founding Partner", subtitle: "Growth-Stage Fund" },
+  { quote: "It is where GCC leadership actually talks shop — candidly, and with people who understand the stakes.", title: "GCC Head", subtitle: "Global Technology Firm" },
 ]
 const FAQS = [
-  { question: "Who can join the Inner Circle?", answer: "Membership is invite-curated. The room is built for CXOs of large enterprises, GCC heads, fund partners, founders and senior policymakers — leaders who can both contribute and benefit." },
-  { question: "Can I be nominated?", answer: "Yes. Most members arrive by referral from an existing member or the Advisory Board. You can also apply directly — applications are reviewed monthly." },
-  { question: "How long does review take?", answer: "The membership committee reviews every application for calibre and fit. You will hear back within four weeks." },
-  { question: "Is there a membership fee?", answer: "The Inner Circle is offered across tiers. Investment and inclusions are shared during the review conversation — see the Memberships page for an overview." },
+  { question: "Who is the Inner Circle for?", answer: "It is built for GCC heads, CXOs and decision-makers — alongside recruiters and senior professionals who want direct access to that network. It is a curated community, not an open forum." },
+  { question: "How do I join?", answer: "Membership runs on the Inner Circle platform at innercircle.theleadershipfederation.com. Create a profile to join, then explore the directory, forums and collaboration tools." },
+  { question: "Is there a fee?", answer: "You can join and build a profile, with paid upgrades that unlock deeper access and visibility. Full tiers and details are shown on the Inner Circle platform." },
+  { question: "What happens after I join?", answer: "You get a member profile, the member directory, boardroom-level forums, and year-round connection with speakers, peers and partners from the Federation's events." },
 ]
 
 export default async function InnerCirclePage() {
@@ -79,9 +82,9 @@ export default async function InnerCirclePage() {
   const cmsHow = items.filter((i) => i.content_type === "how_it_works")
   const cmsTestimonials = items.filter((i) => i.content_type === "testimonial")
 
-  const valueProps = cmsValueProps.length > 0
+  const features = cmsValueProps.length > 0
     ? cmsValueProps.map((v) => ({ icon: resolveIcon(v.icon), title: v.title, desc: v.description ?? "" }))
-    : VALUE_PROPS
+    : FEATURES
   const howItWorks = cmsHow.length > 0
     ? cmsHow.map((h, i) => ({ n: h.subtitle || `0${i + 1}`, title: h.title, desc: h.description ?? "" }))
     : HOW_IT_WORKS
@@ -106,11 +109,10 @@ export default async function InnerCirclePage() {
         />
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
           <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center">
-            {/* Copy */}
             <div>
               <AnimateOnScroll animation="fade-up">
                 <span className="inline-flex items-center gap-2 lf-glass rounded-full px-4 py-1.5 text-[11px] sm:text-[12px] font-bold text-[#0071e3] uppercase tracking-[0.2em]">
-                  <Lock size={12} /> By Invitation Only
+                  <Crown size={13} /> The Members&apos; Community
                 </span>
               </AnimateOnScroll>
               <AnimateOnScroll animation="fade-up" delay={110}>
@@ -122,25 +124,27 @@ export default async function InnerCirclePage() {
               </AnimateOnScroll>
               <AnimateOnScroll animation="fade-up" delay={220}>
                 <p className="mt-6 text-[15px] sm:text-[18px] text-[#1d1d1f]/60 leading-relaxed max-w-lg">
-                  A private membership for the leaders who move enterprise — GCC
-                  heads, CXOs and founders. Curated peers, closed-door rooms, and
-                  a standing relationship with The Leadership Federation.
+                  The Federation&apos;s curated community for GCC heads, CXOs and
+                  decision-makers — direct access, business collaboration and
+                  boardroom conversation that continues long after the conclave.
                 </p>
               </AnimateOnScroll>
               <AnimateOnScroll animation="fade-up" delay={300}>
                 <div className="mt-8 flex flex-wrap items-center gap-2.5 sm:gap-3">
-                  <Link
-                    href={APPLY_URL}
+                  <a
+                    href={INNER_CIRCLE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="group inline-flex items-center gap-2.5 px-8 sm:px-9 py-[15px] sm:py-[16px] rounded-full font-bold text-[14px] sm:text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_18px_44px_-12px_rgba(0,113,227,0.8)]"
                   >
-                    Request an Invitation
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                    Enter the Inner Circle
+                    <ArrowUpRight size={17} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </a>
                   <Link
-                    href="#how"
+                    href="#inside"
                     className="lf-glass inline-flex items-center gap-1.5 px-6 sm:px-7 py-[13px] sm:py-[14px] rounded-full font-bold text-[14px] sm:text-[15px] text-[#1d1d1f] transition-all duration-200"
                   >
-                    How it works <ChevronDown size={14} />
+                    What&apos;s inside <ChevronDown size={14} />
                   </Link>
                 </div>
               </AnimateOnScroll>
@@ -164,12 +168,10 @@ export default async function InnerCirclePage() {
               </AnimateOnScroll>
             </div>
 
-            {/* The membership card — a liquid-glass signature object */}
+            {/* Liquid-glass membership card */}
             <AnimateOnScroll animation="fade-up" delay={240}>
               <div className="relative mx-auto w-full max-w-[420px] aspect-[1.62/1]">
-                {/* depth card behind */}
                 <div className="absolute inset-0 lf-glass rounded-[26px] rotate-[7deg] translate-y-3" />
-                {/* main card */}
                 <div className="lf-glass-strong absolute inset-0 rounded-[26px] -rotate-[5deg] p-7 sm:p-8 overflow-hidden shadow-[0_44px_90px_-36px_rgba(10,10,20,0.5)]">
                   <div
                     className="absolute inset-0 pointer-events-none"
@@ -207,8 +209,8 @@ export default async function InnerCirclePage() {
         </div>
       </section>
 
-      {/* ══════════════ WHY JOIN ══════════════ */}
-      <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
+      {/* ══════════════ INSIDE THE INNER CIRCLE ══════════════ */}
+      <section id="inside" className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-20">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
@@ -220,43 +222,38 @@ export default async function InnerCirclePage() {
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
           <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
             <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
-              Why Join
+              Inside the Circle
             </span>
             <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
-              Built for leaders who lead
+              What membership opens
             </h2>
             <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
-              Three things the Inner Circle gives you that an open conference
-              never can.
+              Six ways the Inner Circle keeps you connected to the people who
+              move global enterprise.
             </p>
           </AnimateOnScroll>
 
           <StaggerChildren
             animation="fade-up"
-            stagger={90}
-            className="grid sm:grid-cols-3 gap-5"
+            stagger={70}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
           >
-            {valueProps.map((vp, i) => {
-              const Icon = vp.icon
+            {features.map((f, i) => {
+              const Icon = f.icon
               return (
                 <div
                   key={i}
-                  className="lf-glass relative rounded-[24px] p-7 sm:p-8 overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
+                  className="lf-glass rounded-[24px] p-7 transition-all duration-300 hover:-translate-y-1.5"
                 >
-                  <span className="absolute -top-3 -right-1 text-[110px] font-bold text-[#0071e3]/[0.07] leading-none select-none">
-                    0{i + 1}
-                  </span>
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-5 shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
-                      <Icon size={22} strokeWidth={1.8} className="text-white" />
-                    </div>
-                    <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-2.5 tracking-[-0.015em]">
-                      {vp.title}
-                    </h3>
-                    <p className="text-[14px] text-[#1d1d1f]/60 leading-[1.7]">
-                      {vp.desc}
-                    </p>
+                  <div className="w-12 h-12 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-5 shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
+                    <Icon size={22} strokeWidth={1.8} className="text-white" />
                   </div>
+                  <h3 className="text-[17px] font-bold text-[#1d1d1f] mb-2.5 tracking-[-0.015em] leading-[1.25]">
+                    {f.title}
+                  </h3>
+                  <p className="text-[13.5px] text-[#1d1d1f]/60 leading-[1.7]">
+                    {f.desc}
+                  </p>
                 </div>
               )
             })}
@@ -265,7 +262,7 @@ export default async function InnerCirclePage() {
       </section>
 
       {/* ══════════════ HOW IT WORKS ══════════════ */}
-      <section id="how" className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-20">
+      <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
@@ -279,11 +276,8 @@ export default async function InnerCirclePage() {
               How It Works
             </span>
             <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
-              The path to membership
+              Joining takes minutes
             </h2>
-            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
-              A deliberate process — it keeps the room worth being in.
-            </p>
           </AnimateOnScroll>
 
           <StaggerChildren
@@ -308,13 +302,15 @@ export default async function InnerCirclePage() {
 
           <AnimateOnScroll animation="fade-up" delay={160}>
             <div className="mt-12 text-center">
-              <Link
-                href={APPLY_URL}
+              <a
+                href={INNER_CIRCLE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group inline-flex items-center gap-2.5 px-9 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-10px_rgba(0,113,227,0.6)]"
               >
-                Start your application
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
+                Join the Inner Circle
+                <ArrowUpRight size={17} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </a>
             </div>
           </AnimateOnScroll>
         </div>
@@ -375,7 +371,7 @@ export default async function InnerCirclePage() {
               Questions
             </span>
             <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
-              Before you apply
+              Before you join
             </h2>
           </AnimateOnScroll>
 
@@ -413,22 +409,25 @@ export default async function InnerCirclePage() {
           <AnimateOnScroll animation="fade-up">
             <div className="lf-glass-strong rounded-[32px] p-10 sm:p-14 text-center">
               <span className="inline-flex w-14 h-14 rounded-2xl bg-[#0071e3] items-center justify-center mx-auto mb-6 shadow-[0_14px_32px_-10px_rgba(0,113,227,0.7)]">
-                <KeyRound size={24} className="text-white" strokeWidth={1.9} />
+                <Crown size={24} className="text-white" />
               </span>
               <h2 className="text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
-                A seat is held for the right leaders
+                Everything else lives inside
               </h2>
               <p className="mt-4 text-[#1d1d1f]/60 text-[16px] leading-relaxed max-w-md mx-auto">
-                The Inner Circle stays small by design. If that sounds like the
-                room you belong in, request an invitation.
+                The member directory, the forums, membership tiers and the full
+                picture — step into the Inner Circle to see it all.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  href={APPLY_URL}
-                  className="inline-flex items-center gap-2 px-9 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-10px_rgba(0,113,227,0.6)]"
+                <a
+                  href={INNER_CIRCLE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-2 px-9 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-10px_rgba(0,113,227,0.6)]"
                 >
-                  Request an Invitation <ArrowRight size={16} />
-                </Link>
+                  Enter the Inner Circle
+                  <ArrowUpRight size={17} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
                 <Link
                   href="/contact"
                   className="lf-glass inline-flex items-center px-7 py-[15px] rounded-full font-bold text-[15px] text-[#1d1d1f] transition-all duration-200"
@@ -436,6 +435,9 @@ export default async function InnerCirclePage() {
                   Speak with the team
                 </Link>
               </div>
+              <p className="mt-6 text-[12px] text-[#1d1d1f]/40">
+                Opens innercircle.theleadershipfederation.com
+              </p>
             </div>
           </AnimateOnScroll>
         </div>
