@@ -1,27 +1,18 @@
 import {
-  Mic2,
-  Clock,
-  ArrowRight,
-  Newspaper,
-  Video,
-  ExternalLink,
-  PlayCircle,
+  ArrowRight, Newspaper, Video, ExternalLink, Mail, Radio, Megaphone,
 } from "lucide-react"
-import Image from "next/image"
-import { Linkedin, Instagram, Facebook } from "@/components/icons/SocialIcons"
 import Link from "next/link"
+import { Linkedin, Instagram, Facebook } from "@/components/icons/SocialIcons"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 import { getMediaData } from "@/app/actions/cmsActions"
 
 export const revalidate = 86400
 
 export const metadata = {
-  title: "Media & Thought Leadership | The Leadership Federation",
+  title: "Newsroom & Media | The Leadership Federation",
   description:
-    "Watch The Sunny Shah Show, explore press coverage, and dive into video highlights from The Leadership Federation's global events.",
+    "Press coverage, news features and event video from The Leadership Federation — as reported by Business Standard, The Tribune, ANI, The Print and the national trade press.",
 }
-
-/* ── Types ────────────────────────────────────────────────────────────── */
 
 type Outlet = {
   id: string
@@ -30,7 +21,6 @@ type Outlet = {
   article_url: string | null
   sort_order: number
 }
-
 type MediaVideo = {
   id: string
   title: string
@@ -41,285 +31,341 @@ type MediaVideo = {
   sort_order: number
 }
 
-// Real social URLs from the official Leadership Federation website
 const SOCIAL = {
   linkedin: "https://www.linkedin.com/company/leadership-federation/",
   instagram: "https://www.instagram.com/leadershipfederation/",
   facebook: "https://facebook.com/theleadershipfederation",
-  whatsapp: "https://wa.me/919327471565",
 }
 
-const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
+/* ── Verified press coverage of The Leadership Federation ─────────────── */
+const PRESS = [
+  {
+    outlet: "Business Standard",
+    title: "The Leadership Federation hosts a high-impact GCC & AI leadership gathering in Bengaluru",
+    date: "April 2026",
+    url: "https://www.business-standard.com/content/press-releases-ani/the-leadership-federation-hosts-a-high-impact-gcc-and-ai-leadership-gathering-in-bengaluru-honors-leaders-driving-global-enterprise-transformation-126041100705_1.html",
+  },
+  {
+    outlet: "The Tribune",
+    title: "Leadership Federation concludes the 5th Edition of the GCC Leadership Conclave — Pune",
+    date: "January 2026",
+    url: "https://www.tribuneindia.com/news/business/leadership-federation-successfully-concludes-the-5th-edition-of-the-gcc-leadership-conclave-pune-21-22-january-2026/",
+  },
+  {
+    outlet: "Business Standard",
+    title: "Leadership Federation concludes the 4th Edition of the GCC Leadership Conclave — Hyderabad",
+    date: "November 2025",
+    url: "https://www.business-standard.com/content/press-releases-ani/leadership-federation-concludes-the-4th-edition-of-the-gcc-leadership-conclave-hyderabad-13-14-november-2025-125112000566_1.html",
+  },
+  {
+    outlet: "The Print",
+    title: "Leadership Federation concludes the 5th Edition of the GCC Leadership Conclave: Pune",
+    date: "January 2026",
+    url: "https://theprint.in/ani-press-releases/leadership-federation-successfully-concludes-the-5th-edition-of-the-gcc-leadership-conclave-pune-21-22-january-2026/2839943/",
+  },
+  {
+    outlet: "ANI News",
+    title: "Leadership Federation concludes the 4th Edition of the GCC Leadership Conclave — Hyderabad",
+    date: "November 2025",
+    url: "https://aninews.in/news/business/leadership-federation-concludes-the-4th-edition-of-the-gcc-leadership-conclave-hyderabad-13-14-november-202520251120133517/",
+  },
+  {
+    outlet: "The Tribune",
+    title: "GCC Leadership Conclave 2025: celebrating innovation, leadership and global excellence",
+    date: "September 2025",
+    url: "https://www.tribuneindia.com/news/business/gcc-leadership-conclave-2025-celebrating-innovation-leadership-and-global-excellence/",
+  },
+  {
+    outlet: "Business Standard",
+    title: "GCC Leadership Conclave 2025 concludes in Bengaluru, celebrating excellence in Global Capability Centers",
+    date: "May 2025",
+    url: "https://www.business-standard.com/content/press-releases-ani/gcc-leadership-conclave-2025-concludes-in-bengaluru-celebrating-excellence-in-global-capability-centers-125052101311_1.html",
+  },
+  {
+    outlet: "Editorji",
+    title: "4th GCC Leadership Conclave — an exhibition of success",
+    date: "November 2025",
+    url: "https://www.editorji.com/business-news/4th-gcc-leadership-conclave-exhibition-of-success-1763626611135",
+  },
+]
+
+const OUTLET_NAMES = [
+  "Business Standard", "The Tribune", "ANI News", "The Print", "Editorji",
+  "Gulf News", "The Economic Times", "YourStory", "EIN Presswire",
+  "Frost & Sullivan", "Dailyhunt", "Lokmat Times",
+]
 
 export default async function MediaPage() {
   let outlets: Outlet[] = []
   let videos: MediaVideo[] = []
-
   try {
     const res = await getMediaData(true)
     if (res.success) {
       outlets = (res.outlets ?? []) as Outlet[]
-      videos  = (res.videos  ?? []) as MediaVideo[]
+      videos = (res.videos ?? []) as MediaVideo[]
     }
   } catch {
     /* empty state */
   }
-
   const realVideos = videos.filter((v) => v.youtube_id)
 
   return (
-    <main className="min-h-screen">
-      {/* Hero */}
-      <section className="pt-24 pb-12 px-6">
-        <div className="max-w-5xl mx-auto text-center">
+    <main className="bg-white">
+      {/* ══════════════ Hero ══════════════ */}
+      <section className="relative bg-white pt-32 lg:pt-40 pb-14 lg:pb-16 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(58% 56% at 50% 0%, rgba(0,113,227,0.08) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
           <AnimateOnScroll animation="fade-up">
-            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
-              Insights & Conversations
+            <span className="inline-flex items-center gap-2 text-[11px] sm:text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              <Newspaper size={14} /> Newsroom
             </span>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={120}>
-            <h1
-              className="text-4xl md:text-6xl font-bold tracking-tight text-[#1a1a2e] mb-6"
-              style={sfFont}
-            >
-              Media & Thought Leadership
+          <AnimateOnScroll animation="fade-up" delay={110}>
+            <h1 className="mt-4 sm:mt-5 text-[clamp(2.4rem,5.6vw,4.4rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.02]">
+              The Federation
+              <br />
+              <span className="text-[#0071e3]">in the press</span>
             </h1>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={240}>
-            <p className="text-lg text-[#1a1a2e]/70 max-w-2xl mx-auto leading-relaxed">
-              Original conversations with global CXOs, exclusive event coverage, and the
-              ideas shaping the future of leadership — all in one place.
+          <AnimateOnScroll animation="fade-up" delay={220}>
+            <p className="mt-5 sm:mt-6 text-[15px] sm:text-[18px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
+              How the national and trade press cover our conclaves, awards and
+              the leaders who convene at them — plus event video and media
+              enquiries, all in one place.
             </p>
           </AnimateOnScroll>
         </div>
       </section>
 
-      {/* Featured: The Sunny Shah Show */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="bg-white border border-[#1a1a2e]/[0.06] rounded-2xl overflow-hidden md:flex shadow-sm">
+      {/* ══════════════ Featured Coverage ══════════════ */}
+      <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 46% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+              "radial-gradient(50% 56% at 88% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
+            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              Featured Coverage
+            </span>
+            <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+              Recent press
+            </h2>
+            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+              Selected reporting from India&apos;s national and business press.
+            </p>
+          </AnimateOnScroll>
+
+          <StaggerChildren
+            animation="fade-up"
+            stagger={70}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+          >
+            {PRESS.map((p) => (
+              <a
+                key={p.url}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lf-glass group flex flex-col rounded-[22px] p-7 transition-all duration-300 hover:-translate-y-1.5"
+              >
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <span className="inline-flex items-center gap-2 text-[12px] font-bold text-[#0071e3] uppercase tracking-[0.12em]">
+                    <Newspaper size={13} /> {p.outlet}
+                  </span>
+                  <span className="text-[11.5px] font-semibold text-[#1d1d1f]/45">
+                    {p.date}
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-bold text-[#1d1d1f] leading-[1.35] tracking-[-0.015em] flex-1">
+                  {p.title}
+                </h3>
+                <span className="inline-flex items-center gap-1.5 mt-5 text-[13px] font-bold text-[#0071e3] group-hover:gap-2.5 transition-all duration-200">
+                  Read article <ExternalLink size={13} />
+                </span>
+              </a>
+            ))}
+          </StaggerChildren>
+        </div>
+      </section>
+
+      {/* ══════════════ As Featured In ══════════════ */}
+      <section className="relative bg-white py-16 sm:py-20 lg:py-24 overflow-hidden">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
+          <AnimateOnScroll animation="fade-up">
+            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              As Featured In
+            </span>
+            <h2 className="mt-4 text-[clamp(1.6rem,3.4vw,2.4rem)] font-bold text-[#1d1d1f] tracking-[-0.03em]">
+              Trusted by the newsdesks that cover enterprise
+            </h2>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={120}>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              {(outlets.length > 0 ? outlets.map((o) => o.name) : OUTLET_NAMES).map(
+                (name) => (
+                  <span
+                    key={name}
+                    className="lf-glass rounded-full px-5 py-2.5 text-[13px] font-bold text-[#1d1d1f]"
+                  >
+                    {name}
+                  </span>
+                ),
+              )}
+            </div>
+          </AnimateOnScroll>
+        </div>
+      </section>
+
+      {/* ══════════════ Video Highlights ══════════════ */}
+      {realVideos.length > 0 && (
+        <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
           <div
-            className="md:w-1/2 relative min-h-[320px] flex items-center justify-center overflow-hidden"
+            className="absolute inset-0 z-0 pointer-events-none"
             style={{
               background:
-                "linear-gradient(135deg, #1a1a2e 0%, #2a2440 50%, #1a1a2e 100%)",
+                "radial-gradient(54% 46% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%)",
             }}
-          >
-            <div className="absolute inset-0 pointer-events-none" aria-hidden>
-              <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                style={{
-                  width: "500px",
-                  height: "500px",
-                  borderRadius: "50%",
-                  background:
-                    "radial-gradient(circle, rgba(231,171,28,0.18) 0%, transparent 60%)",
-                }}
-              />
-            </div>
-            <div className="relative z-10 flex flex-col items-center gap-4 text-center px-8">
-              <div className="w-24 h-24 rounded-full border-2 border-[#e7ab1c]/60 flex items-center justify-center backdrop-blur-sm bg-[#e7ab1c]/10">
-                <PlayCircle size={44} className="text-[#e7ab1c]" />
+          />
+          <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+            <AnimateOnScroll animation="fade-up" className="flex flex-wrap items-end justify-between gap-4 mb-10 sm:mb-12">
+              <div className="max-w-xl">
+                <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+                  <Video size={14} /> Watch
+                </span>
+                <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                  Video highlights
+                </h2>
               </div>
-              <p className="text-white text-xl font-bold tracking-tight" style={sfFont}>
-                The Sunny Shah Show
-              </p>
-              <p className="text-white/70 text-sm">
-                Episodes drop on our social channels
-              </p>
-            </div>
-          </div>
-
-          <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-4">
-              <Mic2 size={18} className="text-[#e7ab1c]" />
-              <span className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.2em]">
-                Featured Show
-              </span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a2e] mb-4" style={sfFont}>
-              The Sunny Shah Show
-            </h2>
-            <p className="text-[#1a1a2e]/70 leading-relaxed mb-6">
-              Raw, unscripted conversations with the world&apos;s most influential business
-              leaders, policymakers, and innovators. Each episode dives deep into the
-              decisions, pivots, and philosophies that define modern leadership.
-            </p>
-            <div className="flex flex-wrap gap-3 mb-6">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#e7ab1c]/10 text-xs font-semibold text-[#a37410] border border-[#e7ab1c]/30">
-                <Mic2 size={12} /> CXO Conversations
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#e7ab1c]/10 text-xs font-semibold text-[#a37410] border border-[#e7ab1c]/30">
-                <Clock size={12} /> New episodes regularly
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-3">
               <Link
                 href={SOCIAL.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0A66C2] text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+                className="lf-glass inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-bold text-[#1d1d1f] hover:gap-2.5 transition-all duration-200"
               >
-                <Linkedin size={16} /> Watch on LinkedIn
+                More on LinkedIn <ExternalLink size={13} />
               </Link>
-              <Link
-                href={SOCIAL.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-tr from-[#E1306C] via-[#F77737] to-[#FCAF45] text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
-              >
-                <Instagram size={16} /> Instagram
-              </Link>
-            </div>
+            </AnimateOnScroll>
+
+            <StaggerChildren
+              animation="fade-up"
+              stagger={90}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-5"
+            >
+              {realVideos.map((vid) => (
+                <div key={vid.id} className="lf-glass rounded-[22px] overflow-hidden">
+                  <div className="w-full aspect-video bg-[#0a0a14] relative">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${vid.youtube_id}`}
+                      title={vid.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-[16px] font-bold text-[#1d1d1f] tracking-[-0.01em]">
+                      {vid.title}
+                    </h3>
+                    {vid.label && (
+                      <span className="text-[11.5px] text-[#0071e3] uppercase tracking-[0.12em] font-semibold">
+                        {vid.label}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </StaggerChildren>
+          </div>
+        </section>
+      )}
+
+      {/* ══════════════ Media Enquiries ══════════════ */}
+      <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 56% at 50% 100%, rgba(0,113,227,0.1) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
+          <div className="grid lg:grid-cols-2 gap-5">
+            {/* Press enquiries */}
+            <AnimateOnScroll animation="fade-up">
+              <div className="lf-glass-strong rounded-[28px] p-8 sm:p-10 h-full">
+                <span className="inline-flex w-12 h-12 rounded-2xl bg-[#0071e3] items-center justify-center mb-5 shadow-[0_12px_28px_-8px_rgba(0,113,227,0.6)]">
+                  <Megaphone size={22} className="text-white" strokeWidth={1.8} />
+                </span>
+                <h2 className="text-[clamp(1.4rem,2.6vw,1.9rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] leading-[1.15]">
+                  Media &amp; press enquiries
+                </h2>
+                <p className="mt-3 text-[14px] text-[#1d1d1f]/60 leading-[1.7]">
+                  Journalists and editors — for interviews, event accreditation,
+                  speaker access or our press kit, reach the communications team.
+                </p>
+                <a
+                  href="mailto:register@theleadershipfederation.com?subject=Media%20enquiry"
+                  className="inline-flex items-center gap-2 mt-6 px-7 py-[14px] rounded-full font-bold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_30px_-10px_rgba(0,113,227,0.6)]"
+                >
+                  <Mail size={15} /> Contact the press team
+                </a>
+              </div>
+            </AnimateOnScroll>
+
+            {/* Follow / channels */}
+            <AnimateOnScroll animation="fade-up" delay={120}>
+              <div className="lf-glass-strong rounded-[28px] p-8 sm:p-10 h-full flex flex-col">
+                <h2 className="text-[clamp(1.4rem,2.6vw,1.9rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] leading-[1.15]">
+                  Follow the Federation
+                </h2>
+                <p className="mt-3 text-[14px] text-[#1d1d1f]/60 leading-[1.7]">
+                  Announcements, event coverage and leadership insight as it
+                  publishes.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2.5">
+                  <a href={SOCIAL.linkedin} target="_blank" rel="noopener noreferrer" className="lf-glass inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-bold text-[#1d1d1f]">
+                    <Linkedin size={15} /> LinkedIn
+                  </a>
+                  <a href={SOCIAL.instagram} target="_blank" rel="noopener noreferrer" className="lf-glass inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-bold text-[#1d1d1f]">
+                    <Instagram size={15} /> Instagram
+                  </a>
+                  <a href={SOCIAL.facebook} target="_blank" rel="noopener noreferrer" className="lf-glass inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-bold text-[#1d1d1f]">
+                    <Facebook size={15} /> Facebook
+                  </a>
+                </div>
+                {/* The Sunny Shah Show — a platform, linked, not the focus */}
+                <Link
+                  href="/platforms"
+                  className="mt-auto pt-6 group inline-flex items-center gap-3 text-left"
+                >
+                  <span className="w-10 h-10 rounded-xl bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center shrink-0">
+                    <Radio size={17} className="text-[#0071e3]" />
+                  </span>
+                  <span>
+                    <span className="block text-[13px] font-bold text-[#1d1d1f]">
+                      Looking for The Sunny Shah Show?
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#0071e3] group-hover:gap-2 transition-all">
+                      It&apos;s one of our platforms <ArrowRight size={12} />
+                    </span>
+                  </span>
+                </Link>
+              </div>
+            </AnimateOnScroll>
           </div>
         </div>
       </section>
-
-      {/* In The Press */}
-      {outlets.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 pb-24">
-          <AnimateOnScroll animation="fade-up">
-            <div className="flex items-center gap-3 mb-10">
-              <Newspaper size={18} className="text-[#e7ab1c]" />
-              <h2 className="text-2xl font-bold text-[#1a1a2e]" style={sfFont}>
-                In The Press
-              </h2>
-            </div>
-          </AnimateOnScroll>
-
-          <StaggerChildren className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" animation="fade-up" stagger={80}>
-            {outlets.map((outlet) => {
-              const cardInner = outlet.logo_url ? (
-                <Image
-                  src={outlet.logo_url}
-                  alt={outlet.name}
-                  width={120}
-                  height={48}
-                  className="max-h-10 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity"
-                />
-              ) : (
-                <span className="text-sm font-semibold text-[#1a1a2e]/65 group-hover:text-[#1a1a2e] transition-colors duration-200 text-center select-none">
-                  {outlet.name}
-                </span>
-              )
-              const commonCls =
-                "bg-white border border-[#1a1a2e]/[0.06] rounded-xl h-24 flex items-center justify-center px-4 transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30 group shadow-sm"
-              return outlet.article_url ? (
-                <Link
-                  key={outlet.id}
-                  href={outlet.article_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${commonCls} cursor-pointer`}
-                >
-                  {cardInner}
-                </Link>
-              ) : (
-                <div key={outlet.id} className={commonCls}>
-                  {cardInner}
-                </div>
-              )
-            })}
-          </StaggerChildren>
-        </section>
-      )}
-
-      {/* Videos & Highlights */}
-      {realVideos.length > 0 && (
-        <section className="max-w-6xl mx-auto px-6 pb-24">
-          <div className="flex items-center justify-between mb-10">
-            <div className="flex items-center gap-3">
-              <Video size={18} className="text-[#e7ab1c]" />
-              <h2 className="text-2xl font-bold text-[#1a1a2e]" style={sfFont}>
-                Videos & Highlights
-              </h2>
-            </div>
-            <Link
-              href={SOCIAL.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#e7ab1c] hover:underline"
-            >
-              View all on LinkedIn <ExternalLink size={13} />
-            </Link>
-          </div>
-
-          <StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 gap-6" animation="scale" stagger={100}>
-            {realVideos.map((vid) => (
-              <div
-                key={vid.id}
-                className="bg-white border border-[#1a1a2e]/[0.06] rounded-2xl overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md"
-              >
-                <div className="w-full aspect-video bg-[#1a1a2e] relative">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${vid.youtube_id}`}
-                    title={vid.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="absolute inset-0 w-full h-full"
-                  />
-                </div>
-
-                <div className="p-5">
-                  <h3 className="text-base font-bold text-[#1a1a2e]">{vid.title}</h3>
-                  {vid.label && (
-                    <span className="text-[11px] text-[#1a1a2e]/55 uppercase tracking-wider font-medium">
-                      {vid.label}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </StaggerChildren>
-        </section>
-      )}
-
-      {/* Follow CTA */}
-      <AnimateOnScroll as="section" className="max-w-4xl mx-auto px-6 pb-16" animation="fade-up">
-        <div className="rounded-2xl p-10 md:p-14 text-center bg-white border border-[#1a1a2e]/[0.06] shadow-sm">
-          <div className="w-14 h-14 rounded-full bg-[#e7ab1c]/15 flex items-center justify-center mx-auto mb-6 border border-[#e7ab1c]/30">
-            <Mic2 size={24} className="text-[#e7ab1c]" />
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#1a1a2e] mb-4" style={sfFont}>
-            Follow The Sunny Shah Show
-          </h2>
-          <p className="text-[#1a1a2e]/70 max-w-xl mx-auto mb-8 leading-relaxed">
-            Get new episodes featuring candid conversations with the world&apos;s
-            most impactful leaders. Follow us on LinkedIn, Instagram, and Facebook.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href={SOCIAL.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0A66C2] text-white text-sm font-semibold transition-opacity duration-200 hover:opacity-90 shadow-sm"
-            >
-              <Linkedin size={16} /> LinkedIn
-            </Link>
-            <Link
-              href={SOCIAL.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-tr from-[#E1306C] via-[#F77737] to-[#FCAF45] text-white text-sm font-semibold transition-opacity duration-200 hover:opacity-90 shadow-sm"
-            >
-              <Instagram size={16} /> Instagram
-            </Link>
-            <Link
-              href={SOCIAL.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#1877F2] text-white text-sm font-semibold transition-opacity duration-200 hover:opacity-90 shadow-sm"
-            >
-              <Facebook size={16} /> Facebook
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#1a1a2e]/[0.12] text-[#1a1a2e] text-sm font-semibold transition-all duration-200 hover:border-[#e7ab1c]/60 hover:bg-[#e7ab1c]/[0.06]"
-            >
-              Contact Us <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </AnimateOnScroll>
     </main>
   )
 }

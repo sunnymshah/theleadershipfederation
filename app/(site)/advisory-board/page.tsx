@@ -223,22 +223,25 @@ export default async function AdvisoryBoardPage() {
                 className="lf-glass rounded-[24px] p-7 transition-all duration-300 hover:-translate-y-1.5"
               >
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden shrink-0 shadow-[0_10px_24px_-10px_rgba(0,113,227,0.5)]">
-                    {m.image_url ? (
-                      <Image
-                        src={m.image_url}
-                        alt={m.name}
-                        width={144}
-                        height={144}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#0071e3] to-[#4c9df2] flex items-center justify-center">
-                        <span className="text-[22px] font-bold text-white">
-                          {initials(m.name)}
-                        </span>
-                      </div>
-                    )}
+                  {/* Liquid-glass photo frame */}
+                  <div className="lf-glass rounded-[20px] p-1.5 shrink-0">
+                    <div className="w-[64px] h-[64px] rounded-[14px] overflow-hidden">
+                      {m.image_url ? (
+                        <Image
+                          src={m.image_url}
+                          alt={m.name}
+                          width={144}
+                          height={144}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#0071e3] to-[#4c9df2] flex items-center justify-center">
+                          <span className="text-[20px] font-bold text-white">
+                            {initials(m.name)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-[16px] font-bold text-[#1d1d1f] tracking-[-0.015em] leading-tight">
@@ -311,22 +314,25 @@ export default async function AdvisoryBoardPage() {
                 key={j.name}
                 className="lf-glass rounded-[18px] p-5 flex items-start gap-3.5 transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
-                  {j.img ? (
-                    <Image
-                      src={j.img}
-                      alt={j.name}
-                      width={96}
-                      height={96}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center">
-                      <span className="text-[13px] font-bold text-[#0071e3]">
-                        {initials(j.name)}
-                      </span>
-                    </div>
-                  )}
+                {/* Liquid-glass photo frame */}
+                <div className="lf-glass rounded-[14px] p-1 shrink-0">
+                  <div className="w-[42px] h-[42px] rounded-[10px] overflow-hidden">
+                    {j.img ? (
+                      <Image
+                        src={j.img}
+                        alt={j.name}
+                        width={96}
+                        height={96}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#0071e3] to-[#4c9df2] flex items-center justify-center">
+                        <span className="text-[13px] font-bold text-white">
+                          {initials(j.name)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-[14px] font-bold text-[#1d1d1f] tracking-[-0.01em] leading-tight">
