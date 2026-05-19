@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   CalendarDays,
   Users,
@@ -57,6 +58,7 @@ const PLATFORMS = [
   {
     key: "conclave" as const,
     icon: CalendarDays,
+    image: "/platforms/conclave-stage.jpg",
     eyebrow: "Platform 01",
     title: "Global Conclaves & Summits",
     blurb:
@@ -67,6 +69,7 @@ const PLATFORMS = [
   {
     key: "inner_circle" as const,
     icon: Crown,
+    image: "/platforms/conclave-pune.jpg",
     eyebrow: "Platform 02",
     title: "The Inner Circle",
     blurb:
@@ -77,6 +80,7 @@ const PLATFORMS = [
   {
     key: "show" as const,
     icon: Mic2,
+    image: "/events/asia-leadership-awards.jpg",
     eyebrow: "Platform 03",
     title: "The Sunny Shah Show",
     blurb:
@@ -196,6 +200,30 @@ export default async function PlatformsPage() {
             </div>
           </AnimateOnScroll>
         </div>
+
+        {/* Hero image — a real conclave photograph. */}
+        <AnimateOnScroll animation="fade-up" delay={420}>
+          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 mt-14">
+            <div className="lf-glass rounded-[28px] p-2 sm:p-2.5">
+              <div className="relative aspect-[16/7] rounded-[20px] overflow-hidden">
+                <Image
+                  src="/platforms/conclave-stage.jpg"
+                  alt="The GCC Leadership Conclave in session"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 1100px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-5 sm:bottom-6 sm:left-7 lf-glass-dark rounded-xl px-4 py-2.5">
+                  <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.14em] text-white">
+                    The GCC Leadership Conclave
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </AnimateOnScroll>
       </section>
 
       {/* ─────────────── Platforms ─────────────── */}
@@ -235,30 +263,60 @@ export default async function PlatformsPage() {
                   animation="fade-up"
                   delay={idx * 90}
                 >
-                  <div className="lf-glass-strong relative rounded-[30px] overflow-hidden p-8 sm:p-10 lg:p-12">
-                    <div
-                      className="absolute -top-20 -right-16 w-64 h-64 rounded-full pointer-events-none"
-                      style={{
-                        background:
-                          "radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)",
-                      }}
-                    />
-                    <div className="relative grid lg:grid-cols-2 gap-10 lg:gap-14">
-                      <div>
-                        <div className="flex items-center gap-3 mb-6">
-                          <span className="w-14 h-14 rounded-2xl bg-[#0071e3] flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(0,113,227,0.65)]">
-                            <Icon size={24} className="text-white" strokeWidth={1.7} />
-                          </span>
-                          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#0071e3]">
-                            {p.eyebrow}
-                          </span>
-                        </div>
+                  <div className="lf-glass-strong relative rounded-[30px] overflow-hidden">
+                    <div className="grid lg:grid-cols-2">
+                      {/* Real conclave photograph */}
+                      <div
+                        className={
+                          "relative min-h-[260px] lg:min-h-[480px] " +
+                          (idx % 2 === 1 ? "lg:order-2" : "")
+                        }
+                      >
+                        <Image
+                          src={p.image}
+                          alt={p.title}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 560px"
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
+                        <span className="absolute top-5 left-5 lf-glass-dark rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
+                          {p.eyebrow}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
+                        <span className="w-14 h-14 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-6 shadow-[0_12px_28px_-8px_rgba(0,113,227,0.65)]">
+                          <Icon size={24} className="text-white" strokeWidth={1.7} />
+                        </span>
                         <h3 className="text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] leading-[1.1] mb-4">
                           {p.title}
                         </h3>
-                        <p className="text-[15px] text-[#1d1d1f]/65 leading-[1.75] mb-7">
+                        <p className="text-[15px] text-[#1d1d1f]/65 leading-[1.75] mb-6">
                           {p.blurb}
                         </p>
+
+                        {pFeatures.length > 0 && (
+                          <ul className="space-y-2 mb-6">
+                            {pFeatures.map((f) => {
+                              const FIcon = resolveIcon(f.icon)
+                              return (
+                                <li key={f.id} className="flex items-start gap-2.5">
+                                  <FIcon
+                                    size={16}
+                                    strokeWidth={2}
+                                    className="text-[#0071e3] mt-0.5 shrink-0"
+                                  />
+                                  <span className="text-[13.5px] text-[#1d1d1f]/70 leading-[1.55]">
+                                    {f.title}
+                                  </span>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        )}
+
                         <div className="flex flex-wrap gap-2 mb-7">
                           {p.flagship.map((name) => (
                             <span
@@ -269,6 +327,7 @@ export default async function PlatformsPage() {
                             </span>
                           ))}
                         </div>
+
                         <Link
                           href={p.cta.href}
                           className="inline-flex items-center gap-1.5 text-[14px] font-bold text-[#0071e3] hover:gap-2.5 transition-all duration-200"
@@ -276,33 +335,6 @@ export default async function PlatformsPage() {
                           {p.cta.label} <ArrowRight size={15} />
                         </Link>
                       </div>
-
-                      {pFeatures.length > 0 && (
-                        <StaggerChildren
-                          className="flex flex-col justify-center gap-3"
-                          animation="fade-up"
-                          stagger={70}
-                        >
-                          {pFeatures.map((f) => {
-                            const FIcon = resolveIcon(f.icon)
-                            return (
-                              <div
-                                key={f.id}
-                                className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/60 border border-black/[0.05]"
-                              >
-                                <FIcon
-                                  size={19}
-                                  strokeWidth={1.7}
-                                  className="text-[#0071e3] mt-0.5 shrink-0"
-                                />
-                                <p className="text-[14px] text-[#1d1d1f]/75 leading-[1.6]">
-                                  {f.title}
-                                </p>
-                              </div>
-                            )
-                          })}
-                        </StaggerChildren>
-                      )}
                     </div>
                   </div>
                 </AnimateOnScroll>
