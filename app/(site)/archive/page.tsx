@@ -30,12 +30,12 @@ function extractEdition(title: string): string {
  * own event thumbnails; awards & summits use the real series photo.
  * A cover_image_url set in the DB always takes precedence. */
 const LEGACY_COVERS: Record<string, string> = {
-  "legacy-gcc-5": "/events/legacy/gcc-5.png",
-  "legacy-gcc-ai": "/events/legacy/gcc-ai.png",
-  "legacy-gcc-4": "/events/legacy/gcc-4.png",
-  "legacy-gcc-3": "/events/legacy/gcc-3.png",
-  "legacy-gcc-2": "/events/legacy/gcc-2.png",
-  "legacy-gcc-1": "/events/legacy/gcc-1.png",
+  "legacy-gcc-5": "/events/legacy/gcc-5.jpg",
+  "legacy-gcc-ai": "/events/legacy/gcc-ai.jpg",
+  "legacy-gcc-4": "/events/legacy/gcc-4.jpg",
+  "legacy-gcc-3": "/events/legacy/gcc-3.jpg",
+  "legacy-gcc-2": "/events/legacy/gcc-2.jpg",
+  "legacy-gcc-1": "/events/legacy/gcc-1.jpg",
   "legacy-ala-7": "/events/legacy/ala-banner.jpg",
   "legacy-ala-6": "/events/legacy/ala-photo.jpg",
   "legacy-ala-5": "/events/legacy/ala-banner.jpg",
