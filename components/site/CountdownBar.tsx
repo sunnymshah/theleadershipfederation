@@ -77,7 +77,7 @@ export function CountdownBar({ event }: CountdownBarProps) {
 
           <div className="flex items-center gap-2 shrink-0">
             <Link
-              href={`/events/${event.slug}`}
+              href="/register"
               className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold bg-[#0071e3] text-white hover:bg-[#0077ed] transition-all duration-200 shadow-[0_4px_14px_-4px_rgba(0,113,227,0.5)]"
             >
               Register <ArrowRight size={12} />

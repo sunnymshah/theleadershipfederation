@@ -529,7 +529,7 @@ function HeroNextEvent({ event }: { event: EventRow }) {
           )}
         </div>
         <Link
-          href={`/events/${slug}#tickets`}
+          href="/register"
           className="group mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-full bg-[#0071e3] text-white text-[13.5px] font-bold hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_28px_-10px_rgba(0,113,227,0.7)]"
         >
           Register Now
