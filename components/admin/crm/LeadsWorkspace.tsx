@@ -59,6 +59,7 @@ export function LeadsWorkspace() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [myId, setMyId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const [view, setView] = useState<View>("table")
   const [search, setSearch] = useState("")
@@ -84,7 +85,13 @@ export function LeadsWorkspace() {
       }),
       getLeadStats(),
     ])
-    if (leadsR.success) setLeads(leadsR.leads)
+    if (leadsR.success) {
+      setLeads(leadsR.leads)
+      setLoadError(null)
+    } else {
+      setLeads([])
+      setLoadError(leadsR.error)
+    }
     if (statsR.success) setStats(statsR.stats)
     setLoading(false)
   }, [search, status, source, owner])
@@ -259,6 +266,21 @@ export function LeadsWorkspace() {
           </button>
         </PermissionGate>
       </div>
+
+      {/* ── Load error (e.g. CRM tables not migrated) ───────────────── */}
+      {loadError && !loading && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <div className="flex items-start gap-2.5">
+            <Lock size={15} className="text-red-500 mt-0.5 shrink-0" />
+            <div>
+              <div className="text-[13px] font-semibold text-red-800">
+                Couldn&apos;t load leads
+              </div>
+              <p className="text-[12px] text-red-700 mt-0.5">{loadError}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Body ────────────────────────────────────────────────────── */}
       {loading ? (
