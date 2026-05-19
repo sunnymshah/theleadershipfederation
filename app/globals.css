@@ -32,7 +32,7 @@ body {
    * Dark sections (Hero / Footer / dark builder blocks) still paint
    * their own opaque backgrounds on top. */
   background-color: #ffffff;
-  color: #1a1a2e;
+  color: #1d1d1f;
   overflow-x: hidden;
 }
 
@@ -231,6 +231,11 @@ body {
 .lf-clean :where([class~="bg-[#2a2a4e]"]) { background-color: #2a2a4e !important; }
 .lf-clean :where([class~="bg-[#0a0a14]"]) { background-color: #0a0a14 !important; }
 .lf-clean :where([class~="bg-[#F4F8FF]"]) { background-color: #F4F8FF !important; }
+/* Soft-Monochrome surfaces — Apple-style light-grey alt band + the
+ * quiet-blue accent used for CTAs / badges / icon tiles. */
+.lf-clean :where([class~="bg-[#f5f5f7]"]) { background-color: #f5f5f7 !important; }
+.lf-clean :where([class~="bg-[#0071e3]"]) { background-color: #0071e3 !important; }
+.lf-clean :where([class~="bg-[#0077ed]"]) { background-color: #0077ed !important; }
 
 /* ── Pitch-white fix — re-allow HIGH-opacity dark surfaces ────────────
  * The blanket `:where(section, div, …) { background-color: transparent }`
@@ -354,8 +359,8 @@ html pre[style] {
 /* Text-gradient headlines lose their visual treatment once backgrounds
  * are stripped — restore them as solid navy for legibility. */
 .lf-clean :where([class*="bg-clip-text"][class*="text-transparent"]) {
-  -webkit-text-fill-color: #1a1a2e !important;
-  color: #1a1a2e !important;
+  -webkit-text-fill-color: #1d1d1f !important;
+  color: #1d1d1f !important;
   background: transparent !important;
 }
 
@@ -494,10 +499,10 @@ html pre[style] {
 .lf-clean :where(p, li) {
   text-wrap: pretty;
 }
-/* Selection on white reads better with the brand gold tint. */
+/* Selection — a quiet neutral tint on the monochrome surface. */
 .lf-clean ::selection {
-  background-color: rgba(231, 171, 28, 0.22);
-  color: #1a1a2e;
+  background-color: rgba(0, 113, 227, 0.16);
+  color: #1d1d1f;
 }
 
 /* ── EFFECT 5 · Heading scroll-reveal — REMOVED ──────────────────────
@@ -529,7 +534,7 @@ html pre[style] {
  * grows from the left on hover. Buttons-styled-as-links are excluded
  * by only matching `p a` / `li a` (content prose). */
 .lf-clean :where(p, li) a:not([class~="inline-flex"]) {
-  background-image: linear-gradient(#e7ab1c, #e7ab1c);
+  background-image: linear-gradient(#0071e3, #0071e3);
   background-size: 0% 2px;
   background-position: 0 100%;
   background-repeat: no-repeat;
@@ -539,17 +544,17 @@ html pre[style] {
   background-size: 100% 2px;
 }
 
-/* ── EFFECT 8 · Primary-button gold glow on hover ────────────────────
- * The gold CTA buttons bloom a soft gold halo on hover. */
-.lf-clean :where(a, button)[class~="bg-[#e7ab1c]"]:hover {
+/* ── EFFECT 8 · Primary-button accent glow on hover ──────────────────
+ * The blue CTA buttons bloom a soft accent halo on hover. */
+.lf-clean :where(a, button)[class~="bg-[#0071e3]"]:hover {
   box-shadow:
-    0 0 0 4px rgba(231, 171, 28, 0.16),
-    0 12px 32px -8px rgba(231, 171, 28, 0.55);
+    0 0 0 4px rgba(0, 113, 227, 0.14),
+    0 12px 32px -8px rgba(0, 113, 227, 0.45);
 }
 
-/* ── EFFECT 9 · Card border warms to gold on hover ───────────────────
+/* ── EFFECT 9 · Card border shifts to accent on hover ────────────────
  * Extends the existing hover-lift: bordered white cards shift their
- * border toward the brand gold as they lift. */
+ * border toward the accent blue as they lift. */
 .lf-clean
   :where(div, article, li, a, figure)[class~="bg-white"][class~="border"]:where(
     [class~="rounded-lg"], [class~="rounded-xl"],
@@ -565,7 +570,7 @@ html pre[style] {
     [class~="rounded-lg"], [class~="rounded-xl"],
     [class~="rounded-2xl"], [class~="rounded-3xl"]
   ):hover {
-  border-color: rgba(231, 171, 28, 0.55);
+  border-color: rgba(0, 113, 227, 0.45);
 }
 
 /* ── EFFECT 10 · Icon scale-pop on button hover ──────────────────────
@@ -585,7 +590,7 @@ html pre[style] {
   outline: none;
   box-shadow:
     0 0 0 3px #ffffff,
-    0 0 0 5px rgba(231, 171, 28, 0.65);
+    0 0 0 5px rgba(0, 113, 227, 0.6);
   border-radius: 6px;
   transition: box-shadow 160ms ease;
 }
@@ -596,23 +601,23 @@ html pre[style] {
  * fully immediately. The hover-zoom (EFFECT 6) is kept. */
 
 /* ── EFFECT 13 · Animated underline on nav links ─────────────────────
- * Top-nav links grow a centred gold underline on hover. */
-.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#e7ab1c]"]) {
+ * Top-nav links grow a centred accent underline on hover. */
+.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#0071e3]"]) {
   position: relative;
 }
-.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#e7ab1c]"])::after {
+.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#0071e3]"])::after {
   content: "";
   position: absolute;
   left: 50%;
   bottom: -2px;
   width: 0;
   height: 2px;
-  background-color: #e7ab1c;
+  background-color: #0071e3;
   border-radius: 2px;
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1),
               left 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#e7ab1c]"]):hover::after {
+.lf-clean nav a:not([class~="inline-flex"]):not([class~="bg-[#0071e3]"]):hover::after {
   width: 100%;
   left: 0;
 }
@@ -653,7 +658,7 @@ html pre[style] {
   width: 100%;
   transform-origin: 0 50%;
   transform: scaleX(0);
-  background: linear-gradient(90deg, #e7ab1c, #d49c10);
+  background: linear-gradient(90deg, #0071e3, #0077ed);
   pointer-events: none;
 }
 @supports (animation-timeline: scroll()) {

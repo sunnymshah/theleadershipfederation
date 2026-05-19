@@ -25,8 +25,7 @@ interface FeaturedEventCalloutProps {
   }
 }
 
-/** Event cover — sharp inside the registration card, blurred behind.
- *  Hosted locally in /public so it loads instantly + reliably and is
+/** Event cover — hosted locally in /public so it loads instantly and is
  *  optimised by next/image (WebP/AVIF, resized, edge-cached). */
 const COVER_IMAGE = "/events/asia-leadership-awards.jpg"
 
@@ -63,14 +62,10 @@ function getParts(target: string): Parts | null {
 }
 
 /**
- * Featured-event callout.
+ * Featured-event callout — a clean light section (Soft Monochrome).
  *
- *  • The cover photo is a heavily-blurred ambient backdrop — colour and
- *    atmosphere only, never detail that fights the copy.
- *  • A near-opaque navy scrim + a solid bg-[#1a1a2e] guarantee a dark
- *    backing so every word is legible.
- *  • The left column carries the headline + frosted info chips.
- *  • The right column is a self-contained REGISTRATION CARD: the sharp
+ *  • Left column: the headline + light info chips + description.
+ *  • Right column: a self-contained white REGISTRATION CARD — the sharp
  *    event photo, a live ticking countdown, the date, one primary
  *    "Register Now" action and a trust line.
  *
@@ -96,79 +91,54 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
   const dayCount = getDayCount(e.start_date, e.end_date)
 
   return (
-    <section className="relative overflow-hidden isolate bg-[#0a0a14]">
-      {/* Blurred ambient backdrop. */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src={COVER_IMAGE}
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover scale-125 blur-2xl opacity-60"
-        />
-      </div>
-      {/* Navy scrim + gold glow. */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(560px circle at 85% 5%, rgba(231,171,28,0.26) 0%, transparent 55%), " +
-            "radial-gradient(520px circle at 6% 96%, rgba(116,108,255,0.20) 0%, transparent 60%), " +
-            "radial-gradient(460px circle at 8% 100%, rgba(231,171,28,0.14) 0%, transparent 62%), " +
-            "linear-gradient(120deg, rgba(8,8,16,0.94) 0%, rgba(12,12,22,0.88) 45%, rgba(10,10,20,0.94) 100%)",
-        }}
-      />
-      {/* White edge-fades into the pitch-white page. */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
-
-      <div className="relative z-20 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 py-16 lg:py-24">
+    <section className="relative bg-[#f5f5f7]">
+      <div className="relative max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 py-16 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
           {/* ── Left — event copy ──────────────────────────────────── */}
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 mb-7">
-              <Sparkles size={13} className="text-[#e7ab1c]" />
-              <span className="text-[11px] tracking-[0.18em] uppercase text-[#e7ab1c] font-bold">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0071e3]/[0.08] border border-[#0071e3]/15 mb-7">
+              <Sparkles size={13} className="text-[#0071e3]" />
+              <span className="text-[11px] tracking-[0.18em] uppercase text-[#0071e3] font-bold">
                 Featured Event
               </span>
             </div>
 
-            <h2 className="text-[clamp(2rem,4.6vw,3.3rem)] leading-[1.06] text-white font-bold tracking-[-0.025em]">
+            <h2 className="text-[clamp(2rem,4.6vw,3.3rem)] leading-[1.06] text-[#1d1d1f] font-bold tracking-[-0.025em]">
               {e.title}
             </h2>
 
-            {/* Frosted info chips */}
+            {/* Info chips */}
             <div className="mt-7 flex flex-wrap gap-2.5">
-              <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.07] border border-white/10 text-[13px] font-semibold text-white">
-                <Calendar size={14} className="text-[#e7ab1c]" />
+              <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-black/[0.07] text-[13px] font-semibold text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                <Calendar size={14} className="text-[#0071e3]" />
                 {dateLabel}
               </span>
               {e.venue && (
-                <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.07] border border-white/10 text-[13px] font-semibold text-white">
-                  <MapPin size={14} className="text-[#e7ab1c]" />
+                <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-black/[0.07] text-[13px] font-semibold text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                  <MapPin size={14} className="text-[#0071e3]" />
                   {e.venue}
                 </span>
               )}
-              <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.07] border border-white/10 text-[13px] font-semibold text-white">
-                <CalendarDays size={14} className="text-[#e7ab1c]" />
+              <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-black/[0.07] text-[13px] font-semibold text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                <CalendarDays size={14} className="text-[#0071e3]" />
                 {dayCount}-Day Programme
               </span>
             </div>
 
             {e.description && (
-              <p className="mt-6 text-white/80 text-[15px] leading-[1.75] max-w-xl">
+              <p className="mt-6 text-[#1d1d1f]/65 text-[15px] leading-[1.75] max-w-xl">
                 {e.description}
               </p>
             )}
 
-            <div className="mt-7 inline-flex items-center gap-2 text-[13px] text-white/55">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="mt-7 inline-flex items-center gap-2 text-[13px] text-[#1d1d1f]/55">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Registrations are open — limited seats
             </div>
           </div>
 
-          {/* ── Right — REGISTRATION CARD (the event-register CTA) ──── */}
-          <div className="rounded-3xl overflow-hidden border border-white/12 bg-[#0a0a14] shadow-[0_30px_70px_-20px_rgba(0,0,0,0.75)]">
+          {/* ── Right — REGISTRATION CARD ──────────────────────────── */}
+          <div className="rounded-3xl overflow-hidden border border-black/[0.07] bg-white shadow-[0_30px_70px_-28px_rgba(0,0,0,0.28)]">
             {/* Sharp event photo */}
             <div className="relative aspect-[16/9]">
               <Image
@@ -179,10 +149,9 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
                 sizes="(max-width: 1024px) 100vw, 480px"
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/30 to-transparent" />
-              <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0a0a14]/80 backdrop-blur-sm border border-white/10">
-                <Ticket size={12} className="text-[#e7ab1c]" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+              <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm border border-black/[0.06]">
+                <Ticket size={12} className="text-[#0071e3]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1d1d1f]">
                   Now Registering
                 </span>
               </div>
@@ -191,13 +160,13 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
             {/* Card body */}
             <div className="p-6 sm:p-7">
               {/* Compact date line */}
-              <div className="flex items-center justify-center gap-2 text-[13px] font-semibold text-white/75 mb-5">
-                <Calendar size={14} className="text-[#e7ab1c]" />
+              <div className="flex items-center justify-center gap-2 text-[13px] font-semibold text-[#1d1d1f]/70 mb-5">
+                <Calendar size={14} className="text-[#0071e3]" />
                 {dateLabel}
               </div>
 
               {/* Live countdown */}
-              <div className="flex items-center justify-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#e7ab1c] mb-3">
+              <div className="flex items-center justify-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#0071e3] mb-3">
                 <Clock size={12} />
                 Event starts in
               </div>
@@ -211,17 +180,17 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
                 ).map(([label, value]) => (
                   <div
                     key={label}
-                    className="rounded-xl bg-white/[0.05] border border-white/10 py-3 text-center"
+                    className="rounded-xl bg-[#f5f5f7] border border-black/[0.06] py-3 text-center"
                   >
                     <div
                       suppressHydrationWarning
-                      className="text-[26px] sm:text-[30px] font-bold text-white leading-none tabular-nums"
+                      className="text-[26px] sm:text-[30px] font-bold text-[#1d1d1f] leading-none tabular-nums"
                     >
                       {value !== undefined
                         ? String(value).padStart(2, "0")
                         : "––"}
                     </div>
-                    <div className="text-[10px] text-white/55 uppercase tracking-[0.12em] font-semibold mt-1.5">
+                    <div className="text-[10px] text-[#1d1d1f]/50 uppercase tracking-[0.12em] font-semibold mt-1.5">
                       {label}
                     </div>
                   </div>
@@ -232,7 +201,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               <Link
                 href={`/events/${e.slug}#tickets`}
                 data-ab-convert
-                className="group flex items-center justify-center gap-2 w-full px-7 py-[15px] rounded-full font-bold text-[15px] text-[#1a1a2e] bg-[#e7ab1c] hover:bg-[#f0b93a] transition-all duration-200 shadow-[0_10px_34px_rgba(231,171,28,0.5)] active:scale-[0.98]"
+                className="group flex items-center justify-center gap-2 w-full px-7 py-[15px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_10px_30px_-8px_rgba(0,113,227,0.45)] active:scale-[0.98]"
               >
                 Register Now
                 <ArrowRight
@@ -242,15 +211,15 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
               </Link>
 
               {/* Trust line */}
-              <div className="flex items-center justify-center gap-1.5 mt-3.5 text-[11.5px] text-white/45">
-                <ShieldCheck size={13} className="text-emerald-400/80" />
+              <div className="flex items-center justify-center gap-1.5 mt-3.5 text-[11.5px] text-[#1d1d1f]/45">
+                <ShieldCheck size={13} className="text-emerald-500" />
                 Secure checkout · Instant confirmation
               </div>
 
               {/* Secondary action */}
               <Link
                 href={`/events/${e.slug}`}
-                className="block text-center mt-3 text-[13px] font-semibold text-white/60 hover:text-white transition-colors"
+                className="block text-center mt-3 text-[13px] font-semibold text-[#0071e3] hover:text-[#0077ed] transition-colors"
               >
                 View full event details →
               </Link>

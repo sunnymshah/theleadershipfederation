@@ -85,13 +85,13 @@ export function Navbar() {
                     className={cn(
                       "relative px-3 py-1.5 text-[13.5px] tracking-[-0.01em] whitespace-nowrap rounded-full transition-all duration-200",
                       active
-                        ? "text-[#1a1a2e] font-semibold"
-                        : "text-[#1a1a2e]/65 hover:text-[#1a1a2e] font-medium hover:bg-white/50",
+                        ? "text-[#1d1d1f] font-semibold"
+                        : "text-[#1d1d1f]/65 hover:text-[#1d1d1f] font-medium hover:bg-white/50",
                     )}
                   >
                     {label}
                     {active && (
-                      <span className="absolute left-1/2 -translate-x-1/2 -bottom-0.5 h-[2.5px] w-5 rounded-full bg-[#e7ab1c]" />
+                      <span className="absolute left-1/2 -translate-x-1/2 -bottom-0.5 h-[2.5px] w-5 rounded-full bg-[#0071e3]" />
                     )}
                   </Link>
                 )
@@ -103,7 +103,7 @@ export function Navbar() {
               button was removed; "Register" stays as a nav link.) */}
           <div className="flex items-center shrink-0 ml-auto lg:ml-0">
             <button
-              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-full text-[#1a1a2e]/80 hover:text-[#1a1a2e] hover:bg-white/60 transition-all duration-200"
+              className="lg:hidden w-9 h-9 flex items-center justify-center rounded-full text-[#1d1d1f]/80 hover:text-[#1d1d1f] hover:bg-white/60 transition-all duration-200"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
@@ -138,13 +138,13 @@ export function Navbar() {
                 className={cn(
                   "flex items-center py-2.5 px-3.5 rounded-2xl text-[14px] transition-all duration-200",
                   active
-                    ? "text-[#1a1a2e] font-semibold bg-white/65"
-                    : "text-[#1a1a2e]/75 font-medium hover:text-[#1a1a2e] hover:bg-white/50",
+                    ? "text-[#1d1d1f] font-semibold bg-white/65"
+                    : "text-[#1d1d1f]/75 font-medium hover:text-[#1d1d1f] hover:bg-white/50",
                 )}
               >
                 {label}
                 {active && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#e7ab1c]" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#0071e3]" />
                 )}
               </Link>
             )

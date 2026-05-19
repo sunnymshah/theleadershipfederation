@@ -41,14 +41,14 @@ export function CountdownBar({ event }: CountdownBarProps) {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-slideUp">
-      <div className="bg-[#1a1a2e]/95 backdrop-blur-xl border-t border-[#e7ab1c]/20">
+      <div className="bg-white border-t border-black/[0.08] shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.14)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
             {/* Pulse */}
-            <span className="hidden sm:flex w-2 h-2 rounded-full bg-[#e7ab1c] animate-pulse shrink-0" />
+            <span className="hidden sm:flex w-2 h-2 rounded-full bg-[#0071e3] animate-pulse shrink-0" />
 
             {/* Event name */}
-            <span className="text-[12px] sm:text-[13px] font-semibold text-white/80 truncate">
+            <span className="text-[12px] sm:text-[13px] font-semibold text-[#1d1d1f]/80 truncate">
               {event.title}
             </span>
 
@@ -61,16 +61,16 @@ export function CountdownBar({ event }: CountdownBarProps) {
                 { value: time.seconds, label: "s" },
               ].map(({ value, label }) => (
                 <div key={label} className="flex items-baseline gap-0.5">
-                  <span className="text-[18px] font-bold text-[#e7ab1c] tabular-nums leading-none">
+                  <span className="text-[18px] font-bold text-[#0071e3] tabular-nums leading-none">
                     {String(value).padStart(2, "0")}
                   </span>
-                  <span className="text-[10px] text-white/85 font-medium">{label}</span>
+                  <span className="text-[10px] text-[#1d1d1f]/55 font-medium">{label}</span>
                 </div>
               ))}
             </div>
 
             {/* Mobile: compact countdown */}
-            <span className="md:hidden text-[13px] font-bold text-[#e7ab1c] tabular-nums shrink-0">
+            <span className="md:hidden text-[13px] font-bold text-[#0071e3] tabular-nums shrink-0">
               {time.days}d {time.hours}h {time.minutes}m
             </span>
           </div>
@@ -78,13 +78,13 @@ export function CountdownBar({ event }: CountdownBarProps) {
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href={`/events/${event.slug}`}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.3)]"
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold bg-[#0071e3] text-white hover:bg-[#0077ed] transition-all duration-200 shadow-[0_4px_14px_-4px_rgba(0,113,227,0.5)]"
             >
               Register <ArrowRight size={12} />
             </Link>
             <button
               onClick={() => setDismissed(true)}
-              className="p-1.5 rounded-full text-white/65 hover:text-white hover:bg-white/10 transition-all"
+              className="p-1.5 rounded-full text-[#1d1d1f]/50 hover:text-[#1d1d1f] hover:bg-black/[0.05] transition-all"
               aria-label="Dismiss"
             >
               <X size={14} />

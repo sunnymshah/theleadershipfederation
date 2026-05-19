@@ -4,7 +4,6 @@ import { useRef, useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { GoldChevrons } from "@/components/ui/GoldPattern"
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
 import { MagneticButton } from "@/components/ui/MagneticButton"
 
@@ -95,13 +94,8 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden"
+      className="relative overflow-hidden bg-white"
     >
-      {/* Background patterns — behind everything */}
-      <div className="absolute inset-0 z-0">
-        <GoldChevrons />
-      </div>
-
       <style jsx>{`
         @keyframes heroFadeIn {
           from { opacity: 0; transform: translateY(24px); }
@@ -187,11 +181,11 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
           <div className="lg:col-span-7 order-2 lg:order-1 flex flex-col justify-center">
             {/* Live event badge */}
             <div
-              className="hero-anim inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e7ab1c]/[0.08] border border-[#e7ab1c]/[0.12] mb-8 self-start"
+              className="hero-anim inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0071e3]/[0.08] border border-[#0071e3]/[0.12] mb-8 self-start"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#e7ab1c] animate-pulse" />
-              <span className="text-[10px] font-bold text-[#e7ab1c] tracking-[0.08em] uppercase" style={sfText}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0071e3] animate-pulse" />
+              <span className="text-[10px] font-bold text-[#0071e3] tracking-[0.08em] uppercase" style={sfText}>
                 {event
                   ? `${event.title} — ${fmtDateRange(event.start_date, event.end_date)}${event.venue ? `, ${event.venue}` : ""}`
                   : "Explore Upcoming Events"}
@@ -200,7 +194,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
 
             {/* Headline */}
             <h1
-              className="leading-[0.92] tracking-[-0.035em] text-[#1a1a2e] mb-7"
+              className="leading-[0.92] tracking-[-0.035em] text-[#1d1d1f] mb-7"
               style={{
                 fontSize: "clamp(2.6rem, 5vw, 4.5rem)",
                 fontWeight: 700,
@@ -209,14 +203,14 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             >
               <span className="hero-typewriter">Direct Access to&nbsp;</span>
               <br className="hidden sm:block" />
-              <span className="hero-gold-words text-[#e7ab1c]">
+              <span className="hero-gold-words text-[#0071e3]">
                 Global Leaders
               </span>
             </h1>
 
             {/* Subtext */}
             <p
-              className="hero-anim max-w-[420px] text-[#1a1a2e]/70 leading-[1.75] text-[15px]"
+              className="hero-anim max-w-[420px] text-[#1d1d1f]/70 leading-[1.75] text-[15px]"
               style={{ animationDelay: "0.2s", ...sfText }}
             >
               Connecting GCC leaders, CXOs, and decision-makers through
@@ -231,7 +225,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
               <MagneticButton>
                 <Link
                   href="/events"
-                  className="group inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[14px] text-white bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-[0_4px_24px_rgba(231,171,28,0.25)]"
+                  className="group inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-[0_4px_24px_rgba(0,113,227,0.25)]"
                 >
                   Explore Events
                   <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
@@ -240,7 +234,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
               <MagneticButton>
                 <Link
                   href="/inner-circle"
-                  className="lf-glass inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-semibold text-[#1a1a2e] hover:text-[#1a1a2e] transition-all duration-200"
+                  className="lf-glass inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-semibold text-[#1d1d1f] hover:text-[#1d1d1f] transition-all duration-200"
                 >
                   Join Inner Circle
                 </Link>
@@ -254,12 +248,12 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             >
               {statItems.map(({ value, suffix, label }, i) => (
                 <div key={label} className="flex items-center">
-                  {i > 0 && <div className="w-px h-8 bg-[#1a1a2e]/[0.06] mx-6 sm:mx-8" />}
+                  {i > 0 && <div className="w-px h-8 bg-[#1d1d1f]/[0.06] mx-6 sm:mx-8" />}
                   <div>
-                    <div className="text-[22px] sm:text-[28px] font-bold text-[#1a1a2e] tracking-tight leading-none" style={sfDisplay}>
+                    <div className="text-[22px] sm:text-[28px] font-bold text-[#1d1d1f] tracking-tight leading-none" style={sfDisplay}>
                       <AnimatedCounter value={value} suffix={suffix} duration={2200 + i * 300} />
                     </div>
-                    <div className="text-[9px] sm:text-[10px] text-[#1a1a2e]/55 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
+                    <div className="text-[9px] sm:text-[10px] text-[#1d1d1f]/55 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
                   </div>
                 </div>
               ))}
@@ -288,20 +282,20 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
                   />
                 </div>
                 {/* Gradient overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e]/40 via-transparent to-[#1a1a2e]/5" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#F4F8FF]/20 via-transparent to-transparent lg:from-[#F4F8FF]/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1d1d1f]/40 via-transparent to-[#1d1d1f]/5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#f5f5f7]/20 via-transparent to-transparent lg:from-[#f5f5f7]/30" />
               </div>
 
               {/* Next event floating card */}
               {event && (
-                <Link href={`/events/${event.slug}`} className="hero-anim-badge absolute -bottom-5 -left-4 sm:-left-6 bg-white/95 backdrop-blur-2xl rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(26, 26, 46,0.08)] border border-[#1a1a2e]/[0.04] hover:shadow-[0_16px_50px_rgba(26, 26, 46,0.12)] transition-shadow">
-                  <div className="text-[9px] text-[#e7ab1c] uppercase tracking-[0.14em] font-bold mb-1.5" style={sfText}>Next Event</div>
-                  <div className="text-[15px] font-bold text-[#1a1a2e] leading-tight" style={sfDisplay}>{event.title}</div>
-                  <div className="text-[12px] text-[#1a1a2e]/65 mt-0.5" style={sfText}>
+                <Link href={`/events/${event.slug}`} className="hero-anim-badge absolute -bottom-5 -left-4 sm:-left-6 bg-white/95 backdrop-blur-2xl rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(26, 26, 46,0.08)] border border-[#1d1d1f]/[0.04] hover:shadow-[0_16px_50px_rgba(26, 26, 46,0.12)] transition-shadow">
+                  <div className="text-[9px] text-[#0071e3] uppercase tracking-[0.14em] font-bold mb-1.5" style={sfText}>Next Event</div>
+                  <div className="text-[15px] font-bold text-[#1d1d1f] leading-tight" style={sfDisplay}>{event.title}</div>
+                  <div className="text-[12px] text-[#1d1d1f]/65 mt-0.5" style={sfText}>
                     {fmtDateRange(event.start_date, event.end_date)}{event.venue ? ` · ${event.venue}` : ""}
                   </div>
                   {daysLeft !== null && (
-                    <div className="text-[11px] font-bold text-[#e7ab1c] mt-1.5" style={sfText}>
+                    <div className="text-[11px] font-bold text-[#0071e3] mt-1.5" style={sfText}>
                       {daysLeft} day{daysLeft !== 1 ? "s" : ""} to go
                     </div>
                   )}
@@ -310,7 +304,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
 
               {/* Countdown badge — inset inside image */}
               {event && daysLeft !== null && (
-                <div className="hero-anim-edition absolute top-4 right-4 w-14 h-14 bg-[#e7ab1c] rounded-xl flex flex-col items-center justify-center shadow-[0_8px_20px_rgba(231,171,28,0.35)]">
+                <div className="hero-anim-edition absolute top-4 right-4 w-14 h-14 bg-[#0071e3] rounded-xl flex flex-col items-center justify-center shadow-[0_8px_20px_rgba(0,113,227,0.35)]">
                   <span className="text-[17px] font-bold text-white leading-none tabular-nums">{daysLeft}</span>
                   <span className="text-[7px] text-white/70 uppercase tracking-wider font-semibold">Days</span>
                 </div>
@@ -321,7 +315,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
       </div>
 
       {/* Bottom fade into next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#F4F8FF] to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#f5f5f7] to-transparent z-10 pointer-events-none" />
     </section>
   )
 }

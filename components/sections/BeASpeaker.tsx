@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { Globe, Award, Users, ArrowRight } from "lucide-react"
-import { SectionAmbient } from "@/components/ui/SectionAmbient"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -58,12 +57,10 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
   return (
     <section
       ref={ref}
-      className="relative py-12 lg:py-16 overflow-hidden"
+      className="relative bg-[#f5f5f7] py-12 lg:py-16 overflow-hidden"
     >
-      <SectionAmbient variant="b" />
-
       {/* Gold accent line at top */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#e7ab1c]/30 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#0071e3]/30 to-transparent" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -77,22 +74,22 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
               }}
             >
               <span
-                className="inline-block text-[11px] tracking-[0.25em] uppercase text-[#e7ab1c] font-semibold mb-4"
+                className="inline-block text-[11px] tracking-[0.25em] uppercase text-[#0071e3] font-semibold mb-4"
                 style={sfText}
               >
                 Become a Speaker
               </span>
               <h2
-                className="text-[clamp(1.8rem,4vw,2.8rem)] leading-[1.08] text-[#1a1a2e] font-bold tracking-[-0.02em] mb-5"
+                className="text-[clamp(1.8rem,4vw,2.8rem)] leading-[1.08] text-[#1d1d1f] font-bold tracking-[-0.02em] mb-5"
                 style={sfDisplay}
               >
                 Share Your Expertise
                 <br />
                 on a{" "}
-                <span className="text-[#e7ab1c]">Global Stage</span>
+                <span className="text-[#0071e3]">Global Stage</span>
               </h2>
               <p
-                className="text-[#1a1a2e]/70 text-[15px] leading-[1.7] max-w-md mb-8"
+                className="text-[#1d1d1f]/70 text-[15px] leading-[1.7] max-w-md mb-8"
                 style={sfText}
               >
                 Join a distinguished roster of speakers at The Leadership Federation&apos;s
@@ -115,18 +112,18 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                       transition: `all 0.7s cubic-bezier(0.16,1,0.3,1) ${0.15 + i * 0.1}s`,
                     }}
                   >
-                    <div className="shrink-0 w-10 h-10 rounded-xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center">
-                      <Icon size={18} className="text-[#e7ab1c]" strokeWidth={1.8} />
+                    <div className="shrink-0 w-10 h-10 rounded-xl bg-[#0071e3]/10 border border-[#0071e3]/20 flex items-center justify-center">
+                      <Icon size={18} className="text-[#0071e3]" strokeWidth={1.8} />
                     </div>
                     <div>
                       <h3
-                        className="text-[15px] font-semibold text-[#1a1a2e] mb-1"
+                        className="text-[15px] font-semibold text-[#1d1d1f] mb-1"
                         style={sfText}
                       >
                         {benefit.title}
                       </h3>
                       <p
-                        className="text-[13px] text-[#1a1a2e]/60 leading-[1.6]"
+                        className="text-[13px] text-[#1d1d1f]/60 leading-[1.6]"
                         style={sfText}
                       >
                         {benefit.description}
@@ -149,11 +146,11 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
             <div className="relative rounded-3xl lf-glass p-8 lg:p-10">
               {/* Decorative corner accent */}
               <div className="absolute top-0 right-0 w-20 h-20 overflow-hidden rounded-tr-3xl">
-                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#e7ab1c]/15 to-transparent" />
+                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#0071e3]/15 to-transparent" />
               </div>
 
               <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c] flex items-center justify-center mb-6 shadow-[0_4px_20px_rgba(231,171,28,0.3)]">
+                <div className="w-14 h-14 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-6 shadow-[0_4px_20px_rgba(0,113,227,0.3)]">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -163,13 +160,13 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                 </div>
 
                 <h3
-                  className="text-[22px] font-bold text-[#1a1a2e] mb-3 tracking-[-0.01em]"
+                  className="text-[22px] font-bold text-[#1d1d1f] mb-3 tracking-[-0.01em]"
                   style={sfDisplay}
                 >
                   Ready to take the stage?
                 </h3>
                 <p
-                  className="text-[14px] text-[#1a1a2e]/65 leading-[1.7] mb-8"
+                  className="text-[14px] text-[#1d1d1f]/65 leading-[1.7] mb-8"
                   style={sfText}
                 >
                   Apply to be a speaker at our upcoming events. We are looking for
@@ -186,13 +183,13 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                   ].map((stat) => (
                     <div key={stat.label} className="text-center">
                       <div
-                        className="text-[20px] font-bold text-[#e7ab1c]"
+                        className="text-[20px] font-bold text-[#0071e3]"
                         style={sfDisplay}
                       >
                         {stat.value}
                       </div>
                       <div
-                        className="text-[10px] text-[#1a1a2e]/50 uppercase tracking-wider mt-0.5"
+                        className="text-[10px] text-[#1d1d1f]/50 uppercase tracking-wider mt-0.5"
                         style={sfText}
                       >
                         {stat.label}
@@ -203,7 +200,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
 
                 <Link
                   href="/register?type=speaker"
-                  className="group w-full inline-flex items-center justify-center gap-2.5 px-8 py-[15px] rounded-full font-semibold text-[14px] text-[#1a1a2e] bg-[#e7ab1c] hover:bg-[#d49c10] transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-[0_4px_24px_rgba(231,171,28,0.3)]"
+                  className="group w-full inline-flex items-center justify-center gap-2.5 px-8 py-[15px] rounded-full font-semibold text-[14px] text-[#1d1d1f] bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-[0_4px_24px_rgba(0,113,227,0.3)]"
                   style={sfText}
                 >
                   Apply as a Speaker
@@ -214,7 +211,7 @@ export function BeASpeaker({ eventCount, speakerCount }: BeASpeakerProps) {
                 </Link>
 
                 <p
-                  className="text-center text-[11px] text-[#1a1a2e]/40 mt-4"
+                  className="text-center text-[11px] text-[#1d1d1f]/40 mt-4"
                   style={sfText}
                 >
                   Applications reviewed within 5 business days
