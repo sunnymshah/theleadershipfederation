@@ -1,27 +1,26 @@
 "use client"
 
 /**
- * ─── ADMIN LOGIN — LIQUID GLASS ──────────────────────────────────────────
+ * ─── ADMIN LOGIN — SPLIT-SCREEN ──────────────────────────────────────────
  *
- * Profile-picker sign-in, re-skinned in the liquid-glass / white theme
- * that the admin console + public site now share.
+ * Premium split layout: a dark brand panel on the left, a clean white
+ * sign-in column on the right.
  *
- *   Stage 1  — grid of team profiles fetched from /api/admin/profiles
- *              (no emails leak to anon clients)
- *   Stage 2  — click a profile → glass card with password field
+ *   Stage 1  — vertical list of team profiles fetched from
+ *              /api/admin/profiles (no emails leak to anon clients)
+ *   Stage 2  — pick a profile → password field
  *   Stage 3  — submit → adminSignInByProfileId → /admin
  *
- * Fallback: "Sign in with email instead" jumps to the classic
- * email/password form (useful before team_members is seeded, or if a
- * profile is temporarily deactivated).
+ * Fallback: "Sign in with email instead" → classic email/password form
+ * (used before team_members is seeded, or if a profile is deactivated).
  *
- * Lives in the (auth) route group so it does NOT inherit the console
- * sidebar or auth gate. The auth LOGIC here is unchanged from the
- * previous version — only the surface design was rebuilt.
+ * The auth LOGIC is unchanged from the previous version — only the
+ * layout + surface were rebuilt.
  */
 
 import { useState, useEffect, Suspense, useRef, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { ChevronRight, ArrowLeft } from "lucide-react"
 import { adminSignIn, adminSignInByProfileId } from "@/app/actions/authActions"
 
 type TeamProfile = {
@@ -34,7 +33,6 @@ type TeamProfile = {
   role: string
 }
 
-/** Theme accent — the Apple-blue used across the new admin + site. */
 const ACCENT = "#0071e3"
 
 const ROLE_PILL: Record<string, string> = {
@@ -69,8 +67,6 @@ function LoginFlow() {
   const router                        = useRouter()
   const searchParams                  = useSearchParams()
 
-  // Surface ?error=... sent from the console gate. Computed during render
-  // (not in an effect) so React doesn't complain about cascading setState.
   const urlError = useMemo(() => {
     const e = searchParams.get("error")
     if (e === "access-denied") {
@@ -79,7 +75,6 @@ function LoginFlow() {
     return null
   }, [searchParams])
 
-  // Local error (from submits) takes precedence over URL error.
   const error = localError ?? urlError
   const setError = setLocalError
 
@@ -98,8 +93,6 @@ function LoginFlow() {
         if (!cancelled) {
           const list = (json.profiles ?? []) as TeamProfile[]
           setProfiles(list)
-          // Empty team_members → fresh install: flip to email mode so the
-          // bootstrap admin can sign in for the first time.
           if (list.length === 0) setMode("email")
         }
       } catch {
@@ -149,265 +142,299 @@ function LoginFlow() {
     router.push("/admin")
   }
 
-  /* ──────────────────────────────────────────────────────────────────── *
-   *  RENDER — liquid glass on white                                      *
-   * ──────────────────────────────────────────────────────────────────── */
+  const heading =
+    mode === "email"
+      ? "Admin sign in"
+      : selected
+        ? `Welcome back, ${selected.name.split(" ")[0]}`
+        : "Who's working today?"
+  const subheading =
+    mode === "email"
+      ? "Enter your credentials to continue."
+      : selected
+        ? "Enter your password to unlock the console."
+        : "Choose your profile to continue."
+
+  /* ──────────────────────────────────────────────────────────────────── */
 
   return (
-    <div className="min-h-screen bg-white text-[#1d1d1f] relative overflow-hidden">
-      {/* Ambient tonal wash — soft blue blooms give the glass cards real
-          colour to refract behind their backdrop blur. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-0"
-        style={{
-          background:
-            "radial-gradient(48% 42% at 16% 12%, rgba(0,113,227,0.10) 0%, transparent 64%), " +
-            "radial-gradient(46% 44% at 88% 86%, rgba(0,113,227,0.08) 0%, transparent 66%)",
-        }}
-      />
-
-      {/* Header */}
-      <header className="relative z-10 pt-12 pb-8 px-6 text-center">
+    <div className="min-h-screen flex bg-white text-[#1d1d1f]">
+      {/* ══ LEFT — dark brand panel (desktop only) ══════════════════════ */}
+      <aside className="hidden lg:flex w-[44%] max-w-[620px] relative overflow-hidden bg-[#0a0a14] text-white flex-col justify-between p-12 xl:p-16">
+        {/* Aurora */}
         <div
-          className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4"
-          style={{ background: ACCENT }}
-        >
-          <span className="text-white text-sm font-black tracking-[0.18em]">TLF</span>
-        </div>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-          {mode === "email"
-            ? "Admin sign in"
-            : selected
-              ? `Welcome back, ${selected.name.split(" ")[0]}`
-              : "Who's working today?"}
-        </h1>
-        <p className="mt-2 text-sm text-[#6b7280]">
-          {mode === "email"
-            ? "Enter your credentials to continue."
-            : selected
-              ? "Enter your password to unlock the workspace."
-              : "Select your profile to continue."}
-        </p>
-      </header>
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(46% 40% at 18% 16%, rgba(0,113,227,0.42) 0%, transparent 62%), " +
+              "radial-gradient(50% 44% at 88% 90%, rgba(0,113,227,0.26) 0%, transparent 64%), " +
+              "radial-gradient(40% 36% at 92% 8%, rgba(120,90,230,0.22) 0%, transparent 60%)",
+          }}
+        />
 
-      {/* Stage 1 — profile grid */}
-      {mode === "picker" && !selected && (
-        <div className="relative z-10 px-6 pb-20 max-w-5xl mx-auto">
-          {profiles === null && <GridSkeleton />}
-          {profiles && profiles.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-              {profiles.map((p) => (
-                <ProfileCard
-                  key={p.id}
-                  profile={p}
-                  onSelect={() => { setSelected(p); setPassword(""); setError(null) }}
-                />
-              ))}
-            </div>
-          )}
-          {profiles && profiles.length === 0 && !loadError && (
-            <div className="max-w-md mx-auto text-center text-[#6b7280] text-sm">
-              No team profiles yet. Sign in with your email to bootstrap.
-            </div>
-          )}
-          {loadError && (
-            <div className="max-w-md mx-auto text-center text-amber-600 text-xs mt-6">
-              {loadError}
-            </div>
-          )}
-
-          <div className="mt-10 text-center">
-            <button
-              type="button"
-              onClick={() => { setMode("email"); setError(null) }}
-              className="text-xs uppercase tracking-[0.2em] text-[#9ca3af] hover:text-[#0071e3] transition-colors"
-            >
-              Sign in with email instead
-            </button>
+        {/* Brand mark */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center"
+            style={{ background: ACCENT }}
+          >
+            <span className="text-white text-[13px] font-black tracking-[0.16em]">TLF</span>
           </div>
+          <span className="text-[15px] font-semibold tracking-tight text-white/90">
+            The Leadership Federation
+          </span>
         </div>
-      )}
 
-      {/* Stage 2 — password for selected profile */}
-      {mode === "picker" && selected && (
-        <div className="relative z-10 px-6 pb-20 max-w-md mx-auto">
-          <form onSubmit={submitProfile} className="lf-glass-strong rounded-3xl p-8">
-            <div className="flex flex-col items-center text-center mb-6">
-              <Avatar profile={selected} size={96} />
-              <div className="mt-4 text-lg font-semibold">{selected.name}</div>
-              {selected.title && (
-                <div className="text-xs text-[#6b7280] mt-0.5">{selected.title}</div>
-              )}
-              {selected.department && (
-                <div className="mt-3 inline-flex items-center gap-2">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: selected.accent_color ?? ACCENT }}
-                  />
-                  <span className="text-[11px] uppercase tracking-[0.18em] text-[#6b7280]">
-                    {selected.department}
-                  </span>
-                </div>
-              )}
-              <span className="mt-3 inline-block px-2.5 py-0.5 rounded-full bg-[#0071e3]/[0.08] border border-[#0071e3]/15 text-[10px] uppercase tracking-[0.18em] text-[#0071e3]">
-                {ROLE_PILL[selected.role] ?? selected.role}
-              </span>
+        {/* Headline */}
+        <div className="relative z-10">
+          <h2 className="text-[34px] xl:text-[42px] font-semibold leading-[1.1] tracking-[-0.02em]">
+            Run every conclave
+            <br />
+            from one console.
+          </h2>
+          <p className="mt-5 text-[15px] leading-relaxed text-white/55 max-w-sm">
+            Events, attendees, pipeline, payments and the public site — the
+            entire Federation, managed in one place.
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="relative z-10 text-[12px] text-white/35">
+          © {new Date().getFullYear()} The Leadership Federation · Admin console
+        </div>
+      </aside>
+
+      {/* ══ RIGHT — sign-in column ══════════════════════════════════════ */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 sm:px-10">
+        <div className="w-full max-w-[400px]">
+          {/* Mobile brand mark */}
+          <div className="lg:hidden flex items-center gap-2.5 mb-9">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: ACCENT }}
+            >
+              <span className="text-white text-[11px] font-black tracking-[0.14em]">TLF</span>
             </div>
+            <span className="text-[14px] font-semibold tracking-tight">
+              The Leadership Federation
+            </span>
+          </div>
 
-            {/* Honeypot */}
-            <input
-              type="text"
-              name="company_website"
-              autoComplete="off"
-              tabIndex={-1}
-              aria-hidden="true"
-              value={hp}
-              onChange={(e) => setHp(e.target.value)}
-              style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
-            />
-
-            <label htmlFor="pwd" className="block text-[10px] uppercase tracking-[0.2em] text-[#9ca3af] mb-2">
-              Password
-            </label>
-            <input
-              id="pwd"
-              ref={passwordRef}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 h-12 bg-white border border-[#ededf0] rounded-xl text-sm text-[#1d1d1f] placeholder-[#9ca3af] focus:outline-none focus:border-[#0071e3] focus:ring-[3px] focus:ring-[#0071e3]/12 transition-all"
-              placeholder="••••••••"
-            />
-
-            {error && (
-              <div className="mt-3 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="mt-5 w-full h-12 rounded-xl bg-[#0071e3] text-white text-sm font-semibold tracking-wide hover:bg-[#0077ed] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Signing in…" : "Enter workspace"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setSelected(null); setPassword(""); setError(null) }}
-              className="mt-4 w-full text-[11px] uppercase tracking-[0.2em] text-[#9ca3af] hover:text-[#1d1d1f] transition-colors"
-            >
-              ← Choose a different profile
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Email fallback mode */}
-      {mode === "email" && (
-        <div className="relative z-10 px-6 pb-20 max-w-md mx-auto">
-          <form onSubmit={submitEmail} className="lf-glass-strong rounded-3xl p-8">
-            <input
-              type="text"
-              name="company_website"
-              autoComplete="off"
-              tabIndex={-1}
-              aria-hidden="true"
-              value={hp}
-              onChange={(e) => setHp(e.target.value)}
-              style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
-            />
-
-            <label htmlFor="email" className="block text-[10px] uppercase tracking-[0.2em] text-[#9ca3af] mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 h-12 bg-white border border-[#ededf0] rounded-xl text-sm text-[#1d1d1f] placeholder-[#9ca3af] focus:outline-none focus:border-[#0071e3] focus:ring-[3px] focus:ring-[#0071e3]/12 transition-all mb-4"
-              placeholder="admin@theleadershipfederation.com"
-            />
-
-            <label htmlFor="pwd2" className="block text-[10px] uppercase tracking-[0.2em] text-[#9ca3af] mb-2">
-              Password
-            </label>
-            <input
-              id="pwd2"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 h-12 bg-white border border-[#ededf0] rounded-xl text-sm text-[#1d1d1f] placeholder-[#9ca3af] focus:outline-none focus:border-[#0071e3] focus:ring-[3px] focus:ring-[#0071e3]/12 transition-all"
-              placeholder="••••••••"
-            />
-
-            {error && (
-              <div className="mt-3 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="mt-5 w-full h-12 rounded-xl bg-[#0071e3] text-white text-sm font-semibold tracking-wide hover:bg-[#0077ed] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Signing in…" : "Sign in"}
-            </button>
-
-            {profiles && profiles.length > 0 && (
+          {/* Heading */}
+          <div className="mb-7">
+            {selected && (
               <button
                 type="button"
-                onClick={() => { setMode("picker"); setError(null) }}
-                className="mt-4 w-full text-[11px] uppercase tracking-[0.2em] text-[#9ca3af] hover:text-[#1d1d1f] transition-colors"
+                onClick={() => { setSelected(null); setPassword(""); setError(null) }}
+                className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#6b7280] hover:text-[#1d1d1f] transition-colors mb-4"
               >
-                ← Back to profile picker
+                <ArrowLeft size={13} /> All profiles
               </button>
             )}
-          </form>
+            <h1 className="text-[26px] sm:text-[28px] font-semibold tracking-tight">
+              {heading}
+            </h1>
+            <p className="mt-1.5 text-[13.5px] text-[#6b7280]">{subheading}</p>
+          </div>
+
+          {/* ── Stage 1 — profile list ─────────────────────────────── */}
+          {mode === "picker" && !selected && (
+            <div>
+              {profiles === null && <ListSkeleton />}
+
+              {profiles && profiles.length > 0 && (
+                <div className="space-y-2">
+                  {profiles.map((p) => (
+                    <ProfileRow
+                      key={p.id}
+                      profile={p}
+                      onSelect={() => { setSelected(p); setPassword(""); setError(null) }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {profiles && profiles.length === 0 && !loadError && (
+                <p className="text-[13px] text-[#6b7280]">
+                  No team profiles yet. Sign in with your email to bootstrap.
+                </p>
+              )}
+              {loadError && (
+                <p className="text-[12px] text-amber-600 mt-2">{loadError}</p>
+              )}
+              {error && <ErrorNote text={error} />}
+
+              <button
+                type="button"
+                onClick={() => { setMode("email"); setError(null) }}
+                className="mt-7 text-[12px] font-medium uppercase tracking-[0.16em] text-[#9ca3af] hover:text-[#0071e3] transition-colors"
+              >
+                Sign in with email instead
+              </button>
+            </div>
+          )}
+
+          {/* ── Stage 2 — password for selected profile ───────────── */}
+          {mode === "picker" && selected && (
+            <form onSubmit={submitProfile}>
+              <div className="flex items-center gap-3.5 mb-6 p-3 rounded-2xl border border-[#ededf0] bg-[#fafbfc]">
+                <Avatar profile={selected} size={48} />
+                <div className="min-w-0">
+                  <div className="text-[14px] font-semibold truncate">{selected.name}</div>
+                  <div className="text-[12px] text-[#6b7280] truncate">
+                    {selected.title || selected.department || (ROLE_PILL[selected.role] ?? selected.role)}
+                  </div>
+                </div>
+              </div>
+
+              <Honeypot value={hp} onChange={setHp} />
+
+              <Field label="Password">
+                <input
+                  ref={passwordRef}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className={inputCls}
+                  placeholder="••••••••"
+                />
+              </Field>
+
+              {error && <ErrorNote text={error} />}
+
+              <SubmitButton submitting={submitting} label="Enter console" />
+            </form>
+          )}
+
+          {/* ── Stage 3 — email fallback ──────────────────────────── */}
+          {mode === "email" && (
+            <form onSubmit={submitEmail}>
+              <Honeypot value={hp} onChange={setHp} />
+
+              <Field label="Email">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className={inputCls}
+                  placeholder="admin@theleadershipfederation.com"
+                />
+              </Field>
+
+              <div className="h-3.5" />
+
+              <Field label="Password">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className={inputCls}
+                  placeholder="••••••••"
+                />
+              </Field>
+
+              {error && <ErrorNote text={error} />}
+
+              <SubmitButton submitting={submitting} label="Sign in" />
+
+              {profiles && profiles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { setMode("picker"); setError(null) }}
+                  className="mt-4 w-full text-[12px] font-medium uppercase tracking-[0.16em] text-[#9ca3af] hover:text-[#1d1d1f] transition-colors"
+                >
+                  ← Back to profile picker
+                </button>
+              )}
+            </form>
+          )}
         </div>
-      )}
+      </main>
     </div>
   )
 }
 
-/* ────────── subcomponents ─────────────────────────────────────────── */
+/* ────────── shared bits ────────────────────────────────────────────── */
 
-function ProfileCard({ profile, onSelect }: { profile: TeamProfile; onSelect: () => void }) {
+const inputCls =
+  "w-full px-4 h-12 bg-white border border-[#ededf0] rounded-xl text-[14px] text-[#1d1d1f] " +
+  "placeholder-[#9ca3af] focus:outline-none focus:border-[#0071e3] focus:ring-[3px] " +
+  "focus:ring-[#0071e3]/12 transition-all"
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9ca3af] mb-1.5">
+        {label}
+      </span>
+      {children}
+    </label>
+  )
+}
+
+function SubmitButton({ submitting, label }: { submitting: boolean; label: string }) {
   return (
     <button
-      type="button"
-      onClick={onSelect}
-      className="lf-glass group rounded-2xl p-4 flex flex-col items-center transition-transform duration-200 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3]"
+      type="submit"
+      disabled={submitting}
+      className="mt-6 w-full h-12 rounded-xl bg-[#0071e3] text-white text-[14px] font-semibold tracking-wide hover:bg-[#0077ed] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      <Avatar profile={profile} size={96} />
-      <div className="mt-3 text-sm font-semibold text-[#1d1d1f] transition-colors text-center truncate max-w-full">
-        {profile.name}
-      </div>
-      <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[#9ca3af] truncate max-w-full">
-        {profile.department || ROLE_PILL[profile.role] || profile.role}
-      </div>
+      {submitting ? "Signing in…" : label}
     </button>
   )
 }
 
-function Avatar({
-  profile,
-  size = 80,
-  rounded = true,
-}: {
-  profile: TeamProfile
-  size?: number
-  rounded?: boolean
-}) {
+function ErrorNote({ text }: { text: string }) {
+  return (
+    <div className="mt-3.5 px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-red-600 text-[12.5px]">
+      {text}
+    </div>
+  )
+}
+
+function Honeypot({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <input
+      type="text"
+      name="company_website"
+      autoComplete="off"
+      tabIndex={-1}
+      aria-hidden="true"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+    />
+  )
+}
+
+function ProfileRow({ profile, onSelect }: { profile: TeamProfile; onSelect: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="group w-full flex items-center gap-3.5 p-3 rounded-2xl border border-[#ededf0] bg-white hover:border-[#0071e3]/40 hover:bg-[#0071e3]/[0.03] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3]"
+    >
+      <Avatar profile={profile} size={44} />
+      <div className="min-w-0 flex-1 text-left">
+        <div className="text-[14px] font-semibold text-[#1d1d1f] truncate">{profile.name}</div>
+        <div className="text-[12px] text-[#9ca3af] truncate">
+          {profile.department || ROLE_PILL[profile.role] || profile.role}
+        </div>
+      </div>
+      <ChevronRight
+        size={16}
+        className="shrink-0 text-[#c4c4cc] group-hover:text-[#0071e3] group-hover:translate-x-0.5 transition-all"
+      />
+    </button>
+  )
+}
+
+function Avatar({ profile, size = 44 }: { profile: TeamProfile; size?: number }) {
   const color = profile.accent_color || ACCENT
-  const className = rounded ? "rounded-full" : "rounded-2xl"
   if (profile.avatar_url) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
@@ -416,21 +443,21 @@ function Avatar({
         alt={profile.name}
         width={size}
         height={size}
-        className={`${className} object-cover`}
+        className="rounded-full object-cover shrink-0"
         style={{ width: size, height: size }}
       />
     )
   }
   return (
     <div
-      className={`${className} flex items-center justify-center font-bold`}
+      className="rounded-full flex items-center justify-center font-bold shrink-0"
       style={{
         width: size,
         height: size,
         background: color,
         color: "#ffffff",
         fontSize: Math.round(size * 0.38),
-        letterSpacing: "0.04em",
+        letterSpacing: "0.03em",
       }}
     >
       {initials(profile.name)}
@@ -438,14 +465,16 @@ function Avatar({
   )
 }
 
-function GridSkeleton() {
+function ListSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="lf-glass rounded-2xl p-4 flex flex-col items-center">
-          <div className="w-24 h-24 rounded-full bg-[#0071e3]/[0.06] animate-pulse" />
-          <div className="mt-3 h-3 w-24 rounded-full bg-black/[0.05] animate-pulse" />
-          <div className="mt-2 h-2 w-16 rounded-full bg-black/[0.04] animate-pulse" />
+    <div className="space-y-2">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3.5 p-3 rounded-2xl border border-[#ededf0]">
+          <div className="w-11 h-11 rounded-full bg-black/[0.05] animate-pulse" />
+          <div className="flex-1">
+            <div className="h-3 w-32 rounded-full bg-black/[0.05] animate-pulse" />
+            <div className="mt-2 h-2 w-20 rounded-full bg-black/[0.04] animate-pulse" />
+          </div>
         </div>
       ))}
     </div>

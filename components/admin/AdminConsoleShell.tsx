@@ -12,15 +12,16 @@
  *   │   panel)   │                                             │
  *   └────────────┴─────────────────────────────────────────────┘
  *
- * The sidebar is a single floating `lf-glass` panel:
+ * The sidebar lists EVERY function the user can reach, organised:
  *   - Command center link → /admin (the glass launcher home)
- *   - the active workspace's sections (contextual to the current route)
- *   - foundation items (Analytics / Team / Settings / …) pinned low
+ *   - one collapsible group per workspace (Backstage / CRM / Studio /
+ *     Finance), each holding its sections grouped by sub-title
+ *   - a Foundation group (Analytics / Team / Settings / …)
  *   - account block at the very bottom
  *
- * This replaces the legacy icon-rail + secondary-panel two-column
- * chrome. Permissions, route gating and the mobile drawer are
- * preserved — only the chrome shape + material changed.
+ * The workspace you're currently inside auto-expands; others collapse
+ * so the sidebar stays scannable. Permissions, route gating and the
+ * mobile drawer are all preserved.
  */
 
 import { useEffect, useState } from "react"
@@ -28,18 +29,28 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import {
-  Home, Menu, X, ChevronRight, Settings, Users as UsersIcon,
+  Home, Menu, X, ChevronRight, ChevronDown, Settings,
+  Users as UsersIcon, Calendar, Megaphone, Wallet, Shield,
 } from "lucide-react"
 import {
-  FOUNDATION_ITEMS,
+  ADMIN_WORKSPACES, FOUNDATION_ITEMS,
   accessibleFoundation, canAccessSection, canAccessWorkspace,
   workspaceForPath,
-  type AdminWorkspace, type WorkspaceSection,
+  type AdminWorkspace, type WorkspaceSection, type IconName,
 } from "@/lib/admin-domains"
 import { AdminPermissionsProvider } from "./AdminPermissionsContext"
 import { AdminLogoutButton } from "./AdminLogoutButton"
 import type { ProfilePermissions } from "@/app/actions/profileActions"
 import "./zoho-theme.css"
+
+const WORKSPACE_ICON: Record<IconName, typeof Calendar> = {
+  calendar:  Calendar,
+  users:     UsersIcon,
+  megaphone: Megaphone,
+  wallet:    Wallet,
+  shield:    Shield,
+  chart:     UsersIcon,
+}
 
 export function AdminConsoleShell({
   userEmail,
@@ -188,6 +199,20 @@ function GlassSidebar({
 
   const onLauncher = pathname === "/admin"
 
+  // Every workspace the user can open, with its permission-visible sections.
+  const workspaces = ADMIN_WORKSPACES
+    .filter((w) => canAccessWorkspace(w, userRole, profilePermissions))
+    .map((w) => ({
+      workspace: w,
+      groups: w.groups
+        .map((g) => ({
+          title: g.title,
+          items: g.items.filter((it) => canAccessSection(it, w, userRole, profilePermissions)),
+        }))
+        .filter((g) => g.items.length > 0),
+    }))
+    .filter((x) => x.groups.length > 0)
+
   return (
     <aside
       className={`lf-glass w-64 shrink-0 m-3 rounded-2xl flex-col overflow-hidden ${className}`}
@@ -219,35 +244,23 @@ function GlassSidebar({
           Command center
         </Link>
 
-        {/* Active workspace's sections */}
-        {activeWorkspace && canAccessWorkspace(activeWorkspace, userRole, profilePermissions) && (
-          <div className="mt-5">
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-[#9ca3af]">
-              {activeWorkspace.name}
-            </p>
-            {activeWorkspace.groups.map((group) => {
-              const items = group.items.filter((it) =>
-                canAccessSection(it, activeWorkspace, userRole, profilePermissions),
-              )
-              if (items.length === 0) return null
-              return (
-                <div key={group.title} className="mb-2">
-                  <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#c4c4cc]">
-                    {group.title}
-                  </p>
-                  {items.map((s: WorkspaceSection) => (
-                    <SidebarLink key={s.href} href={s.href} label={s.label} active={isActive(s.href)} />
-                  ))}
-                </div>
-              )
-            })}
-          </div>
-        )}
+        {/* Every workspace — collapsible. Current one starts open. */}
+        <div className="mt-3 space-y-0.5">
+          {workspaces.map(({ workspace, groups }) => (
+            <WorkspaceSection
+              key={workspace.slug}
+              workspace={workspace}
+              groups={groups}
+              defaultOpen={activeWorkspace?.slug === workspace.slug}
+              isActive={isActive}
+            />
+          ))}
+        </div>
 
         {/* Foundation */}
         {foundation.length > 0 && (
-          <div className="mt-5">
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-[#9ca3af]">
+          <div className="mt-4 pt-3 border-t border-black/[0.06]">
+            <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-[0.13em] text-[#9ca3af]">
               Foundation
             </p>
             {foundation.map((f) => (
@@ -273,6 +286,57 @@ function GlassSidebar({
         </div>
       </div>
     </aside>
+  )
+}
+
+/* ── One collapsible workspace section ──────────────────────────────── */
+
+function WorkspaceSection({
+  workspace, groups, defaultOpen, isActive,
+}: {
+  workspace: AdminWorkspace
+  groups: { title: string; items: WorkspaceSection[] }[]
+  defaultOpen: boolean
+  isActive: (href: string) => boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  const Icon = WORKSPACE_ICON[workspace.icon] ?? Calendar
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2.5 px-3 h-10 rounded-xl text-[13px] font-semibold text-[#1d1d1f] hover:bg-black/[0.04] transition-colors"
+      >
+        <span
+          className="w-6 h-6 shrink-0 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: `${workspace.accent}1f`, color: workspace.accent }}
+        >
+          <Icon size={13} strokeWidth={1.9} />
+        </span>
+        <span className="flex-1 text-left">{workspace.name}</span>
+        <ChevronDown
+          size={14}
+          strokeWidth={1.9}
+          className={`text-[#9ca3af] transition-transform ${open ? "" : "-rotate-90"}`}
+        />
+      </button>
+      {open && (
+        <div className="mt-0.5 mb-1.5 pl-2.5">
+          {groups.map((g) => (
+            <div key={g.title} className="mb-1">
+              <p className="px-3 pt-1.5 pb-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-[#c4c4cc]">
+                {g.title}
+              </p>
+              {g.items.map((s) => (
+                <SidebarLink key={s.href} href={s.href} label={s.label} active={isActive(s.href)} />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
