@@ -29,58 +29,61 @@ function initials(name: string): string {
     .toUpperCase()
 }
 
-/* ── Researched from theleadershipfederation.com/advisoryboardandjury ── */
+/* ── Researched from theleadershipfederation.com/advisoryboardandjury.
+ *    Photos paired to each person via that page's own DOM order and
+ *    re-hosted locally in /public/people. Members without an official
+ *    photo fall back to a monogram avatar. ──────────────────────────── */
 
-type BoardMember = { name: string; role: string; org: string; bio: string }
+type BoardMember = { name: string; role: string; org: string; bio: string; img: string | null }
 
 const ADVISORY_BOARD: BoardMember[] = [
-  { name: "Mohammed Al Mashroom", role: "Founder & CEO", org: "Dubai Euro Group", bio: "An experienced entrepreneur with a strong track record across international commerce and development." },
-  { name: "Colonel Ajai Lal", role: "Leadership & Executive Coach", org: "TEDx Speaker · Author", bio: "A Colonel in the Indian Army (Veteran) and former Senior Military Observer with the United Nations." },
-  { name: "Robin Joffe", role: "Partner & MD — Middle East, Africa & South Asia", org: "Frost & Sullivan", bio: "A growth strategist with deep on-the-ground experience building companies and businesses globally." },
-  { name: "Devendrasingh Rajput", role: "Chief Business Officer", org: "Indira IVF", bio: "Over 20 years across the diagnostics and healthcare industry, with full P&L responsibility." },
-  { name: "Sandip Patnaik", role: "Sr. Managing Director & Board Director", org: "JLL India", bio: "More than 26 years of professional experience, including 18 years with JLL India." },
-  { name: "Dr. Rajesh Puneyani", role: "VP — Technology & Site Leader", org: "Kenvue India GCC", bio: "Over 28 years of global leadership in technology and digital transformation." },
-  { name: "Kaushik Das", role: "Managing Director", org: "JCPenney India", bio: "25+ years of global experience in transformation, strategy, operations and change management." },
-  { name: "Srinivas Sampath", role: "VP — R&D & Site Leader", org: "Upland India", bio: "Nearly three decades building, scaling and transforming global technology and product organisations." },
-  { name: "Monica Pirgal", role: "Chief Executive Officer", org: "Bhartiya Converge", bio: "A qualified lawyer with twenty-five years of deep, cross-industry leadership experience." },
-  { name: "Neel Pandya", role: "CEO — EMEA, APAC & Global Partnerships", org: "Pixis", bio: "Extensive leadership across the FMCG, telecom, marketing and advertising industries." },
-  { name: "Dr. Ishha Farha Quraishy", role: "Founder", org: "IFQ Technologies", bio: "An AI and Metaverse innovation evangelist with over 14 years in the technology industry." },
-  { name: "Jai Mulani", role: "Chief Executive Officer", org: "IBT", bio: "Transforming the Middle East BPO industry — built a company employing 1,000+ people in Dubai." },
-  { name: "Radhakrishnan Mahalingam", role: "Chief IT Transformations Leader", org: "ICT & Smart Security", bio: "23 years across smart security, master system integration and ICT infrastructure architecture." },
-  { name: "Vaishali Wagle", role: "Founder & CEO", org: "Zenesse", bio: "A leadership strategist and peak-performance coach; two decades in banking technology with Citi and JPMorgan." },
+  { name: "Mohammed Al Mashroom", role: "Founder & CEO", org: "Dubai Euro Group", bio: "An experienced entrepreneur with a strong track record across international commerce and development.", img: "/people/mohammed-al-mashroom.png" },
+  { name: "Colonel Ajai Lal", role: "Leadership & Executive Coach", org: "TEDx Speaker · Author", bio: "A Colonel in the Indian Army (Veteran) and former Senior Military Observer with the United Nations.", img: "/people/ajai-lal.png" },
+  { name: "Robin Joffe", role: "Partner & MD — Middle East, Africa & South Asia", org: "Frost & Sullivan", bio: "A growth strategist with deep on-the-ground experience building companies and businesses globally.", img: "/people/robin-arthur-joffe.png" },
+  { name: "Devendrasingh Rajput", role: "Chief Business Officer", org: "Indira IVF", bio: "Over 20 years across the diagnostics and healthcare industry, with full P&L responsibility.", img: null },
+  { name: "Sandip Patnaik", role: "Sr. Managing Director & Board Director", org: "JLL India", bio: "More than 26 years of professional experience, including 18 years with JLL India.", img: null },
+  { name: "Dr. Rajesh Puneyani", role: "VP — Technology & Site Leader", org: "Kenvue India GCC", bio: "Over 28 years of global leadership in technology and digital transformation.", img: "/people/rajesh-puneyani.png" },
+  { name: "Kaushik Das", role: "Managing Director", org: "JCPenney India", bio: "25+ years of global experience in transformation, strategy, operations and change management.", img: null },
+  { name: "Srinivas Sampath", role: "VP — R&D & Site Leader", org: "Upland India", bio: "Nearly three decades building, scaling and transforming global technology and product organisations.", img: "/people/srinivas-sampath.png" },
+  { name: "Monica Pirgal", role: "Chief Executive Officer", org: "Bhartiya Converge", bio: "A qualified lawyer with twenty-five years of deep, cross-industry leadership experience.", img: null },
+  { name: "Neel Pandya", role: "CEO — EMEA, APAC & Global Partnerships", org: "Pixis", bio: "Extensive leadership across the FMCG, telecom, marketing and advertising industries.", img: "/people/neel-pandya.png" },
+  { name: "Dr. Ishha Farha Quraishy", role: "Founder", org: "IFQ Technologies", bio: "An AI and Metaverse innovation evangelist with over 14 years in the technology industry.", img: "/people/ishha-farha-quraishy.png" },
+  { name: "Jai Mulani", role: "Chief Executive Officer", org: "IBT", bio: "Transforming the Middle East BPO industry — built a company employing 1,000+ people in Dubai.", img: "/people/jai-mulani.png" },
+  { name: "Radhakrishnan Mahalingam", role: "Chief IT Transformations Leader", org: "ICT & Smart Security", bio: "23 years across smart security, master system integration and ICT infrastructure architecture.", img: "/people/radhakrishnan-mahalingam.png" },
+  { name: "Vaishali Wagle", role: "Founder & CEO", org: "Zenesse", bio: "A leadership strategist and peak-performance coach; two decades in banking technology with Citi and JPMorgan.", img: "/people/vaishali-wagle.png" },
 ]
 
-type JuryMember = { name: string; role: string; country?: string }
+type JuryMember = { name: string; role: string; country?: string; img: string | null }
 
 const JURY: JuryMember[] = [
-  { name: "Dr. Rama Mundra", role: "Dean, Adani Institute of Digital Technology Management", country: "India" },
-  { name: "Yaseen Sahar", role: "Channel Head, SBI Mutual Funds", country: "India" },
-  { name: "Aniruddh Tiwari", role: "Data Analytics Leader & Evangelist", country: "USA" },
-  { name: "Rupal Jain", role: "Semiconductor Industry Leader", country: "USA" },
-  { name: "Prashant Kumar", role: "Data Scientist & Generative AI Evangelist, BOLD", country: "USA" },
-  { name: "Suneeta Modekurty", role: "Business Analytics, Data Science & GenAI Leader", country: "USA" },
-  { name: "Dipen Tamboli", role: "Project Control Manager, Newtron Group", country: "USA" },
-  { name: "Anil Sood", role: "AI Governance & Data Management Leader, EY", country: "Canada & US" },
-  { name: "Gaurav Shah", role: "Director of Software Development, EG4 Electronics" },
-  { name: "Ankur Mehra", role: "Advisory Board Member & Author" },
-  { name: "Harish Padmanabhan", role: "Vice President — SRE, JP Morgan Chase", country: "USA" },
-  { name: "Punit Panjwani", role: "Manager, Control System Integration, Barry-Wehmiller Design Group", country: "USA" },
-  { name: "Pavan Joshi", role: "Vice President of Software Engineering, Fiserv", country: "USA" },
-  { name: "Arpil Mehta", role: "AVP — Fraud Analytics & Innovation, Bank of America", country: "USA" },
-  { name: "Sabyasachi Mondal", role: "Senior Software Engineer, Apple", country: "USA" },
-  { name: "Shreerang Tarte", role: "Head — HR & Business Strategy, JSM Consulting", country: "USA" },
-  { name: "Bhashwanth Kadapagunta", role: "Specialist Leader (Senior Manager), Deloitte", country: "USA" },
-  { name: "Sanjay Jain", role: "Machine Learning Engineer, Atlanta Journal-Constitution", country: "USA" },
-  { name: "Santosh Kumar Singu", role: "Sr. Solution Specialist, Deloitte", country: "USA" },
-  { name: "Ramesh Babu Potla", role: "ERP / SAP Digital Transformation Manager, Corning Inc." },
-  { name: "Anu Shivaraj", role: "Lead Data Scientist, E. & J. Gallo Winery" },
-  { name: "Ravi Shankar", role: "Machine Learning Manager, Overstock" },
-  { name: "Vijitha Uppuluri", role: "Sr. Manager — Data Science, CVS Health" },
-  { name: "Ravi Kumar Vallemoni", role: "Sr. Data Architect, Bank of America" },
-  { name: "Anjan G.", role: "Sr. Software Engineer, Optum" },
-  { name: "Ashmitha Nagraj", role: "Senior Full Stack Engineer, Fidelity" },
-  { name: "Sunil Karthik Kota", role: "Sr. Software Engineer & Technology Leader, Cisco" },
-  { name: "Jagadeeswar Alampally", role: "Software Development Manager, IQVIA" },
+  { name: "Dr. Rama Mundra", role: "Dean, Adani Institute of Digital Technology Management", country: "India", img: "/people/rama-mundra.png" },
+  { name: "Yaseen Sahar", role: "Channel Head, SBI Mutual Funds", country: "India", img: "/people/yaseen-sahar.png" },
+  { name: "Aniruddh Tiwari", role: "Data Analytics Leader & Evangelist", country: "USA", img: "/people/aniruddh-tiwari.png" },
+  { name: "Rupal Jain", role: "Semiconductor Industry Leader", country: "USA", img: "/people/rupal-jain.png" },
+  { name: "Prashant Kumar", role: "Data Scientist & Generative AI Evangelist, BOLD", country: "USA", img: "/people/prashant-kumar.png" },
+  { name: "Suneeta Modekurty", role: "Business Analytics, Data Science & GenAI Leader", country: "USA", img: "/people/suneeta-modekurty.png" },
+  { name: "Dipen Tamboli", role: "Project Control Manager, Newtron Group", country: "USA", img: "/people/dipen-tamboli.png" },
+  { name: "Anil Sood", role: "AI Governance & Data Management Leader, EY", country: "Canada & US", img: null },
+  { name: "Gaurav Shah", role: "Director of Software Development, EG4 Electronics", img: null },
+  { name: "Ankur Mehra", role: "Advisory Board Member & Author", img: null },
+  { name: "Harish Padmanabhan", role: "Vice President — SRE, JP Morgan Chase", country: "USA", img: null },
+  { name: "Punit Panjwani", role: "Manager, Control System Integration, Barry-Wehmiller Design Group", country: "USA", img: "/people/punit-panjwani.png" },
+  { name: "Pavan Joshi", role: "Vice President of Software Engineering, Fiserv", country: "USA", img: "/people/pavan-joshi.png" },
+  { name: "Arpil Mehta", role: "AVP — Fraud Analytics & Innovation, Bank of America", country: "USA", img: "/people/arpil-mehta.png" },
+  { name: "Sabyasachi Mondal", role: "Senior Software Engineer, Apple", country: "USA", img: null },
+  { name: "Shreerang Tarte", role: "Head — HR & Business Strategy, JSM Consulting", country: "USA", img: "/people/shreerang-tarte.png" },
+  { name: "Bhashwanth Kadapagunta", role: "Specialist Leader (Senior Manager), Deloitte", country: "USA", img: "/people/bhashwanth-kadapagunta.png" },
+  { name: "Sanjay Jain", role: "Machine Learning Engineer, Atlanta Journal-Constitution", country: "USA", img: "/people/sanjay-jain.png" },
+  { name: "Santosh Kumar Singu", role: "Sr. Solution Specialist, Deloitte", country: "USA", img: null },
+  { name: "Ramesh Babu Potla", role: "ERP / SAP Digital Transformation Manager, Corning Inc.", img: "/people/ramesh-babu-potla.png" },
+  { name: "Anu Shivaraj", role: "Lead Data Scientist, E. & J. Gallo Winery", img: "/people/anu-shivaraj.jpg" },
+  { name: "Ravi Shankar", role: "Machine Learning Manager, Overstock", img: "/people/ravi-shankar.jpg" },
+  { name: "Vijitha Uppuluri", role: "Sr. Manager — Data Science, CVS Health", img: null },
+  { name: "Ravi Kumar Vallemoni", role: "Sr. Data Architect, Bank of America", img: "/people/ravi-kumar-vallemoni.png" },
+  { name: "Anjan G.", role: "Sr. Software Engineer, Optum", img: null },
+  { name: "Ashmitha Nagraj", role: "Senior Full Stack Engineer, Fidelity", img: "/people/ashmitha-nagraj.png" },
+  { name: "Sunil Karthik Kota", role: "Sr. Software Engineer & Technology Leader, Cisco", img: "/people/sunil-karthik-kota.png" },
+  { name: "Jagadeeswar Alampally", role: "Software Development Manager, IQVIA", img: "/people/jagadeeswar-alampally.png" },
 ]
 
 export default async function AdvisoryBoardPage() {
@@ -108,7 +111,14 @@ export default async function AdvisoryBoardPage() {
   const board =
     dbBoard.length > 0
       ? dbBoard
-      : ADVISORY_BOARD.map((b) => ({ ...b, image_url: null, linkedin_url: null }))
+      : ADVISORY_BOARD.map((b) => ({
+          name: b.name,
+          role: b.role,
+          org: b.org,
+          bio: b.bio,
+          image_url: b.img,
+          linkedin_url: null as string | null,
+        }))
 
   const hero = {
     eyebrow: pickStr(sections.hero, "eyebrow", "Governance & Standards"),
@@ -213,11 +223,21 @@ export default async function AdvisoryBoardPage() {
                 className="lf-glass rounded-[24px] p-7 transition-all duration-300 hover:-translate-y-1.5"
               >
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-[#0071e3] to-[#4c9df2] flex items-center justify-center shrink-0 shadow-[0_10px_24px_-10px_rgba(0,113,227,0.7)]">
+                  <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden shrink-0 shadow-[0_10px_24px_-10px_rgba(0,113,227,0.5)]">
                     {m.image_url ? (
-                      <Image src={m.image_url} alt={m.name} width={64} height={64} className="w-full h-full object-cover" />
+                      <Image
+                        src={m.image_url}
+                        alt={m.name}
+                        width={144}
+                        height={144}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <span className="text-[20px] font-bold text-white">{initials(m.name)}</span>
+                      <div className="w-full h-full bg-gradient-to-br from-[#0071e3] to-[#4c9df2] flex items-center justify-center">
+                        <span className="text-[22px] font-bold text-white">
+                          {initials(m.name)}
+                        </span>
+                      </div>
                     )}
                   </div>
                   <div className="min-w-0">
@@ -291,9 +311,23 @@ export default async function AdvisoryBoardPage() {
                 key={j.name}
                 className="lf-glass rounded-[18px] p-5 flex items-start gap-3.5 transition-all duration-300 hover:-translate-y-1"
               >
-                <span className="w-11 h-11 rounded-xl bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center shrink-0">
-                  <span className="text-[13px] font-bold text-[#0071e3]">{initials(j.name)}</span>
-                </span>
+                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
+                  {j.img ? (
+                    <Image
+                      src={j.img}
+                      alt={j.name}
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center">
+                      <span className="text-[13px] font-bold text-[#0071e3]">
+                        {initials(j.name)}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <div className="min-w-0">
                   <h3 className="text-[14px] font-bold text-[#1d1d1f] tracking-[-0.01em] leading-tight">
                     {j.name}
