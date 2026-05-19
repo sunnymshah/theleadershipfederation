@@ -11,8 +11,6 @@ import { getEventSections } from "@/app/actions/eventSectionActions"
 import { EventSectionsRenderer } from "@/components/site/EventSections"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
 import { EventTopNav } from "@/components/site/event-pages/EventTopNav"
-import { StandardPageRender } from "@/components/site/event-pages/StandardPageRender"
-import { getStandardPagePublicData } from "@/app/actions/standardPageActions"
 import { getMicrositeSettings, buildSeoMetadata } from "@/lib/microsite-settings"
 import { normalizeSlug } from "@/lib/slug"
 import type { Data as PuckData } from "@measured/puck"
@@ -219,40 +217,11 @@ export default async function EventDetailPage({ params }: Props) {
   const tickets = ticketsRes.data ?? []
   const sections = sectionsRes.sections ?? []
 
-  // ── Standard-pages (Phase 5) — preferred path ────────────────────
-  // If the event has a home row in event_standard_pages with non-empty
-  // puckData, render that. Otherwise we fall through to the legacy
-  // builder_data path below for back-compat.
-  const stdHome = await getStandardPagePublicData(event.id, "home")
-  const stdHasContent =
-    stdHome.row !== null &&
-    Array.isArray(stdHome.data.content) &&
-    stdHome.data.content.length > 0 &&
-    !!(stdHome.row.settings as Record<string, unknown> | null)?.puckData
-  if (stdHasContent) {
-    return (
-      <StandardPageRender
-        event={{
-          id: event.id,
-          slug: event.slug,
-          title: event.title,
-          start_date: event.start_date,
-          end_date: event.end_date,
-          venue: event.venue,
-          description: event.description,
-          cover_image_url: event.cover_image_url,
-          logo_url: (event as { logo_url?: string | null }).logo_url ?? null,
-        }}
-        pageKind="home"
-        data={stdHome.data}
-      />
-    )
-  }
-
-  // ── Puck-based builder (legacy) ──────────────────────────────────
-  // If the admin has published via the Puck editor, render that first.
-  // `event.builder_data` is written by `publishBuilder` in
-  // eventBuilderActions.ts — a Puck `Data` object with content + root.
+  // ── Event page builder (builder-main) — primary render path ──────
+  // builder-main is the single source of truth for the event home page.
+  // It publishes to `events.builder_data` (a Puck `Data` object). The
+  // old standard-pages "home" render branch was removed so builder-main
+  // edits always reflect on the public page.
   const builderData = (event as { builder_data?: PuckData | null }).builder_data
   if (builderData && Array.isArray(builderData.content) && builderData.content.length > 0) {
     return (
