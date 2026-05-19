@@ -199,7 +199,7 @@ export function FeaturedEventCallout({ event }: FeaturedEventCalloutProps) {
 
               {/* Primary register action */}
               <Link
-                href={`/events/${e.slug}#tickets`}
+                href="/register"
                 data-ab-convert
                 className="group flex items-center justify-center gap-2 w-full px-7 py-[15px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_10px_30px_-8px_rgba(0,113,227,0.45)] active:scale-[0.98]"
               >
