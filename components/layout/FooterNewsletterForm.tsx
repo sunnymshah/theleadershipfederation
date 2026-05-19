@@ -46,13 +46,13 @@ export function FooterNewsletterForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="your@email.com"
           required
-          className="flex-1 min-w-0 px-4 py-2.5 rounded-full bg-white/[0.08] border border-white/[0.15] text-[13px] text-white placeholder-white/55 focus:outline-none focus:border-[#e7ab1c]/60 focus:ring-2 focus:ring-[#e7ab1c]/15 transition-colors"
+          className="flex-1 min-w-0 px-4 py-2.5 rounded-full bg-white/[0.08] border border-white/[0.15] text-[13px] text-white placeholder-white/55 focus:outline-none focus:border-[#0071e3]/60 focus:ring-2 focus:ring-[#0071e3]/15 transition-colors"
           style={sfText}
         />
         <button
           type="submit"
           disabled={status === "loading"}
-          className="shrink-0 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[12px] font-bold bg-[#e7ab1c] text-[#1a1a2e] hover:bg-[#d49c10] disabled:opacity-60 transition-all duration-200 shadow-[0_2px_12px_rgba(231,171,28,0.2)]"
+          className="shrink-0 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[12px] font-bold bg-[#0071e3] text-white hover:bg-[#0077ed] disabled:opacity-60 transition-all duration-200 shadow-[0_8px_22px_-8px_rgba(0,113,227,0.7)]"
           style={sfText}
         >
           {status === "loading" ? (

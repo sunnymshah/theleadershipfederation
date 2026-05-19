@@ -230,6 +230,10 @@ body {
 .lf-clean :where([class~="bg-[#1a1a2e]"]) { background-color: #1a1a2e !important; }
 .lf-clean :where([class~="bg-[#2a2a4e]"]) { background-color: #2a2a4e !important; }
 .lf-clean :where([class~="bg-[#0a0a14]"]) { background-color: #0a0a14 !important; }
+/* Soft-Monochrome dark surface — the refined neutral charcoal used by
+ * the footer (replaces the old bluish navy). */
+.lf-clean :where([class~="bg-[#1d1d1f]"]) { background-color: #1d1d1f !important; }
+.lf-clean :where([class~="bg-[#161617]"]) { background-color: #161617 !important; }
 .lf-clean :where([class~="bg-[#F4F8FF]"]) { background-color: #F4F8FF !important; }
 /* Soft-Monochrome surfaces — Apple-style light-grey alt band + the
  * quiet-blue accent used for CTAs / badges / icon tiles. */

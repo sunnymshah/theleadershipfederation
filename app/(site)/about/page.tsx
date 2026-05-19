@@ -28,18 +28,10 @@ export const metadata = {
 }
 
 /* ── Icon resolver ────────────────────────────────────────────────────── */
-
 const ICON_MAP: Record<string, LucideIcon> = {
-  MessageSquare,
-  Globe,
-  ShieldCheck,
-  Handshake,
-  Users,
-  TrendingUp,
-  Award,
-  Sparkles,
+  MessageSquare, Globe, ShieldCheck, Handshake,
+  Users, TrendingUp, Award, Sparkles,
 }
-
 function resolveIcon(name?: string | null): LucideIcon {
   if (!name) return Star
   return ICON_MAP[name] ?? Star
@@ -59,12 +51,9 @@ type AboutRow = {
   sort_order: number
 }
 
-const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
-
 /** Check at build/render time whether the founder photo has been uploaded. */
 function hasFounderPhoto(imageUrl?: string | null): boolean {
   if (!imageUrl) return false
-  // If it's an external URL (http/https), assume it exists.
   if (/^https?:\/\//.test(imageUrl)) return true
   try {
     const rel = imageUrl.startsWith("/") ? imageUrl.slice(1) : imageUrl
@@ -74,157 +63,191 @@ function hasFounderPhoto(imageUrl?: string | null): boolean {
   }
 }
 
+const GALLERY = [
+  { src: "/events/middle-east-asia.jpg", label: "Middle East & Asia" },
+  { src: "/events/asia-leadership-awards.jpg", label: "Asia Leadership Awards" },
+  { src: "/events/bharat-leadership-awards.jpg", label: "Bharat Leadership Summit" },
+]
+
 export default async function AboutPage() {
   let sections: AboutRow[] = []
   try {
     const res = await getAboutSections(true)
-    if (res.success && res.sections) {
-      sections = res.sections as AboutRow[]
-    }
+    if (res.success && res.sections) sections = res.sections as AboutRow[]
   } catch {
     /* empty state */
   }
 
-  const pillars = sections.filter(s => s.section_type === "pillar")
-  const stats   = sections.filter(s => s.section_type === "stat")
-  const vision  = sections.find(s => s.section_type === "vision")
-  const founder = sections.find(s => s.section_type === "founder")
+  const pillars = sections.filter((s) => s.section_type === "pillar")
+  const stats = sections.filter((s) => s.section_type === "stat")
+  const vision = sections.find((s) => s.section_type === "vision")
+  const founder = sections.find((s) => s.section_type === "founder")
 
   const founderPhotoExists = hasFounderPhoto(founder?.image_url)
   const founderParagraphs = (founder?.description ?? "")
     .split(/\n\s*\n/)
-    .map(p => p.trim())
+    .map((p) => p.trim())
     .filter(Boolean)
 
   return (
-    <main className="">
-      {/* Hero */}
-      <section className="pt-24 pb-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <AnimateOnScroll animation="fade-up" delay={0}>
-            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
+    <main>
+      {/* ─────────────── Hero ─────────────── */}
+      <section className="relative bg-white pt-32 lg:pt-40 pb-16 lg:pb-20 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(56% 56% at 50% 0%, rgba(0,113,227,0.07) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
+          <AnimateOnScroll animation="fade-up">
+            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               About Us
             </span>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={100}>
-            <h1
-              className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
-            >
-              The Leadership Federation
+          <AnimateOnScroll animation="fade-up" delay={110}>
+            <h1 className="mt-5 text-[clamp(2.6rem,5.6vw,4.6rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.0]">
+              Where leadership
+              <br />
+              <span className="text-[#0071e3]">finds its room</span>
             </h1>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={200}>
-            <p className="text-lg md:text-xl text-[#1a1a2e]/70 leading-relaxed max-w-3xl mx-auto">
-              A global leadership platform connecting GCC leaders, CXOs,
-              decision-makers, innovators, policymakers, and ecosystem builders
-              to drive meaningful impact across industries and borders.
+          <AnimateOnScroll animation="fade-up" delay={220}>
+            <p className="mt-6 text-[17px] lg:text-[19px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
+              The Leadership Federation is a global platform connecting GCC
+              leaders, CXOs, decision-makers, innovators and policymakers — to
+              drive meaningful impact across industries and borders.
             </p>
           </AnimateOnScroll>
         </div>
+
+        {/* Image collage */}
+        <AnimateOnScroll animation="fade-up" delay={320}>
+          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 mt-14">
+            <div className="grid grid-cols-3 gap-3 sm:gap-5">
+              {GALLERY.map((g, i) => (
+                <div
+                  key={g.src}
+                  className={
+                    "lf-glass rounded-[22px] p-1.5 sm:p-2 " +
+                    (i === 1 ? "sm:-translate-y-6" : "")
+                  }
+                >
+                  <div className="relative aspect-[3/4] rounded-[16px] overflow-hidden">
+                    <Image
+                      src={g.src}
+                      alt={g.label}
+                      fill
+                      sizes="(max-width: 640px) 33vw, 300px"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                    <span className="absolute bottom-2.5 left-3 right-3 text-[10px] sm:text-[12px] font-semibold text-white tracking-[-0.01em]">
+                      {g.label}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AnimateOnScroll>
       </section>
 
-      {/* Vision */}
+      {/* ─────────────── Vision ─────────────── */}
       {vision && (
-        <section className="pb-16 px-6">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(54% 52% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+                "radial-gradient(52% 56% at 50% 100%, rgba(0,113,227,0.1) 0%, transparent 72%)",
+            }}
+          />
+          <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16">
             <AnimateOnScroll animation="scale">
-              <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-12 md:p-20 text-center relative overflow-hidden">
-                <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{
-                    width: "700px",
-                    height: "400px",
-                    borderRadius: "50%",
-                    background: "radial-gradient(ellipse at center, rgba(231,171,28,0.10) 0%, transparent 60%)",
-                  }}
-                  aria-hidden
-                />
-                <div className="relative z-10">
-                  <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-                    Our Vision
-                  </span>
-                  <h2
-                    className="text-[#1a1a2e] leading-[1.12] font-bold max-w-3xl mx-auto"
-                    style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
-                  >
-                    {vision.title}
-                  </h2>
-                  {vision.description && (
-                    <p className="mt-6 text-[#1a1a2e]/70 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
-                      {vision.description}
-                    </p>
-                  )}
-                </div>
+              <div className="lf-glass-strong rounded-[32px] p-10 sm:p-14 lg:p-16 text-center">
+                <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+                  Our Vision
+                </span>
+                <h2 className="mt-5 text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.12] max-w-3xl mx-auto">
+                  {vision.title}
+                </h2>
+                {vision.description && (
+                  <p className="mt-5 text-[#1d1d1f]/60 text-[16px] lg:text-[17px] leading-relaxed max-w-2xl mx-auto">
+                    {vision.description}
+                  </p>
+                )}
               </div>
             </AnimateOnScroll>
           </div>
         </section>
       )}
 
-      {/* Founder */}
+      {/* ─────────────── Founder ─────────────── */}
       {founder && (
-        <section className="pb-16 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-5 gap-12 md:gap-16 items-start">
+        <section className="relative bg-white py-20 lg:py-28 overflow-hidden">
+          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
+            <div className="grid md:grid-cols-5 gap-10 md:gap-14 items-center">
               <AnimateOnScroll animation="fade-right" className="md:col-span-2">
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-[#1a1a2e]/[0.06] shadow-sm relative bg-gradient-to-br from-[#1a1a2e] via-[#2a2440] to-[#1a1a2e]">
-                  {founderPhotoExists && founder.image_url ? (
-                    <Image
-                      src={founder.image_url}
-                      alt={`${founder.title}, ${founder.subtitle ?? "Founder"} of The Leadership Federation`}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 40vw"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <>
-                      <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          background:
-                            "radial-gradient(circle at 50% 35%, rgba(231,171,28,0.22) 0%, transparent 65%)",
-                        }}
-                        aria-hidden
+                <div className="lf-glass rounded-[26px] p-2">
+                  <div className="relative aspect-[3/4] rounded-[20px] overflow-hidden bg-gradient-to-br from-[#1d1d1f] via-[#2a2a2e] to-[#1d1d1f]">
+                    {founderPhotoExists && founder.image_url ? (
+                      <Image
+                        src={founder.image_url}
+                        alt={`${founder.title}, ${founder.subtitle ?? "Founder"} of The Leadership Federation`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                        className="object-cover"
                       />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span
-                          className="text-[140px] font-bold text-[#e7ab1c]/80 leading-none tracking-tighter"
-                          style={sfFont}
-                        >
-                          {founder.title
-                            .split(/\s+/)
-                            .map(w => w[0] ?? "")
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-[#1a1a2e]/85 via-[#1a1a2e]/40 to-transparent">
-                    <p className="text-base font-bold text-white">{founder.title}</p>
-                    {founder.subtitle && (
-                      <p className="text-xs text-white/85 mt-0.5">{founder.subtitle}</p>
+                    ) : (
+                      <>
+                        <div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            background:
+                              "radial-gradient(circle at 50% 35%, rgba(0,113,227,0.3) 0%, transparent 65%)",
+                          }}
+                          aria-hidden
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-[140px] font-bold text-[#0071e3]/75 leading-none tracking-tighter">
+                            {founder.title
+                              .split(/\s+/)
+                              .map((w) => w[0] ?? "")
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </span>
+                        </div>
+                      </>
                     )}
+                    <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-black/80 via-black/35 to-transparent">
+                      <p className="text-[16px] font-bold text-white">
+                        {founder.title}
+                      </p>
+                      {founder.subtitle && (
+                        <p className="text-[12px] text-white/80 mt-0.5">
+                          {founder.subtitle}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </AnimateOnScroll>
 
-              <AnimateOnScroll animation="fade-left" delay={200} className="md:col-span-3">
-                <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
+              <AnimateOnScroll animation="fade-left" delay={160} className="md:col-span-3">
+                <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
                   The Founder
                 </span>
-                <h2
-                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-6"
-                  style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
-                >
+                <h2 className="mt-4 mb-6 text-[clamp(1.8rem,3.2vw,2.5rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
                   {founder.title}
                 </h2>
                 {founderParagraphs.map((p, i) => (
                   <p
                     key={i}
-                    className={`text-[15px] text-[#1a1a2e]/75 leading-[1.8] ${
+                    className={`text-[15px] text-[#1d1d1f]/65 leading-[1.8] ${
                       i === founderParagraphs.length - 1 ? "mb-7" : "mb-5"
                     }`}
                   >
@@ -236,7 +259,7 @@ export default async function AboutPage() {
                     href={founder.link_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0A66C2] text-white text-sm font-semibold transition-opacity duration-200 hover:opacity-90 shadow-sm"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0071e3] text-white text-[14px] font-bold transition-all duration-200 hover:bg-[#0077ed] shadow-[0_12px_28px_-10px_rgba(0,113,227,0.6)]"
                   >
                     <Linkedin size={15} /> Connect on LinkedIn
                   </Link>
@@ -247,38 +270,47 @@ export default async function AboutPage() {
         </section>
       )}
 
-      {/* Why TLF Exists (pillars) */}
+      {/* ─────────────── Pillars ─────────────── */}
       {pillars.length > 0 && (
-        <section className="pb-16 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-5">
+        <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+                "radial-gradient(50% 56% at 90% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+            }}
+          />
+          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
+            <AnimateOnScroll animation="fade-up" className="text-center max-w-2xl mx-auto mb-12 lg:mb-14">
+              <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
                 Our Pillars
               </span>
-              <h2
-                className="text-[#1a1a2e] leading-[1.12] font-bold"
-                style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", ...sfFont }}
-              >
-                Why TLF Exists
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                Why the Federation exists
               </h2>
-            </div>
+            </AnimateOnScroll>
 
-            <StaggerChildren animation="fade-up" stagger={100} className="grid sm:grid-cols-2 gap-5">
+            <StaggerChildren
+              animation="fade-up"
+              stagger={90}
+              className="grid sm:grid-cols-2 gap-5"
+            >
               {pillars.map((p) => {
                 const Icon = resolveIcon(p.icon)
                 return (
                   <div
                     key={p.id}
-                    className="rounded-2xl bg-white p-8 md:p-10 border border-[#1a1a2e]/[0.06] shadow-sm transition-all duration-300 hover:shadow-md hover:border-[#e7ab1c]/30"
+                    className="lf-glass rounded-[24px] p-8 transition-all duration-300 hover:-translate-y-1.5"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-[#e7ab1c]/15 border border-[#e7ab1c]/30 flex items-center justify-center mb-5">
-                      <Icon size={22} strokeWidth={1.6} className="text-[#e7ab1c]" />
+                    <div className="w-12 h-12 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-5 shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
+                      <Icon size={22} strokeWidth={1.8} className="text-white" />
                     </div>
-                    <h3 className="text-[17px] font-bold text-[#1a1a2e] mb-3">
+                    <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-2.5 tracking-[-0.015em]">
                       {p.title}
                     </h3>
                     {p.description && (
-                      <p className="text-[14px] text-[#1a1a2e]/70 leading-[1.7]">
+                      <p className="text-[14px] text-[#1d1d1f]/60 leading-[1.7]">
                         {p.description}
                       </p>
                     )}
@@ -290,55 +322,77 @@ export default async function AboutPage() {
         </section>
       )}
 
-      {/* Stats */}
+      {/* ─────────────── Stats ─────────────── */}
       {stats.length > 0 && (
-        <section className="pb-16 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16">
-              <StaggerChildren animation="scale" stagger={80} className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-                {stats.map((s) => (
-                  <div key={s.id}>
-                    <p
-                      className="text-[#e7ab1c] leading-none font-bold mb-2"
-                      style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", ...sfFont }}
-                    >
-                      {s.metric_value ?? ""}
-                    </p>
-                    <p className="text-[13px] font-semibold text-[#1a1a2e]/65 uppercase tracking-[0.15em]">
-                      {s.metric_label ?? s.title}
-                    </p>
-                  </div>
-                ))}
-              </StaggerChildren>
-            </div>
+        <section className="relative bg-white py-20 lg:py-28 overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(56% 50% at 50% 50%, rgba(0,113,227,0.06) 0%, transparent 72%)",
+            }}
+          />
+          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
+            <StaggerChildren
+              animation="scale"
+              stagger={80}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5"
+            >
+              {stats.map((s) => (
+                <div
+                  key={s.id}
+                  className="lf-glass rounded-[24px] px-5 py-9 text-center"
+                >
+                  <p className="text-[clamp(2.2rem,4.4vw,3.4rem)] font-bold text-[#1d1d1f] leading-none tracking-[-0.04em]">
+                    {s.metric_value ?? ""}
+                  </p>
+                  <p className="mt-3 text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.12em]">
+                    {s.metric_label ?? s.title}
+                  </p>
+                </div>
+              ))}
+            </StaggerChildren>
           </div>
         </section>
       )}
 
-      {/* CTA */}
-      <section className="pb-20 px-6">
-        <AnimateOnScroll animation="fade-up">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2
-              className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
-              style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", ...sfFont }}
-            >
-              Join the Ecosystem
-            </h2>
-            <p className="text-[#1a1a2e]/70 text-base leading-relaxed mb-10 max-w-xl mx-auto">
-              Whether you are a CXO seeking strategic connections, a GCC leader
-              driving transformation, or a policymaker shaping the future, there
-              is a place for you in The Leadership Federation.
-            </p>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#e7ab1c] text-white text-sm font-semibold transition-all duration-200 hover:bg-[#d49c10] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
-            >
-              Get in Touch
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-        </AnimateOnScroll>
+      {/* ─────────────── CTA ─────────────── */}
+      <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 56% at 50% 100%, rgba(0,113,227,0.1) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up">
+            <div className="lf-glass-strong rounded-[32px] p-10 sm:p-14 text-center">
+              <h2 className="text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
+                Join the ecosystem
+              </h2>
+              <p className="mt-4 text-[#1d1d1f]/60 text-[16px] leading-relaxed max-w-md mx-auto">
+                Whether you are a CXO seeking strategic connections, a leader
+                driving transformation, or a policymaker shaping the future —
+                there is a place for you in The Leadership Federation.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 px-9 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-10px_rgba(0,113,227,0.6)]"
+                >
+                  Get in Touch <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href="/platforms"
+                  className="lf-glass inline-flex items-center px-7 py-[15px] rounded-full font-bold text-[15px] text-[#1d1d1f] transition-all duration-200"
+                >
+                  Platforms &amp; Services
+                </Link>
+              </div>
+            </div>
+          </AnimateOnScroll>
+        </div>
       </section>
     </main>
   )
