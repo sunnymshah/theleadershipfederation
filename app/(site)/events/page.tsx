@@ -159,7 +159,7 @@ export default async function EventsPage() {
               </AnimateOnScroll>
 
               <AnimateOnScroll animation="fade-up" delay={90}>
-                <h1 className="text-[clamp(2.7rem,7vw,5.8rem)] font-bold text-white tracking-[-0.045em] leading-[0.96]">
+                <h1 className="text-[clamp(3rem,7.8vw,6.6rem)] font-bold text-white tracking-[-0.05em] leading-[0.93]">
                   Where India&apos;s
                   <br />
                   leadership{" "}
@@ -176,19 +176,13 @@ export default async function EventsPage() {
               </AnimateOnScroll>
 
               <AnimateOnScroll animation="fade-up" delay={260}>
-                <div className="mt-8 flex flex-wrap items-center gap-2.5 sm:gap-3">
-                  <Link
-                    href="#programme"
-                    className="group inline-flex items-center gap-2 px-7 sm:px-8 py-[14px] sm:py-[15px] rounded-full font-bold text-[14px] sm:text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_18px_44px_-12px_rgba(0,113,227,0.85)]"
-                  >
-                    See the programme
-                    <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                <div className="mt-8">
                   <Link
                     href="/memberships"
-                    className="lf-glass-pill inline-flex items-center px-6 sm:px-7 py-[13px] sm:py-[14px] rounded-full font-bold text-[14px] sm:text-[15px] text-white"
+                    className="group inline-flex items-center gap-2.5 px-8 sm:px-10 py-[15px] sm:py-[17px] rounded-full font-bold text-[14px] sm:text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_20px_48px_-12px_rgba(0,113,227,0.9)]"
                   >
-                    Apply for membership
+                    Apply for Membership
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </AnimateOnScroll>
@@ -571,7 +565,7 @@ function HeroNoEvent() {
   )
 }
 
-/** Wide editorial programme row — image · content · date/CTA. */
+/** Wide editorial programme row — the whole row is one link to the event. */
 function ProgrammeRow({ event, index }: { event: EventRow; index: number }) {
   const slug = (event.slug ?? "").trim()
   const days = getDaysUntil(event.start_date)
@@ -580,20 +574,23 @@ function ProgrammeRow({ event, index }: { event: EventRow; index: number }) {
   const ticketCount = Array.isArray(event.tickets) ? event.tickets.length : 0
 
   return (
-    <div className="lf-glass group rounded-[24px] overflow-hidden transition-all duration-300 hover:-translate-y-1">
-      <div className="grid sm:grid-cols-[260px_1fr] lg:grid-cols-[340px_1fr]">
+    <Link
+      href={`/events/${slug}`}
+      className="lf-glass group block rounded-[26px] overflow-hidden transition-all duration-300 hover:-translate-y-1 shadow-[0_34px_80px_-44px_rgba(10,10,20,0.5)]"
+    >
+      <div className="grid sm:grid-cols-[260px_1fr] lg:grid-cols-[348px_1fr]">
         {/* Image */}
-        <div className="relative aspect-[16/10] sm:aspect-auto sm:min-h-[260px] bg-[#0a0a14]">
+        <div className="relative aspect-[16/10] sm:aspect-auto sm:min-h-[272px] bg-[#0a0a14]">
           {cover && (
             <Image
               src={cover}
               alt={event.title}
               fill
-              sizes="(max-width: 640px) 100vw, 340px"
+              sizes="(max-width: 640px) 100vw, 348px"
               className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/55 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/60 to-transparent" />
           <div className="absolute top-4 left-4 bg-white rounded-xl px-3 py-1.5 text-center shadow-lg">
             <p className="text-[9px] font-bold text-[#0071e3] uppercase tracking-wider leading-none">
               {fmtMonth(event.start_date)}
@@ -603,19 +600,19 @@ function ProgrammeRow({ event, index }: { event: EventRow; index: number }) {
             </p>
           </div>
           {index === 0 && (
-            <span className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0071e3] text-white text-[9.5px] font-bold uppercase tracking-[0.14em]">
-              <Sparkles size={10} /> Next Up
+            <span className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0071e3] text-white text-[9.5px] font-bold uppercase tracking-[0.16em]">
+              <Sparkles size={10} /> Next Conclave
             </span>
           )}
         </div>
 
         {/* Content */}
-        <div className="p-6 sm:p-8 lg:p-9 flex flex-col justify-center">
-          <h3 className="text-[clamp(1.3rem,2.4vw,1.8rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] leading-[1.15] line-clamp-2">
+        <div className="p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+          <h3 className="text-[clamp(1.35rem,2.5vw,1.95rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.12] line-clamp-2">
             {event.title}
           </h3>
           {event.description && (
-            <p className="mt-2.5 text-[13.5px] text-[#1d1d1f]/60 leading-[1.65] line-clamp-2">
+            <p className="mt-3 text-[13.5px] text-[#1d1d1f]/60 leading-[1.65] line-clamp-2">
               {event.description}
             </p>
           )}
@@ -643,29 +640,21 @@ function ProgrammeRow({ event, index }: { event: EventRow; index: number }) {
               </span>
             )}
           </div>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link
-              href={`/events/${slug}#tickets`}
-              className="group/btn inline-flex items-center gap-2 px-6 py-[12px] rounded-full font-bold text-[13.5px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_28px_-12px_rgba(0,113,227,0.7)]"
-            >
-              Register
-              <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href={`/events/${slug}`}
-              className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-[#0071e3] hover:gap-2.5 transition-all duration-200"
-            >
-              Full details <ArrowRight size={14} />
-            </Link>
-            {days > 0 && (
-              <span className="ml-auto text-[12px] font-bold text-[#1d1d1f]/45 uppercase tracking-wider tabular-nums">
+          <div className="mt-6 pt-5 border-t border-black/[0.07] flex items-center justify-between">
+            {days > 0 ? (
+              <span className="text-[12px] font-bold text-[#1d1d1f]/45 uppercase tracking-[0.12em] tabular-nums">
                 {days} {days === 1 ? "day" : "days"} away
               </span>
+            ) : (
+              <span />
             )}
+            <span className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-[#0071e3] group-hover:gap-2.5 transition-all duration-200">
+              View event <ArrowRight size={15} />
+            </span>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
