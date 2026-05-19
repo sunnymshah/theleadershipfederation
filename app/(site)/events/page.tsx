@@ -1,10 +1,11 @@
 /**
  * /events — public events landing.
  *
- * The grand edition: a cinematic full-bleed hero, a featured-event
- * showpiece card that overlaps the hero, liquid-glass everywhere, deep
- * layered shadows. Soft-Monochrome palette. All event data is live
- * from Supabase; only upcoming events are surfaced (past → /archive).
+ * Soft-Monochrome / liquid-glass. A light, airy hero with a framed
+ * photograph, then ONE unified upcoming-events list (the soonest event
+ * as a wide showpiece card, the rest in a grid). No dead-end sections.
+ * Fully responsive across phone / tablet / desktop. Event data is live
+ * from Supabase — only upcoming events surface (past → /archive).
  */
 
 import { cookies } from "next/headers"
@@ -104,7 +105,7 @@ const FAQ = [
   },
 ] as const
 
-const HERO_IMAGE = "/platforms/conclave-stage.jpg"
+const HERO_IMAGE = "/events/conclave-2026.jpg"
 
 export default async function EventsPage() {
   const cookieStore = await cookies()
@@ -124,117 +125,170 @@ export default async function EventsPage() {
   const upcoming = allEvents.filter((e) => new Date(e.start_date) >= now)
   const past = allEvents.filter((e) => new Date(e.start_date) < now)
 
-  const featured = upcoming[0] ?? null
-  const otherUpcoming = upcoming.slice(1)
+  const lead = upcoming[0] ?? null
+  const rest = upcoming.slice(1)
 
   return (
     <main className="bg-white">
-      {/* ══════════════ CINEMATIC HERO ══════════════ */}
-      <section className="relative min-h-[92vh] flex items-end overflow-hidden bg-[#0a0a14]">
-        <Image
-          src={HERO_IMAGE}
-          alt="The GCC Leadership Conclave in session"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-        {/* Cinematic scrims */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/72 to-[#0a0a14]/32" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14]/85 via-[#0a0a14]/25 to-transparent" />
+      {/* ══════════════ HERO ══════════════ */}
+      <section className="relative bg-white pt-32 lg:pt-40 pb-14 sm:pb-16 lg:pb-20 overflow-hidden">
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(60% 50% at 14% 90%, rgba(0,113,227,0.28) 0%, transparent 64%)",
+              "radial-gradient(58% 56% at 50% 0%, rgba(0,113,227,0.08) 0%, transparent 70%)",
           }}
         />
-
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-40 pb-44 lg:pb-56">
+        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
           <AnimateOnScroll animation="fade-up">
-            <div className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.24em] text-white/70 mb-7">
-              <span className="inline-block w-9 h-px bg-[#0071e3]" />
+            <span className="text-[11px] sm:text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               Leadership Federation Events
-            </div>
+            </span>
           </AnimateOnScroll>
-
-          <AnimateOnScroll animation="fade-up" delay={90}>
-            <h1 className="text-[clamp(3rem,7.5vw,6.4rem)] font-bold text-white tracking-[-0.045em] leading-[0.96] max-w-4xl">
+          <AnimateOnScroll animation="fade-up" delay={110}>
+            <h1 className="mt-4 sm:mt-5 text-[clamp(2.4rem,6vw,4.6rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.0]">
               Where India&apos;s leadership
-              <br />
-              <span className="text-[#4c9df2]">converges.</span>
+              <br className="hidden sm:block" />{" "}
+              <span className="text-[#0071e3]">converges</span>
             </h1>
           </AnimateOnScroll>
-
-          <AnimateOnScroll animation="fade-up" delay={180}>
-            <p className="mt-7 text-[17px] sm:text-[19px] leading-relaxed text-white/70 max-w-xl">
+          <AnimateOnScroll animation="fade-up" delay={220}>
+            <p className="mt-5 sm:mt-6 text-[15px] sm:text-[17px] lg:text-[19px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
               Closed-room conclaves, summits and policy roundtables for the
-              CXOs, founders and regulators shaping the next decade of industry.
-              Invite-curated, capacity-capped, deliberately quiet.
+              CXOs, founders and regulators shaping the next decade — invite-curated,
+              capacity-capped, deliberately quiet.
             </p>
           </AnimateOnScroll>
-
-          <AnimateOnScroll animation="fade-up" delay={260}>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+          <AnimateOnScroll animation="fade-up" delay={300}>
+            <div className="mt-7 sm:mt-8 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
               <Link
-                href="#upcoming"
-                className="group inline-flex items-center gap-2.5 px-8 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_18px_44px_-12px_rgba(0,113,227,0.8)]"
+                href="#events"
+                className="group inline-flex items-center gap-2 px-7 sm:px-8 py-[14px] sm:py-[15px] rounded-full font-bold text-[14px] sm:text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_30px_-10px_rgba(0,113,227,0.6)]"
               >
-                See the programme
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                See upcoming events
+                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/memberships"
-                className="lf-glass-pill inline-flex items-center px-7 py-[15px] rounded-full font-bold text-[15px] text-white"
+                className="lf-glass inline-flex items-center px-6 sm:px-7 py-[13px] sm:py-[14px] rounded-full font-bold text-[14px] sm:text-[15px] text-[#1d1d1f] transition-all duration-200"
               >
                 Apply for membership
               </Link>
             </div>
           </AnimateOnScroll>
 
-          {/* Glass stats strip */}
-          <AnimateOnScroll animation="fade-up" delay={340}>
-            <div className="mt-12 inline-grid grid-cols-3 gap-px rounded-2xl overflow-hidden lf-glass-dark">
+          {/* Stats — wrap on small screens */}
+          <AnimateOnScroll animation="fade-up" delay={380}>
+            <div className="mt-9 sm:mt-11 flex flex-wrap items-stretch justify-center gap-3">
               <HeroStat value={upcoming.length} label={upcoming.length === 1 ? "Event upcoming" : "Events upcoming"} />
               <HeroStat value={past.length} label="Editions delivered" />
               <HeroStat value="30+" label="Countries" />
             </div>
           </AnimateOnScroll>
         </div>
-      </section>
 
-      {/* ══════════════ FEATURED EVENT — overlapping showpiece ══════════════ */}
-      <section className="relative z-20 bg-[#f5f5f7]">
-        <div className="max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-          <div className="-mt-28 lg:-mt-36">
-            {featured ? (
-              <AnimateOnScroll animation="fade-up">
-                <FeaturedShowpiece event={featured} />
-              </AnimateOnScroll>
-            ) : (
-              <AnimateOnScroll animation="fade-up">
-                <ProgrammeInBuild />
-              </AnimateOnScroll>
-            )}
+        {/* Framed hero photograph */}
+        <AnimateOnScroll animation="fade-up" delay={440}>
+          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 mt-12 sm:mt-14">
+            <div className="lf-glass rounded-[20px] sm:rounded-[28px] p-1.5 sm:p-2.5">
+              <div className="relative aspect-[16/10] sm:aspect-[16/8] rounded-[14px] sm:rounded-[20px] overflow-hidden">
+                <Image
+                  src={HERO_IMAGE}
+                  alt="The GCC Leadership Conclave"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 1100px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                <div className="absolute bottom-3.5 left-4 sm:bottom-5 sm:left-6 lf-glass-dark rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5">
+                  <span className="text-[10px] sm:text-[12px] font-bold uppercase tracking-[0.14em] text-white">
+                    The GCC Leadership Conclave
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </AnimateOnScroll>
       </section>
 
-      {/* ══════════════ WHY LEADERS SHOW UP ══════════════ */}
-      <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+      {/* ══════════════ UPCOMING EVENTS ══════════════ */}
+      <section
+        id="events"
+        className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-24"
+      >
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(50% 50% at 88% 8%, rgba(0,113,227,0.08) 0%, transparent 70%)",
+              "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+              "radial-gradient(50% 56% at 88% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
           }}
         />
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-12 lg:mb-14">
+          <AnimateOnScroll animation="fade-up">
+            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 mb-10 sm:mb-12">
+              <div>
+                <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+                  Programme {new Date().getFullYear()}
+                </span>
+                <h2 className="mt-3 sm:mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                  {upcoming.length === 0
+                    ? "No public events listed yet"
+                    : upcoming.length === 1
+                      ? "The next conclave"
+                      : `${upcoming.length} upcoming events`}
+                </h2>
+              </div>
+              {past.length > 0 && (
+                <Link
+                  href="/archive"
+                  className="lf-glass inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-bold text-[#1d1d1f] hover:gap-2.5 transition-all duration-200"
+                >
+                  Browse the archive <ArrowRight size={14} />
+                </Link>
+              )}
+            </div>
+          </AnimateOnScroll>
+
+          {lead ? (
+            <div className="space-y-6">
+              <AnimateOnScroll animation="fade-up">
+                <LeadEventCard event={lead} />
+              </AnimateOnScroll>
+              {rest.length > 0 && (
+                <StaggerChildren animation="fade-up" stagger={80}>
+                  <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
+                    {rest.map((event) => (
+                      <EventCard key={event.id} event={event} />
+                    ))}
+                  </div>
+                </StaggerChildren>
+              )}
+            </div>
+          ) : (
+            <AnimateOnScroll animation="fade-up">
+              <NotifyCard />
+            </AnimateOnScroll>
+          )}
+        </div>
+      </section>
+
+      {/* ══════════════ WHY LEADERS SHOW UP ══════════════ */}
+      <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(56% 48% at 50% 0%, rgba(0,113,227,0.06) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
             <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               Why Leaders Show Up
             </span>
-            <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+            <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
               Not a conference. A room.
             </h2>
           </AnimateOnScroll>
@@ -242,12 +296,12 @@ export default async function EventsPage() {
           <StaggerChildren
             animation="fade-up"
             stagger={90}
-            className="grid sm:grid-cols-3 gap-5"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-5"
           >
             {VALUE_PROPS.map((vp) => (
               <div
                 key={vp.title}
-                className="lf-glass rounded-[24px] p-8 transition-all duration-300 hover:-translate-y-1.5"
+                className="lf-glass rounded-[24px] p-7 sm:p-8 transition-all duration-300 hover:-translate-y-1.5"
               >
                 <div className="w-12 h-12 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-5 shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
                   <vp.Icon size={22} strokeWidth={1.8} className="text-white" />
@@ -264,68 +318,8 @@ export default async function EventsPage() {
         </div>
       </section>
 
-      {/* ══════════════ UPCOMING EVENTS ══════════════ */}
-      <section
-        id="upcoming"
-        className="relative bg-white py-20 lg:py-28 overflow-hidden scroll-mt-24"
-      >
-        <div
-          className="absolute inset-0 z-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(56% 48% at 50% 0%, rgba(0,113,227,0.06) 0%, transparent 70%)",
-          }}
-        />
-        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-          <AnimateOnScroll animation="fade-up">
-            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 mb-12">
-              <div>
-                <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
-                  Programme {new Date().getFullYear()}
-                </span>
-                <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
-                  {upcoming.length === 0
-                    ? "No public events listed yet"
-                    : upcoming.length === 1
-                      ? "One upcoming event"
-                      : `${upcoming.length} upcoming events`}
-                </h2>
-              </div>
-              {past.length > 0 && (
-                <Link
-                  href="/archive"
-                  className="lf-glass inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-bold text-[#1d1d1f] hover:gap-2.5 transition-all duration-200"
-                >
-                  Browse the archive <ArrowRight size={14} />
-                </Link>
-              )}
-            </div>
-          </AnimateOnScroll>
-
-          {otherUpcoming.length > 0 ? (
-            <StaggerChildren animation="fade-up" stagger={80}>
-              <div className="grid md:grid-cols-2 gap-6 lg:gap-7">
-                {otherUpcoming.map((event) => (
-                  <UpcomingEventCard key={event.id} event={event} />
-                ))}
-              </div>
-            </StaggerChildren>
-          ) : upcoming.length > 0 ? (
-            <div className="lf-glass rounded-[24px] p-8 sm:p-10">
-              <p className="text-[15px] text-[#1d1d1f]/60 leading-relaxed max-w-xl">
-                The next confirmed event is featured above. Further editions for
-                this season are announced as the programme is finalised — join
-                the notify list below to hear first.
-              </p>
-            </div>
-          ) : (
-            <EmptyUpcoming />
-          )}
-        </div>
-      </section>
-
       {/* ══════════════ TESTIMONIALS ══════════════ */}
-      <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+      <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
@@ -335,11 +329,11 @@ export default async function EventsPage() {
           }}
         />
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-12 lg:mb-14">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
             <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               From the Room
             </span>
-            <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+            <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
               What leaders say after
             </h2>
           </AnimateOnScroll>
@@ -347,12 +341,12 @@ export default async function EventsPage() {
           <StaggerChildren
             animation="fade-up"
             stagger={90}
-            className="grid lg:grid-cols-3 gap-5"
+            className="grid grid-cols-1 md:grid-cols-3 gap-5"
           >
             {TESTIMONIALS.map((t, i) => (
-              <figure key={i} className="lf-glass rounded-[26px] p-8 flex flex-col">
+              <figure key={i} className="lf-glass rounded-[26px] p-7 sm:p-8 flex flex-col">
                 <Quote size={26} className="text-[#0071e3] mb-5" fill="currentColor" />
-                <blockquote className="text-[17px] leading-[1.6] text-[#1d1d1f]/85 font-medium flex-1">
+                <blockquote className="text-[16px] sm:text-[17px] leading-[1.6] text-[#1d1d1f]/85 font-medium flex-1">
                   {t.quote}
                 </blockquote>
                 <figcaption className="mt-6 pt-5 border-t border-black/[0.07]">
@@ -366,13 +360,13 @@ export default async function EventsPage() {
       </section>
 
       {/* ══════════════ FAQ ══════════════ */}
-      <section className="relative bg-white py-20 lg:py-28 overflow-hidden">
+      <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 lg:px-16">
-          <AnimateOnScroll animation="fade-up" className="text-center mb-12">
+          <AnimateOnScroll animation="fade-up" className="text-center mb-10 sm:mb-12">
             <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               Frequently Asked
             </span>
-            <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+            <h2 className="mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
               Before you ask
             </h2>
           </AnimateOnScroll>
@@ -380,15 +374,15 @@ export default async function EventsPage() {
           <StaggerChildren className="space-y-3" animation="fade-up" stagger={60}>
             {FAQ.map((row) => (
               <details key={row.q} className="group lf-glass rounded-[18px] overflow-hidden">
-                <summary className="flex items-start justify-between gap-5 px-6 py-5 cursor-pointer list-none select-none">
-                  <span className="text-[15.5px] font-semibold text-[#1d1d1f] leading-snug">
+                <summary className="flex items-start justify-between gap-4 sm:gap-5 px-5 sm:px-6 py-5 cursor-pointer list-none select-none">
+                  <span className="text-[14.5px] sm:text-[15.5px] font-semibold text-[#1d1d1f] leading-snug">
                     {row.q}
                   </span>
                   <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#0071e3]/[0.1] text-[#0071e3] group-open:rotate-45 transition-transform duration-300 shrink-0">
                     <Plus size={15} strokeWidth={2.2} />
                   </span>
                 </summary>
-                <p className="px-6 pb-6 text-[14px] leading-[1.75] text-[#1d1d1f]/65">
+                <p className="px-5 sm:px-6 pb-6 text-[13.5px] sm:text-[14px] leading-[1.75] text-[#1d1d1f]/65">
                   {row.a}
                 </p>
               </details>
@@ -398,7 +392,7 @@ export default async function EventsPage() {
       </section>
 
       {/* ══════════════ CLOSING CTA ══════════════ */}
-      <section id="notify" className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+      <section id="notify" className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-24">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
@@ -408,26 +402,22 @@ export default async function EventsPage() {
         />
         <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16">
           <AnimateOnScroll animation="fade-up">
-            <div className="lf-glass-strong rounded-[32px] p-10 sm:p-14 lg:p-16">
-              <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-12 items-center">
+            <div className="lf-glass-strong rounded-[28px] sm:rounded-[32px] p-8 sm:p-12 lg:p-16">
+              <div className="grid lg:grid-cols-[1.1fr_1fr] gap-8 lg:gap-12 items-center">
                 <div>
                   <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
                     Stay in the Room
                   </span>
-                  <h2 className="mt-4 text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.08]">
+                  <h2 className="mt-4 text-[clamp(1.7rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
                     Be first to know when an event opens
                   </h2>
-                  <p className="mt-4 text-[#1d1d1f]/60 text-[15px] leading-relaxed">
+                  <p className="mt-4 text-[#1d1d1f]/60 text-[14px] sm:text-[15px] leading-relaxed">
                     We open registrations 90 days out. Subscribers get the date,
                     agenda and invitation a week before public release.
                   </p>
                 </div>
                 <div>
-                  <form
-                    action="/api/builder-form"
-                    method="post"
-                    className="flex flex-col gap-2.5"
-                  >
+                  <form action="/api/builder-form" method="post" className="flex flex-col gap-2.5">
                     <label className="relative">
                       <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1d1d1f]/35" />
                       <input
@@ -480,28 +470,29 @@ type EventRow = {
 
 function HeroStat({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="px-6 py-5 text-center">
-      <p className="text-[30px] sm:text-[36px] font-bold leading-none text-white tabular-nums tracking-[-0.03em]">
+    <div className="lf-glass rounded-2xl px-5 sm:px-7 py-3.5 sm:py-4 text-center min-w-[100px]">
+      <p className="text-[24px] sm:text-[30px] font-bold leading-none text-[#1d1d1f] tabular-nums tracking-[-0.03em]">
         {value}
       </p>
-      <p className="text-[10.5px] uppercase tracking-[0.14em] text-white/55 mt-2 font-semibold">
+      <p className="text-[10px] uppercase tracking-[0.12em] text-[#1d1d1f]/50 mt-1.5 font-semibold">
         {label}
       </p>
     </div>
   )
 }
 
-function FeaturedShowpiece({ event }: { event: EventRow }) {
+/** The soonest upcoming event — a wide showpiece card. Stacks on mobile. */
+function LeadEventCard({ event }: { event: EventRow }) {
   const slug = (event.slug ?? "").trim()
   const days = getDaysUntil(event.start_date)
   const cover = event.thumbnail_url || event.cover_image_url
   const speakerCount = Array.isArray(event.speakers) ? event.speakers.length : 0
 
   return (
-    <div className="lf-glass-strong rounded-[32px] overflow-hidden shadow-[0_50px_110px_-44px_rgba(0,0,0,0.5)]">
+    <div className="lf-glass-strong rounded-[24px] sm:rounded-[30px] overflow-hidden shadow-[0_40px_90px_-40px_rgba(0,0,0,0.4)]">
       <div className="grid lg:grid-cols-2">
         {/* Image */}
-        <div className="relative min-h-[300px] lg:min-h-[480px] bg-[#0a0a14]">
+        <div className="relative aspect-[16/10] lg:aspect-auto lg:min-h-[420px] bg-[#0a0a14]">
           {cover && (
             <Image
               src={cover}
@@ -513,21 +504,21 @@ function FeaturedShowpiece({ event }: { event: EventRow }) {
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/55 via-transparent to-transparent" />
-          <span className="absolute top-5 left-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-[#1d1d1f] text-[10px] font-bold uppercase tracking-[0.14em] shadow-lg">
+          <span className="absolute top-4 left-4 sm:top-5 sm:left-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-[#1d1d1f] text-[10px] font-bold uppercase tracking-[0.14em] shadow-lg">
             <Star size={11} strokeWidth={2} className="text-[#0071e3] fill-[#0071e3]" />
-            Featured Event
+            Next Event
           </span>
-          <div className="absolute bottom-5 left-5 flex items-center gap-3">
-            <div className="bg-white rounded-xl px-3.5 py-2 text-center shadow-lg">
-              <p className="text-[10px] font-bold text-[#0071e3] uppercase tracking-wider leading-none">
+          <div className="absolute bottom-4 left-4 sm:bottom-5 sm:left-5 flex items-center gap-2.5 sm:gap-3">
+            <div className="bg-white rounded-xl px-3 sm:px-3.5 py-1.5 sm:py-2 text-center shadow-lg">
+              <p className="text-[9px] sm:text-[10px] font-bold text-[#0071e3] uppercase tracking-wider leading-none">
                 {fmtMonth(event.start_date)}
               </p>
-              <p className="text-[24px] font-bold text-[#1d1d1f] leading-none mt-0.5 tabular-nums">
+              <p className="text-[20px] sm:text-[24px] font-bold text-[#1d1d1f] leading-none mt-0.5 tabular-nums">
                 {fmtDay(event.start_date)}
               </p>
             </div>
             {days > 0 && (
-              <span className="lf-glass-dark rounded-full px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-white">
+              <span className="lf-glass-dark rounded-full px-3.5 py-2 text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-white">
                 {days} {days === 1 ? "day" : "days"} away
               </span>
             )}
@@ -535,19 +526,16 @@ function FeaturedShowpiece({ event }: { event: EventRow }) {
         </div>
 
         {/* Content */}
-        <div className="p-8 sm:p-11 lg:p-14 flex flex-col justify-center">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#0071e3]">
-            The Next Conclave
-          </span>
-          <h3 className="mt-3 text-[clamp(1.7rem,3vw,2.5rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.08]">
+        <div className="p-7 sm:p-10 lg:p-12 flex flex-col justify-center">
+          <h3 className="text-[clamp(1.5rem,3vw,2.3rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
             {event.title}
           </h3>
           {event.description && (
-            <p className="mt-4 text-[14.5px] text-[#1d1d1f]/60 leading-[1.7] line-clamp-3">
+            <p className="mt-3.5 text-[14px] text-[#1d1d1f]/60 leading-[1.7] line-clamp-3">
               {event.description}
             </p>
           )}
-          <ul className="mt-6 space-y-2.5 text-[13.5px] text-[#1d1d1f]/70">
+          <ul className="mt-5 space-y-2.5 text-[13.5px] text-[#1d1d1f]/70">
             <li className="flex items-center gap-2.5">
               <Calendar size={15} className="text-[#0071e3] shrink-0" />
               {fmtDate(event.start_date)}
@@ -566,7 +554,7 @@ function FeaturedShowpiece({ event }: { event: EventRow }) {
               </li>
             )}
           </ul>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-2.5 sm:gap-3">
             <Link
               href={`/events/${slug}#tickets`}
               className="group inline-flex items-center gap-2 px-7 py-[14px] rounded-full font-bold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-12px_rgba(0,113,227,0.7)]"
@@ -587,7 +575,7 @@ function FeaturedShowpiece({ event }: { event: EventRow }) {
   )
 }
 
-function UpcomingEventCard({ event }: { event: EventRow }) {
+function EventCard({ event }: { event: EventRow }) {
   const slug = (event.slug ?? "").trim()
   const speakerCount = Array.isArray(event.speakers) ? event.speakers.length : 0
   const ticketCount = Array.isArray(event.tickets) ? event.tickets.length : 0
@@ -597,7 +585,7 @@ function UpcomingEventCard({ event }: { event: EventRow }) {
   return (
     <Link
       href={`/events/${slug}`}
-      className="lf-glass group block rounded-[24px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
+      className="lf-glass group block rounded-[22px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
     >
       <div className="relative aspect-[16/9] bg-[#0a0a14] overflow-hidden">
         {cover && (
@@ -619,8 +607,8 @@ function UpcomingEventCard({ event }: { event: EventRow }) {
           {event.end_date && event.end_date !== event.start_date && ` – ${fmtDateShort(event.end_date)}`}
         </div>
       </div>
-      <div className="p-7">
-        <h3 className="text-[21px] font-bold leading-tight text-[#1d1d1f] tracking-[-0.02em] mb-2.5 line-clamp-2">
+      <div className="p-6 sm:p-7">
+        <h3 className="text-[19px] sm:text-[21px] font-bold leading-tight text-[#1d1d1f] tracking-[-0.02em] mb-2.5 line-clamp-2">
           {event.title}
         </h3>
         {event.description && (
@@ -629,9 +617,9 @@ function UpcomingEventCard({ event }: { event: EventRow }) {
           </p>
         )}
         <div className="flex items-center justify-between pt-5 border-t border-black/[0.07]">
-          <div className="flex items-center gap-4 text-[12px] text-[#1d1d1f]/55">
+          <div className="flex items-center gap-3.5 text-[12px] text-[#1d1d1f]/55">
             {event.venue && (
-              <span className="inline-flex items-center gap-1.5 truncate max-w-[150px]" title={event.venue}>
+              <span className="inline-flex items-center gap-1.5 truncate max-w-[140px]" title={event.venue}>
                 <MapPin size={12} className="text-[#0071e3] shrink-0" />
                 <span className="truncate">{event.venue}</span>
               </span>
@@ -656,50 +644,27 @@ function UpcomingEventCard({ event }: { event: EventRow }) {
   )
 }
 
-function ProgrammeInBuild() {
+function NotifyCard() {
   return (
-    <div className="lf-glass-strong rounded-[32px] p-12 sm:p-16 text-center shadow-[0_50px_110px_-44px_rgba(0,0,0,0.5)]">
+    <div className="lf-glass-strong rounded-[28px] p-10 sm:p-14 lg:p-16 text-center">
       <div className="w-16 h-16 rounded-2xl bg-[#0071e3] flex items-center justify-center mx-auto mb-6 shadow-[0_14px_32px_-10px_rgba(0,113,227,0.7)]">
         <Sparkles size={28} className="text-white" />
       </div>
       <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-[#0071e3] mb-2">
         Programme in Build
       </p>
-      <h3 className="text-[clamp(1.6rem,3vw,2.2rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] mb-3">
+      <h3 className="text-[clamp(1.5rem,3vw,2.2rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] mb-3">
         The next conclave is being curated
       </h3>
       <p className="text-[15px] text-[#1d1d1f]/60 max-w-md mx-auto leading-relaxed mb-7">
         We open registrations 90 days before each event. Join the early-access
-        list to be notified the moment dates are confirmed.
+        list and you&apos;ll be the first to hear when dates are confirmed.
       </p>
       <Link
         href="#notify"
         className="inline-flex items-center gap-2 px-7 py-[14px] rounded-full text-[14px] font-bold text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-12px_rgba(0,113,227,0.7)]"
       >
         <Bell size={15} /> Notify me
-      </Link>
-    </div>
-  )
-}
-
-function EmptyUpcoming() {
-  return (
-    <div className="lf-glass rounded-[28px] p-12 sm:p-16 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-[#0071e3] flex items-center justify-center mx-auto mb-6 shadow-[0_14px_32px_-10px_rgba(0,113,227,0.7)]">
-        <Sparkles size={28} className="text-white" />
-      </div>
-      <h3 className="text-[clamp(1.5rem,3vw,2rem)] font-bold text-[#1d1d1f] tracking-[-0.02em] mb-3">
-        Programme in build
-      </h3>
-      <p className="text-[15px] text-[#1d1d1f]/60 max-w-md mx-auto leading-relaxed mb-7">
-        We open public registrations 90 days before each event. Join the
-        notify list — you&apos;ll hear first.
-      </p>
-      <Link
-        href="#notify"
-        className="inline-flex items-center gap-2 px-6 py-[13px] rounded-full text-[14px] font-bold text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-12px_rgba(0,113,227,0.7)]"
-      >
-        <Bell size={14} /> Notify me
       </Link>
     </div>
   )
