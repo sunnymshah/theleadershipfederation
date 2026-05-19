@@ -20,7 +20,7 @@ import { useCallback, useRef, useState } from "react"
 import Link from "next/link"
 import { Puck, type Data } from "@measured/puck"
 import "@measured/puck/puck.css"
-import { ArrowLeft, ExternalLink, Plus, X, Home } from "lucide-react"
+import { ArrowLeft, ExternalLink, Plus, X, Home, History, Globe, Loader2, RotateCcw } from "lucide-react"
 import { puckConfig } from "../puck-config"
 import type { BuilderMetadata } from "../blocks"
 import {
@@ -29,6 +29,11 @@ import {
   saveBuilderPageDraft,
   addBuilderPage,
   deleteBuilderPage,
+  listBuilderRevisions,
+  restoreBuilderRevision,
+  getBuilderSettings,
+  saveBuilderSettingsGroup,
+  type BuilderRevision,
 } from "@/app/actions/eventBuilderActions"
 import {
   sortPages,
@@ -71,6 +76,14 @@ export function BuilderMain({
   const [saveState, setSaveState] = useState<SaveState>("idle")
   const [busy, setBusy] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Revision history + SEO panels.
+  const [showHistory, setShowHistory] = useState(false)
+  const [revisions, setRevisions] = useState<BuilderRevision[] | null>(null)
+  const [restoringId, setRestoringId] = useState<string | null>(null)
+  const [showSeo, setShowSeo] = useState(false)
+  const [seo, setSeo] = useState<{ title: string; description: string; ogImage: string } | null>(null)
+  const [seoSaving, setSeoSaving] = useState(false)
 
   const pageList = sortPages(pages) // [slug, BuilderPage][]
 
@@ -192,6 +205,54 @@ export function BuilderMain({
     [eventId, activeSlug, persist],
   )
 
+  // Revision history — list past publishes, restore one into the draft.
+  const openHistory = useCallback(async () => {
+    setShowHistory(true)
+    setRevisions(null)
+    const res = await listBuilderRevisions(eventId)
+    setRevisions(res.success ? res.revisions : [])
+  }, [eventId])
+
+  const restore = useCallback(
+    async (revisionId: string) => {
+      if (!window.confirm("Restore this version into the draft? Review it on the canvas, then Publish to go live.")) return
+      setRestoringId(revisionId)
+      const res = await restoreBuilderRevision(eventId, revisionId)
+      setRestoringId(null)
+      if (!res.success) {
+        alert(res.error ?? "Restore failed.")
+        return
+      }
+      window.location.reload()
+    },
+    [eventId],
+  )
+
+  // SEO — per-event search/social metadata.
+  const openSeo = useCallback(async () => {
+    setShowSeo(true)
+    setSeo(null)
+    const res = await getBuilderSettings(eventId)
+    const s = (res.settings?.seo ?? {}) as Record<string, unknown>
+    setSeo({
+      title: typeof s.title === "string" ? s.title : "",
+      description: typeof s.description === "string" ? s.description : "",
+      ogImage: typeof s.ogImage === "string" ? s.ogImage : "",
+    })
+  }, [eventId])
+
+  const saveSeo = useCallback(async () => {
+    if (!seo) return
+    setSeoSaving(true)
+    const res = await saveBuilderSettingsGroup(eventId, "seo", { ...seo })
+    setSeoSaving(false)
+    if (!res.success) {
+      alert(res.error ?? "Couldn't save SEO settings.")
+      return
+    }
+    setShowSeo(false)
+  }, [eventId, seo])
+
   const statusLabel =
     saveState === "saving" ? "Saving…"
     : saveState === "saved" ? "All changes saved"
@@ -225,6 +286,22 @@ export function BuilderMain({
             {statusLabel}
           </span>
         )}
+        <button
+          type="button"
+          onClick={openHistory}
+          title="Version history"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[#1d1d1f]/60 hover:text-[#1d1d1f] hover:bg-black/[0.05] transition-colors"
+        >
+          <History size={15} />
+        </button>
+        <button
+          type="button"
+          onClick={openSeo}
+          title="SEO settings"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[#1d1d1f]/60 hover:text-[#1d1d1f] hover:bg-black/[0.05] transition-colors"
+        >
+          <Globe size={15} />
+        </button>
         {children}
       </div>
     ),
@@ -286,6 +363,145 @@ export function BuilderMain({
           overrides={overrides}
           iframe={{ enabled: true }}
         />
+      </div>
+
+      {/* ── Version history ────────────────────────────────────────── */}
+      {showHistory && (
+        <Modal title="Version history" onClose={() => setShowHistory(false)}>
+          {revisions === null ? (
+            <div className="py-10 flex items-center justify-center gap-2 text-[13px] text-[#1d1d1f]/45">
+              <Loader2 size={15} className="animate-spin" /> Loading…
+            </div>
+          ) : revisions.length === 0 ? (
+            <p className="py-10 text-center text-[13px] text-[#1d1d1f]/45">
+              No published versions yet. Each time you Publish, a restore point is saved here.
+            </p>
+          ) : (
+            <ul className="divide-y divide-[#e5e7eb] max-h-[60vh] overflow-y-auto">
+              {revisions.map((r) => (
+                <li key={r.id} className="flex items-center justify-between gap-4 py-3">
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-[#1d1d1f]">
+                      {new Date(r.created_at).toLocaleString("en-IN", {
+                        day: "numeric", month: "short", year: "numeric",
+                        hour: "2-digit", minute: "2-digit",
+                      })}
+                    </p>
+                    {r.label && <p className="text-[12px] text-[#1d1d1f]/50 truncate">{r.label}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => restore(r.id)}
+                    disabled={restoringId !== null}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-lg text-[12px] font-semibold text-[#0071e3] hover:bg-[#0071e3]/10 transition-colors disabled:opacity-50"
+                  >
+                    {restoringId === r.id ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />}
+                    Restore
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Modal>
+      )}
+
+      {/* ── SEO settings ───────────────────────────────────────────── */}
+      {showSeo && (
+        <Modal title="SEO & social preview" onClose={() => setShowSeo(false)}>
+          {seo === null ? (
+            <div className="py-10 flex items-center justify-center gap-2 text-[13px] text-[#1d1d1f]/45">
+              <Loader2 size={15} className="animate-spin" /> Loading…
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="block text-[12px] font-semibold text-[#1d1d1f] mb-1">Page title</span>
+                <span className="block text-[11px] text-[#1d1d1f]/45 mb-1.5">Search-result + browser-tab title (~60 chars)</span>
+                <input
+                  type="text"
+                  value={seo.title}
+                  onChange={(e) => setSeo({ ...seo, title: e.target.value })}
+                  placeholder={eventTitle}
+                  className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[13px] text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]"
+                />
+              </label>
+              <label className="block">
+                <span className="block text-[12px] font-semibold text-[#1d1d1f] mb-1">Meta description</span>
+                <span className="block text-[11px] text-[#1d1d1f]/45 mb-1.5">The grey summary under the title in Google (~155 chars)</span>
+                <textarea
+                  rows={3}
+                  value={seo.description}
+                  onChange={(e) => setSeo({ ...seo, description: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[13px] text-[#1d1d1f] resize-none focus:outline-none focus:border-[#0071e3]"
+                />
+              </label>
+              <label className="block">
+                <span className="block text-[12px] font-semibold text-[#1d1d1f] mb-1">Social share image URL</span>
+                <span className="block text-[11px] text-[#1d1d1f]/45 mb-1.5">Shown when the page is shared on LinkedIn / WhatsApp / X</span>
+                <input
+                  type="url"
+                  value={seo.ogImage}
+                  onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}
+                  placeholder="https://…"
+                  className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[13px] text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]"
+                />
+              </label>
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowSeo(false)}
+                  className="px-4 h-9 rounded-lg text-[13px] font-medium text-[#1d1d1f]/65 hover:bg-black/[0.05] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveSeo}
+                  disabled={seoSaving}
+                  className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg text-[13px] font-semibold bg-[#0071e3] text-white hover:bg-[#0077ed] transition-colors disabled:opacity-50"
+                >
+                  {seoSaving && <Loader2 size={13} className="animate-spin" />}
+                  Save
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#1d1d1f]/40"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 h-12 border-b border-[#e5e7eb]">
+          <h2 className="text-[14px] font-semibold text-[#1d1d1f]">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-[#1d1d1f]/50 hover:text-[#1d1d1f] hover:bg-black/[0.05] transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
       </div>
     </div>
   )
