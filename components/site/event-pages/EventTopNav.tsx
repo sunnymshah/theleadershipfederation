@@ -105,7 +105,16 @@ export async function EventTopNav({
     arr.push(e); childrenByParent.set(e.parent_id, arr)
   }
 
-  const main = pages.filter((p) => !RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
+  // The event nav defaults to just Home + Tickets. Other standard pages
+  // (agenda, speakers, sponsors, gallery, …) no longer auto-appear as
+  // tabs — admins add only what they want via custom nav links
+  // (events.nav_extra_links), appended further down as `topExtras`.
+  const NAV_DEFAULT_KINDS = new Set<StandardPageKind>(["home", "tickets"])
+  const main = pages.filter(
+    (p) =>
+      !RAIL_PAGE_KINDS.has(p.kind as StandardPageKind) &&
+      NAV_DEFAULT_KINDS.has(p.kind as StandardPageKind),
+  )
   const rail = pages.filter((p) => RAIL_PAGE_KINDS.has(p.kind as StandardPageKind))
 
   // ITEM 1.1: defensively guarantee a Home tab as the FIRST item — if
@@ -130,6 +139,19 @@ export async function EventTopNav({
       label: "Home",
       href: withLocale(`/events/${eventSlug}`, locale),
       active: currentKind === "home",
+      children: undefined,
+    })
+  }
+
+  // Guarantee a Tickets tab right after Home, even when the event has no
+  // visible 'tickets' standard page yet — it links to the event's
+  // tickets page (/events/[slug]/tickets).
+  if (!items.some((it) => it.kind === "tickets")) {
+    items.splice(1, 0, {
+      kind: "tickets" as StandardPageKind,
+      label: "Tickets",
+      href: withLocale(`/events/${eventSlug}/tickets`, locale),
+      active: currentKind === "tickets",
       children: undefined,
     })
   }
@@ -279,7 +301,7 @@ export async function EventTopNav({
               so it doesn't crowd Register/Sign In. */}
           <Link
             href="/"
-            className="hidden xl:inline-flex items-center text-[10px] font-medium tracking-[0.18em] uppercase text-[#1a1a2e]/45 hover:text-[#1a1a2e]/85 transition-colors pl-3 ml-1 border-l border-[#1a1a2e]/[0.08]"
+            className="hidden lg:inline-flex items-center text-[10px] font-medium tracking-[0.18em] uppercase text-[#1a1a2e]/45 hover:text-[#1a1a2e]/85 transition-colors pl-3 ml-1 border-l border-[#1a1a2e]/[0.08]"
             aria-label="Back to The Leadership Federation"
             title="Back to TLF main site"
           >
