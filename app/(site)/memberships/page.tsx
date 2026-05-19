@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   Check,
   Crown,
@@ -58,18 +59,6 @@ export const metadata = {
   },
 }
 
-/* ── Fonts ────────────────────────────────────────────────────────── */
-
-const sfDisplay = {
-  fontFamily:
-    "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
-}
-
-const sfText = {
-  fontFamily:
-    "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
-}
-
 /* ── Tier data ────────────────────────────────────────────────────── */
 
 interface Tier {
@@ -80,26 +69,18 @@ interface Tier {
   discount: number
   isPopular: boolean
   benefits: string[]
-  accent: string
-  accentLight: string
-  icon: typeof Crown
+  icon: LucideIcon
 }
 
-/* ── Style / icon lookup by slug ─────────────────────────────────── */
-
-const TIER_STYLE: Record<string, { icon: typeof Crown; accent: string; accentLight: string }> = {
-  silver:   { icon: Shield, accent: "#94a3b8", accentLight: "#94a3b8" },
-  gold:     { icon: Star,   accent: "#e7ab1c", accentLight: "#e7ab1c" },
-  platinum: { icon: Crown,  accent: "#c9a84c", accentLight: "#c9a84c" },
-  titanium: { icon: Zap,    accent: "#1a1a2e", accentLight: "#1a1a2e" },
+const TIER_ICON: Record<string, LucideIcon> = {
+  silver: Shield,
+  gold: Star,
+  platinum: Crown,
+  titanium: Zap,
 }
 
-const DEFAULT_STYLE = { icon: Shield, accent: "#94a3b8", accentLight: "#94a3b8" }
-
-/** Format an integer price with Indian comma grouping */
 function formatINR(amount: number): string {
   const s = amount.toString()
-  // Indian grouping: last 3 digits, then groups of 2
   if (s.length <= 3) return s
   const last3 = s.slice(-3)
   const rest = s.slice(0, -3)
@@ -107,7 +88,6 @@ function formatINR(amount: number): string {
   return `${grouped},${last3}`
 }
 
-/** Format an integer price with standard comma grouping */
 function formatUSD(amount: number): string {
   return amount.toLocaleString("en-US")
 }
@@ -122,7 +102,6 @@ interface ComparisonRow {
   titanium: string | boolean
 }
 
-/** Convert a string DB value to display-typed value (boolean/string). */
 function parseCellValue(raw: string | null | undefined): string | boolean {
   if (raw === null || raw === undefined) return false
   const v = raw.trim()
@@ -133,9 +112,14 @@ function parseCellValue(raw: string | null | undefined): string | boolean {
   return v
 }
 
-/* ── FAQ ──────────────────────────────────────────────────────────── */
-
 interface FaqItem { q: string; a: string }
+
+/* ── Rooms a membership opens ─────────────────────────────────────── */
+const ACCESS_GALLERY = [
+  { src: "/platforms/conclave-pune.jpg", label: "GCC Leadership Conclave", note: "India's largest gathering of GCC leaders" },
+  { src: "/events/asia-leadership-awards.jpg", label: "Asia Leadership Awards", note: "Recognition for the work that raises the bar" },
+  { src: "/events/bharat-leadership-awards.jpg", label: "Bharat Leadership Summit", note: "The conversations shaping enterprise" },
+]
 
 /* ═══════════════════════════════════════════════════════════════════ */
 
@@ -145,21 +129,16 @@ export default async function MembershipsPage() {
   try {
     const result = await getMembershipTiers()
     if (result.success && result.tiers) {
-      TIERS = result.tiers.map((t) => {
-        const style = TIER_STYLE[t.slug] ?? DEFAULT_STYLE
-        return {
-          name: t.name,
-          slug: t.slug,
-          priceINR: formatINR(t.price_inr),
-          priceUSD: formatUSD(t.price_usd),
-          discount: t.discount_percent ?? 0,
-          isPopular: t.is_popular ?? false,
-          benefits: (t.benefits as string[]) ?? [],
-          accent: style.accent,
-          accentLight: style.accentLight,
-          icon: style.icon,
-        }
-      })
+      TIERS = result.tiers.map((t) => ({
+        name: t.name,
+        slug: t.slug,
+        priceINR: formatINR(t.price_inr),
+        priceUSD: formatUSD(t.price_usd),
+        discount: t.discount_percent ?? 0,
+        isPopular: t.is_popular ?? false,
+        benefits: (t.benefits as string[]) ?? [],
+        icon: TIER_ICON[t.slug] ?? Shield,
+      }))
     }
   } catch {
     /* empty state */
@@ -171,9 +150,9 @@ export default async function MembershipsPage() {
     const result = await getMembershipComparisonRows(true)
     if (result.success && result.rows) {
       COMPARISON = result.rows.map((r) => ({
-        feature:  r.feature,
-        silver:   parseCellValue(r.silver_value),
-        gold:     parseCellValue(r.gold_value),
+        feature: r.feature,
+        silver: parseCellValue(r.silver_value),
+        gold: parseCellValue(r.gold_value),
         platinum: parseCellValue(r.platinum_value),
         titanium: parseCellValue(r.titanium_value),
       }))
@@ -198,12 +177,12 @@ export default async function MembershipsPage() {
     description: pickStr(
       sections.hero,
       "description",
-      "Join a global network of CXOs, founders, and decision-makers. Every membership tier includes full event credits, exclusive directory access, and year-round leadership opportunities."
+      "Join a global network of CXOs, founders, and decision-makers. Every membership tier includes full event credits, exclusive directory access, and year-round leadership opportunities.",
     ),
     note: pickStr(
       sections.hero,
       "note",
-      "All prices exclusive of GST. USD pricing available for international members."
+      "All prices exclusive of GST. USD pricing available for international members.",
     ),
   }
 
@@ -212,7 +191,7 @@ export default async function MembershipsPage() {
     description: pickStr(
       sections.value_props_header,
       "description",
-      "Every tier is designed to deliver more value than your investment."
+      "Every tier is designed to deliver more value than your investment.",
     ),
   }
 
@@ -228,7 +207,7 @@ export default async function MembershipsPage() {
     description: pickStr(
       sections.comparison_header,
       "description",
-      "A detailed breakdown of what each membership tier includes."
+      "A detailed breakdown of what each membership tier includes.",
     ),
   }
 
@@ -237,7 +216,7 @@ export default async function MembershipsPage() {
     description: pickStr(
       sections.faq_header,
       "description",
-      "Everything you need to know about our membership program."
+      "Everything you need to know about our membership program.",
     ),
   }
 
@@ -246,59 +225,90 @@ export default async function MembershipsPage() {
     description: pickStr(
       sections.bottom_cta,
       "description",
-      "Join a global community of leaders shaping the future. Start with any tier and upgrade as you grow."
+      "Join a global community of leaders shaping the future. Start with any tier and upgrade as you grow.",
     ),
     buttonLabel: pickStr(sections.bottom_cta, "button_label", "Apply for Membership"),
     buttonHref: pickStr(sections.bottom_cta, "button_href", "/register?type=membership&tier=platinum"),
   }
 
   return (
-    <main className="">
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      <section className="pt-28 pb-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <AnimateOnScroll animation="fade-up" delay={0}>
-            <span
-              className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6"
-              style={sfText}
-            >
+    <main>
+      {/* ═══════════════ Hero ═══════════════ */}
+      <section className="relative bg-white pt-32 lg:pt-40 pb-16 lg:pb-20 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(56% 56% at 50% 0%, rgba(0,113,227,0.07) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
+          <AnimateOnScroll animation="fade-up">
+            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               {hero.eyebrow}
             </span>
           </AnimateOnScroll>
-
-          <AnimateOnScroll animation="fade-up" delay={80}>
-            <h1
-              className="text-[36px] sm:text-[48px] lg:text-[56px] font-bold text-[#1a1a2e] leading-[1.08] tracking-[-0.03em] mb-6"
-              style={sfDisplay}
-            >
+          <AnimateOnScroll animation="fade-up" delay={110}>
+            <h1 className="mt-5 text-[clamp(2.6rem,5.6vw,4.4rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.0]">
               {hero.title}
             </h1>
           </AnimateOnScroll>
-
-          <AnimateOnScroll animation="fade-up" delay={160}>
-            <p
-              className="text-[16px] sm:text-[18px] text-[#1a1a2e]/65 leading-[1.6] max-w-2xl mx-auto mb-4"
-              style={sfText}
-            >
+          <AnimateOnScroll animation="fade-up" delay={220}>
+            <p className="mt-6 text-[17px] lg:text-[18px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
               {hero.description}
             </p>
           </AnimateOnScroll>
-
-          <AnimateOnScroll animation="fade-up" delay={240}>
-            <p
-              className="text-[13px] text-[#1a1a2e]/45 leading-[1.5]"
-              style={sfText}
-            >
-              {hero.note}
-            </p>
+          <AnimateOnScroll animation="fade-up" delay={300}>
+            <p className="mt-4 text-[12.5px] text-[#1d1d1f]/40">{hero.note}</p>
           </AnimateOnScroll>
         </div>
+
+        {/* Hero image */}
+        <AnimateOnScroll animation="fade-up" delay={380}>
+          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 mt-14">
+            <div className="lf-glass rounded-[28px] p-2 sm:p-2.5">
+              <div className="relative aspect-[16/7] rounded-[20px] overflow-hidden">
+                <Image
+                  src="/platforms/conclave-stage.jpg"
+                  alt="Members at a Leadership Federation conclave"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 1100px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-5 sm:bottom-6 sm:left-7 lf-glass-dark rounded-xl px-4 py-2.5">
+                  <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.14em] text-white">
+                    One membership · every room
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </AnimateOnScroll>
       </section>
 
-      {/* ── Pricing Cards ─────────────────────────────────────────── */}
+      {/* ═══════════════ Pricing tiers ═══════════════ */}
       {TIERS.length > 0 && (
-        <section className="pb-20 px-6">
-          <div className="max-w-[1200px] mx-auto">
+        <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+                "radial-gradient(50% 56% at 88% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+            }}
+          />
+          <div className="relative z-10 max-w-[1200px] mx-auto px-6 sm:px-10 lg:px-16">
+            <AnimateOnScroll animation="fade-up" className="text-center max-w-2xl mx-auto mb-12 lg:mb-14">
+              <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+                Choose Your Tier
+              </span>
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                Four tiers, one community
+              </h2>
+            </AnimateOnScroll>
+
             <StaggerChildren
               className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5"
               animation="fade-up"
@@ -312,250 +322,280 @@ export default async function MembershipsPage() {
         </section>
       )}
 
-      {/* ── Value Props ───────────────────────────────────────────── */}
+      {/* ═══════════════ Value props ═══════════════ */}
       {VP.length > 0 && (
-      <section className="pb-20 px-6">
-        <div className="max-w-[1200px] mx-auto">
-          <AnimateOnScroll animation="fade-up">
-            <h2
-              className="text-[28px] sm:text-[36px] font-bold text-[#1a1a2e] text-center tracking-[-0.02em] mb-4"
-              style={sfDisplay}
+        <section className="relative bg-white py-20 lg:py-28 overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(56% 50% at 50% 0%, rgba(0,113,227,0.06) 0%, transparent 70%)",
+            }}
+          />
+          <div className="relative z-10 max-w-[1200px] mx-auto px-6 sm:px-10 lg:px-16">
+            <AnimateOnScroll animation="fade-up" className="text-center max-w-2xl mx-auto mb-12 lg:mb-14">
+              <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+                The Value
+              </span>
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                {valuePropsHeader.title}
+              </h2>
+              <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+                {valuePropsHeader.description}
+              </p>
+            </AnimateOnScroll>
+
+            <StaggerChildren
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+              animation="fade-up"
+              stagger={80}
             >
-              {valuePropsHeader.title}
+              {VP.map((vp) => (
+                <div
+                  key={vp.title}
+                  className="lf-glass rounded-[24px] p-7 transition-all duration-300 hover:-translate-y-1.5"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-5 shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
+                    <vp.icon size={21} className="text-white" strokeWidth={1.8} />
+                  </div>
+                  <h3 className="text-[16px] font-bold text-[#1d1d1f] mb-2 tracking-[-0.015em]">
+                    {vp.title}
+                  </h3>
+                  <p className="text-[13px] text-[#1d1d1f]/60 leading-[1.65]">
+                    {vp.desc}
+                  </p>
+                </div>
+              ))}
+            </StaggerChildren>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════ What membership opens ═══════════════ */}
+      <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+              "radial-gradient(50% 56% at 12% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-12 lg:mb-14">
+            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              Where It Takes You
+            </span>
+            <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+              Your membership, in rooms
             </h2>
-          </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={80}>
-            <p
-              className="text-[15px] text-[#1a1a2e]/55 text-center max-w-xl mx-auto mb-12"
-              style={sfText}
-            >
-              {valuePropsHeader.description}
+            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+              Event credits put you inside the gatherings that define global
+              leadership — not as an attendee, but as a member.
             </p>
           </AnimateOnScroll>
 
           <StaggerChildren
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             animation="fade-up"
-            stagger={80}
+            stagger={100}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-5"
           >
-            {VP.map((vp) => (
-              <div
-                key={vp.title}
-                className="bg-white rounded-2xl p-6 border border-[#1a1a2e]/[0.06]"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[#e7ab1c]/10 flex items-center justify-center mb-4">
-                  <vp.icon size={20} className="text-[#e7ab1c]" strokeWidth={1.6} />
+            {ACCESS_GALLERY.map((g) => (
+              <div key={g.src} className="lf-glass rounded-[24px] p-2.5">
+                <div className="relative aspect-[4/5] rounded-[18px] overflow-hidden">
+                  <Image
+                    src={g.src}
+                    alt={g.label}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 360px"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <p className="text-[15px] font-bold text-white tracking-[-0.01em]">
+                      {g.label}
+                    </p>
+                    <p className="text-[12px] text-white/75 leading-snug mt-0.5">
+                      {g.note}
+                    </p>
+                  </div>
                 </div>
-                <h3
-                  className="text-[15px] font-semibold text-[#1a1a2e] mb-2"
-                  style={sfDisplay}
-                >
-                  {vp.title}
-                </h3>
-                <p
-                  className="text-[13px] text-[#1a1a2e]/55 leading-[1.6]"
-                  style={sfText}
-                >
-                  {vp.desc}
-                </p>
               </div>
             ))}
           </StaggerChildren>
         </div>
       </section>
+
+      {/* ═══════════════ Comparison table ═══════════════ */}
+      {COMPARISON.length > 0 && TIERS.length > 0 && (
+        <section className="relative bg-white py-20 lg:py-28 overflow-hidden">
+          <div className="relative z-10 max-w-[1200px] mx-auto px-6 sm:px-10 lg:px-16">
+            <AnimateOnScroll animation="fade-up" className="text-center max-w-2xl mx-auto mb-12">
+              <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+                Side by Side
+              </span>
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                {comparisonHeader.title}
+              </h2>
+              <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+                {comparisonHeader.description}
+              </p>
+            </AnimateOnScroll>
+
+            <AnimateOnScroll animation="fade-up" delay={120}>
+              <div className="lf-glass rounded-[24px] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[700px]">
+                    <thead>
+                      <tr className="border-b border-black/[0.07]">
+                        <th className="text-left px-6 py-4 text-[13px] font-bold text-[#1d1d1f]/70">
+                          Feature
+                        </th>
+                        {TIERS.map((t) => (
+                          <th
+                            key={t.slug}
+                            className={
+                              "text-center px-4 py-4 text-[13px] font-bold " +
+                              (t.isPopular ? "text-[#0071e3]" : "text-[#1d1d1f]")
+                            }
+                          >
+                            {t.name}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {COMPARISON.map((row, i) => (
+                        <tr
+                          key={row.feature}
+                          className={
+                            i < COMPARISON.length - 1
+                              ? "border-b border-black/[0.05]"
+                              : ""
+                          }
+                        >
+                          <td className="px-6 py-3.5 text-[13px] text-[#1d1d1f]/75">
+                            {row.feature}
+                          </td>
+                          {(["silver", "gold", "platinum", "titanium"] as const).map(
+                            (tier) => {
+                              const val = row[tier]
+                              return (
+                                <td key={tier} className="text-center px-4 py-3.5 text-[13px]">
+                                  {val === true ? (
+                                    <Check
+                                      size={16}
+                                      className="text-[#0071e3] mx-auto"
+                                      strokeWidth={2.6}
+                                    />
+                                  ) : val === false ? (
+                                    <span className="text-[#1d1d1f]/20">—</span>
+                                  ) : (
+                                    <span className="text-[#1d1d1f]/75 font-medium">
+                                      {val}
+                                    </span>
+                                  )}
+                                </td>
+                              )
+                            },
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </AnimateOnScroll>
+          </div>
+        </section>
       )}
 
-      {/* ── Comparison Table ──────────────────────────────────────── */}
-      {COMPARISON.length > 0 && TIERS.length > 0 && (
-      <section className="pb-20 px-6">
-        <div className="max-w-[1200px] mx-auto">
-          <AnimateOnScroll animation="fade-up">
-            <h2
-              className="text-[28px] sm:text-[36px] font-bold text-[#1a1a2e] text-center tracking-[-0.02em] mb-4"
-              style={sfDisplay}
-            >
-              {comparisonHeader.title}
-            </h2>
-          </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={80}>
-            <p
-              className="text-[15px] text-[#1a1a2e]/55 text-center max-w-xl mx-auto mb-10"
-              style={sfText}
-            >
-              {comparisonHeader.description}
-            </p>
-          </AnimateOnScroll>
+      {/* ═══════════════ FAQ ═══════════════ */}
+      {FAQ.length > 0 && (
+        <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%)",
+            }}
+          />
+          <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 lg:px-16">
+            <AnimateOnScroll animation="fade-up" className="text-center mb-12">
+              <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+                Questions
+              </span>
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                {faqHeader.title}
+              </h2>
+              <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+                {faqHeader.description}
+              </p>
+            </AnimateOnScroll>
 
-          <AnimateOnScroll animation="fade-up" delay={120}>
-            <div className="overflow-x-auto rounded-2xl border border-[#1a1a2e]/[0.06] bg-white">
-              <table className="w-full min-w-[700px]">
-                <thead>
-                  <tr className="border-b border-[#1a1a2e]/[0.06]">
-                    <th
-                      className="text-left px-6 py-4 text-[13px] font-semibold text-[#1a1a2e]/70"
-                      style={sfText}
-                    >
-                      Feature
-                    </th>
-                    {TIERS.map((t) => (
-                      <th
-                        key={t.slug}
-                        className="text-center px-4 py-4 text-[13px] font-semibold text-[#1a1a2e]"
-                        style={sfText}
-                      >
-                        {t.name}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {COMPARISON.map((row, i) => (
-                    <tr
-                      key={row.feature}
-                      className={
-                        i < COMPARISON.length - 1
-                          ? "border-b border-[#1a1a2e]/[0.04]"
-                          : ""
-                      }
-                    >
-                      <td
-                        className="px-6 py-3.5 text-[13px] text-[#1a1a2e]/75"
-                        style={sfText}
-                      >
-                        {row.feature}
-                      </td>
-                      {(["silver", "gold", "platinum", "titanium"] as const).map(
-                        (tier) => {
-                          const val = row[tier]
-                          return (
-                            <td
-                              key={tier}
-                              className="text-center px-4 py-3.5 text-[13px]"
-                              style={sfText}
-                            >
-                              {val === true ? (
-                                <Check
-                                  size={16}
-                                  className="text-emerald-500 mx-auto"
-                                  strokeWidth={2.5}
-                                />
-                              ) : val === false ? (
-                                <span className="text-[#1a1a2e]/20">—</span>
-                              ) : (
-                                <span className="text-[#1a1a2e]/75 font-medium">
-                                  {val}
-                                </span>
-                              )}
-                            </td>
-                          )
-                        }
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <StaggerChildren className="space-y-3" animation="fade-up" stagger={60}>
+              {FAQ.map((item) => (
+                <details
+                  key={item.q}
+                  className="group lf-glass rounded-[18px] overflow-hidden"
+                >
+                  <summary className="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer list-none select-none">
+                    <span className="text-[14.5px] font-semibold text-[#1d1d1f]">
+                      {item.q}
+                    </span>
+                    <ChevronDown
+                      size={17}
+                      className="text-[#0071e3] shrink-0 transition-transform duration-300 group-open:rotate-180"
+                      strokeWidth={2.2}
+                    />
+                  </summary>
+                  <div className="px-6 pb-5">
+                    <p className="text-[13.5px] text-[#1d1d1f]/65 leading-[1.75]">
+                      {item.a}
+                    </p>
+                  </div>
+                </details>
+              ))}
+            </StaggerChildren>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════ Bottom CTA ═══════════════ */}
+      <section className="relative bg-white py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 56% at 50% 100%, rgba(0,113,227,0.1) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up">
+            <div className="lf-glass-strong rounded-[32px] p-10 sm:p-14 text-center">
+              <h2 className="text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
+                {bottomCta.title}
+              </h2>
+              <p className="mt-4 text-[#1d1d1f]/60 text-[16px] leading-relaxed max-w-md mx-auto">
+                {bottomCta.description}
+              </p>
+              <Link
+                href={bottomCta.buttonHref}
+                className="mt-8 inline-flex items-center gap-2 px-9 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 active:scale-[0.98] shadow-[0_14px_34px_-10px_rgba(0,113,227,0.6)]"
+              >
+                {bottomCta.buttonLabel}
+                <ArrowRight size={16} strokeWidth={2.2} />
+              </Link>
             </div>
           </AnimateOnScroll>
         </div>
-      </section>
-      )}
-
-      {/* ── FAQ ───────────────────────────────────────────────────── */}
-      {FAQ.length > 0 && (
-      <section className="pb-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <AnimateOnScroll animation="fade-up">
-            <h2
-              className="text-[28px] sm:text-[36px] font-bold text-[#1a1a2e] text-center tracking-[-0.02em] mb-4"
-              style={sfDisplay}
-            >
-              {faqHeader.title}
-            </h2>
-          </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={80}>
-            <p
-              className="text-[15px] text-[#1a1a2e]/55 text-center max-w-xl mx-auto mb-10"
-              style={sfText}
-            >
-              {faqHeader.description}
-            </p>
-          </AnimateOnScroll>
-
-          <StaggerChildren
-            className="space-y-3"
-            animation="fade-up"
-            stagger={60}
-          >
-            {FAQ.map((item) => (
-              <details
-                key={item.q}
-                className="group bg-white rounded-xl border border-[#1a1a2e]/[0.06] overflow-hidden"
-              >
-                <summary
-                  className="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer list-none select-none"
-                  style={sfText}
-                >
-                  <span className="text-[14px] font-semibold text-[#1a1a2e]">
-                    {item.q}
-                  </span>
-                  <ChevronDown
-                    size={16}
-                    className="text-[#1a1a2e]/40 shrink-0 transition-transform duration-300 group-open:rotate-180"
-                    strokeWidth={2}
-                  />
-                </summary>
-                <div className="px-6 pb-5">
-                  <p
-                    className="text-[13px] text-[#1a1a2e]/60 leading-[1.7]"
-                    style={sfText}
-                  >
-                    {item.a}
-                  </p>
-                </div>
-              </details>
-            ))}
-          </StaggerChildren>
-        </div>
-      </section>
-      )}
-
-      {/* ── Bottom CTA ────────────────────────────────────────────── */}
-      <section className="pb-24 px-6">
-        <AnimateOnScroll animation="fade-up">
-          <div className="max-w-3xl mx-auto text-center bg-gradient-to-br from-[#1a1a2e] to-[#2d2d4e] rounded-3xl px-8 py-14 relative overflow-hidden">
-            {/* Subtle gold accent glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#e7ab1c]/10 rounded-full blur-[80px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#c9a84c]/8 rounded-full blur-[60px] pointer-events-none" />
-
-            <h2
-              className="text-[28px] sm:text-[36px] font-bold text-white tracking-[-0.02em] mb-4 relative z-10"
-              style={sfDisplay}
-            >
-              {bottomCta.title}
-            </h2>
-            <p
-              className="text-[15px] text-white/60 max-w-lg mx-auto mb-8 leading-[1.6] relative z-10"
-              style={sfText}
-            >
-              {bottomCta.description}
-            </p>
-            <Link
-              href={bottomCta.buttonHref}
-              className="inline-flex items-center gap-2 px-8 py-3.5 text-[14px] font-semibold rounded-full bg-[#e7ab1c] text-white hover:bg-[#d49c10] transition-all duration-200 active:scale-[0.97] shadow-[0_4px_20px_rgba(231,171,28,0.3)] relative z-10"
-              style={sfText}
-            >
-              {bottomCta.buttonLabel}
-              <ArrowRight size={15} strokeWidth={2.2} />
-            </Link>
-          </div>
-        </AnimateOnScroll>
       </section>
     </main>
   )
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
-/*  TIER CARD COMPONENT                                               */
+/*  TIER CARD                                                          */
 /* ═══════════════════════════════════════════════════════════════════ */
 
 function TierCard({ tier }: { tier: Tier }) {
@@ -564,26 +604,18 @@ function TierCard({ tier }: { tier: Tier }) {
 
   return (
     <div
-      className={`
-        relative flex flex-col bg-white rounded-2xl p-6
-        border transition-all duration-300
-        hover:shadow-[0_8px_40px_rgba(26,26,46,0.08)]
-        hover:-translate-y-1
-        ${
-          isPopular
-            ? "border-[#c9a84c]/40 shadow-[0_4px_24px_rgba(201,168,76,0.12)] ring-1 ring-[#c9a84c]/20"
-            : "border-[#1a1a2e]/[0.06]"
-        }
-      `}
+      className={
+        "relative flex flex-col rounded-[24px] p-7 transition-all duration-300 hover:-translate-y-1.5 " +
+        (isPopular
+          ? "lf-glass-strong ring-2 ring-[#0071e3]/45"
+          : "lf-glass")
+      }
     >
       {/* Popular badge */}
       {isPopular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span
-            className="inline-flex items-center gap-1 px-4 py-1 text-[10px] font-bold uppercase tracking-[0.15em] rounded-full bg-gradient-to-r from-[#e7ab1c] to-[#c9a84c] text-white shadow-[0_2px_12px_rgba(231,171,28,0.3)]"
-            style={sfText}
-          >
-            <Sparkles size={10} strokeWidth={2.5} />
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] rounded-full bg-[#0071e3] text-white shadow-[0_8px_20px_-6px_rgba(0,113,227,0.7)]">
+            <Sparkles size={11} strokeWidth={2.5} />
             Most Popular
           </span>
         </div>
@@ -591,16 +623,10 @@ function TierCard({ tier }: { tier: Tier }) {
 
       {/* Tier icon & name */}
       <div className="flex items-center gap-3 mb-5 mt-1">
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ backgroundColor: `${tier.accent}15` }}
-        >
-          <Icon size={18} style={{ color: tier.accent }} strokeWidth={1.8} />
+        <div className="w-10 h-10 rounded-xl bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center">
+          <Icon size={19} className="text-[#0071e3]" strokeWidth={1.9} />
         </div>
-        <h3
-          className="text-[18px] font-bold text-[#1a1a2e] tracking-[-0.01em]"
-          style={sfDisplay}
-        >
+        <h3 className="text-[19px] font-bold text-[#1d1d1f] tracking-[-0.015em]">
           {tier.name}
         </h3>
       </div>
@@ -608,56 +634,29 @@ function TierCard({ tier }: { tier: Tier }) {
       {/* Price */}
       <div className="mb-1">
         <div className="flex items-baseline gap-1">
-          <span
-            className="text-[32px] font-bold text-[#1a1a2e] tracking-[-0.03em]"
-            style={sfDisplay}
-          >
+          <span className="text-[33px] font-bold text-[#1d1d1f] tracking-[-0.03em]">
             ₹{tier.priceINR}
           </span>
-          <span
-            className="text-[13px] text-[#1a1a2e]/40"
-            style={sfText}
-          >
-            + GST
-          </span>
+          <span className="text-[13px] text-[#1d1d1f]/40">+ GST</span>
         </div>
-        <p
-          className="text-[12px] text-[#1a1a2e]/40 mt-0.5"
-          style={sfText}
-        >
+        <p className="text-[12px] text-[#1d1d1f]/40 mt-0.5">
           USD ${tier.priceUSD} for international members
         </p>
       </div>
 
       {/* Discount badge */}
       <div className="mb-5 mt-3">
-        <span
-          className="inline-flex items-center px-3 py-1 text-[11px] font-semibold rounded-full"
-          style={{
-            backgroundColor: `${tier.accent}12`,
-            color: tier.accent,
-            ...sfText,
-          }}
-        >
+        <span className="inline-flex items-center px-3 py-1 text-[11px] font-semibold rounded-full bg-[#0071e3]/[0.08] text-[#0071e3] border border-[#0071e3]/15">
           {tier.discount}% event discount
         </span>
       </div>
 
-      {/* Benefits list */}
+      {/* Benefits */}
       <ul className="space-y-2.5 mb-6 flex-1">
         {tier.benefits.map((b) => (
           <li key={b} className="flex items-start gap-2.5">
-            <Check
-              size={14}
-              className="text-emerald-500 mt-0.5 shrink-0"
-              strokeWidth={2.5}
-            />
-            <span
-              className="text-[13px] text-[#1a1a2e]/65 leading-[1.5]"
-              style={sfText}
-            >
-              {b}
-            </span>
+            <Check size={14} className="text-[#0071e3] mt-0.5 shrink-0" strokeWidth={2.6} />
+            <span className="text-[13px] text-[#1d1d1f]/65 leading-[1.5]">{b}</span>
           </li>
         ))}
       </ul>
@@ -665,17 +664,12 @@ function TierCard({ tier }: { tier: Tier }) {
       {/* CTA */}
       <Link
         href={`/register?type=membership&tier=${tier.slug}`}
-        className={`
-          flex items-center justify-center gap-2 w-full py-3 rounded-xl
-          text-[13px] font-semibold transition-all duration-200
-          active:scale-[0.97]
-          ${
-            isPopular
-              ? "bg-gradient-to-r from-[#e7ab1c] to-[#c9a84c] text-white shadow-[0_2px_12px_rgba(231,171,28,0.25)] hover:shadow-[0_4px_20px_rgba(231,171,28,0.35)]"
-              : "bg-[#1a1a2e] text-white hover:bg-[#2d2d4e]"
-          }
-        `}
-        style={sfText}
+        className={
+          "flex items-center justify-center gap-2 w-full py-3 rounded-full text-[13.5px] font-bold transition-all duration-200 active:scale-[0.97] " +
+          (isPopular
+            ? "bg-[#0071e3] text-white hover:bg-[#0077ed] shadow-[0_10px_26px_-10px_rgba(0,113,227,0.7)]"
+            : "bg-[#1d1d1f] text-white hover:bg-[#000]")
+        }
       >
         Join Now
         <ArrowRight size={14} strokeWidth={2.2} />
