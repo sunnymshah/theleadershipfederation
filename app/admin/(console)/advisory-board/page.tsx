@@ -396,7 +396,7 @@ export default function AdvisoryBoardAdminPage() {
           {members.map((member) => (
             <div
               key={member.id}
-              className="bg-white shadow-sm border border-[#1a1a2e]/[0.06] rounded-xl p-5 group hover:border-[#e7ab1c]/40 hover:shadow-md transition-all cursor-pointer relative"
+              className="bg-white border border-[#ededf0] rounded-xl p-5 group hover:border-[#0071e3]/40 transition-colors cursor-pointer relative"
               onClick={() => openEditForm(member)}
             >
               {/* Top row: photo/initials + badges */}

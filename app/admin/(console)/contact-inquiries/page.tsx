@@ -333,7 +333,7 @@ export default function AdminContactInquiriesPage() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="w-full max-w-xl bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-xl bg-white rounded-2xl border border-[#ededf0] shadow-[0_4px_20px_rgba(15,23,42,0.07)] max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
@@ -440,7 +440,7 @@ export default function AdminContactInquiriesPage() {
           onClick={() => !replySending && setReplyTo(null)}
         >
           <div
-            className="w-full max-w-xl bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-xl bg-white rounded-2xl border border-[#ededf0] shadow-[0_4px_20px_rgba(15,23,42,0.07)] max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">

@@ -1031,7 +1031,7 @@ export default function AdminCampaignsPage() {
       {/* ── Confirmation Modal ───────────────────────────────────────── */}
       {confirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]/40">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-xl border border-[#ededf0] shadow-[0_4px_20px_rgba(15,23,42,0.07)] p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-[#333] mb-2">Confirm Send</h3>
             <p className="text-sm text-gray-600 mb-1">
               You are about to send this campaign to{" "}

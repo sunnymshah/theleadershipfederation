@@ -546,7 +546,7 @@ export default function AdminQAPage() {
 
       {/* ── Toast ────────────────────────────────────────────────── */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 bg-[#333] text-white rounded-xl shadow-2xl text-sm">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 bg-[#333] text-white rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.12)] text-sm">
           <span>{toast}</span>
           <button onClick={() => setToast(null)} className="text-white/40 hover:text-white">
             <X size={14} />

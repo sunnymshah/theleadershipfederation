@@ -487,8 +487,8 @@ export default function AdminAutomationsPage() {
             return (
               <div
                 key={auto.id}
-                className={`bg-white rounded-xl border shadow-[0_1px_3px_rgba(26, 26, 46,0.04)] p-5 transition-all hover:shadow-md ${
-                  auto.is_active ? "border-gray-200" : "border-gray-100 opacity-70"
+                className={`bg-white rounded-xl border p-5 transition-colors hover:border-[#0071e3]/30 ${
+                  auto.is_active ? "border-[#ededf0]" : "border-[#f3f3f5] opacity-70"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -605,7 +605,7 @@ export default function AdminAutomationsPage() {
             onClick={closeFormModal}
           />
           {/* Drawer */}
-          <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-y-auto mx-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-[#ededf0] overflow-y-auto mx-4">
             {/* Header */}
             <div className="sticky top-0 bg-white z-10 px-7 py-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-[#333] flex items-center gap-2">
@@ -788,7 +788,7 @@ export default function AdminAutomationsPage() {
             className="absolute inset-0 bg-[#1a1a2e]/30 backdrop-blur-[2px]"
             onClick={() => setPreviewModal(null)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md mx-4 p-7">
+          <div className="relative bg-white rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-[#ededf0] w-full max-w-md mx-4 p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
                 <Eye size={20} className="text-purple-600" />
@@ -828,7 +828,7 @@ export default function AdminAutomationsPage() {
             className="absolute inset-0 bg-[#1a1a2e]/30 backdrop-blur-[2px]"
             onClick={() => !triggering && setTriggerModal(null)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md mx-4 p-7">
+          <div className="relative bg-white rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-[#ededf0] w-full max-w-md mx-4 p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
                 <Send size={20} className="text-[#c9a84c]" />

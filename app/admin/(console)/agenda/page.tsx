@@ -85,7 +85,7 @@ function SessionCard({
   return (
     <div
       className={cn(
-        "group relative rounded-lg border-l-[3px] px-3 py-2 cursor-pointer transition-all hover:shadow-md",
+        "group relative rounded-lg border-l-[3px] px-3 py-2 cursor-pointer transition-colors hover:bg-[#fafbfc]",
         hasConflict ? "bg-red-50 border-red-400" : "bg-white border-[#e0e0e0]",
       )}
       style={{ borderLeftColor: typeInfo.color, minHeight: "52px" }}
@@ -176,7 +176,7 @@ function SessionFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1a2e]/30 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl border border-[#ededf0] shadow-[0_4px_20px_rgba(15,23,42,0.07)] w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#eee]">
           <h3 className="text-[16px] font-semibold text-[#333]">{session ? "Edit Session" : "Add Session"}</h3>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-[#f4f4f4]"><X size={18} /></button>

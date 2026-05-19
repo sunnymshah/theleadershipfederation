@@ -247,7 +247,7 @@ function Modal({
       />
       <div
         className={cn(
-          "relative bg-white rounded-xl shadow-xl border border-gray-200 max-h-[85vh] overflow-y-auto",
+          "relative bg-white rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-[#ededf0] max-h-[85vh] overflow-y-auto",
           wide ? "w-full max-w-2xl" : "w-full max-w-lg"
         )}
       >

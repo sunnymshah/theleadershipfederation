@@ -364,7 +364,7 @@ export default function ApprovalsPage() {
             onClick={() => { setRejectModalOpen(false); setRejectingId(null) }}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl border border-[#e0e0e0] shadow-2xl w-full max-w-md">
+            <div className="bg-white rounded-xl border border-[#ededf0] shadow-[0_4px_20px_rgba(15,23,42,0.07)] w-full max-w-md">
               <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-[#333] flex items-center gap-2">
                   <AlertCircle size={18} className="text-red-400" />

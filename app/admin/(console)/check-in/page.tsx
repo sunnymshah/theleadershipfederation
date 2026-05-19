@@ -217,7 +217,7 @@ export default function CheckInPage() {
           </div>
           <div className="h-2 rounded-full bg-[#e0e0e0] overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#c9a84c] to-emerald-400 transition-all duration-700 ease-out"
+              className="h-full rounded-full bg-emerald-500 transition-all duration-700 ease-out"
               style={{ width: `${percentage}%` }}
             />
           </div>
