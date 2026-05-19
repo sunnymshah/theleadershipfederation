@@ -125,6 +125,7 @@ export async function createEvent(formData: FormData) {
     const is_featured          = formData.get("is_featured") === "on" || formData.get("is_featured") === "true"
     const max_attendees_raw    = formData.get("max_attendees") as string
     const contact_email        = formData.get("contact_email") as string
+    const eventcreate_url      = formData.get("eventcreate_url") as string
 
     // Parse highlights: comma-separated or newline-separated string -> JSON array
     const highlights = highlightsRaw
@@ -170,6 +171,7 @@ export async function createEvent(formData: FormData) {
         is_featured,
         max_attendees,
         contact_email: contact_email || null,
+        eventcreate_url: eventcreate_url || null,
       })
       .select()
       .single()
@@ -219,6 +221,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
     const requires_approval = formData.get("requires_approval") === "on" || formData.get("requires_approval") === "true"
     const max_attendees_raw    = formData.get("max_attendees") as string
     const contact_email        = formData.get("contact_email") as string
+    const eventcreate_url      = formData.get("eventcreate_url") as string
 
     // Parse highlights: comma-separated or newline-separated string -> JSON array
     const highlights = highlightsRaw
@@ -261,6 +264,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
         requires_approval,
         max_attendees,
         contact_email: contact_email || null,
+        eventcreate_url: eventcreate_url || null,
       })
       .eq("id", eventId)
       .select()
