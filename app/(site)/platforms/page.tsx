@@ -16,6 +16,11 @@ import {
   TrendingUp,
   BookOpen,
   Star,
+  Handshake,
+  Gem,
+  Trophy,
+  Gavel,
+  Megaphone,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
@@ -24,28 +29,16 @@ import { getPlatformFeatures } from "@/app/actions/cmsActions"
 export const revalidate = 86400
 
 export const metadata = {
-  title: "Platforms | The Leadership Federation",
+  title: "Platforms & Services | The Leadership Federation",
   description:
-    "Explore The Leadership Federation's three pillars: Global Conclaves & Summits, The Inner Circle, and The Sunny Shah Show.",
+    "The Leadership Federation's platforms and services — global conclaves, the Inner Circle, The Sunny Shah Show, sponsorship partnerships, executive membership, awards, advisory and bespoke leadership experiences.",
 }
 
 /* ── Icon resolver: DB stores icon as string, mapped to Lucide component ── */
-
 const ICON_MAP: Record<string, LucideIcon> = {
-  Crown,
-  Globe,
-  Award,
-  Lightbulb,
-  Lock,
-  MessageCircle,
-  Users,
-  Sparkles,
-  Radio,
-  TrendingUp,
-  Video,
-  BookOpen,
+  Crown, Globe, Award, Lightbulb, Lock, MessageCircle,
+  Users, Sparkles, Radio, TrendingUp, Video, BookOpen,
 }
-
 function resolveIcon(name?: string | null): LucideIcon {
   if (!name) return Star
   return ICON_MAP[name] ?? Star
@@ -59,259 +52,405 @@ type FeatureRow = {
   sort_order: number
 }
 
-const CONCLAVES_EVENTS = [
-  "GCC Leadership Conclave",
-  "Asia Leadership Awards",
-  "Bharat Leadership Summit",
+/* ── The three platforms ────────────────────────────────────────────── */
+const PLATFORMS = [
+  {
+    key: "conclave" as const,
+    icon: CalendarDays,
+    eyebrow: "Platform 01",
+    title: "Global Conclaves & Summits",
+    blurb:
+      "India's largest and most influential gatherings of leadership. More than 50 flagship events have convened CXOs, transformation architects, policymakers and innovators for multi-day, immersive experiences that move whole industries.",
+    flagship: ["GCC Leadership Conclave", "Asia Leadership Awards", "Bharat Leadership Summit"],
+    cta: { label: "Explore Events", href: "/events" },
+  },
+  {
+    key: "inner_circle" as const,
+    icon: Crown,
+    eyebrow: "Platform 02",
+    title: "The Inner Circle",
+    blurb:
+      "An invite-only membership for leaders who seek more than a conference. Curated peer connections, private roundtables and strategic access to the decision-makers and policymakers shaping the global business landscape.",
+    flagship: ["Private Roundtables", "Curated CXO Dinners", "Year-Round Access"],
+    cta: { label: "Apply for Membership", href: "/inner-circle" },
+  },
+  {
+    key: "show" as const,
+    icon: Mic2,
+    eyebrow: "Platform 03",
+    title: "The Sunny Shah Show",
+    blurb:
+      "A thought-leadership media platform of in-depth interviews with global C-suite executives and visionary leaders — from AI transformation to geopolitical strategy, the conversations defining the future of business.",
+    flagship: ["C-Suite Interviews", "Media Spotlights", "Leadership Podcasts"],
+    cta: { label: "Watch Episodes", href: "/media" },
+  },
 ]
 
-const sfFont = { fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif" }
+/* ── The services ───────────────────────────────────────────────────── */
+const SERVICES = [
+  {
+    icon: Handshake,
+    title: "Sponsorship & Brand Partnerships",
+    desc: "Title, strategic and category partnerships — co-branded activations and meaningful presence in front of a verified room of decision-makers.",
+    href: "/partners",
+    link: "Partner with us",
+  },
+  {
+    icon: Gem,
+    title: "Executive Membership",
+    desc: "Tiered membership for CXOs, founders and decision-makers — event credits, a private directory, and year-round leadership opportunities.",
+    href: "/memberships",
+    link: "View membership tiers",
+  },
+  {
+    icon: Trophy,
+    title: "Awards & Recognition",
+    desc: "Juried recognition programmes — including the Asia Leadership Awards — that honour the people and institutions raising the bar.",
+    href: "/events",
+    link: "See the awards",
+  },
+  {
+    icon: Gavel,
+    title: "Advisory Board & Jury",
+    desc: "Seats at the table that shapes the agenda — advisory counsel and award jury participation alongside the Federation's most senior voices.",
+    href: "/advisory-board",
+    link: "Meet the board",
+  },
+  {
+    icon: Megaphone,
+    title: "Speaker Engagements",
+    desc: "A curated speaker bureau — keynote placement and thought-leadership stages for leaders with something real to say.",
+    href: "/register?type=speaker",
+    link: "Apply to speak",
+  },
+  {
+    icon: Sparkles,
+    title: "Bespoke Leadership Experiences",
+    desc: "Private convenings designed end-to-end — closed-door roundtables, curated dinners and custom gatherings built around your objective.",
+    href: "/contact",
+    link: "Start a conversation",
+  },
+]
+
+/* ── How an engagement works ────────────────────────────────────────── */
+const PROCESS = [
+  { n: "01", title: "Discover", desc: "We learn your objective — visibility, access, recognition or community." },
+  { n: "02", title: "Design", desc: "We match you to the right platform and shape the engagement around it." },
+  { n: "03", title: "Convene", desc: "You step into the room — on stage, in the circle, or beside the brand." },
+  { n: "04", title: "Compound", desc: "Relationships and reputation built here keep returning value, year on year." },
+]
 
 export default async function PlatformsPage() {
   let features: FeatureRow[] = []
   try {
     const res = await getPlatformFeatures(true)
-    if (res.success && res.features) {
-      features = res.features as FeatureRow[]
-    }
+    if (res.success && res.features) features = res.features as FeatureRow[]
   } catch {
     /* empty state */
   }
 
-  const conclavesFeatures    = features.filter(f => f.platform === "conclave")
-  const innerCircleFeatures  = features.filter(f => f.platform === "inner_circle")
-  const showFeatures         = features.filter(f => f.platform === "show")
-
   return (
-    <main className="">
-      {/* Hero */}
-      <section className="pt-24 pb-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+    <main>
+      {/* ─────────────── Hero ─────────────── */}
+      <section className="relative bg-white pt-32 lg:pt-40 pb-16 lg:pb-20 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(58% 56% at 50% 0%, rgba(0,113,227,0.07) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
           <AnimateOnScroll animation="fade-up">
-            <span className="inline-block text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.25em] mb-6">
-              The Ecosystem
+            <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
+              Platforms &amp; Services
             </span>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={120}>
-            <h1
-              className="text-[#1a1a2e] leading-[1.08] font-bold mb-8"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", ...sfFont }}
-            >
-              Our Platforms
+            <h1 className="mt-5 text-[clamp(2.6rem,5.4vw,4.4rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.0]">
+              One Federation.
+              <br />
+              <span className="text-[#0071e3]">Every door into leadership.</span>
             </h1>
           </AnimateOnScroll>
           <AnimateOnScroll animation="fade-up" delay={240}>
-            <p className="text-lg md:text-xl text-[#1a1a2e]/75 leading-relaxed max-w-3xl mx-auto">
-              Three interconnected pillars that form the backbone of The
-              Leadership Federation, each designed to create lasting value
-              for the leaders who engage with them.
+            <p className="mt-6 text-[17px] lg:text-[19px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
+              Three platforms convene the room. A suite of services lets every
+              leader, brand and institution find their place within it.
             </p>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={340}>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="#platforms"
+                className="inline-flex items-center gap-2 px-8 py-[15px] rounded-full font-bold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_30px_-10px_rgba(0,113,227,0.6)]"
+              >
+                The Platforms <ArrowRight size={15} />
+              </Link>
+              <Link
+                href="#services"
+                className="lf-glass inline-flex items-center px-7 py-[14px] rounded-full font-bold text-[14px] text-[#1d1d1f] transition-all duration-200"
+              >
+                The Services
+              </Link>
+            </div>
           </AnimateOnScroll>
         </div>
       </section>
 
-      {/* Pillar 1: Global Conclaves & Summits */}
-      <AnimateOnScroll as="section" className="pb-10 px-6" animation="fade-up">
-        <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
-            <div className="grid md:grid-cols-2 gap-12 md:gap-16">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center mb-8">
-                  <CalendarDays size={26} strokeWidth={1.4} className="text-[#e7ab1c]" />
-                </div>
-                <h2
-                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
-                  style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
+      {/* ─────────────── Platforms ─────────────── */}
+      <section
+        id="platforms"
+        className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden scroll-mt-24"
+      >
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+              "radial-gradient(50% 56% at 90% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-12 lg:mb-14">
+            <span className="text-[12px] tracking-[0.2em] uppercase text-[#0071e3] font-semibold">
+              The Platforms
+            </span>
+            <h2 className="mt-4 text-[clamp(2rem,4.2vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.04]">
+              Three pillars, one ecosystem
+            </h2>
+            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+              Each platform stands on its own — together they form the backbone
+              of The Leadership Federation.
+            </p>
+          </AnimateOnScroll>
+
+          <div className="space-y-6">
+            {PLATFORMS.map((p, idx) => {
+              const Icon = p.icon
+              const pFeatures = features.filter((f) => f.platform === p.key)
+              return (
+                <AnimateOnScroll
+                  key={p.key}
+                  animation="fade-up"
+                  delay={idx * 90}
                 >
-                  Global Conclaves & Summits
-                </h2>
-                <p className="text-[#1a1a2e]/75 text-[15px] leading-[1.75] mb-8">
-                  India&rsquo;s largest and most influential gatherings of GCC
-                  leaders. Over 50 flagship events have brought together CXOs,
-                  transformation architects, policymakers, and innovators for
-                  multi-day immersive experiences that shape the future of
-                  industries.
-                </p>
-
-                <div className="mb-8">
-                  <p className="text-[11px] font-bold text-[#e7ab1c] uppercase tracking-[0.2em] mb-4">
-                    Flagship Events
-                  </p>
-                  <div className="flex flex-wrap gap-2.5">
-                    {CONCLAVES_EVENTS.map((name) => (
-                      <span
-                        key={name}
-                        className="text-[13px] text-[#a37410] font-semibold px-4 py-2 rounded-full border border-[#e7ab1c]/30 bg-[#e7ab1c]/10"
-                      >
-                        {name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <Link
-                  href="/events"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#e7ab1c] hover:text-[#e7ab1c]/80 transition-colors duration-300"
-                >
-                  Explore Events <ArrowRight size={15} />
-                </Link>
-              </div>
-
-              {conclavesFeatures.length > 0 && (
-                <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
-                  {conclavesFeatures.map((f) => {
-                    const Icon = resolveIcon(f.icon)
-                    return (
-                      <div
-                        key={f.id}
-                        className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
-                      >
-                        <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
-                        <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
+                  <div className="lf-glass-strong relative rounded-[30px] overflow-hidden p-8 sm:p-10 lg:p-12">
+                    <div
+                      className="absolute -top-20 -right-16 w-64 h-64 rounded-full pointer-events-none"
+                      style={{
+                        background:
+                          "radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)",
+                      }}
+                    />
+                    <div className="relative grid lg:grid-cols-2 gap-10 lg:gap-14">
+                      <div>
+                        <div className="flex items-center gap-3 mb-6">
+                          <span className="w-14 h-14 rounded-2xl bg-[#0071e3] flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(0,113,227,0.65)]">
+                            <Icon size={24} className="text-white" strokeWidth={1.7} />
+                          </span>
+                          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#0071e3]">
+                            {p.eyebrow}
+                          </span>
+                        </div>
+                        <h3 className="text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] leading-[1.1] mb-4">
+                          {p.title}
+                        </h3>
+                        <p className="text-[15px] text-[#1d1d1f]/65 leading-[1.75] mb-7">
+                          {p.blurb}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-7">
+                          {p.flagship.map((name) => (
+                            <span
+                              key={name}
+                              className="text-[12.5px] font-semibold text-[#0071e3] px-3.5 py-1.5 rounded-full bg-[#0071e3]/[0.08] border border-[#0071e3]/15"
+                            >
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                        <Link
+                          href={p.cta.href}
+                          className="inline-flex items-center gap-1.5 text-[14px] font-bold text-[#0071e3] hover:gap-2.5 transition-all duration-200"
+                        >
+                          {p.cta.label} <ArrowRight size={15} />
+                        </Link>
                       </div>
-                    )
-                  })}
-                </StaggerChildren>
-              )}
-            </div>
+
+                      {pFeatures.length > 0 && (
+                        <StaggerChildren
+                          className="flex flex-col justify-center gap-3"
+                          animation="fade-up"
+                          stagger={70}
+                        >
+                          {pFeatures.map((f) => {
+                            const FIcon = resolveIcon(f.icon)
+                            return (
+                              <div
+                                key={f.id}
+                                className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/60 border border-black/[0.05]"
+                              >
+                                <FIcon
+                                  size={19}
+                                  strokeWidth={1.7}
+                                  className="text-[#0071e3] mt-0.5 shrink-0"
+                                />
+                                <p className="text-[14px] text-[#1d1d1f]/75 leading-[1.6]">
+                                  {f.title}
+                                </p>
+                              </div>
+                            )
+                          })}
+                        </StaggerChildren>
+                      )}
+                    </div>
+                  </div>
+                </AnimateOnScroll>
+              )
+            })}
           </div>
         </div>
-      </AnimateOnScroll>
+      </section>
 
-      {/* Pillar 2: The Inner Circle */}
-      <AnimateOnScroll as="section" className="py-10 px-6" animation="fade-up">
-        <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
-            <div className="grid md:grid-cols-2 gap-12 md:gap-16">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center mb-8">
-                  <Users size={26} strokeWidth={1.4} className="text-[#e7ab1c]" />
-                </div>
-                <h2
-                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
-                  style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
+      {/* ─────────────── Services ─────────────── */}
+      <section
+        id="services"
+        className="relative bg-white py-20 lg:py-28 overflow-hidden scroll-mt-24"
+      >
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(56% 50% at 50% 0%, rgba(0,113,227,0.06) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-12 lg:mb-14">
+            <span className="text-[12px] tracking-[0.2em] uppercase text-[#0071e3] font-semibold">
+              The Services
+            </span>
+            <h2 className="mt-4 text-[clamp(2rem,4.2vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.04]">
+              Six ways to engage
+            </h2>
+            <p className="mt-4 text-[#1d1d1f]/55 text-[16px] leading-relaxed">
+              However you want to show up — on stage, beside the brand, or
+              inside the circle — there is a service shaped for it.
+            </p>
+          </AnimateOnScroll>
+
+          <StaggerChildren
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+            animation="fade-up"
+            stagger={80}
+          >
+            {SERVICES.map((s) => {
+              const Icon = s.icon
+              return (
+                <Link
+                  key={s.title}
+                  href={s.href}
+                  className="lf-glass group rounded-[24px] p-7 flex flex-col transition-all duration-300 hover:-translate-y-1.5"
                 >
-                  The Inner Circle
-                </h2>
-                <p className="text-[#1a1a2e]/75 text-[15px] leading-[1.75] mb-8">
-                  An exclusive, invite-only membership designed for senior
-                  leaders who seek more than conferences. The Inner Circle
-                  offers curated peer connections, private roundtables, and
-                  strategic access to the decision-makers and policymakers
-                  who shape the global business landscape.
-                </p>
+                  <span className="w-12 h-12 rounded-2xl bg-[#0071e3]/[0.1] border border-[#0071e3]/15 flex items-center justify-center mb-5 group-hover:bg-[#0071e3] transition-colors duration-300">
+                    <Icon
+                      size={21}
+                      strokeWidth={1.8}
+                      className="text-[#0071e3] group-hover:text-white transition-colors duration-300"
+                    />
+                  </span>
+                  <h3 className="text-[17px] font-bold text-[#1d1d1f] tracking-[-0.015em] mb-2.5 leading-[1.25]">
+                    {s.title}
+                  </h3>
+                  <p className="text-[13.5px] text-[#1d1d1f]/60 leading-[1.65] mb-5 flex-1">
+                    {s.desc}
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#0071e3] group-hover:gap-2.5 transition-all duration-200">
+                    {s.link} <ArrowRight size={14} />
+                  </span>
+                </Link>
+              )
+            })}
+          </StaggerChildren>
+        </div>
+      </section>
 
+      {/* ─────────────── How it works ─────────────── */}
+      <section className="relative bg-[#f5f5f7] py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
+              "radial-gradient(52% 56% at 14% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up" className="text-center max-w-2xl mx-auto mb-12 lg:mb-14">
+            <span className="text-[12px] tracking-[0.2em] uppercase text-[#0071e3] font-semibold">
+              How It Works
+            </span>
+            <h2 className="mt-4 text-[clamp(2rem,4.2vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.04]">
+              From first call to lasting reputation
+            </h2>
+          </AnimateOnScroll>
+
+          <StaggerChildren
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+            animation="fade-up"
+            stagger={90}
+          >
+            {PROCESS.map((step) => (
+              <div key={step.n} className="lf-glass rounded-[24px] p-7">
+                <div className="text-[clamp(2.4rem,4vw,3rem)] font-bold text-[#0071e3]/25 leading-none tracking-[-0.04em]">
+                  {step.n}
+                </div>
+                <h3 className="mt-4 text-[16px] font-bold text-[#1d1d1f]">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-[13.5px] text-[#1d1d1f]/60 leading-[1.65]">
+                  {step.desc}
+                </p>
+              </div>
+            ))}
+          </StaggerChildren>
+        </div>
+      </section>
+
+      {/* ─────────────── Closing CTA ─────────────── */}
+      <section className="relative bg-white py-20 lg:py-28 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(52% 56% at 50% 100%, rgba(0,113,227,0.1) 0%, transparent 72%)",
+          }}
+        />
+        <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 lg:px-16">
+          <AnimateOnScroll animation="fade-up">
+            <div className="lf-glass-strong rounded-[32px] p-10 sm:p-14 text-center">
+              <h2 className="text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.08]">
+                Find your place in the room
+              </h2>
+              <p className="mt-4 text-[#1d1d1f]/60 text-[16px] leading-relaxed max-w-md mx-auto">
+                Tell us what you want from leadership — visibility, access,
+                recognition or community — and we will point you to the right door.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#e7ab1c] hover:text-[#d49c10] transition-colors duration-300"
+                  className="inline-flex items-center gap-2 px-9 py-[16px] rounded-full font-bold text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-10px_rgba(0,113,227,0.6)]"
                 >
-                  Apply for Membership <ArrowRight size={15} />
+                  Start a Conversation <ArrowRight size={16} />
                 </Link>
-              </div>
-
-              {innerCircleFeatures.length > 0 && (
-                <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
-                  {innerCircleFeatures.map((f) => {
-                    const Icon = resolveIcon(f.icon)
-                    return (
-                      <div
-                        key={f.id}
-                        className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
-                      >
-                        <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
-                        <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
-                      </div>
-                    )
-                  })}
-                </StaggerChildren>
-              )}
-            </div>
-          </div>
-        </div>
-      </AnimateOnScroll>
-
-      {/* Pillar 3: The Sunny Shah Show */}
-      <AnimateOnScroll as="section" className="py-10 px-6" animation="fade-up">
-        <div className="max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white border border-[#1a1a2e]/[0.06] shadow-sm p-10 md:p-16 overflow-hidden">
-            <div className="grid md:grid-cols-2 gap-12 md:gap-16">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-[#e7ab1c]/10 border border-[#e7ab1c]/20 flex items-center justify-center mb-8">
-                  <Mic2 size={26} strokeWidth={1.4} className="text-[#e7ab1c]" />
-                </div>
-                <h2
-                  className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
-                  style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)", ...sfFont }}
-                >
-                  The Sunny Shah Show
-                </h2>
-                <p className="text-[#1a1a2e]/75 text-[15px] leading-[1.75] mb-8">
-                  A thought leadership media platform featuring in-depth
-                  interviews with global C-suite executives, industry pioneers,
-                  and visionary leaders. From AI transformation to geopolitical
-                  strategy, the show explores the conversations that define the
-                  future of business.
-                </p>
-
                 <Link
-                  href="/media"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#e7ab1c] hover:text-[#d49c10] transition-colors duration-300"
+                  href="/events"
+                  className="lf-glass inline-flex items-center px-7 py-[15px] rounded-full font-bold text-[15px] text-[#1d1d1f] transition-all duration-200"
                 >
-                  Watch Episodes <ArrowRight size={15} />
+                  Explore Events
                 </Link>
               </div>
-
-              {showFeatures.length > 0 && (
-                <StaggerChildren className="flex flex-col justify-center gap-5" animation="fade-up" stagger={80}>
-                  {showFeatures.map((f) => {
-                    const Icon = resolveIcon(f.icon)
-                    return (
-                      <div
-                        key={f.id}
-                        className="flex items-start gap-4 p-5 rounded-xl bg-[#F4F8FF] border border-[#1a1a2e]/[0.06]"
-                      >
-                        <Icon size={20} strokeWidth={1.4} className="text-[#e7ab1c] mt-0.5 shrink-0" />
-                        <p className="text-[14px] text-[#1a1a2e]/80 leading-[1.6]">{f.title}</p>
-                      </div>
-                    )
-                  })}
-                </StaggerChildren>
-              )}
             </div>
-          </div>
-        </div>
-      </AnimateOnScroll>
-
-      {/* Bottom CTA */}
-      <section className="pt-12 pb-20 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2
-            className="text-[#1a1a2e] leading-[1.12] font-bold mb-5"
-            style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)", ...sfFont }}
-          >
-            Find Your Platform
-          </h2>
-          <p className="text-[#1a1a2e]/75 text-base leading-relaxed mb-10 max-w-xl mx-auto">
-            Whether through our flagship conclaves, the exclusivity of the
-            Inner Circle, or the insights of The Sunny Shah Show, there is a
-            path for every leader.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#e7ab1c] text-white text-sm font-semibold transition-all duration-200 hover:bg-[#d49c10] shadow-[0_4px_20px_rgba(231,171,28,0.3)]"
-            >
-              Explore Events
-              <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-white text-[#1a1a2e] text-sm font-semibold border border-[#1a1a2e]/[0.12] transition-all duration-200 hover:border-[#e7ab1c]/40 hover:text-[#e7ab1c]"
-            >
-              Apply for Inner Circle
-              <ArrowRight size={16} />
-            </Link>
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
     </main>
