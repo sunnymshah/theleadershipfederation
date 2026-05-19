@@ -102,6 +102,7 @@ interface EventDetail {
   social_links: Record<string, string>
   show_delegate_directory: boolean
   requires_approval: boolean
+  eventcreate_url: string | null
 }
 
 interface Counts {
@@ -277,12 +278,6 @@ export default function EventDetailPage() {
                     <ExternalLink size={10} />
                   </Link>
                 )}
-                <Link
-                  href={`/admin/builder/${event.id}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#e7ab1c] text-[#1a1a2e] text-[12px] font-bold hover:bg-[#d49c10] transition-colors shadow-[0_2px_8px_rgba(231,171,28,0.25)]"
-                >
-                  🧱 Open Page Builder
-                </Link>
               </div>
             </div>
 
@@ -401,6 +396,35 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           </div>
         </div>
       )}
+
+      {/* Public event page — EventCreate microsite (Plan A) */}
+      <div className="rounded-xl border border-[#e0e0e0] bg-white p-5 flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold text-[#333]">Public Event Page</p>
+          {event.eventcreate_url ? (
+            <p className="text-xs text-[#888] mt-0.5 truncate">{event.eventcreate_url}</p>
+          ) : (
+            <p className="text-xs text-[#888] mt-0.5">Not linked yet — add the EventCreate microsite URL in Settings.</p>
+          )}
+        </div>
+        {event.eventcreate_url ? (
+          <a
+            href={event.eventcreate_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#c9a84c] text-white text-xs font-semibold hover:bg-[#d4b85c] transition-colors"
+          >
+            Open live page <ExternalLink size={13} />
+          </a>
+        ) : (
+          <button
+            onClick={() => onTabSwitch("settings")}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#e0e0e0] text-[#777] text-xs font-semibold hover:bg-[#fafafa] transition-colors"
+          >
+            Add link
+          </button>
+        )}
+      </div>
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -678,6 +702,14 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Contact Email</label>
             <input type="email" name="contact_email" defaultValue={event.contact_email ?? ""} placeholder="events@yourdomain.com" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">EventCreate Microsite URL</label>
+            <input type="url" name="eventcreate_url" defaultValue={event.eventcreate_url ?? ""} placeholder="https://events.leadershipfederation.com" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <p className="mt-1.5 text-[11px] text-[#999] leading-relaxed">
+              The live event page built in EventCreate. When set, the public &ldquo;Events&rdquo; link sends visitors here; their &ldquo;Register&rdquo; button should point back to <span className="font-mono text-[#777]">/register?event={event.slug}</span>.
+            </p>
           </div>
 
           {message && (

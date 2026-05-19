@@ -184,6 +184,15 @@ export default async function EventDetailPage({ params }: Props) {
     redirect(`/events/${canonicalSlug}`)
   }
 
+  // Plan A — if this event's public page is built on an external
+  // EventCreate microsite, send visitors straight there instead of
+  // rendering the built-in page. The TLF site stays the source of
+  // truth for registration/payments; this is display only.
+  const ecUrl = (event.eventcreate_url ?? "").trim()
+  if (ecUrl && /^https?:\/\//i.test(ecUrl)) {
+    redirect(ecUrl)
+  }
+
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
