@@ -80,7 +80,7 @@ const PLATFORMS = [
   {
     key: "show" as const,
     icon: Mic2,
-    image: "/events/asia-leadership-awards.jpg",
+    image: "/platforms/sunny-shah-show.jpg",
     eyebrow: "Platform 03",
     title: "The Sunny Shah Show",
     blurb:
@@ -265,28 +265,45 @@ export default async function PlatformsPage() {
                 >
                   <div className="lf-glass-strong relative rounded-[30px] overflow-hidden">
                     <div className="grid lg:grid-cols-2">
-                      {/* Real conclave photograph */}
-                      <div
-                        className={
-                          "relative min-h-[260px] lg:min-h-[480px] " +
-                          (idx % 2 === 1 ? "lg:order-2" : "")
-                        }
-                      >
-                        <Image
-                          src={p.image}
-                          alt={p.title}
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 560px"
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
-                        <span className="absolute top-5 left-5 lf-glass-dark rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
-                          {p.eyebrow}
-                        </span>
-                      </div>
+                      {/* Photograph — or, for the Show, its brand banner */}
+                      {p.key === "show" ? (
+                        <div className="relative w-full aspect-[2276/377] lg:col-span-2 bg-white">
+                          <Image
+                            src={p.image}
+                            alt={p.title}
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 1000px"
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className={
+                            "relative min-h-[260px] lg:min-h-[480px] " +
+                            (idx % 2 === 1 ? "lg:order-2" : "")
+                          }
+                        >
+                          <Image
+                            src={p.image}
+                            alt={p.title}
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 560px"
+                            className="object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
+                          <span className="absolute top-5 left-5 lf-glass-dark rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
+                            {p.eyebrow}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Content */}
-                      <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
+                      <div
+                        className={
+                          "p-8 sm:p-10 lg:p-12 flex flex-col justify-center" +
+                          (p.key === "show" ? " lg:col-span-2 lg:max-w-2xl" : "")
+                        }
+                      >
                         <span className="w-14 h-14 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-6 shadow-[0_12px_28px_-8px_rgba(0,113,227,0.65)]">
                           <Icon size={24} className="text-white" strokeWidth={1.7} />
                         </span>
