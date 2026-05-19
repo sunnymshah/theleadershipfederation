@@ -164,6 +164,25 @@ const layoutField = {
         { label: "Right",  value: "right" },
       ],
     },
+    radius: {
+      type: "select",
+      label: "Corner rounding",
+      options: [
+        { label: "None (default)", value: "none" },
+        { label: "Small",   value: "sm" },
+        { label: "Medium",  value: "md" },
+        { label: "Large",   value: "lg" },
+        { label: "X-Large", value: "xl" },
+      ],
+    },
+    hideOnMobile: {
+      type: "radio",
+      label: "Hide on mobile",
+      options: [
+        { label: "Show", value: false },
+        { label: "Hide", value: true },
+      ],
+    },
     anchor: { type: "text", label: "Anchor (advanced — renders as id=, used for #links)" },
     cssClass: { type: "text", label: "CSS class (advanced — appended to wrapper)" },
     locked: {
