@@ -223,7 +223,7 @@ export default function EventDetailPage() {
     return (
       <div className="p-8 text-center py-32">
         <p className="text-[#888]">Event not found.</p>
-        <Link href="/admin/events" className="text-[#c9a84c] text-sm mt-2 inline-block hover:underline">Back to Events</Link>
+        <Link href="/admin/events" className="text-[#0071e3] text-sm mt-2 inline-block hover:underline">Back to Events</Link>
       </div>
     )
   }
@@ -249,7 +249,7 @@ export default function EventDetailPage() {
             <div className="flex-1 min-w-0">
               {/* Title Row */}
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-[#333] truncate">{event.title}</h1>
+                <h1 className="text-2xl font-bold text-[#1d1d1f] truncate">{event.title}</h1>
                 <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider shrink-0", statusStyle.bg, statusStyle.text)}>
                   <span className={cn("w-1.5 h-1.5 rounded-full", statusStyle.dot)} />
                   {event.status}
@@ -271,7 +271,7 @@ export default function EventDetailPage() {
                   <Link
                     href={`/events/${event.slug}`}
                     target="_blank"
-                    className="flex items-center gap-1 text-[#c9a84c] hover:text-[#d4b85c] transition-colors"
+                    className="flex items-center gap-1 text-[#0071e3] hover:text-[#0077ed] transition-colors"
                   >
                     <Globe size={13} />
                     View Live Page
@@ -287,7 +287,7 @@ export default function EventDetailPage() {
                 { label: "Registrations", value: counts.attendees, color: "text-blue-400", bg: "bg-blue-500/10" },
                 // Revenue hidden from profiles without revenue.view
                 ...(canSeeRevenue ? [{ label: "Revenue", value: `₹${fmtPrice(counts.revenue)}`, color: "text-emerald-400", bg: "bg-emerald-500/10" }] : []),
-                { label: "Checked In", value: `${counts.checkedIn}/${counts.attendees}`, color: "text-[#c9a84c]", bg: "bg-[#c9a84c]/10" },
+                { label: "Checked In", value: `${counts.checkedIn}/${counts.attendees}`, color: "text-[#0071e3]", bg: "bg-[#0071e3]/10" },
               ].map((s) => (
                 <div key={s.label} className={cn("px-4 py-2.5 rounded-xl border border-[#e0e0e0]", s.bg)}>
                   <div className={cn("text-lg font-bold tabular-nums", s.color)}>{s.value}</div>
@@ -319,16 +319,16 @@ export default function EventDetailPage() {
                   className={cn(
                     "flex items-center gap-2 px-4 py-3 text-[13px] font-medium border-b-2 transition-all",
                     activeTab === key
-                      ? "border-[#c9a84c] text-[#333]"
+                      ? "border-[#0071e3] text-[#1d1d1f]"
                       : "border-transparent text-[#999] hover:text-[#666] hover:border-[#e0e0e0]"
                   )}
                 >
-                  <Icon size={14} className={activeTab === key ? "text-[#c9a84c]" : ""} />
+                  <Icon size={14} className={activeTab === key ? "text-[#0071e3]" : ""} />
                   {label}
                   {badgeCount !== null && badgeCount > 0 && (
                     <span className={cn(
                       "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums",
-                      activeTab === key ? "bg-[#c9a84c]/20 text-[#c9a84c]" : "bg-[#f0f0f0] text-[#aaa]"
+                      activeTab === key ? "bg-[#0071e3]/20 text-[#0071e3]" : "bg-[#f0f0f0] text-[#aaa]"
                     )}>
                       {badgeCount}
                     </span>
@@ -375,13 +375,13 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
     <div className="space-y-8">
       {/* Countdown / Status Banner */}
       {isUpcoming && (
-        <div className="rounded-xl bg-gradient-to-r from-[#c9a84c]/10 via-[#c9a84c]/5 to-transparent border border-[#c9a84c]/20 p-5 flex items-center justify-between">
+        <div className="rounded-xl bg-gradient-to-r from-[#0071e3]/10 via-[#0071e3]/5 to-transparent border border-[#0071e3]/20 p-5 flex items-center justify-between">
           <div>
-            <p className="text-[#c9a84c] font-semibold text-sm">Event Countdown</p>
+            <p className="text-[#0071e3] font-semibold text-sm">Event Countdown</p>
             <p className="text-[#777] text-xs mt-0.5">Your event is coming up. Make sure everything is ready.</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-[#c9a84c] tabular-nums">{daysUntil}</div>
+            <div className="text-3xl font-bold text-[#0071e3] tabular-nums">{daysUntil}</div>
             <div className="text-[10px] text-[#999] uppercase tracking-wider">days to go</div>
           </div>
         </div>
@@ -400,7 +400,7 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
       {/* Public event page — EventCreate microsite (Plan A) */}
       <div className="rounded-xl border border-[#e0e0e0] bg-white p-5 flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-[#333]">Public Event Page</p>
+          <p className="text-[13px] font-semibold text-[#1d1d1f]">Public Event Page</p>
           {event.eventcreate_url ? (
             <p className="text-xs text-[#888] mt-0.5 truncate">{event.eventcreate_url}</p>
           ) : (
@@ -412,14 +412,14 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
             href={event.eventcreate_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#c9a84c] text-white text-xs font-semibold hover:bg-[#d4b85c] transition-colors"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0071e3] text-white text-xs font-semibold hover:bg-[#0077ed] transition-colors"
           >
             Open live page <ExternalLink size={13} />
           </a>
         ) : (
           <button
             onClick={() => onTabSwitch("settings")}
-            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#e0e0e0] text-[#777] text-xs font-semibold hover:bg-[#fafafa] transition-colors"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#e0e0e0] text-[#777] text-xs font-semibold hover:bg-[#f5f5f7] transition-colors"
           >
             Add link
           </button>
@@ -432,10 +432,10 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           { label: "Ticket Tiers",   value: String(counts.tickets),   icon: Ticket,        color: "text-blue-400",     bg: "bg-blue-500/10",    tab: "tickets" as TabKey },
           { label: "Speakers",       value: String(counts.speakers),  icon: Users,          color: "text-purple-400",   bg: "bg-purple-500/10",  tab: "speakers" as TabKey },
           { label: "Registrations",  value: String(counts.attendees), icon: Users,          color: "text-orange-400",   bg: "bg-orange-500/10",  tab: "crm" as TabKey },
-          { label: "Sponsors",       value: String(counts.sponsors),  icon: Building2,      color: "text-[#c9a84c]",    bg: "bg-[#c9a84c]/10",   tab: "sponsors" as TabKey },
+          { label: "Sponsors",       value: String(counts.sponsors),  icon: Building2,      color: "text-[#0071e3]",    bg: "bg-[#0071e3]/10",   tab: "sponsors" as TabKey },
           { label: "Sessions",       value: String(counts.sessions),  icon: ClipboardList,  color: "text-cyan-400",     bg: "bg-cyan-500/10",    tab: "agenda" as TabKey },
           { label: "Promo Codes",    value: String(counts.promoCodes),icon: Tag,            color: "text-pink-400",     bg: "bg-pink-500/10",    tab: "promo-codes" as TabKey },
-          { label: "Winners",        value: String(counts.winners),   icon: Trophy,         color: "text-[#c9a84c]",    bg: "bg-[#c9a84c]/10",   tab: "winners" as TabKey },
+          { label: "Winners",        value: String(counts.winners),   icon: Trophy,         color: "text-[#0071e3]",    bg: "bg-[#0071e3]/10",   tab: "winners" as TabKey },
           // Revenue tile omitted from the grid when profile lacks revenue.view
           ...(canSeeRevenue ? [{ label: "Revenue" as const, value: `₹${fmtPrice(counts.revenue)}`, icon: Ticket, color: "text-emerald-400", bg: "bg-emerald-500/10", tab: "tickets" as TabKey }] : []),
           { label: "Check-In Rate",  value: counts.attendees > 0 ? `${Math.round((counts.checkedIn / counts.attendees) * 100)}%` : "—", icon: CheckCircle2, color: "text-teal-400", bg: "bg-teal-500/10", tab: "crm" as TabKey },
@@ -443,7 +443,7 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
           <button
             key={label}
             onClick={() => onTabSwitch(tab)}
-            className="text-left p-5 rounded-xl border border-[#e0e0e0] bg-white hover:bg-[#fafafa] hover:border-[#ccc] transition-all group"
+            className="text-left p-5 rounded-xl border border-[#e0e0e0] bg-white hover:bg-[#f5f5f7] hover:border-[#ccc] transition-all group"
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-[11px] text-[#888] font-medium uppercase tracking-wider">{label}</p>
@@ -518,20 +518,20 @@ function OverviewTab({ event, counts, onTabSwitch }: { event: EventDetail; count
               <h3 className="text-xs font-semibold text-[#777] uppercase tracking-wider">Quick Actions</h3>
             </div>
             <div className="p-4 grid grid-cols-2 gap-3">
-              <button onClick={() => onTabSwitch("speakers")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
+              <button onClick={() => onTabSwitch("speakers")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all text-left">
                 <Users size={16} className="text-purple-400 mb-2" />
                 Add Speakers
               </button>
-              <button onClick={() => onTabSwitch("tickets")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
+              <button onClick={() => onTabSwitch("tickets")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all text-left">
                 <Ticket size={16} className="text-blue-400 mb-2" />
                 Manage Tickets
               </button>
-              <button onClick={() => onTabSwitch("agenda")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
+              <button onClick={() => onTabSwitch("agenda")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all text-left">
                 <ClipboardList size={16} className="text-cyan-400 mb-2" />
                 Build Agenda
               </button>
-              <button onClick={() => onTabSwitch("sponsors")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#333] hover:bg-[#fafafa] transition-all text-left">
-                <Building2 size={16} className="text-[#c9a84c] mb-2" />
+              <button onClick={() => onTabSwitch("sponsors")} className="px-4 py-3 rounded-lg border border-[#e0e0e0] text-sm text-[#666] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-all text-left">
+                <Building2 size={16} className="text-[#0071e3] mb-2" />
                 Add Sponsors
               </button>
             </div>
@@ -583,12 +583,12 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
         </div>
         <div className="p-5">
           <div className="flex items-center gap-2">
-            <div className="flex-1 px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-[13px] text-[#666] font-mono truncate">
+            <div className="flex-1 px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-[13px] text-[#666] font-mono truncate">
               /events/{event.slug}
             </div>
             <button
               onClick={handleCopySlug}
-              className="px-3 py-2.5 rounded-lg border border-[#e0e0e0] text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors"
+              className="px-3 py-2.5 rounded-lg border border-[#e0e0e0] text-[#888] hover:text-[#555] hover:bg-[#f5f5f7] transition-colors"
             >
               {copied ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}
             </button>
@@ -596,7 +596,7 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
               <Link
                 href={`/events/${event.slug}`}
                 target="_blank"
-                className="px-3 py-2.5 rounded-lg border border-[#e0e0e0] text-[#888] hover:text-[#c9a84c] hover:bg-[#c9a84c]/5 transition-colors"
+                className="px-3 py-2.5 rounded-lg border border-[#e0e0e0] text-[#888] hover:text-[#0071e3] hover:bg-[#0071e3]/5 transition-colors"
               >
                 <Eye size={16} />
               </Link>
@@ -613,39 +613,39 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
         <div className="p-5 space-y-5">
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Event Title *</label>
-            <input type="text" name="title" required defaultValue={event.title} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <input type="text" name="title" required defaultValue={event.title} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
           </div>
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">URL Slug *</label>
-            <input type="text" name="slug" required defaultValue={event.slug} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors font-mono" />
+            <input type="text" name="slug" required defaultValue={event.slug} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors font-mono" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Start Date *</label>
-              <input type="datetime-local" name="startDate" required defaultValue={new Date(event.start_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+              <input type="datetime-local" name="startDate" required defaultValue={new Date(event.start_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
             </div>
             <div>
               <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">End Date *</label>
-              <input type="datetime-local" name="endDate" required defaultValue={new Date(event.end_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+              <input type="datetime-local" name="endDate" required defaultValue={new Date(event.end_date).toISOString().slice(0, 16)} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
             </div>
           </div>
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Venue *</label>
-            <input type="text" name="venue" required defaultValue={event.venue} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <input type="text" name="venue" required defaultValue={event.venue} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
           </div>
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Description</label>
-            <textarea name="description" rows={4} defaultValue={event.description ?? ""} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" />
+            <textarea name="description" rows={4} defaultValue={event.description ?? ""} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors resize-none" />
           </div>
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Cover Image URL</label>
-            <input type="url" name="coverImageUrl" defaultValue={event.cover_image_url ?? ""} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" placeholder="https://..." />
+            <input type="url" name="coverImageUrl" defaultValue={event.cover_image_url ?? ""} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors" placeholder="https://..." />
           </div>
 
           {/* Status */}
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Status</label>
-            <select name="status" defaultValue={event.status} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors">
+            <select name="status" defaultValue={event.status} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]/50 transition-colors">
               <option value="draft">Draft</option>
               <option value="published">Published (visible on public site)</option>
               <option value="completed">Completed</option>
@@ -660,53 +660,53 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Tagline</label>
-            <input type="text" name="tagline" defaultValue={event.tagline ?? ""} placeholder="A short subtitle for your event" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <input type="text" name="tagline" defaultValue={event.tagline ?? ""} placeholder="A short subtitle for your event" className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
           </div>
 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Venue Address</label>
-            <textarea name="venue_address" rows={2} defaultValue={event.venue_address ?? ""} placeholder="Full address including city, state, country" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" />
+            <textarea name="venue_address" rows={2} defaultValue={event.venue_address ?? ""} placeholder="Full address including city, state, country" className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors resize-none" />
           </div>
 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Registration Deadline</label>
-            <input type="datetime-local" name="registration_deadline" defaultValue={event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : ""} className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <input type="datetime-local" name="registration_deadline" defaultValue={event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : ""} className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
           </div>
 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Key Highlights</label>
-            <textarea name="highlights" rows={3} defaultValue={event.highlights?.join("\n") ?? ""} placeholder="One per line" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors resize-none" />
+            <textarea name="highlights" rows={3} defaultValue={event.highlights?.join("\n") ?? ""} placeholder="One per line" className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors resize-none" />
             <p className="text-[11px] text-[#bbb] mt-1">Enter key themes or highlights, one per line</p>
           </div>
 
           <div className="flex items-center gap-3">
-            <input type="checkbox" name="is_featured" id="is_featured" defaultChecked={event.is_featured} className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50" />
+            <input type="checkbox" name="is_featured" id="is_featured" defaultChecked={event.is_featured} className="w-4 h-4 rounded border-[#e0e0e0] text-[#0071e3] focus:ring-[#0071e3]/50" />
             <label htmlFor="is_featured" className="text-sm text-[#555]">Show as featured event on homepage</label>
           </div>
 
           <div className="flex items-center gap-3">
-            <input type="checkbox" name="show_delegate_directory" id="show_delegate_directory" defaultChecked={event.show_delegate_directory} className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50" />
+            <input type="checkbox" name="show_delegate_directory" id="show_delegate_directory" defaultChecked={event.show_delegate_directory} className="w-4 h-4 rounded border-[#e0e0e0] text-[#0071e3] focus:ring-[#0071e3]/50" />
             <label htmlFor="show_delegate_directory" className="text-sm text-[#555]">Enable public delegate directory for networking</label>
           </div>
 
           <div className="flex items-center gap-3">
-            <input type="checkbox" name="requires_approval" id="requires_approval" defaultChecked={event.requires_approval} className="w-4 h-4 rounded border-[#e0e0e0] text-[#c9a84c] focus:ring-[#c9a84c]/50" />
+            <input type="checkbox" name="requires_approval" id="requires_approval" defaultChecked={event.requires_approval} className="w-4 h-4 rounded border-[#e0e0e0] text-[#0071e3] focus:ring-[#0071e3]/50" />
             <label htmlFor="requires_approval" className="text-sm text-[#555]">Require approval for registrations (VIP events)</label>
           </div>
 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Max Attendees</label>
-            <input type="number" name="max_attendees" min={0} defaultValue={event.max_attendees ?? ""} placeholder="Overall event capacity" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <input type="number" name="max_attendees" min={0} defaultValue={event.max_attendees ?? ""} placeholder="Overall event capacity" className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
           </div>
 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">Contact Email</label>
-            <input type="email" name="contact_email" defaultValue={event.contact_email ?? ""} placeholder="events@yourdomain.com" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <input type="email" name="contact_email" defaultValue={event.contact_email ?? ""} placeholder="events@yourdomain.com" className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
           </div>
 
           <div>
             <label className="block text-[11px] text-[#777] uppercase tracking-wider mb-1.5">EventCreate Microsite URL</label>
-            <input type="url" name="eventcreate_url" defaultValue={event.eventcreate_url ?? ""} placeholder="https://events.leadershipfederation.com" className="w-full px-3 py-2.5 bg-[#fafafa] border border-[#e0e0e0] rounded-lg text-sm text-[#333] placeholder-[#ccc] focus:outline-none focus:border-[#c9a84c]/50 transition-colors" />
+            <input type="url" name="eventcreate_url" defaultValue={event.eventcreate_url ?? ""} placeholder="https://events.leadershipfederation.com" className="w-full px-3 py-2.5 bg-[#f5f5f7] border border-[#e0e0e0] rounded-lg text-sm text-[#1d1d1f] placeholder-[#ccc] focus:outline-none focus:border-[#0071e3]/50 transition-colors" />
             <p className="mt-1.5 text-[11px] text-[#999] leading-relaxed">
               The live event page built in EventCreate. When set, the public &ldquo;Events&rdquo; link sends visitors here; their &ldquo;Register&rdquo; button should point back to <span className="font-mono text-[#777]">/register?event={event.slug}</span>.
             </p>
@@ -722,7 +722,7 @@ function SettingsTab({ event, onUpdate }: { event: EventDetail; onUpdate: () => 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 rounded-lg bg-[#c9a84c] text-white text-sm font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-lg bg-[#0071e3] text-white text-sm font-bold hover:bg-[#0077ed] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {submitting ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
           </button>
