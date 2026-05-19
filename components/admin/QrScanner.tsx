@@ -518,7 +518,7 @@ export default function QrScanner({ selectedEventId, onCheckIn }: QrScannerProps
           <button
             onClick={() => handleCheckIn(state.attendee.id)}
             disabled={checkingIn}
-            className="w-full py-4 rounded-xl bg-[#c9a84c] text-white text-base font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#c9a84c]/20"
+            className="w-full py-4 rounded-xl bg-[#c9a84c] text-white text-base font-bold hover:bg-[#d4b85c] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
           >
             {checkingIn ? (
               <>

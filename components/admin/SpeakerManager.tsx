@@ -235,7 +235,7 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
                 {s.image_url ? (
                   <img src={s.image_url} alt={s.name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#c9a84c]/20 to-[#c9a84c]/5 flex items-center justify-center shrink-0 border border-[#c9a84c]/10">
+                  <div className="w-16 h-16 rounded-xl bg-[#0071e3]/[0.06] flex items-center justify-center shrink-0 border border-[#0071e3]/15">
                     <span className="text-[#c9a84c] text-lg font-bold">{getInitials(s.name)}</span>
                   </div>
                 )}
@@ -271,7 +271,7 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
       {bulkOpen && (
         <>
           <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => { setBulkOpen(false); setBulkText("") }} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl border border-[#e0e0e0] z-50 shadow-2xl overflow-hidden">
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl border border-[#ededf0] z-50 shadow-[0_4px_20px_rgba(15,23,42,0.07)] overflow-hidden">
             <div className="px-6 py-4 border-b border-[#e0e0e0] flex items-center justify-between">
               <h3 className="text-lg font-semibold text-[#333]">Bulk Import Speakers</h3>
               <button onClick={() => { setBulkOpen(false); setBulkText("") }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors"><X size={18} /></button>
@@ -322,7 +322,7 @@ export function SpeakerManager({ eventId }: { eventId: string }) {
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} />
-          <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+          <div className="fixed top-0 right-0 h-full w-full max-w-lg bg-white border-l border-[#ededf0] z-50 shadow-[-8px_0_28px_rgba(15,23,42,0.06)] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-[#333]">{editing ? "Edit Speaker" : "Add Speaker"}</h3>
               <button onClick={() => { setDrawerOpen(false); setEditing(null); setPreviewUrl(null) }} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#f0f0f0] transition-colors"><X size={18} /></button>

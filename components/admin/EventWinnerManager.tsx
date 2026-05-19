@@ -217,7 +217,7 @@ export function EventWinnerManager({ eventId }: { eventId: string }) {
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setDrawerOpen(false)} />
-          <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl overflow-y-auto">
+          <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white border-l border-[#ededf0] z-50 shadow-[-8px_0_28px_rgba(15,23,42,0.06)] overflow-y-auto">
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-bold text-[#333]">

@@ -50,7 +50,7 @@ export function AttendeeQrCode({ attendeeName, qrToken }: Props) {
         <>
           <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => setOpen(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white border border-[#e0e0e0] rounded-2xl shadow-2xl w-full max-w-sm p-4 sm:p-6">
+            <div className="bg-white border border-[#ededf0] rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.07)] w-full max-w-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4 sm:mb-5">
                 <h3 className="text-base sm:text-lg font-semibold text-[#333]">QR Code</h3>
                 <button onClick={() => setOpen(false)} className="p-1.5 rounded-md text-[#888] hover:text-[#555] hover:bg-[#fafafa] transition-colors">

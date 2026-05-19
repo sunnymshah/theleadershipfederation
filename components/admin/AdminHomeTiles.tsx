@@ -86,7 +86,7 @@ export function AdminHomeTiles({ userName }: { userName?: string | null }) {
           onClick={() => setDenied(null)}
         >
           <div
-            className="max-w-sm w-full rounded-2xl bg-white p-6 shadow-2xl"
+            className="max-w-sm w-full rounded-2xl bg-white p-6 border border-[#ededf0] shadow-[0_4px_20px_rgba(15,23,42,0.07)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-4">

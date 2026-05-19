@@ -191,7 +191,7 @@ export function AdminConsoleShell({
               className="absolute inset-0 bg-black/40"
               onClick={() => setDrawerOpen(false)}
             />
-            <div className="relative bg-white w-[280px] max-w-[85vw] shadow-2xl flex">
+            <div className="relative bg-white w-[280px] max-w-[85vw] shadow-[8px_0_28px_rgba(15,23,42,0.10)] flex">
               <div className="w-14 shrink-0">
                 <RailColumn
                   accessibleWorkspaces={accessibleWorkspaces}
