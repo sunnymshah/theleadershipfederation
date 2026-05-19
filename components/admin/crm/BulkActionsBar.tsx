@@ -83,7 +83,7 @@ export function BulkActionsBar({
 
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 animate-in">
-      <div className="flex items-center gap-2 bg-[#1a1a2e] text-white rounded-full pl-4 pr-2 py-2 shadow-xl">
+      <div className="flex items-center gap-2 bg-[#1a1a2e] text-white rounded-full pl-4 pr-2 py-2 shadow-[0_4px_20px_rgba(15,23,42,0.18)]">
         <button onClick={onCleared} className="p-1 hover:bg-white/10 rounded-full">
           <X size={14} />
         </button>
@@ -99,7 +99,7 @@ export function BulkActionsBar({
               <Flag size={13} /> Status
             </button>
             {menu === "status" && (
-              <div className="absolute bottom-full mb-2 left-0 bg-white text-[#1a1a2e] rounded-lg shadow-xl border border-[#eee] min-w-[160px] py-1">
+              <div className="absolute bottom-full mb-2 left-0 bg-white text-[#1a1a2e] rounded-lg shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-[#ededf0] min-w-[160px] py-1">
                 {STATUS_ORDER.map((s) => (
                   <button key={s} onClick={() => runStatus(s)}
                     className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#fafafa]">
@@ -120,7 +120,7 @@ export function BulkActionsBar({
               <UserCog size={13} /> Assign
             </button>
             {menu === "owner" && (
-              <div className="absolute bottom-full mb-2 left-0 bg-white text-[#1a1a2e] rounded-lg shadow-xl border border-[#eee] min-w-[220px] max-h-[240px] overflow-y-auto py-1">
+              <div className="absolute bottom-full mb-2 left-0 bg-white text-[#1a1a2e] rounded-lg shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-[#ededf0] min-w-[220px] max-h-[240px] overflow-y-auto py-1">
                 <button onClick={() => runOwner(null)}
                   className="w-full text-left px-3 py-1.5 text-[12px] text-[#888] hover:bg-[#fafafa] border-b border-[#eee]">
                   Unassigned

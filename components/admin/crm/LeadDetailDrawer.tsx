@@ -101,7 +101,7 @@ export function LeadDetailDrawer({ leadId, members, onClose, onChange }: Props) 
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="w-full sm:max-w-[640px] bg-white shadow-2xl flex flex-col overflow-hidden">
+      <div className="w-full sm:max-w-[640px] bg-white border-l border-[#ededf0] shadow-[-8px_0_28px_rgba(15,23,42,0.06)] flex flex-col overflow-hidden">
         {loading || !lead ? (
           <div className="flex-1 flex items-center justify-center text-[#aaa]">
             <Loader2 size={20} className="animate-spin" />

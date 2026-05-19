@@ -484,7 +484,7 @@ function NewLeadDrawer({
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="flex-1 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="w-full sm:max-w-[480px] bg-white shadow-2xl flex flex-col">
+      <div className="w-full sm:max-w-[480px] bg-white border-l border-[#ededf0] shadow-[-8px_0_28px_rgba(15,23,42,0.06)] flex flex-col">
         <div className="px-6 py-4 border-b border-[#eee] flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-[#1a1a2e]">New lead</h2>
           <button onClick={onClose} className="p-2 rounded-md text-[#888] hover:bg-[#f5f5f5]">

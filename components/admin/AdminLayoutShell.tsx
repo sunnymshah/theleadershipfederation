@@ -70,7 +70,7 @@ export function AdminLayoutShell({
         />
         <div
           className={cn(
-            "absolute inset-y-0 left-0 w-[280px] max-w-[85vw] transition-transform duration-200 shadow-2xl [&>aside]:w-full",
+            "absolute inset-y-0 left-0 w-[280px] max-w-[85vw] transition-transform duration-200 shadow-[8px_0_28px_rgba(15,23,42,0.10)] [&>aside]:w-full",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >

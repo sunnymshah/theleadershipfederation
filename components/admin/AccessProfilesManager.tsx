@@ -486,7 +486,7 @@ export function AccessProfilesManager() {
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-[#1a1a2e]/60 z-40" onClick={() => setDrawerOpen(false)} />
-          <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white border-l border-[#e0e0e0] z-50 shadow-2xl overflow-y-auto">
+          <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white border-l border-[#ededf0] z-50 shadow-[-8px_0_28px_rgba(15,23,42,0.06)] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[#e0e0e0] px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-lg font-semibold text-[#333]">
                 {editingProfile ? "Edit profile" : "Create profile"}
@@ -831,7 +831,7 @@ export function AccessProfilesManager() {
             onClick={() => setPendingSensitive(null)}
           />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[92vw] max-w-md">
-            <div className="bg-white rounded-2xl shadow-2xl border border-amber-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.07)] border border-amber-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-amber-100 bg-amber-50 flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 font-bold">!</div>
                 <div>

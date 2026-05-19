@@ -313,7 +313,7 @@ export function ImageUploadCrop({
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-md p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-2xl space-y-3 text-white">
+          <div className="relative w-full max-w-md p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-[0_8px_32px_rgba(0,0,0,0.4)] space-y-3 text-white">
             <div className="flex items-center gap-2 text-white/90 text-xs font-semibold">
               <Crop size={14} className="text-[#e7ab1c]" />
               Upload original (no crop)
@@ -347,7 +347,7 @@ export function ImageUploadCrop({
           role="dialog"
           aria-modal="true"
         >
-        <div className="relative w-full max-w-2xl max-h-full overflow-y-auto space-y-3 p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-2xl">
+        <div className="relative w-full max-w-2xl max-h-full overflow-y-auto space-y-3 p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white/90 text-xs font-semibold">
               <Crop size={14} className="text-[#e7ab1c]" />
@@ -466,7 +466,7 @@ export function ImageUploadCrop({
           role="dialog"
           aria-modal="true"
         >
-        <div className="relative w-full max-w-2xl max-h-full overflow-y-auto space-y-3 p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-2xl">
+        <div className="relative w-full max-w-2xl max-h-full overflow-y-auto space-y-3 p-4 rounded-xl bg-[#050505] border border-[#1a1a1a] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-white/90 text-xs font-semibold">
               <Target size={14} className="text-[#e7ab1c]" />
