@@ -1,11 +1,11 @@
 /**
  * /events — public events landing.
  *
- * Soft-Monochrome / liquid-glass. A light, airy hero with a framed
- * photograph, then ONE unified upcoming-events list (the soonest event
- * as a wide showpiece card, the rest in a grid). No dead-end sections.
- * Fully responsive across phone / tablet / desktop. Event data is live
- * from Supabase — only upcoming events surface (past → /archive).
+ * A full-bleed cinematic hero with floating liquid-glass, then a fully
+ * re-imagined body: an editorial programme list of wide glass event
+ * rows, numbered value cards, a featured-quote bento, glass FAQ and a
+ * glass closing panel. Soft-Monochrome palette, responsive across
+ * phone / tablet / desktop. Event data is live from Supabase.
  */
 
 import { cookies } from "next/headers"
@@ -14,7 +14,7 @@ import Link from "next/link"
 import Image from "next/image"
 import {
   Calendar, MapPin, ArrowRight, Mic2, Ticket, Sparkles,
-  Network, Lightbulb, Award, Quote, Bell, Mail, Plus, Star,
+  Network, Lightbulb, Award, Quote, Bell, Mail, Plus,
 } from "lucide-react"
 import { AnimateOnScroll, StaggerChildren } from "@/components/ui/AnimateOnScroll"
 
@@ -31,9 +31,6 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("en-IN", {
     day: "numeric", month: "long", year: "numeric",
   })
-}
-function fmtDateShort(d: string) {
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
 }
 function fmtMonth(d: string) {
   return new Date(d).toLocaleDateString("en-IN", { month: "short" }).toUpperCase()
@@ -66,12 +63,12 @@ const VALUE_PROPS = [
 
 const TESTIMONIALS = [
   {
-    quote: "The most substantive room I sit in all year. Conversations get real because the line-up is tight, not theatrical.",
+    quote: "The most substantive room I sit in all year. Conversations get real because the line-up is tight, not theatrical — leaders show up to listen, not perform.",
     name: "K. Subramanian",
     role: "Chairman & Managing Director, Tier-1 GCC",
   },
   {
-    quote: "TLF understood the brief that other operators don't — leaders show up to LISTEN, not perform. That changes the quality of every dialogue.",
+    quote: "TLF understood the brief that other operators don't. That changes the quality of every dialogue in the room.",
     name: "Anita Raghavan",
     role: "Group CFO, Listed Conglomerate",
   },
@@ -124,105 +121,118 @@ export default async function EventsPage() {
   const allEvents = events ?? []
   const upcoming = allEvents.filter((e) => new Date(e.start_date) >= now)
   const past = allEvents.filter((e) => new Date(e.start_date) < now)
-
   const lead = upcoming[0] ?? null
-  const rest = upcoming.slice(1)
 
   return (
     <main className="bg-white">
-      {/* ══════════════ HERO ══════════════ */}
-      <section className="relative bg-white pt-32 lg:pt-40 pb-14 sm:pb-16 lg:pb-20 overflow-hidden">
+      {/* ══════════════ HERO — full-bleed background + liquid glass ══════════════ */}
+      <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-[#0a0a14]">
+        <Image
+          src={HERO_IMAGE}
+          alt="The GCC Leadership Conclave in session"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/68 to-[#0a0a14]/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14]/90 via-[#0a0a14]/35 to-transparent" />
         <div
-          className="absolute inset-0 z-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(58% 56% at 50% 0%, rgba(0,113,227,0.08) 0%, transparent 70%)",
+              "radial-gradient(55% 50% at 14% 88%, rgba(0,113,227,0.34) 0%, transparent 62%)",
           }}
         />
-        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
-          <AnimateOnScroll animation="fade-up">
-            <span className="text-[11px] sm:text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
-              Leadership Federation Events
-            </span>
-          </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={110}>
-            <h1 className="mt-4 sm:mt-5 text-[clamp(2.4rem,6vw,4.6rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.0]">
-              Where India&apos;s leadership
-              <br className="hidden sm:block" />{" "}
-              <span className="text-[#0071e3]">converges</span>
-            </h1>
-          </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={220}>
-            <p className="mt-5 sm:mt-6 text-[15px] sm:text-[17px] lg:text-[19px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
-              Closed-room conclaves, summits and policy roundtables for the
-              CXOs, founders and regulators shaping the next decade — invite-curated,
-              capacity-capped, deliberately quiet.
-            </p>
-          </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={300}>
-            <div className="mt-7 sm:mt-8 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
-              <Link
-                href="#events"
-                className="group inline-flex items-center gap-2 px-7 sm:px-8 py-[14px] sm:py-[15px] rounded-full font-bold text-[14px] sm:text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_30px_-10px_rgba(0,113,227,0.6)]"
-              >
-                See upcoming events
-                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/memberships"
-                className="lf-glass inline-flex items-center px-6 sm:px-7 py-[13px] sm:py-[14px] rounded-full font-bold text-[14px] sm:text-[15px] text-[#1d1d1f] transition-all duration-200"
-              >
-                Apply for membership
-              </Link>
-            </div>
-          </AnimateOnScroll>
 
-          {/* Stats — wrap on small screens */}
-          <AnimateOnScroll animation="fade-up" delay={380}>
-            <div className="mt-9 sm:mt-11 flex flex-wrap items-stretch justify-center gap-3">
-              <HeroStat value={upcoming.length} label={upcoming.length === 1 ? "Event upcoming" : "Events upcoming"} />
-              <HeroStat value={past.length} label="Editions delivered" />
-              <HeroStat value="30+" label="Countries" />
-            </div>
-          </AnimateOnScroll>
-        </div>
-
-        {/* Framed hero photograph */}
-        <AnimateOnScroll animation="fade-up" delay={440}>
-          <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 lg:px-16 mt-12 sm:mt-14">
-            <div className="lf-glass rounded-[20px] sm:rounded-[28px] p-1.5 sm:p-2.5">
-              <div className="relative aspect-[16/10] sm:aspect-[16/8] rounded-[14px] sm:rounded-[20px] overflow-hidden">
-                <Image
-                  src={HERO_IMAGE}
-                  alt="The GCC Leadership Conclave"
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 1100px"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-                <div className="absolute bottom-3.5 left-4 sm:bottom-5 sm:left-6 lf-glass-dark rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5">
-                  <span className="text-[10px] sm:text-[12px] font-bold uppercase tracking-[0.14em] text-white">
-                    The GCC Leadership Conclave
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-36 pb-20 lg:py-32">
+          <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-14 items-center">
+            {/* Left — copy */}
+            <div>
+              <AnimateOnScroll animation="fade-up">
+                <div className="inline-flex items-center gap-2 lf-glass-pill rounded-full px-4 py-1.5 mb-7">
+                  <Sparkles size={13} className="text-[#4c9df2]" />
+                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/85">
+                    Leadership Federation Events
                   </span>
                 </div>
-              </div>
+              </AnimateOnScroll>
+
+              <AnimateOnScroll animation="fade-up" delay={90}>
+                <h1 className="text-[clamp(2.7rem,7vw,5.8rem)] font-bold text-white tracking-[-0.045em] leading-[0.96]">
+                  Where India&apos;s
+                  <br />
+                  leadership{" "}
+                  <span className="text-[#4c9df2]">converges</span>
+                </h1>
+              </AnimateOnScroll>
+
+              <AnimateOnScroll animation="fade-up" delay={180}>
+                <p className="mt-6 text-[15px] sm:text-[18px] leading-relaxed text-white/65 max-w-lg">
+                  Closed-room conclaves, summits and policy roundtables for the
+                  CXOs, founders and regulators shaping the next decade —
+                  invite-curated, capacity-capped, deliberately quiet.
+                </p>
+              </AnimateOnScroll>
+
+              <AnimateOnScroll animation="fade-up" delay={260}>
+                <div className="mt-8 flex flex-wrap items-center gap-2.5 sm:gap-3">
+                  <Link
+                    href="#programme"
+                    className="group inline-flex items-center gap-2 px-7 sm:px-8 py-[14px] sm:py-[15px] rounded-full font-bold text-[14px] sm:text-[15px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_18px_44px_-12px_rgba(0,113,227,0.85)]"
+                  >
+                    See the programme
+                    <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <Link
+                    href="/memberships"
+                    className="lf-glass-pill inline-flex items-center px-6 sm:px-7 py-[13px] sm:py-[14px] rounded-full font-bold text-[14px] sm:text-[15px] text-white"
+                  >
+                    Apply for membership
+                  </Link>
+                </div>
+              </AnimateOnScroll>
+
+              {/* Glass stats strip */}
+              <AnimateOnScroll animation="fade-up" delay={340}>
+                <div className="mt-10 inline-grid grid-cols-3 gap-px rounded-2xl overflow-hidden lf-glass-dark">
+                  {([
+                    [upcoming.length, upcoming.length === 1 ? "Upcoming" : "Upcoming"],
+                    [past.length, "Editions"],
+                    ["30+", "Countries"],
+                  ] as const).map(([v, l], i) => (
+                    <div key={i} className="px-5 sm:px-7 py-4 text-center">
+                      <p className="text-[24px] sm:text-[32px] font-bold leading-none text-white tabular-nums tracking-[-0.03em]">
+                        {v}
+                      </p>
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-white/55 mt-1.5 font-semibold">
+                        {l}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </AnimateOnScroll>
             </div>
+
+            {/* Right — floating liquid-glass Next-Event card */}
+            <AnimateOnScroll animation="fade-up" delay={220}>
+              {lead ? <HeroNextEvent event={lead} /> : <HeroNoEvent />}
+            </AnimateOnScroll>
           </div>
-        </AnimateOnScroll>
+        </div>
       </section>
 
-      {/* ══════════════ UPCOMING EVENTS ══════════════ */}
+      {/* ══════════════ THE PROGRAMME — editorial event rows ══════════════ */}
       <section
-        id="events"
-        className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-24"
+        id="programme"
+        className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-20"
       >
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background:
               "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
-              "radial-gradient(50% 56% at 88% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+              "radial-gradient(50% 56% at 90% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
           }}
         />
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
@@ -230,14 +240,14 @@ export default async function EventsPage() {
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 mb-10 sm:mb-12">
               <div>
                 <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
-                  Programme {new Date().getFullYear()}
+                  The Programme · {new Date().getFullYear()}
                 </span>
-                <h2 className="mt-3 sm:mt-4 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
+                <h2 className="mt-3 text-[clamp(1.9rem,4vw,3rem)] font-bold text-[#1d1d1f] tracking-[-0.035em] leading-[1.05]">
                   {upcoming.length === 0
-                    ? "No public events listed yet"
+                    ? "Programme in build"
                     : upcoming.length === 1
-                      ? "The next conclave"
-                      : `${upcoming.length} upcoming events`}
+                      ? "One conclave on the calendar"
+                      : `${upcoming.length} conclaves on the calendar`}
                 </h2>
               </div>
               {past.length > 0 && (
@@ -251,21 +261,12 @@ export default async function EventsPage() {
             </div>
           </AnimateOnScroll>
 
-          {lead ? (
-            <div className="space-y-6">
-              <AnimateOnScroll animation="fade-up">
-                <LeadEventCard event={lead} />
-              </AnimateOnScroll>
-              {rest.length > 0 && (
-                <StaggerChildren animation="fade-up" stagger={80}>
-                  <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
-                    {rest.map((event) => (
-                      <EventCard key={event.id} event={event} />
-                    ))}
-                  </div>
-                </StaggerChildren>
-              )}
-            </div>
+          {upcoming.length > 0 ? (
+            <StaggerChildren animation="fade-up" stagger={90} className="space-y-5">
+              {upcoming.map((event, i) => (
+                <ProgrammeRow key={event.id} event={event} index={i} />
+              ))}
+            </StaggerChildren>
           ) : (
             <AnimateOnScroll animation="fade-up">
               <NotifyCard />
@@ -274,7 +275,7 @@ export default async function EventsPage() {
         </div>
       </section>
 
-      {/* ══════════════ WHY LEADERS SHOW UP ══════════════ */}
+      {/* ══════════════ WHY LEADERS SHOW UP — numbered glass cards ══════════════ */}
       <section className="relative bg-white py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
@@ -298,38 +299,43 @@ export default async function EventsPage() {
             stagger={90}
             className="grid grid-cols-1 sm:grid-cols-3 gap-5"
           >
-            {VALUE_PROPS.map((vp) => (
+            {VALUE_PROPS.map((vp, i) => (
               <div
                 key={vp.title}
-                className="lf-glass rounded-[24px] p-7 sm:p-8 transition-all duration-300 hover:-translate-y-1.5"
+                className="lf-glass relative rounded-[24px] p-7 sm:p-8 overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
               >
-                <div className="w-12 h-12 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-5 shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
-                  <vp.Icon size={22} strokeWidth={1.8} className="text-white" />
+                <span className="absolute -top-3 -right-1 text-[110px] font-bold text-[#0071e3]/[0.07] leading-none tracking-[-0.05em] select-none">
+                  0{i + 1}
+                </span>
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-[#0071e3] flex items-center justify-center mb-5 shadow-[0_10px_24px_-8px_rgba(0,113,227,0.6)]">
+                    <vp.Icon size={22} strokeWidth={1.8} className="text-white" />
+                  </div>
+                  <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-2.5 tracking-[-0.015em]">
+                    {vp.title}
+                  </h3>
+                  <p className="text-[14px] text-[#1d1d1f]/60 leading-[1.7]">
+                    {vp.body}
+                  </p>
                 </div>
-                <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-2.5 tracking-[-0.015em]">
-                  {vp.title}
-                </h3>
-                <p className="text-[14px] text-[#1d1d1f]/60 leading-[1.7]">
-                  {vp.body}
-                </p>
               </div>
             ))}
           </StaggerChildren>
         </div>
       </section>
 
-      {/* ══════════════ TESTIMONIALS ══════════════ */}
+      {/* ══════════════ FROM THE ROOM — featured-quote bento ══════════════ */}
       <section className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
             background:
               "radial-gradient(54% 50% at 50% 0%, rgba(255,255,255,0.95) 0%, transparent 70%), " +
-              "radial-gradient(52% 56% at 90% 96%, rgba(0,113,227,0.09) 0%, transparent 72%)",
+              "radial-gradient(52% 56% at 88% 96%, rgba(0,113,227,0.1) 0%, transparent 72%)",
           }}
         />
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 lg:px-16">
-          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-14">
+          <AnimateOnScroll animation="fade-up" className="max-w-2xl mb-10 sm:mb-12">
             <span className="text-[12px] font-semibold text-[#0071e3] uppercase tracking-[0.22em]">
               From the Room
             </span>
@@ -338,24 +344,39 @@ export default async function EventsPage() {
             </h2>
           </AnimateOnScroll>
 
-          <StaggerChildren
-            animation="fade-up"
-            stagger={90}
-            className="grid grid-cols-1 md:grid-cols-3 gap-5"
-          >
-            {TESTIMONIALS.map((t, i) => (
-              <figure key={i} className="lf-glass rounded-[26px] p-7 sm:p-8 flex flex-col">
-                <Quote size={26} className="text-[#0071e3] mb-5" fill="currentColor" />
-                <blockquote className="text-[16px] sm:text-[17px] leading-[1.6] text-[#1d1d1f]/85 font-medium flex-1">
-                  {t.quote}
+          <div className="grid lg:grid-cols-5 gap-5">
+            {/* Featured quote */}
+            <AnimateOnScroll animation="fade-up" className="lg:col-span-3">
+              <figure className="lf-glass-strong rounded-[28px] p-8 sm:p-11 h-full flex flex-col">
+                <Quote size={34} className="text-[#0071e3] mb-5" fill="currentColor" />
+                <blockquote className="text-[clamp(1.15rem,2.1vw,1.55rem)] font-semibold text-[#1d1d1f] leading-[1.5] tracking-[-0.015em] flex-1">
+                  {TESTIMONIALS[0].quote}
                 </blockquote>
-                <figcaption className="mt-6 pt-5 border-t border-black/[0.07]">
-                  <p className="text-[14px] font-bold text-[#1d1d1f]">{t.name}</p>
-                  <p className="text-[12.5px] text-[#1d1d1f]/55 mt-0.5">{t.role}</p>
+                <figcaption className="mt-7 pt-6 border-t border-black/[0.07]">
+                  <p className="text-[15px] font-bold text-[#1d1d1f]">{TESTIMONIALS[0].name}</p>
+                  <p className="text-[13px] text-[#1d1d1f]/55 mt-0.5">{TESTIMONIALS[0].role}</p>
                 </figcaption>
               </figure>
-            ))}
-          </StaggerChildren>
+            </AnimateOnScroll>
+
+            {/* Two stacked quotes */}
+            <div className="lg:col-span-2 grid sm:grid-cols-2 lg:grid-cols-1 gap-5">
+              {TESTIMONIALS.slice(1).map((t, i) => (
+                <AnimateOnScroll key={t.name} animation="fade-up" delay={(i + 1) * 90}>
+                  <figure className="lf-glass rounded-[24px] p-6 sm:p-7 h-full flex flex-col">
+                    <Quote size={20} className="text-[#0071e3] mb-3.5" fill="currentColor" />
+                    <blockquote className="text-[14px] text-[#1d1d1f]/80 leading-[1.65] font-medium flex-1">
+                      {t.quote}
+                    </blockquote>
+                    <figcaption className="mt-5 pt-4 border-t border-black/[0.07]">
+                      <p className="text-[13.5px] font-bold text-[#1d1d1f]">{t.name}</p>
+                      <p className="text-[12px] text-[#1d1d1f]/55 mt-0.5">{t.role}</p>
+                    </figcaption>
+                  </figure>
+                </AnimateOnScroll>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -392,7 +413,7 @@ export default async function EventsPage() {
       </section>
 
       {/* ══════════════ CLOSING CTA ══════════════ */}
-      <section id="notify" className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-24">
+      <section id="notify" className="relative bg-[#f5f5f7] py-16 sm:py-20 lg:py-28 overflow-hidden scroll-mt-20">
         <div
           className="absolute inset-0 z-0 pointer-events-none"
           style={{
@@ -468,179 +489,183 @@ type EventRow = {
   tickets?: Array<{ id: string }> | null
 }
 
-function HeroStat({ value, label }: { value: string | number; label: string }) {
-  return (
-    <div className="lf-glass rounded-2xl px-5 sm:px-7 py-3.5 sm:py-4 text-center min-w-[100px]">
-      <p className="text-[24px] sm:text-[30px] font-bold leading-none text-[#1d1d1f] tabular-nums tracking-[-0.03em]">
-        {value}
-      </p>
-      <p className="text-[10px] uppercase tracking-[0.12em] text-[#1d1d1f]/50 mt-1.5 font-semibold">
-        {label}
-      </p>
-    </div>
-  )
-}
-
-/** The soonest upcoming event — a wide showpiece card. Stacks on mobile. */
-function LeadEventCard({ event }: { event: EventRow }) {
+/** Floating liquid-glass "Next Event" card inside the hero. */
+function HeroNextEvent({ event }: { event: EventRow }) {
   const slug = (event.slug ?? "").trim()
   const days = getDaysUntil(event.start_date)
   const cover = event.thumbnail_url || event.cover_image_url
-  const speakerCount = Array.isArray(event.speakers) ? event.speakers.length : 0
 
   return (
-    <div className="lf-glass-strong rounded-[24px] sm:rounded-[30px] overflow-hidden shadow-[0_40px_90px_-40px_rgba(0,0,0,0.4)]">
-      <div className="grid lg:grid-cols-2">
-        {/* Image */}
-        <div className="relative aspect-[16/10] lg:aspect-auto lg:min-h-[420px] bg-[#0a0a14]">
-          {cover && (
-            <Image
-              src={cover}
-              alt={event.title}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 600px"
-              className="object-cover"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/55 via-transparent to-transparent" />
-          <span className="absolute top-4 left-4 sm:top-5 sm:left-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-[#1d1d1f] text-[10px] font-bold uppercase tracking-[0.14em] shadow-lg">
-            <Star size={11} strokeWidth={2} className="text-[#0071e3] fill-[#0071e3]" />
-            Next Event
-          </span>
-          <div className="absolute bottom-4 left-4 sm:bottom-5 sm:left-5 flex items-center gap-2.5 sm:gap-3">
-            <div className="bg-white rounded-xl px-3 sm:px-3.5 py-1.5 sm:py-2 text-center shadow-lg">
-              <p className="text-[9px] sm:text-[10px] font-bold text-[#0071e3] uppercase tracking-wider leading-none">
-                {fmtMonth(event.start_date)}
-              </p>
-              <p className="text-[20px] sm:text-[24px] font-bold text-[#1d1d1f] leading-none mt-0.5 tabular-nums">
-                {fmtDay(event.start_date)}
-              </p>
-            </div>
-            {days > 0 && (
-              <span className="lf-glass-dark rounded-full px-3.5 py-2 text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-white">
-                {days} {days === 1 ? "day" : "days"} away
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-7 sm:p-10 lg:p-12 flex flex-col justify-center">
-          <h3 className="text-[clamp(1.5rem,3vw,2.3rem)] font-bold text-[#1d1d1f] tracking-[-0.03em] leading-[1.1]">
-            {event.title}
-          </h3>
-          {event.description && (
-            <p className="mt-3.5 text-[14px] text-[#1d1d1f]/60 leading-[1.7] line-clamp-3">
-              {event.description}
-            </p>
-          )}
-          <ul className="mt-5 space-y-2.5 text-[13.5px] text-[#1d1d1f]/70">
-            <li className="flex items-center gap-2.5">
-              <Calendar size={15} className="text-[#0071e3] shrink-0" />
-              {fmtDate(event.start_date)}
-              {event.end_date && event.end_date !== event.start_date && ` — ${fmtDate(event.end_date)}`}
-            </li>
-            {event.venue && (
-              <li className="flex items-center gap-2.5">
-                <MapPin size={15} className="text-[#0071e3] shrink-0" />
-                {event.venue}
-              </li>
-            )}
-            {speakerCount > 0 && (
-              <li className="flex items-center gap-2.5">
-                <Mic2 size={15} className="text-[#0071e3] shrink-0" />
-                {speakerCount} speaker{speakerCount === 1 ? "" : "s"} confirmed
-              </li>
-            )}
-          </ul>
-          <div className="mt-7 flex flex-wrap gap-2.5 sm:gap-3">
-            <Link
-              href={`/events/${slug}#tickets`}
-              className="group inline-flex items-center gap-2 px-7 py-[14px] rounded-full font-bold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_14px_34px_-12px_rgba(0,113,227,0.7)]"
-            >
-              Register Now
-              <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href={`/events/${slug}`}
-              className="inline-flex items-center px-6 py-[14px] rounded-full font-bold text-[14px] text-[#1d1d1f] bg-white border border-black/[0.08] hover:border-black/20 transition-all duration-200"
-            >
-              Full details
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function EventCard({ event }: { event: EventRow }) {
-  const slug = (event.slug ?? "").trim()
-  const speakerCount = Array.isArray(event.speakers) ? event.speakers.length : 0
-  const ticketCount = Array.isArray(event.tickets) ? event.tickets.length : 0
-  const days = getDaysUntil(event.start_date)
-  const cover = event.thumbnail_url || event.cover_image_url
-
-  return (
-    <Link
-      href={`/events/${slug}`}
-      className="lf-glass group block rounded-[22px] overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
-    >
-      <div className="relative aspect-[16/9] bg-[#0a0a14] overflow-hidden">
+    <div className="lf-glass-panel rounded-[26px] p-3.5 sm:p-4">
+      <div className="relative aspect-[16/10] rounded-[18px] overflow-hidden bg-[#0a0a14]">
         {cover && (
           <Image
             src={cover}
             alt={event.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 1024px) 100vw, 420px"
+            className="object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/55 to-transparent" />
-        <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-1 rounded-full bg-white text-[#1d1d1f] text-[11px] font-bold tabular-nums shadow">
-          {days}d
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/60 to-transparent" />
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-[#1d1d1f] text-[9.5px] font-bold uppercase tracking-[0.14em]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#0071e3] animate-pulse" />
+          Next Event
         </span>
-        <div className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 text-white text-[12px] font-bold uppercase tracking-wider">
-          <Calendar size={12} className="text-[#4c9df2]" />
-          {fmtDateShort(event.start_date)}
-          {event.end_date && event.end_date !== event.start_date && ` – ${fmtDateShort(event.end_date)}`}
-        </div>
+        {days > 0 && (
+          <span className="absolute bottom-3 right-3 lf-glass-dark rounded-full px-3 py-1.5 text-[11px] font-bold text-white tabular-nums">
+            {days} {days === 1 ? "day" : "days"} away
+          </span>
+        )}
       </div>
-      <div className="p-6 sm:p-7">
-        <h3 className="text-[19px] sm:text-[21px] font-bold leading-tight text-[#1d1d1f] tracking-[-0.02em] mb-2.5 line-clamp-2">
+      <div className="px-2 pt-4 pb-1.5">
+        <h3 className="text-[18px] font-bold text-white leading-[1.2] tracking-[-0.015em] line-clamp-2">
           {event.title}
         </h3>
-        {event.description && (
-          <p className="text-[13.5px] text-[#1d1d1f]/60 leading-relaxed line-clamp-2 mb-5">
-            {event.description}
+        <div className="mt-3 space-y-1.5 text-[12.5px] text-white/65">
+          <p className="flex items-center gap-2">
+            <Calendar size={13} className="text-[#4c9df2] shrink-0" />
+            {fmtDate(event.start_date)}
           </p>
-        )}
-        <div className="flex items-center justify-between pt-5 border-t border-black/[0.07]">
-          <div className="flex items-center gap-3.5 text-[12px] text-[#1d1d1f]/55">
+          {event.venue && (
+            <p className="flex items-center gap-2">
+              <MapPin size={13} className="text-[#4c9df2] shrink-0" />
+              <span className="truncate">{event.venue}</span>
+            </p>
+          )}
+        </div>
+        <Link
+          href={`/events/${slug}#tickets`}
+          className="group mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-full bg-[#0071e3] text-white text-[13.5px] font-bold hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_28px_-10px_rgba(0,113,227,0.7)]"
+        >
+          Register Now
+          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function HeroNoEvent() {
+  return (
+    <div className="lf-glass-panel rounded-[26px] p-8 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-[#0071e3] flex items-center justify-center mx-auto mb-5 shadow-[0_12px_28px_-8px_rgba(0,113,227,0.7)]">
+        <Sparkles size={24} className="text-white" />
+      </div>
+      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#4c9df2] mb-1.5">
+        Programme in Build
+      </p>
+      <h3 className="text-[19px] font-bold text-white leading-tight mb-2">
+        The next conclave is being curated
+      </h3>
+      <p className="text-[13px] text-white/60 leading-relaxed mb-5">
+        Join the early-access list to hear the moment dates are confirmed.
+      </p>
+      <Link
+        href="#notify"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0071e3] text-white text-[13px] font-bold hover:bg-[#0077ed] transition-all duration-200"
+      >
+        <Bell size={13} /> Notify me
+      </Link>
+    </div>
+  )
+}
+
+/** Wide editorial programme row — image · content · date/CTA. */
+function ProgrammeRow({ event, index }: { event: EventRow; index: number }) {
+  const slug = (event.slug ?? "").trim()
+  const days = getDaysUntil(event.start_date)
+  const cover = event.thumbnail_url || event.cover_image_url
+  const speakerCount = Array.isArray(event.speakers) ? event.speakers.length : 0
+  const ticketCount = Array.isArray(event.tickets) ? event.tickets.length : 0
+
+  return (
+    <div className="lf-glass group rounded-[24px] overflow-hidden transition-all duration-300 hover:-translate-y-1">
+      <div className="grid sm:grid-cols-[260px_1fr] lg:grid-cols-[340px_1fr]">
+        {/* Image */}
+        <div className="relative aspect-[16/10] sm:aspect-auto sm:min-h-[260px] bg-[#0a0a14]">
+          {cover && (
+            <Image
+              src={cover}
+              alt={event.title}
+              fill
+              sizes="(max-width: 640px) 100vw, 340px"
+              className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/55 to-transparent" />
+          <div className="absolute top-4 left-4 bg-white rounded-xl px-3 py-1.5 text-center shadow-lg">
+            <p className="text-[9px] font-bold text-[#0071e3] uppercase tracking-wider leading-none">
+              {fmtMonth(event.start_date)}
+            </p>
+            <p className="text-[22px] font-bold text-[#1d1d1f] leading-none mt-0.5 tabular-nums">
+              {fmtDay(event.start_date)}
+            </p>
+          </div>
+          {index === 0 && (
+            <span className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0071e3] text-white text-[9.5px] font-bold uppercase tracking-[0.14em]">
+              <Sparkles size={10} /> Next Up
+            </span>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-6 sm:p-8 lg:p-9 flex flex-col justify-center">
+          <h3 className="text-[clamp(1.3rem,2.4vw,1.8rem)] font-bold text-[#1d1d1f] tracking-[-0.025em] leading-[1.15] line-clamp-2">
+            {event.title}
+          </h3>
+          {event.description && (
+            <p className="mt-2.5 text-[13.5px] text-[#1d1d1f]/60 leading-[1.65] line-clamp-2">
+              {event.description}
+            </p>
+          )}
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12.5px] text-[#1d1d1f]/65">
+            <span className="flex items-center gap-1.5">
+              <Calendar size={13} className="text-[#0071e3]" />
+              {fmtDate(event.start_date)}
+            </span>
             {event.venue && (
-              <span className="inline-flex items-center gap-1.5 truncate max-w-[140px]" title={event.venue}>
-                <MapPin size={12} className="text-[#0071e3] shrink-0" />
-                <span className="truncate">{event.venue}</span>
+              <span className="flex items-center gap-1.5">
+                <MapPin size={13} className="text-[#0071e3]" />
+                {event.venue}
               </span>
             )}
             {speakerCount > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <Mic2 size={12} className="text-[#0071e3]" /> {speakerCount}
+              <span className="flex items-center gap-1.5">
+                <Mic2 size={13} className="text-[#0071e3]" />
+                {speakerCount} speaker{speakerCount === 1 ? "" : "s"}
               </span>
             )}
             {ticketCount > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <Ticket size={12} className="text-[#0071e3]" /> {ticketCount}
+              <span className="flex items-center gap-1.5">
+                <Ticket size={13} className="text-[#0071e3]" />
+                {ticketCount} ticket type{ticketCount === 1 ? "" : "s"}
               </span>
             )}
           </div>
-          <span className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#0071e3] group-hover:gap-2.5 transition-all">
-            View <ArrowRight size={13} />
-          </span>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Link
+              href={`/events/${slug}#tickets`}
+              className="group/btn inline-flex items-center gap-2 px-6 py-[12px] rounded-full font-bold text-[13.5px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_12px_28px_-12px_rgba(0,113,227,0.7)]"
+            >
+              Register
+              <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+            </Link>
+            <Link
+              href={`/events/${slug}`}
+              className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-[#0071e3] hover:gap-2.5 transition-all duration-200"
+            >
+              Full details <ArrowRight size={14} />
+            </Link>
+            {days > 0 && (
+              <span className="ml-auto text-[12px] font-bold text-[#1d1d1f]/45 uppercase tracking-wider tabular-nums">
+                {days} {days === 1 ? "day" : "days"} away
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
