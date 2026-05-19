@@ -17,7 +17,7 @@ import { cookies } from "next/headers"
 import { notFound, redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
-import { getBuilderDraft } from "@/app/actions/eventBuilderActions"
+import { getBuilderDraft, getBuilderPagesDraft } from "@/app/actions/eventBuilderActions"
 import { BuilderMain } from "@/components/admin/puck/builder-main/BuilderMain"
 import { emptyBuilderSeed } from "@/lib/event-puck-migrate"
 import { canAccessWithProfile } from "@/lib/permissions"
@@ -109,6 +109,7 @@ export default async function FullscreenBuilderMainPage({
     exhibitorCategoriesRes,
     hotelsRes,
     draftRes,
+    pagesRes,
   ] = await Promise.all([
     admin.from("events").select("*").eq("id", id).maybeSingle(),
     admin
@@ -150,6 +151,7 @@ export default async function FullscreenBuilderMainPage({
       .order("sort_order", { ascending: true })
       .then((r) => r, () => ({ data: [] as Array<Record<string, unknown>>, error: null })),
     getBuilderDraft(id),
+    getBuilderPagesDraft(id),
   ])
 
   if (!eventRes.data) {
@@ -277,6 +279,7 @@ export default async function FullscreenBuilderMainPage({
       eventTitle={(event.title as string) ?? "Event"}
       eventSlug={(event.slug as string) ?? ""}
       initialData={initialData}
+      initialPages={pagesRes.success ? pagesRes.pages : {}}
       metadata={metadata}
     />
   )
