@@ -1,8 +1,9 @@
 import { Suspense } from "react"
 import { cookies } from "next/headers"
+import Image from "next/image"
 import {
   MapPin, Mail, Phone, Building2, Star, CalendarCheck, Handshake,
-  Mic2, Crown, Trophy, Megaphone, Users, Briefcase,
+  Mic2, Crown, Trophy, Megaphone, Users, Briefcase, Sparkles,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { createClient } from "@/utils/supabase/server"
@@ -70,32 +71,60 @@ export default async function RegisterPage() {
 
   return (
     <main className="bg-white">
-      {/* ══════════════ Hero ══════════════ */}
-      <section className="relative bg-white pt-32 lg:pt-40 pb-12 lg:pb-14 overflow-hidden">
+      {/* ══════════════ Hero — full-bleed image ══════════════ */}
+      <section className="relative min-h-[78vh] sm:min-h-[82vh] flex items-end overflow-hidden bg-[#0a0a14]">
+        <Image
+          src="/platforms/conclave-stage.jpg"
+          alt="A Leadership Federation conclave in session"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/72 to-[#0a0a14]/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14]/85 via-[#0a0a14]/30 to-transparent" />
         <div
-          className="absolute inset-0 z-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(58% 56% at 50% 0%, rgba(0,113,227,0.09) 0%, transparent 70%)",
+              "radial-gradient(58% 50% at 12% 92%, rgba(0,113,227,0.32) 0%, transparent 64%)",
           }}
         />
-        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 lg:px-16 text-center">
+
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-36 pb-16 sm:pb-24">
           <AnimateOnScroll animation="fade-up">
-            <span className="inline-flex items-center gap-2 lf-glass rounded-full px-4 py-1.5 text-[11px] sm:text-[12px] font-bold text-[#0071e3] uppercase tracking-[0.2em]">
-              <Star size={12} fill="currentColor" /> Join the Movement
+            <span className="inline-flex items-center gap-2 lf-glass-pill rounded-full px-4 py-1.5 text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.2em] text-white">
+              <Sparkles size={13} className="text-[#4c9df2]" /> Join the Movement
             </span>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={110}>
-            <h1 className="mt-6 text-[clamp(2.6rem,5.8vw,4.6rem)] font-bold text-[#1d1d1f] tracking-[-0.04em] leading-[1.0]">
-              Register &amp; <span className="text-[#0071e3]">get involved</span>
+          <AnimateOnScroll animation="fade-up" delay={100}>
+            <h1 className="mt-6 text-[clamp(2.8rem,6.6vw,5.6rem)] font-bold text-white tracking-[-0.045em] leading-[0.96] max-w-4xl">
+              Register &amp; <span className="text-[#4c9df2]">get involved</span>
             </h1>
           </AnimateOnScroll>
-          <AnimateOnScroll animation="fade-up" delay={220}>
-            <p className="mt-5 sm:mt-6 text-[15px] sm:text-[18px] text-[#1d1d1f]/60 leading-relaxed max-w-2xl mx-auto">
-              One place for every way in — attend as a delegate, speak on stage,
-              sponsor an event, nominate a leader, or join the jury. Choose your
-              path and register in minutes.
+          <AnimateOnScroll animation="fade-up" delay={190}>
+            <p className="mt-6 text-[15px] sm:text-[18px] text-white/70 leading-relaxed max-w-xl">
+              One place for every way in — attend, speak, sponsor, nominate, or
+              judge. Pick the path that fits and step into the room.
             </p>
+          </AnimateOnScroll>
+          <AnimateOnScroll animation="fade-up" delay={280}>
+            <div className="mt-10 inline-grid grid-cols-3 gap-px rounded-2xl overflow-hidden lf-glass-dark">
+              {[
+                ["6", "Ways in"],
+                ["48h", "Reply time"],
+                ["30+", "Countries"],
+              ].map(([v, l]) => (
+                <div key={l} className="px-5 sm:px-7 py-4 text-center">
+                  <p className="text-[22px] sm:text-[28px] font-bold leading-none text-white tabular-nums tracking-[-0.03em]">
+                    {v}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-white/55 mt-1.5 font-semibold">
+                    {l}
+                  </p>
+                </div>
+              ))}
+            </div>
           </AnimateOnScroll>
         </div>
       </section>
