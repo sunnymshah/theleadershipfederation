@@ -245,6 +245,68 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
               </MagneticButton>
             </div>
 
+            {/* Member-avatar social proof — real board photos */}
+            <div
+              className="hero-anim mt-8 inline-flex items-center gap-3.5 self-start"
+              style={{ animationDelay: "0.42s" }}
+            >
+              <div className="flex -space-x-2.5">
+                {[
+                  "/people/mohammed-al-mashroom.png",
+                  "/people/ajai-lal.png",
+                  "/people/robin-arthur-joffe.png",
+                  "/people/srinivas-sampath.png",
+                  "/people/rajesh-puneyani.png",
+                ].map((src, i) => (
+                  <div
+                    key={src}
+                    className="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm bg-[#0071e3]/[0.1]"
+                    style={{ zIndex: 10 - i }}
+                  >
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="36px"
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+                <div className="relative w-9 h-9 rounded-full ring-2 ring-white bg-[#0071e3] flex items-center justify-center shadow-[0_6px_16px_-4px_rgba(0,113,227,0.55)]">
+                  <span className="text-[9px] font-bold text-white tabular-nums tracking-tight">
+                    +500
+                  </span>
+                </div>
+              </div>
+              <div>
+                <p className="text-[12.5px] font-bold text-[#1d1d1f] tracking-[-0.01em] leading-tight">
+                  Leaders already in the room
+                </p>
+                <p className="text-[11px] text-[#1d1d1f]/55 mt-0.5">
+                  CXOs · founders · policymakers, 30+ countries
+                </p>
+              </div>
+            </div>
+
+            {/* Quiet pull quote — glass pill */}
+            <div
+              className="hero-anim mt-8 lf-glass relative rounded-2xl px-5 py-4 max-w-[420px] self-start"
+              style={{ animationDelay: "0.48s" }}
+            >
+              <span
+                aria-hidden
+                className="absolute -top-3 left-4 text-[40px] leading-none font-serif text-[#0071e3]/40 select-none"
+              >
+                &ldquo;
+              </span>
+              <p className="text-[13.5px] text-[#1d1d1f]/80 italic leading-[1.55]">
+                The most substantive room I sit in all year.
+              </p>
+              <p className="mt-2 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#0071e3]">
+                — Chairman &amp; MD · Tier-1 GCC
+              </p>
+            </div>
+
             {/* Stats — liquid-glass strip */}
             <div
               className="hero-anim mt-12 inline-grid grid-cols-3 gap-px lf-glass rounded-2xl overflow-hidden self-start"
