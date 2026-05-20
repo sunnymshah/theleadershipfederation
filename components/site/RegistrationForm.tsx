@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import {
-  Award, Users, Handshake, Mic2, Scale, Crown,
-  Loader2, CheckCircle2, Send, ArrowRight, ArrowUpRight, Check,
+  Award, Users, Handshake, Mic2, Scale,
+  Loader2, CheckCircle2, Send, ArrowRight, Check,
 } from "lucide-react"
 import { submitRegistration } from "@/app/actions/registerActions"
 
@@ -47,14 +47,10 @@ const PARTICIPATION_TYPES = [
     image: "/platforms/conclave-2025.jpg",
     description: "Apply to serve on the independent award jury and evaluate nominees.",
   },
-  {
-    value: "membership",
-    label: "Membership",
-    icon: Crown,
-    image: "/events/middle-east-asia.jpg",
-    description: "Join the Inner Circle membership for exclusive CXO-level access year-round.",
-  },
 ] as const
+
+/* Membership intentionally lives on its own /memberships page with the
+ * full tier table — it is not a participation type submitted here. */
 
 type ParticipationType = (typeof PARTICIPATION_TYPES)[number]["value"]
 
@@ -82,10 +78,6 @@ export function RegistrationForm({ events }: RegistrationFormProps) {
   const [consent, setConsent] = useState(false)
 
   function handleTypeSelect(type: ParticipationType) {
-    if (type === "membership") {
-      window.location.href = "/memberships"
-      return
-    }
     setSelectedType(type)
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -93,7 +85,7 @@ export function RegistrationForm({ events }: RegistrationFormProps) {
   }
 
   useEffect(() => {
-    if (initialType && initialType !== "membership") {
+    if (initialType) {
       setTimeout(() => {
         formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
       }, 500)
@@ -190,16 +182,12 @@ export function RegistrationForm({ events }: RegistrationFormProps) {
                     <Icon size={18} strokeWidth={1.9} className="text-white" />
                   </span>
 
-                  {/* Top-right selected check / external pill */}
-                  {isSelected ? (
+                  {/* Top-right selected check */}
+                  {isSelected && (
                     <span className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-white flex items-center justify-center shadow">
                       <Check size={14} className="text-[#0071e3]" strokeWidth={2.6} />
                     </span>
-                  ) : type.value === "membership" ? (
-                    <span className="absolute top-3.5 right-3.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
-                      Tiers <ArrowUpRight size={10} />
-                    </span>
-                  ) : null}
+                  )}
 
                   {/* Bottom text */}
                   <div className="absolute bottom-3.5 left-4 right-4">
@@ -298,7 +286,7 @@ export function RegistrationForm({ events }: RegistrationFormProps) {
                 className={selectArrowStyle}
               >
                 <option value="" disabled>Participation type *</option>
-                {PARTICIPATION_TYPES.filter((t) => t.value !== "membership").map((type) => (
+                {PARTICIPATION_TYPES.map((type) => (
                   <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
               </select>
