@@ -79,7 +79,6 @@ export async function submitRegistration(formData: FormData) {
     "sponsor",
     "speaker",
     "jury",
-    "membership",
   ]
   if (!participationType || !validTypes.includes(participationType)) {
     return { success: false, error: "Please select a valid participation type." }
