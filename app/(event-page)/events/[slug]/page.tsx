@@ -11,6 +11,7 @@ import { getEventSections } from "@/app/actions/eventSectionActions"
 import { EventSectionsRenderer } from "@/components/site/EventSections"
 import { PuckPublicRenderer } from "@/components/admin/puck/PuckPublicRenderer"
 import { EventTopNav } from "@/components/site/event-pages/EventTopNav"
+import { EventSiteScripts } from "@/components/site/event-pages/EventSiteScripts"
 import { getMicrositeSettings, buildSeoMetadata } from "@/lib/microsite-settings"
 import { normalizeSlug } from "@/lib/slug"
 import type { Data as PuckData } from "@measured/puck"
@@ -217,6 +218,11 @@ export default async function EventDetailPage({ params }: Props) {
   const tickets = ticketsRes.data ?? []
   const sections = sectionsRes.sections ?? []
 
+  // Microsite settings — analytics, custom code, favicon (favicon is
+  // applied via generateMetadata; the analytics + code scripts inject
+  // here through <EventSiteScripts>).
+  const micrositeSettings = await getMicrositeSettings(event.id)
+
   // ── Event page builder (builder-main) — primary render path ──────
   // builder-main is the single source of truth for the event home page.
   // It publishes to `events.builder_data` (a Puck `Data` object). The
@@ -226,6 +232,10 @@ export default async function EventDetailPage({ params }: Props) {
   if (builderData && Array.isArray(builderData.content) && builderData.content.length > 0) {
     return (
       <>
+        <EventSiteScripts
+          analytics={micrositeSettings.analytics}
+          code={micrositeSettings.code}
+        />
         {/* ITEM 1.1: EventTopNav is the authoritative public nav. The
             legacy EventPageNav was mounted here as a second strip and
             produced the floating "Home" badge visible mid-screen on

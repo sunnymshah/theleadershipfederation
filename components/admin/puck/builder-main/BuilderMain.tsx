@@ -20,7 +20,7 @@ import { useCallback, useRef, useState } from "react"
 import Link from "next/link"
 import { Puck, type Data } from "@measured/puck"
 import "@measured/puck/puck.css"
-import { ArrowLeft, ExternalLink, Plus, X, Home, History, Globe, Loader2, RotateCcw, LayoutTemplate } from "lucide-react"
+import { ArrowLeft, ExternalLink, Plus, X, Home, History, Globe, Loader2, RotateCcw, LayoutTemplate, Settings } from "lucide-react"
 import { puckConfig } from "../puck-config"
 import type { BuilderMetadata } from "../blocks"
 import {
@@ -115,6 +115,21 @@ export function BuilderMain({
   const [seo, setSeo] = useState<{ title: string; description: string; ogImage: string } | null>(null)
   const [seoSaving, setSeoSaving] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
+  // Site settings — favicon + analytics + custom code (all wired to the
+  // public event page; not just stored).
+  const [showSiteSettings, setShowSiteSettings] = useState(false)
+  const [siteSettings, setSiteSettings] = useState<
+    | {
+        favicon: string
+        ga4: string
+        gtm: string
+        metaPixel: string
+        headCode: string
+        bodyCode: string
+      }
+    | null
+  >(null)
+  const [siteSettingsSaving, setSiteSettingsSaving] = useState(false)
 
   const pageList = sortPages(pages) // [slug, BuilderPage][]
 
@@ -284,6 +299,47 @@ export function BuilderMain({
     setShowSeo(false)
   }, [eventId, seo])
 
+  // Site settings — load favicon + analytics + code from builder_settings.
+  const openSiteSettings = useCallback(async () => {
+    setShowSiteSettings(true)
+    setSiteSettings(null)
+    const res = await getBuilderSettings(eventId)
+    const a = (res.settings?.analytics ?? {}) as Record<string, unknown>
+    const c = (res.settings?.code ?? {}) as Record<string, unknown>
+    const f = (res.settings?.favicon ?? {}) as Record<string, unknown>
+    setSiteSettings({
+      favicon: typeof f.url === "string" ? f.url : "",
+      ga4: typeof a.ga4 === "string" ? a.ga4 : "",
+      gtm: typeof a.gtm === "string" ? a.gtm : "",
+      metaPixel: typeof a.metaPixel === "string" ? a.metaPixel : "",
+      headCode: typeof c.headCode === "string" ? c.headCode : "",
+      bodyCode: typeof c.bodyCode === "string" ? c.bodyCode : "",
+    })
+  }, [eventId])
+
+  const saveSiteSettings = useCallback(async () => {
+    if (!siteSettings) return
+    setSiteSettingsSaving(true)
+    const [a, b, f] = await Promise.all([
+      saveBuilderSettingsGroup(eventId, "analytics", {
+        ga4: siteSettings.ga4.trim(),
+        gtm: siteSettings.gtm.trim(),
+        metaPixel: siteSettings.metaPixel.trim(),
+      }),
+      saveBuilderSettingsGroup(eventId, "code", {
+        headCode: siteSettings.headCode,
+        bodyCode: siteSettings.bodyCode,
+      }),
+      saveBuilderSettingsGroup(eventId, "favicon", { url: siteSettings.favicon.trim() }),
+    ])
+    setSiteSettingsSaving(false)
+    if (!a.success || !b.success || !f.success) {
+      alert(a.error ?? b.error ?? f.error ?? "Couldn't save all settings.")
+      return
+    }
+    setShowSiteSettings(false)
+  }, [eventId, siteSettings])
+
   // Templates — replace the active page's content with a starter layout.
   const applyTemplate = useCallback(
     (blocks: string[]) => {
@@ -358,6 +414,14 @@ export function BuilderMain({
           className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[#1d1d1f]/60 hover:text-[#1d1d1f] hover:bg-black/[0.05] transition-colors"
         >
           <Globe size={15} />
+        </button>
+        <button
+          type="button"
+          onClick={openSiteSettings}
+          title="Site settings — favicon, analytics, custom code"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[#1d1d1f]/60 hover:text-[#1d1d1f] hover:bg-black/[0.05] transition-colors"
+        >
+          <Settings size={15} />
         </button>
         {children}
       </div>
@@ -525,6 +589,117 @@ export function BuilderMain({
           )}
         </Modal>
       )}
+      {/* ── Site settings (favicon · analytics · custom code) ──────── */}
+      {showSiteSettings && (
+        <Modal title="Site settings" onClose={() => setShowSiteSettings(false)}>
+          {siteSettings === null ? (
+            <div className="py-10 flex items-center justify-center gap-2 text-[13px] text-[#1d1d1f]/45">
+              <Loader2 size={15} className="animate-spin" /> Loading…
+            </div>
+          ) : (
+            <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
+              <section>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1d1d1f]/55 mb-2">Favicon</h3>
+                <label className="block">
+                  <span className="block text-[11px] text-[#1d1d1f]/55 mb-1.5">Public URL to a .ico / .png / .svg</span>
+                  <input
+                    type="url"
+                    value={siteSettings.favicon}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, favicon: e.target.value })}
+                    placeholder="https://…/favicon.ico"
+                    className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[13px] focus:outline-none focus:border-[#0071e3]"
+                  />
+                </label>
+              </section>
+
+              <section>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1d1d1f]/55 mb-2">Analytics</h3>
+                <div className="space-y-3">
+                  <label className="block">
+                    <span className="block text-[12px] font-medium text-[#1d1d1f] mb-1">Google Analytics 4 — Measurement ID</span>
+                    <input
+                      type="text"
+                      value={siteSettings.ga4}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, ga4: e.target.value })}
+                      placeholder="G-XXXXXXXXXX"
+                      className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[13px] font-mono focus:outline-none focus:border-[#0071e3]"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="block text-[12px] font-medium text-[#1d1d1f] mb-1">Google Tag Manager — Container ID</span>
+                    <input
+                      type="text"
+                      value={siteSettings.gtm}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, gtm: e.target.value })}
+                      placeholder="GTM-XXXXXXX"
+                      className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[13px] font-mono focus:outline-none focus:border-[#0071e3]"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="block text-[12px] font-medium text-[#1d1d1f] mb-1">Meta Pixel — Pixel ID</span>
+                    <input
+                      type="text"
+                      value={siteSettings.metaPixel}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, metaPixel: e.target.value })}
+                      placeholder="1234567890123456"
+                      className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[13px] font-mono focus:outline-none focus:border-[#0071e3]"
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#1d1d1f]/55 mb-2">Custom code</h3>
+                <p className="text-[11px] text-[#1d1d1f]/55 mb-2">
+                  Paste raw JavaScript only — the builder wraps it in a script tag for you.
+                </p>
+                <div className="space-y-3">
+                  <label className="block">
+                    <span className="block text-[12px] font-medium text-[#1d1d1f] mb-1">Head code (runs early)</span>
+                    <textarea
+                      rows={4}
+                      value={siteSettings.headCode}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, headCode: e.target.value })}
+                      placeholder="// e.g. dataLayer pushes, intercom boot, …"
+                      className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[12px] font-mono focus:outline-none focus:border-[#0071e3]"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="block text-[12px] font-medium text-[#1d1d1f] mb-1">Body code (runs after page load)</span>
+                    <textarea
+                      rows={4}
+                      value={siteSettings.bodyCode}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, bodyCode: e.target.value })}
+                      placeholder="// e.g. third-party widget boot, …"
+                      className="w-full px-3 py-2 rounded-lg border border-[#e5e7eb] text-[12px] font-mono focus:outline-none focus:border-[#0071e3]"
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowSiteSettings(false)}
+                  className="px-4 h-9 rounded-lg text-[13px] font-medium text-[#1d1d1f]/65 hover:bg-black/[0.05] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveSiteSettings}
+                  disabled={siteSettingsSaving}
+                  className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg text-[13px] font-semibold bg-[#0071e3] text-white hover:bg-[#0077ed] transition-colors disabled:opacity-50"
+                >
+                  {siteSettingsSaving && <Loader2 size={13} className="animate-spin" />}
+                  Save
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
+
       {/* ── Starter templates ──────────────────────────────────────── */}
       {showTemplates && (
         <Modal title="Starter templates" onClose={() => setShowTemplates(false)}>

@@ -55,6 +55,10 @@ export type CodeSettings = {
   headCode?: string
   bodyCode?: string
 }
+export type FaviconSettings = {
+  /** Public URL to the favicon (.ico / .png / .svg). */
+  url?: string
+}
 export type AnalyticsSettings = {
   ga4?: string
   gtm?: string
@@ -117,6 +121,7 @@ export type MicrositeSettings = {
   analytics?: AnalyticsSettings
   webhooks?: WebhookSettings
   languages?: LanguageSettings
+  favicon?: FaviconSettings
   // ITEM 10
   notification?: NotificationSettings
   timeFormat?: TimeFormatSettings
@@ -157,6 +162,7 @@ export function buildSeoMetadata({
   const canonical = seo.canonical || undefined
   const allowIndex = seo.allowIndex !== false
 
+  const faviconUrl = settings.favicon?.url?.trim() || undefined
   const meta: Metadata = {
     title,
     description,
@@ -175,6 +181,7 @@ export function buildSeoMetadata({
     robots: allowIndex
       ? { index: true, follow: true }
       : { index: false, follow: false, googleBot: { index: false, follow: false } },
+    icons: faviconUrl ? { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl } : undefined,
   }
   return meta
 }

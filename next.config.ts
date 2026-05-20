@@ -21,12 +21,15 @@ const CSP_DIRECTIVES = [
   "default-src 'self'",
   // 'unsafe-inline' + 'unsafe-eval' are unfortunately still needed for Next.js's
   // inline bootstrap scripts and RSC JSON payloads. Can tighten later with nonces.
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.vercel-insights.com",
+  // Includes the hosts admins can wire on event microsites via Site
+  // Settings — Google Analytics 4, Google Tag Manager, Meta (Facebook)
+  // Pixel. The scripts only load when the admin sets the respective ID.
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.vercel-insights.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net",
   "style-src 'self' 'unsafe-inline'",
   // user-uploaded images / external news outlet logos are at arbitrary https URLs
   "img-src 'self' https: data: blob:",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.facebook.com https://*.facebook.com",
   "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com",
   "object-src 'none'",
   "form-action 'self'",
