@@ -45,9 +45,9 @@ function getDaysUntil(targetDate: string): number | null {
 
 const TYPEWRITER_TEXT = "Direct Access to "
 const TYPEWRITER_CHARS = TYPEWRITER_TEXT.length
-const CHAR_DURATION_MS = 70
+const CHAR_DURATION_MS = 26
 const TYPING_TOTAL_MS = TYPEWRITER_CHARS * CHAR_DURATION_MS
-const GOLD_DELAY_MS = TYPING_TOTAL_MS + 300
+const GOLD_DELAY_MS = TYPING_TOTAL_MS + 120
 
 export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroStats }) {
   const sectionRef = useRef<HTMLElement>(null)
@@ -115,19 +115,19 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
         }
         .hero-anim {
           opacity: 0;
-          animation: heroFadeIn 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
+          animation: heroFadeIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
         }
         .hero-anim-scale {
           opacity: 0;
-          animation: heroScaleIn 1.1s cubic-bezier(0.16,1,0.3,1) 0.15s forwards;
+          animation: heroScaleIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s forwards;
         }
         .hero-anim-badge {
           opacity: 0;
-          animation: heroBadgeIn 0.7s cubic-bezier(0.16,1,0.3,1) 0.9s forwards;
+          animation: heroBadgeIn 0.4s cubic-bezier(0.16,1,0.3,1) 0.35s forwards;
         }
         .hero-anim-edition {
           opacity: 0;
-          animation: heroEditionIn 0.6s ease 1.2s forwards;
+          animation: heroEditionIn 0.35s ease 0.5s forwards;
         }
 
         @keyframes typing {
@@ -148,9 +148,9 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
           white-space: nowrap;
           border-right: 2px solid currentColor;
           animation:
-            typing ${TYPING_TOTAL_MS}ms steps(${TYPEWRITER_CHARS}, end) 0.4s forwards,
-            blink-caret 0.6s step-end 6,
-            hide-caret 0s ${GOLD_DELAY_MS + 200}ms forwards;
+            typing ${TYPING_TOTAL_MS}ms steps(${TYPEWRITER_CHARS}, end) 0.12s forwards,
+            blink-caret 0.5s step-end 3,
+            hide-caret 0s ${GOLD_DELAY_MS + 100}ms forwards;
         }
         @keyframes goldReveal {
           from { opacity: 0; transform: translateY(12px); }
@@ -159,7 +159,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
         .hero-gold-words {
           opacity: 0;
           display: inline-block;
-          animation: goldReveal 0.7s cubic-bezier(0.16,1,0.3,1) ${GOLD_DELAY_MS}ms forwards;
+          animation: goldReveal 0.4s cubic-bezier(0.16,1,0.3,1) ${GOLD_DELAY_MS}ms forwards;
         }
 
         /* Subtle glow behind stats on appear */
@@ -182,7 +182,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             {/* Live event badge — glass pill */}
             <div
               className="hero-anim lf-glass inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 self-start"
-              style={{ animationDelay: "0.1s" }}
+              style={{ animationDelay: "0.02s" }}
             >
               <span className="relative flex w-1.5 h-1.5">
                 <span className="absolute inset-0 rounded-full bg-[#0071e3] animate-ping opacity-75" />
@@ -215,7 +215,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             {/* Subtext */}
             <p
               className="hero-anim max-w-[420px] text-[#1d1d1f]/70 leading-[1.75] text-[15px]"
-              style={{ animationDelay: "0.2s", ...sfText }}
+              style={{ animationDelay: "0.08s", ...sfText }}
             >
               Connecting GCC leaders, CXOs, and decision-makers through
               high-value conversations, strategic partnerships, and curated access.
@@ -224,7 +224,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             {/* CTAs */}
             <div
               className="hero-anim mt-9 flex flex-wrap items-center gap-4"
-              style={{ animationDelay: "0.35s" }}
+              style={{ animationDelay: "0.14s" }}
             >
               <MagneticButton>
                 <Link
@@ -248,7 +248,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             {/* Member-avatar social proof — real board photos */}
             <div
               className="hero-anim mt-8 inline-flex items-center gap-3.5 self-start"
-              style={{ animationDelay: "0.42s" }}
+              style={{ animationDelay: "0.2s" }}
             >
               <div className="flex -space-x-2.5">
                 {[
@@ -291,7 +291,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             {/* Quiet pull quote — glass pill */}
             <div
               className="hero-anim mt-8 lf-glass relative rounded-2xl px-5 py-4 max-w-[420px] self-start"
-              style={{ animationDelay: "0.48s" }}
+              style={{ animationDelay: "0.24s" }}
             >
               <span
                 aria-hidden
@@ -310,7 +310,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
             {/* Stats — liquid-glass strip */}
             <div
               className="hero-anim mt-12 inline-grid grid-cols-3 gap-px lf-glass rounded-2xl overflow-hidden self-start"
-              style={{ animationDelay: "0.5s" }}
+              style={{ animationDelay: "0.28s" }}
             >
               {statItems.map(({ value, suffix, label }, i) => (
                 <div key={label} className="px-5 sm:px-7 py-4 text-center">
@@ -363,7 +363,7 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
                 {/* Floating "Featured In" glass chip — top-right */}
                 <div
                   className="hero-anim-badge absolute top-4 right-4 lf-glass-dark rounded-2xl px-3.5 py-2 max-w-[180px]"
-                  style={{ animationDelay: "1.4s" }}
+                  style={{ animationDelay: "0.5s" }}
                 >
                   <p className="text-[8.5px] font-bold uppercase tracking-[0.18em] text-[#4c9df2] mb-0.5">
                     As Featured In
