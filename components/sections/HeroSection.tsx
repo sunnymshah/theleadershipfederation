@@ -297,6 +297,19 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
                     500+ Leaders
                   </span>
                 </div>
+
+                {/* Floating "Featured In" glass chip — top-right */}
+                <div
+                  className="hero-anim-badge absolute top-4 right-4 lf-glass-dark rounded-2xl px-3.5 py-2 max-w-[180px]"
+                  style={{ animationDelay: "1.4s" }}
+                >
+                  <p className="text-[8.5px] font-bold uppercase tracking-[0.18em] text-[#4c9df2] mb-0.5">
+                    As Featured In
+                  </p>
+                  <p className="text-[10.5px] font-semibold text-white leading-tight tracking-[-0.01em]">
+                    Business Standard · The Tribune · ANI
+                  </p>
+                </div>
               </div>
 
               {/* Next event floating card — liquid glass */}

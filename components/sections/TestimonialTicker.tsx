@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
+import { Star } from "lucide-react"
 
 const sfDisplay = {
   fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
@@ -75,6 +76,17 @@ export function TestimonialTicker({ testimonials: propTestimonials }: Testimonia
           <span className="text-[11px] tracking-[0.25em] uppercase text-[#0071e3] font-semibold">
             What Leaders Say
           </span>
+          {/* Liquid-glass rating chip */}
+          <div className="mt-5 inline-flex items-center gap-2 lf-glass rounded-full px-4 py-1.5">
+            <div className="flex gap-0.5">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Star key={i} size={11} fill="#0071e3" className="text-[#0071e3]" />
+              ))}
+            </div>
+            <span className="text-[10.5px] font-bold text-[#1d1d1f]/70 tracking-[0.14em] uppercase">
+              From the Room
+            </span>
+          </div>
         </div>
 
         {/* Quote card */}
