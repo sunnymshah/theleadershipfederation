@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Sparkles, Star } from "lucide-react"
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
 import { MagneticButton } from "@/components/ui/MagneticButton"
 
@@ -179,13 +179,17 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
 
           {/* LEFT — Copy (7 cols) */}
           <div className="lg:col-span-7 order-2 lg:order-1 flex flex-col justify-center">
-            {/* Live event badge */}
+            {/* Live event badge — glass pill */}
             <div
-              className="hero-anim inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0071e3]/[0.08] border border-[#0071e3]/[0.12] mb-8 self-start"
+              className="hero-anim lf-glass inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 self-start"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0071e3] animate-pulse" />
-              <span className="text-[10px] font-bold text-[#0071e3] tracking-[0.08em] uppercase" style={sfText}>
+              <span className="relative flex w-1.5 h-1.5">
+                <span className="absolute inset-0 rounded-full bg-[#0071e3] animate-ping opacity-75" />
+                <span className="relative w-1.5 h-1.5 rounded-full bg-[#0071e3]" />
+              </span>
+              <Sparkles size={11} className="text-[#0071e3]" />
+              <span className="text-[10px] font-bold text-[#0071e3] tracking-[0.1em] uppercase" style={sfText}>
                 {event
                   ? `${event.title} — ${fmtDateRange(event.start_date, event.end_date)}${event.venue ? `, ${event.venue}` : ""}`
                   : "Explore Upcoming Events"}
@@ -241,20 +245,17 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
               </MagneticButton>
             </div>
 
-            {/* Stats bar */}
+            {/* Stats — liquid-glass strip */}
             <div
-              className="hero-anim mt-12 flex items-center"
+              className="hero-anim mt-12 inline-grid grid-cols-3 gap-px lf-glass rounded-2xl overflow-hidden self-start"
               style={{ animationDelay: "0.5s" }}
             >
               {statItems.map(({ value, suffix, label }, i) => (
-                <div key={label} className="flex items-center">
-                  {i > 0 && <div className="w-px h-8 bg-[#1d1d1f]/[0.06] mx-6 sm:mx-8" />}
-                  <div>
-                    <div className="text-[22px] sm:text-[28px] font-bold text-[#1d1d1f] tracking-tight leading-none" style={sfDisplay}>
-                      <AnimatedCounter value={value} suffix={suffix} duration={2200 + i * 300} />
-                    </div>
-                    <div className="text-[9px] sm:text-[10px] text-[#1d1d1f]/55 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
+                <div key={label} className="px-5 sm:px-7 py-4 text-center">
+                  <div className="text-[22px] sm:text-[28px] font-bold text-[#1d1d1f] tracking-tight leading-none" style={sfDisplay}>
+                    <AnimatedCounter value={value} suffix={suffix} duration={2200 + i * 300} />
                   </div>
+                  <div className="text-[9px] sm:text-[10px] text-[#1d1d1f]/55 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
                 </div>
               ))}
             </div>
@@ -284,11 +285,23 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
                 {/* Gradient overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1d1d1f]/40 via-transparent to-[#1d1d1f]/5" />
                 <div className="absolute inset-0 bg-gradient-to-r from-[#f5f5f7]/20 via-transparent to-transparent lg:from-[#f5f5f7]/30" />
+
+                {/* Floating glass "trust" chip — top-left */}
+                <div className="hero-anim-badge absolute top-4 left-4 lf-glass-dark rounded-full px-3.5 py-1.5 inline-flex items-center gap-1.5">
+                  <div className="flex gap-0.5">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <Star key={i} size={9} fill="#4c9df2" className="text-[#4c9df2]" />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+                    500+ Leaders
+                  </span>
+                </div>
               </div>
 
-              {/* Next event floating card */}
+              {/* Next event floating card — liquid glass */}
               {event && (
-                <Link href={`/events/${event.slug}`} className="hero-anim-badge absolute -bottom-5 -left-4 sm:-left-6 bg-white/95 backdrop-blur-2xl rounded-2xl px-5 py-4 shadow-[0_12px_40px_rgba(26, 26, 46,0.08)] border border-[#1d1d1f]/[0.04] hover:shadow-[0_16px_50px_rgba(26, 26, 46,0.12)] transition-shadow">
+                <Link href={`/events/${event.slug}`} className="hero-anim-badge lf-glass-strong absolute -bottom-5 -left-4 sm:-left-6 rounded-2xl px-5 py-4 transition-transform duration-300 hover:-translate-y-1">
                   <div className="text-[9px] text-[#0071e3] uppercase tracking-[0.14em] font-bold mb-1.5" style={sfText}>Next Event</div>
                   <div className="text-[15px] font-bold text-[#1d1d1f] leading-tight" style={sfDisplay}>{event.title}</div>
                   <div className="text-[12px] text-[#1d1d1f]/65 mt-0.5" style={sfText}>
