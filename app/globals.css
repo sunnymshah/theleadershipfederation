@@ -343,6 +343,37 @@ html pre[style] {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
 }
 
+/* ── DISPLAY SERIF for the big marketing headlines ───────────────────
+ * The single most effective move away from a "generic AI sans template":
+ * the large display headlines (h1 / h2, and anything tagged .lf-display)
+ * switch to Fraunces — a high-contrast, high-character editorial serif —
+ * while body, labels and UI stay on tight Montserrat. The scale +
+ * texture contrast between the two is the whole point.
+ *
+ * Placed AFTER the Montserrat-everywhere block so it wins by source order
+ * at equal specificity. Scoped to .lf-clean (public marketing site) so
+ * the admin console stays fully Montserrat. `optical-sizing: auto` lets
+ * Fraunces refine its contrast at large display sizes. h3–h6 deliberately
+ * stay Montserrat to preserve the scale contrast. */
+html .lf-clean h1,
+html .lf-clean h2,
+html .lf-clean h1[style],
+html .lf-clean h2[style],
+html .lf-clean .lf-display,
+html .lf-clean .lf-display[style] {
+  font-family: var(--font-fraunces), "Fraunces", "Playfair Display", Georgia, "Times New Roman", serif !important;
+  font-optical-sizing: auto;
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.02;
+}
+/* Pull the heading wrapping tighter so the serif sits like an editorial
+ * masthead, not a run-on sentence. */
+html .lf-clean h1,
+html .lf-clean h2 {
+  text-wrap: balance;
+}
+
 /* Text-gradient headlines lose their visual treatment once backgrounds
  * are stripped — restore them as solid navy for legibility. */
 .lf-clean :where([class*="bg-clip-text"][class*="text-transparent"]) {

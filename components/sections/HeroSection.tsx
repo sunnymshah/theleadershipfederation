@@ -196,13 +196,11 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
               </span>
             </div>
 
-            {/* Headline */}
+            {/* Headline — display serif, oversized for extreme scale contrast */}
             <h1
-              className="leading-[0.92] tracking-[-0.035em] text-[#1d1d1f] mb-7"
+              className="leading-[0.96] tracking-[-0.03em] text-[#1d1d1f] mb-7"
               style={{
-                fontSize: "clamp(2.6rem, 5vw, 4.5rem)",
-                fontWeight: 700,
-                ...sfDisplay,
+                fontSize: "clamp(2.9rem, 6vw, 5.4rem)",
               }}
             >
               <span className="hero-typewriter">Direct Access to&nbsp;</span>
