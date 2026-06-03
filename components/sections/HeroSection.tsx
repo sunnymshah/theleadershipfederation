@@ -3,8 +3,16 @@
 import { useRef, useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, ArrowUpRight } from "lucide-react"
+import { ArrowRight, Sparkles, Star } from "lucide-react"
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter"
+import { MagneticButton } from "@/components/ui/MagneticButton"
+
+const sfDisplay = {
+  fontFamily: "-apple-system, 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif",
+}
+const sfText = {
+  fontFamily: "-apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif",
+}
 
 export interface HeroEvent {
   title: string
@@ -35,16 +43,12 @@ function getDaysUntil(targetDate: string): number | null {
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
 }
 
-/**
- * Editorial hero — magazine-masthead composition.
- *
- * Deliberately NOT the centred text-left / image-card-right template:
- *   • a thin masthead kicker rule across the top,
- *   • a colossal Fraunces serif headline that owns the left two-thirds,
- *   • a tall photograph that bleeds off the right edge,
- *   • an oversized editorial stat baseline with serif numerals.
- * Restrained: white surface, one blue accent, generous negative space.
- */
+const TYPEWRITER_TEXT = "Direct Access to "
+const TYPEWRITER_CHARS = TYPEWRITER_TEXT.length
+const CHAR_DURATION_MS = 26
+const TYPING_TOTAL_MS = TYPEWRITER_CHARS * CHAR_DURATION_MS
+const GOLD_DELAY_MS = TYPING_TOTAL_MS + 120
+
 export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroStats }) {
   const sectionRef = useRef<HTMLElement>(null)
   const [imageOffset, setImageOffset] = useState(0)
@@ -53,9 +57,15 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
   useEffect(() => {
     if (!event?.start_date) return
     setDaysLeft(getDaysUntil(event.start_date))
-    const id = setInterval(() => setDaysLeft(getDaysUntil(event.start_date)), 60_000)
-    return () => clearInterval(id)
+    const interval = setInterval(() => setDaysLeft(getDaysUntil(event.start_date)), 60_000)
+    return () => clearInterval(interval)
   }, [event?.start_date])
+
+  const statItems = [
+    { value: Math.max(stats?.events ?? 0, 50), suffix: "+", label: "Events" },
+    { value: Math.max(stats?.speakers ?? 0, 500), suffix: "+", label: "Speakers" },
+    { value: 30, suffix: "+", label: "Countries" },
+  ]
 
   useEffect(() => {
     const section = sectionRef.current
@@ -66,9 +76,10 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
       ticking = true
       requestAnimationFrame(() => {
         const rect = section!.getBoundingClientRect()
-        const h = section!.offsetHeight
+        const sectionH = section!.offsetHeight
         if (rect.bottom > 0 && rect.top < window.innerHeight) {
-          setImageOffset(Math.min(1, Math.max(0, -rect.top / h)))
+          const progress = Math.min(1, Math.max(0, -rect.top / sectionH))
+          setImageOffset(progress)
         }
         ticking = false
       })
@@ -77,238 +88,320 @@ export function HeroSection({ event, stats }: { event?: HeroEvent; stats?: HeroS
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  const imageY = imageOffset * 50
-
-  const statItems = [
-    { value: Math.max(stats?.events ?? 0, 50), suffix: "+", label: "Flagship Events" },
-    { value: Math.max(stats?.speakers ?? 0, 500), suffix: "+", label: "Leaders Convened" },
-    { value: 30, suffix: "+", label: "Countries" },
-    { value: 2016, suffix: "", label: "Established", plain: true },
-  ]
-
-  const avatars = [
-    "/people/mohammed-al-mashroom.png",
-    "/people/ajai-lal.png",
-    "/people/robin-arthur-joffe.png",
-    "/people/srinivas-sampath.png",
-  ]
+  const imageY = imageOffset * 60
+  const imageScale = 1 + imageOffset * 0.04
 
   return (
-    <section ref={sectionRef} className="relative bg-white overflow-hidden">
-      {/* faint editorial wash, top-right */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(50% 48% at 88% 6%, rgba(0,113,227,0.08) 0%, transparent 66%)",
-        }}
-      />
-
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-white"
+    >
       <style jsx>{`
-        @keyframes hRise {
-          from { opacity: 0; transform: translateY(22px); }
+        @keyframes heroFadeIn {
+          from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes hImg {
-          from { opacity: 0; transform: scale(1.05); }
+        @keyframes heroScaleIn {
+          from { opacity: 0; transform: scale(0.94); }
           to   { opacity: 1; transform: scale(1); }
         }
-        @keyframes hLine {
-          from { transform: scaleX(0); }
-          to   { transform: scaleX(1); }
+        @keyframes heroBadgeIn {
+          from { opacity: 0; transform: translateY(16px) scale(0.95); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .h-rise { opacity: 0; animation: hRise 0.7s cubic-bezier(0.16,1,0.3,1) both; }
-        .h-img  { opacity: 0; animation: hImg 0.9s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
-        .h-line {
-          transform-origin: left;
-          animation: hLine 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+        @keyframes heroEditionIn {
+          from { opacity: 0; transform: scale(0.8) rotate(6deg); }
+          to   { opacity: 1; transform: scale(1) rotate(6deg); }
+        }
+        .hero-anim {
+          opacity: 0;
+          animation: heroFadeIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        .hero-anim-scale {
+          opacity: 0;
+          animation: heroScaleIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s forwards;
+        }
+        .hero-anim-badge {
+          opacity: 0;
+          animation: heroBadgeIn 0.4s cubic-bezier(0.16,1,0.3,1) 0.35s forwards;
+        }
+        .hero-anim-edition {
+          opacity: 0;
+          animation: heroEditionIn 0.35s ease 0.5s forwards;
+        }
+
+        @keyframes typing {
+          from { max-width: 0; }
+          to   { max-width: ${TYPEWRITER_CHARS + 1}ch; }
+        }
+        @keyframes blink-caret {
+          from, to { border-color: currentColor; }
+          50%      { border-color: transparent; }
+        }
+        @keyframes hide-caret {
+          to { border-color: transparent; }
+        }
+        .hero-typewriter {
+          display: inline-block;
+          max-width: 0;
+          overflow: hidden;
+          white-space: nowrap;
+          border-right: 2px solid currentColor;
+          animation:
+            typing ${TYPING_TOTAL_MS}ms steps(${TYPEWRITER_CHARS}, end) 0.12s forwards,
+            blink-caret 0.5s step-end 3,
+            hide-caret 0s ${GOLD_DELAY_MS + 100}ms forwards;
+        }
+        @keyframes goldReveal {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-gold-words {
+          opacity: 0;
+          display: inline-block;
+          animation: goldReveal 0.4s cubic-bezier(0.16,1,0.3,1) ${GOLD_DELAY_MS}ms forwards;
+        }
+
+        /* Subtle glow behind stats on appear */
+        @keyframes statLine {
+          from { width: 0; }
+          to   { width: 100%; }
+        }
+        .stat-line {
+          animation: statLine 0.6s ease 2s forwards;
+          width: 0;
         }
       `}</style>
 
-      <div className="relative z-10 max-w-[1340px] mx-auto px-6 sm:px-10 lg:px-16 pt-28 lg:pt-32">
-        {/* ── Masthead kicker rule ───────────────────────────────── */}
-        <div className="h-rise flex items-center justify-between gap-4 flex-wrap pb-6">
-          <div className="inline-flex items-center gap-2.5">
-            <span className="relative flex w-2 h-2">
-              <span className="absolute inset-0 rounded-full bg-[#0071e3] animate-ping opacity-70" />
-              <span className="relative w-2 h-2 rounded-full bg-[#0071e3]" />
-            </span>
-            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#1d1d1f]/70">
-              {event
-                ? `Now registering — ${event.title}`
-                : "The Global Leadership Platform"}
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-6 text-[10.5px] font-bold uppercase tracking-[0.18em] text-[#1d1d1f]/40">
-            <span>Est. 2016</span>
-            <span className="w-1 h-1 rounded-full bg-[#1d1d1f]/20" />
-            <span>30+ Countries</span>
-            <span className="w-1 h-1 rounded-full bg-[#1d1d1f]/20" />
-            <span>500+ Leaders</span>
-          </div>
-        </div>
-        <div className="h-line h-px bg-[#1d1d1f]/10" />
+      {/* Content — z-10 to sit above patterns but below navbar (z-50) */}
+      <div className="relative z-10 max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 pt-16 lg:pt-20 pb-10 lg:pb-14">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center min-h-[600px] lg:min-h-[640px]">
 
-        {/* ── Headline + image, asymmetric ───────────────────────── */}
-        <div className="grid lg:grid-cols-12 gap-y-10 lg:gap-x-8 pt-10 lg:pt-12 items-stretch">
-          {/* Left — colossal serif headline */}
-          <div className="lg:col-span-7 flex flex-col justify-center lg:pr-4 lg:pb-12">
+          {/* LEFT — Copy (7 cols) */}
+          <div className="lg:col-span-7 order-2 lg:order-1 flex flex-col justify-center">
+            {/* Live event badge — glass pill */}
+            <div
+              className="hero-anim lf-glass inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 self-start"
+              style={{ animationDelay: "0.02s" }}
+            >
+              <span className="relative flex w-1.5 h-1.5">
+                <span className="absolute inset-0 rounded-full bg-[#0071e3] animate-ping opacity-75" />
+                <span className="relative w-1.5 h-1.5 rounded-full bg-[#0071e3]" />
+              </span>
+              <Sparkles size={11} className="text-[#0071e3]" />
+              <span className="text-[10px] font-bold text-[#0071e3] tracking-[0.1em] uppercase" style={sfText}>
+                {event
+                  ? `${event.title} — ${fmtDateRange(event.start_date, event.end_date)}${event.venue ? `, ${event.venue}` : ""}`
+                  : "Explore Upcoming Events"}
+              </span>
+            </div>
+
+            {/* Headline — display serif, oversized for extreme scale contrast */}
             <h1
-              className="h-rise text-[#1d1d1f]"
+              className="leading-[0.96] tracking-[-0.03em] text-[#1d1d1f] mb-7"
               style={{
-                fontSize: "clamp(3.1rem, 7.6vw, 7rem)",
-                lineHeight: 0.94,
-                letterSpacing: "-0.035em",
-                animationDelay: "0.08s",
+                fontSize: "clamp(2.9rem, 6vw, 5.4rem)",
               }}
             >
-              Direct access
-              <br />
-              to{" "}
-              <span className="italic text-[#0071e3]">global</span>
+              <span className="hero-typewriter">Direct Access to&nbsp;</span>
               <br className="hidden sm:block" />
-              <span className="italic text-[#0071e3]">leaders</span>
-              <span className="text-[#0071e3]">.</span>
+              <span className="hero-gold-words text-[#0071e3]">
+                Global Leaders
+              </span>
             </h1>
 
+            {/* Subtext */}
             <p
-              className="h-rise mt-8 max-w-[440px] text-[15px] sm:text-[16px] leading-[1.75] text-[#1d1d1f]/60"
-              style={{ animationDelay: "0.16s" }}
+              className="hero-anim max-w-[420px] text-[#1d1d1f]/70 leading-[1.75] text-[15px]"
+              style={{ animationDelay: "0.08s", ...sfText }}
             >
-              We convene the CXOs, founders and policymakers shaping global
-              enterprise — through conclaves, awards and private circles across
-              30+ countries.
+              Connecting GCC leaders, CXOs, and decision-makers through
+              high-value conversations, strategic partnerships, and curated access.
             </p>
 
+            {/* CTAs */}
             <div
-              className="h-rise mt-8 flex flex-wrap items-center gap-3"
-              style={{ animationDelay: "0.24s" }}
+              className="hero-anim mt-9 flex flex-wrap items-center gap-4"
+              style={{ animationDelay: "0.14s" }}
             >
-              <Link
-                href="/events"
-                className="group inline-flex items-center gap-2.5 px-8 py-[15px] rounded-full font-bold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 shadow-[0_16px_38px_-12px_rgba(0,113,227,0.7)]"
-              >
-                Explore Events
-                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-              <Link
-                href="/inner-circle"
-                className="lf-glass inline-flex items-center gap-1.5 px-7 py-[14px] rounded-full text-[14px] font-bold text-[#1d1d1f] transition-all duration-200"
-              >
-                Join the Inner Circle
-                <ArrowUpRight size={15} className="text-[#0071e3]" />
-              </Link>
+              <MagneticButton>
+                <Link
+                  href="/events"
+                  className="group inline-flex items-center gap-2.5 px-8 py-[14px] rounded-full font-semibold text-[14px] text-white bg-[#0071e3] hover:bg-[#0077ed] transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-[0_4px_24px_rgba(0,113,227,0.25)]"
+                >
+                  Explore Events
+                  <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+              </MagneticButton>
+              <MagneticButton>
+                <Link
+                  href="/inner-circle"
+                  className="lf-glass inline-flex items-center gap-2 px-7 py-[13px] rounded-full text-[14px] font-semibold text-[#1d1d1f] hover:text-[#1d1d1f] transition-all duration-200"
+                >
+                  Join Inner Circle
+                </Link>
+              </MagneticButton>
             </div>
 
-            {/* social proof — clean single line */}
+            {/* Member-avatar social proof — real board photos */}
             <div
-              className="h-rise mt-9 flex items-center gap-3.5"
-              style={{ animationDelay: "0.3s" }}
+              className="hero-anim mt-8 inline-flex items-center gap-3.5 self-start"
+              style={{ animationDelay: "0.2s" }}
             >
               <div className="flex -space-x-2.5">
-                {avatars.map((src, i) => (
-                  <span
+                {[
+                  "/people/mohammed-al-mashroom.png",
+                  "/people/ajai-lal.png",
+                  "/people/robin-arthur-joffe.png",
+                  "/people/srinivas-sampath.png",
+                  "/people/rajesh-puneyani.png",
+                ].map((src, i) => (
+                  <div
                     key={src}
-                    className="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white bg-[#0071e3]/10"
+                    className="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-sm bg-[#0071e3]/[0.1]"
                     style={{ zIndex: 10 - i }}
                   >
-                    <Image src={src} alt="" fill sizes="36px" className="object-cover" />
-                  </span>
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="36px"
+                      className="object-cover"
+                    />
+                  </div>
                 ))}
-                <span className="relative w-9 h-9 rounded-full ring-2 ring-white bg-[#0071e3] flex items-center justify-center">
-                  <span className="text-[9px] font-bold text-white tabular-nums">+500</span>
-                </span>
+                <div className="relative w-9 h-9 rounded-full ring-2 ring-white bg-[#0071e3] flex items-center justify-center shadow-[0_6px_16px_-4px_rgba(0,113,227,0.55)]">
+                  <span className="text-[9px] font-bold text-white tabular-nums tracking-tight">
+                    +500
+                  </span>
+                </div>
               </div>
-              <p className="text-[12.5px] text-[#1d1d1f]/55 leading-tight max-w-[180px]">
-                The leaders who move enterprise are already in the room.
+              <div>
+                <p className="text-[12.5px] font-bold text-[#1d1d1f] tracking-[-0.01em] leading-tight">
+                  Leaders already in the room
+                </p>
+                <p className="text-[11px] text-[#1d1d1f]/55 mt-0.5">
+                  CXOs · founders · policymakers, 30+ countries
+                </p>
+              </div>
+            </div>
+
+            {/* Quiet pull quote — glass pill */}
+            <div
+              className="hero-anim mt-8 lf-glass relative rounded-2xl px-5 py-4 max-w-[420px] self-start"
+              style={{ animationDelay: "0.24s" }}
+            >
+              <span
+                aria-hidden
+                className="absolute -top-3 left-4 text-[40px] leading-none font-serif text-[#0071e3]/40 select-none"
+              >
+                &ldquo;
+              </span>
+              <p className="text-[13.5px] text-[#1d1d1f]/80 italic leading-[1.55]">
+                The most substantive room I sit in all year.
               </p>
+              <p className="mt-2 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#0071e3]">
+                — Chairman &amp; MD · Tier-1 GCC
+              </p>
+            </div>
+
+            {/* Stats — liquid-glass strip */}
+            <div
+              className="hero-anim mt-12 inline-grid grid-cols-3 gap-px lf-glass rounded-2xl overflow-hidden self-start"
+              style={{ animationDelay: "0.28s" }}
+            >
+              {statItems.map(({ value, suffix, label }, i) => (
+                <div key={label} className="px-5 sm:px-7 py-4 text-center">
+                  <div className="text-[22px] sm:text-[28px] font-bold text-[#1d1d1f] tracking-tight leading-none" style={sfDisplay}>
+                    <AnimatedCounter value={value} suffix={suffix} duration={2200 + i * 300} />
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-[#1d1d1f]/55 tracking-[0.12em] uppercase font-semibold mt-1.5" style={sfText}>{label}</div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right — tall photograph, bleeds off the right edge */}
-          <div className="lg:col-span-5 relative">
-            <div className="h-img relative h-[380px] sm:h-[460px] lg:h-[600px] lg:-mr-16 xl:-mr-24 rounded-[26px] lg:rounded-l-[26px] lg:rounded-r-none overflow-hidden bg-[#0a0a14] shadow-[0_40px_90px_-40px_rgba(10,10,20,0.45)]">
-              <div
-                className="absolute inset-0 will-change-transform"
-                style={{ transform: `translateY(${imageY}px) scale(1.06)` }}
-              >
-                <Image
-                  src="/hero-speaker.jpg"
-                  alt="A leader on stage at a Leadership Federation conclave"
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  className="object-cover"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/70 via-transparent to-transparent" />
-
-              {/* Next-event glass ribbon — the one overlay element */}
-              {event && (
-                <Link
-                  href={`/events/${event.slug}`}
-                  className="lf-glass-panel group absolute bottom-4 left-4 right-4 rounded-2xl px-5 py-4 flex items-center gap-4 transition-transform duration-300 hover:-translate-y-1"
+          {/* RIGHT — Image (5 cols) */}
+          <div className="hero-anim-scale lg:col-span-5 order-1 lg:order-2 flex items-center justify-center lg:justify-end">
+            <div className="relative w-full max-w-[420px] lg:max-w-none">
+              {/* Main photo */}
+              <div className="relative w-full aspect-[3/4] rounded-[28px] overflow-hidden shadow-[0_32px_80px_rgba(26, 26, 46,0.12)]">
+                <div
+                  className="w-full h-full"
+                  style={{
+                    transform: `translateY(${imageY}px) scale(${imageScale})`,
+                    willChange: "transform",
+                  }}
                 >
+                  <Image
+                    src="/hero-speaker.jpg"
+                    alt="Speaker on stage at a Leadership Federation event"
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="(max-width: 1024px) 90vw, 40vw"
+                  />
+                </div>
+                {/* Gradient overlays */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1d1d1f]/40 via-transparent to-[#1d1d1f]/5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#f5f5f7]/20 via-transparent to-transparent lg:from-[#f5f5f7]/30" />
+
+                {/* Floating glass "trust" chip — top-left */}
+                <div className="hero-anim-badge absolute top-4 left-4 lf-glass-dark rounded-full px-3.5 py-1.5 inline-flex items-center gap-1.5">
+                  <div className="flex gap-0.5">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <Star key={i} size={9} fill="#4c9df2" className="text-[#4c9df2]" />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+                    500+ Leaders
+                  </span>
+                </div>
+
+                {/* Floating "Featured In" glass chip — top-right */}
+                <div
+                  className="hero-anim-badge absolute top-4 right-4 lf-glass-dark rounded-2xl px-3.5 py-2 max-w-[180px]"
+                  style={{ animationDelay: "0.5s" }}
+                >
+                  <p className="text-[8.5px] font-bold uppercase tracking-[0.18em] text-[#4c9df2] mb-0.5">
+                    As Featured In
+                  </p>
+                  <p className="text-[10.5px] font-semibold text-white leading-tight tracking-[-0.01em]">
+                    Business Standard · The Tribune · ANI
+                  </p>
+                </div>
+              </div>
+
+              {/* Next event floating card — liquid glass */}
+              {event && (
+                <Link href={`/events/${event.slug}`} className="hero-anim-badge lf-glass-strong absolute -bottom-5 -left-4 sm:-left-6 rounded-2xl px-5 py-4 transition-transform duration-300 hover:-translate-y-1">
+                  <div className="text-[9px] text-[#0071e3] uppercase tracking-[0.14em] font-bold mb-1.5" style={sfText}>Next Event</div>
+                  <div className="text-[15px] font-bold text-[#1d1d1f] leading-tight" style={sfDisplay}>{event.title}</div>
+                  <div className="text-[12px] text-[#1d1d1f]/65 mt-0.5" style={sfText}>
+                    {fmtDateRange(event.start_date, event.end_date)}{event.venue ? ` · ${event.venue}` : ""}
+                  </div>
                   {daysLeft !== null && (
-                    <div className="shrink-0 text-center">
-                      <div className="text-[26px] font-bold text-white leading-none tabular-nums">
-                        {daysLeft}
-                      </div>
-                      <div className="text-[8.5px] font-bold uppercase tracking-[0.14em] text-white/55 mt-0.5">
-                        Days
-                      </div>
+                    <div className="text-[11px] font-bold text-[#0071e3] mt-1.5" style={sfText}>
+                      {daysLeft} day{daysLeft !== 1 ? "s" : ""} to go
                     </div>
                   )}
-                  <div className="w-px self-stretch bg-white/15" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[8.5px] font-bold uppercase tracking-[0.16em] text-[#4c9df2] mb-1">
-                      Next Event
-                    </div>
-                    <div className="text-[13.5px] font-bold text-white leading-tight truncate">
-                      {event.title}
-                    </div>
-                    <div className="text-[11.5px] text-white/60 mt-0.5 truncate">
-                      {fmtDateRange(event.start_date, event.end_date)}
-                      {event.venue ? ` · ${event.venue}` : ""}
-                    </div>
-                  </div>
-                  <ArrowUpRight size={18} className="shrink-0 text-white/70 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </Link>
+              )}
+
+              {/* Countdown badge — inset inside image */}
+              {event && daysLeft !== null && (
+                <div className="hero-anim-edition absolute top-4 right-4 w-14 h-14 bg-[#0071e3] rounded-xl flex flex-col items-center justify-center shadow-[0_8px_20px_rgba(0,113,227,0.35)]">
+                  <span className="text-[17px] font-bold text-white leading-none tabular-nums">{daysLeft}</span>
+                  <span className="text-[7px] text-white/70 uppercase tracking-wider font-semibold">Days</span>
+                </div>
               )}
             </div>
           </div>
         </div>
-
-        {/* ── Editorial stat baseline ────────────────────────────── */}
-        <div className="h-line mt-12 lg:mt-4 h-px bg-[#1d1d1f]/10" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 pt-8 pb-16 lg:pb-20">
-          {statItems.map((s, i) => (
-            <div
-              key={s.label}
-              className={
-                "h-rise px-1 lg:px-6 py-2 " +
-                (i > 0 ? "lg:border-l border-[#1d1d1f]/10 " : "") +
-                (i < 2 ? "mb-6 lg:mb-0 " : "")
-              }
-              style={{ animationDelay: `${0.32 + i * 0.06}s` }}
-            >
-              <div
-                className="lf-display text-[#1d1d1f] leading-none"
-                style={{ fontSize: "clamp(2.6rem, 4vw, 3.6rem)", letterSpacing: "-0.03em" }}
-              >
-                {s.plain ? (
-                  <span className="tabular-nums">{s.value}</span>
-                ) : (
-                  <AnimatedCounter value={s.value} suffix={s.suffix} duration={1800 + i * 250} />
-                )}
-              </div>
-              <div className="mt-2.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#1d1d1f]/45">
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
+
+      {/* Bottom fade into next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#f5f5f7] to-transparent z-10 pointer-events-none" />
     </section>
   )
 }
