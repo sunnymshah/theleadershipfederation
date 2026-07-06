@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Globe, ExternalLink, AtSign, Play, Mail, Phone } from "lucide-react"
+import { Mail, Phone } from "lucide-react"
+import { Linkedin, Twitter, Instagram, Youtube } from "@/components/icons/SocialIcons"
 import { FooterNewsletterForm } from "./FooterNewsletterForm"
 
 const footerLinks = {
@@ -30,11 +31,15 @@ const footerLinks = {
   ],
 }
 
+// Real brand icons from lucide-react — was Globe/AtSign/ExternalLink/Play
+// which rendered as generic shapes and looked broken.
+// Note: the URLs below are best-guess handles. Confirm + update them
+// (and add Facebook if applicable) once you have the canonical accounts.
 const socials = [
-  { icon: Globe, href: "https://linkedin.com/company/theleadershipfederation", label: "LinkedIn" },
-  { icon: AtSign, href: "https://twitter.com/leadershipfed", label: "Twitter" },
-  { icon: ExternalLink, href: "https://instagram.com/theleadershipfederation", label: "Instagram" },
-  { icon: Play, href: "https://youtube.com/@theleadershipfederation", label: "YouTube" },
+  { icon: Linkedin,  href: "https://linkedin.com/company/theleadershipfederation", label: "LinkedIn" },
+  { icon: Twitter,   href: "https://twitter.com/leadershipfed",                    label: "X / Twitter" },
+  { icon: Instagram, href: "https://instagram.com/theleadershipfederation",        label: "Instagram" },
+  { icon: Youtube,   href: "https://youtube.com/@theleadershipfederation",         label: "YouTube" },
 ]
 
 export function Footer() {
@@ -133,11 +138,11 @@ export function Footer() {
             register@theleadershipfederation.com
           </a>
           <a
-            href="tel:+917227993338"
+            href="tel:+919909249566"
             className="lf-glass-pill inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-medium text-white/80 hover:text-white transition-colors"
           >
             <Phone size={14} className="text-[#4c9df2]" />
-            +91 72279 93338
+            +91 99092 49566
           </a>
         </div>
 

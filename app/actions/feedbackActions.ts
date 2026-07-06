@@ -1,10 +1,18 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { getCurrentUserContext } from "@/lib/server-permissions"
+import { isValidUUID, isValidEmail } from "@/lib/security"
+import { rateLimit } from "@/lib/rate-limit"
 
 async function getAuthenticatedClient() {
+  // Team-membership gate: getCurrentUserContext() throws unless the
+  // caller has a team_members row (or is the one-time empty-table
+  // bootstrap). A bare Supabase session — e.g. a self-registered
+  // account — is NOT enough to reach admin data.
+  await getCurrentUserContext()
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   const { data: { user } } = await supabase.auth.getUser()
@@ -31,6 +39,43 @@ export interface FeedbackData {
 
 export async function submitFeedback(data: FeedbackData) {
   try {
+    // Rate limit per IP: 3 per 10 minutes — feedback is one-per-attendee.
+    try {
+      const hdrs = await headers()
+      const ip =
+        hdrs.get("x-real-ip") ||
+        hdrs.get("x-forwarded-for")?.split(",")[0].trim() ||
+        "unknown"
+      const rl = rateLimit({ key: `feedback:${ip}`, limit: 3, windowMs: 10 * 60 * 1000 })
+      if (!rl.allowed) {
+        return { success: false, error: "Too many attempts. Please try again shortly." }
+      }
+    } catch { /* never block on limiter errors */ }
+
+    // Strict input validation — this is a public endpoint.
+    if (!isValidUUID(data.event_id)) {
+      return { success: false, error: "Invalid event." }
+    }
+    if (!isValidEmail(data.attendee_email ?? "")) {
+      return { success: false, error: "Please enter a valid email address." }
+    }
+    const clampRating = (n?: number) =>
+      typeof n === "number" && n >= 1 && n <= 5 ? Math.round(n) : null
+    const clampText = (s?: string, max = 2000) =>
+      typeof s === "string" && s.trim() ? s.trim().slice(0, max) : null
+    data = {
+      ...data,
+      attendee_name: clampText(data.attendee_name, 200) ?? undefined,
+      overall_rating: clampRating(data.overall_rating) ?? undefined,
+      content_rating: clampRating(data.content_rating) ?? undefined,
+      venue_rating: clampRating(data.venue_rating) ?? undefined,
+      organization_rating: clampRating(data.organization_rating) ?? undefined,
+      speaker_rating: clampRating(data.speaker_rating) ?? undefined,
+      best_part: clampText(data.best_part) ?? undefined,
+      improvement: clampText(data.improvement) ?? undefined,
+      additional_comments: clampText(data.additional_comments) ?? undefined,
+    }
+
     // Use an unauthenticated client for public submissions
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)

@@ -10,6 +10,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
 import { generateInvoicePdf } from "@/lib/generateInvoice"
 import { isValidUUID } from "@/lib/security"
+import { getCurrentUserContext } from "@/lib/server-permissions"
 
 export async function GET(
   _request: Request,
@@ -23,10 +24,17 @@ export async function GET(
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
 
-    // Auth check
+    // Auth check — must be a TEAM MEMBER, not just any Supabase session.
+    // (Attendee self-service downloads use the token-validated
+    // /api/attendee/invoice route instead.)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    try {
+      await getCurrentUserContext()
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
     // Fetch attendee with event and ticket

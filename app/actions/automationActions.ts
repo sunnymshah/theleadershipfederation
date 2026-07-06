@@ -12,10 +12,16 @@
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
+import { requirePermission, getCurrentUserContext } from "@/lib/server-permissions"
 
 /* ── Auth helper ─────────────────────────────────────────────────────── */
 
 async function getAuthenticatedClient() {
+  // Team-membership gate: getCurrentUserContext() throws unless the
+  // caller has a team_members row (or is the one-time empty-table
+  // bootstrap). A bare Supabase session — e.g. a self-registered
+  // account — is NOT enough to reach admin data.
+  await getCurrentUserContext()
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   const { data: { user } } = await supabase.auth.getUser()
@@ -65,6 +71,8 @@ export async function createAutomation(formData: FormData): Promise<{
   error?: string
 }> {
   try {
+    // /admin/automations is gated by the "campaigns" module.
+    await requirePermission("campaigns", "create")
     const { supabase } = await getAuthenticatedClient()
 
     const event_id = formData.get("event_id") as string
@@ -129,6 +137,7 @@ export async function updateAutomation(
   error?: string
 }> {
   try {
+    await requirePermission("campaigns", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const updateObj: Record<string, unknown> = {
@@ -185,6 +194,7 @@ export async function deleteAutomation(automationId: string): Promise<{
   error?: string
 }> {
   try {
+    await requirePermission("campaigns", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { error } = await supabase
@@ -214,6 +224,7 @@ export async function toggleAutomation(
   error?: string
 }> {
   try {
+    await requirePermission("campaigns", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const { error } = await supabase
@@ -273,6 +284,8 @@ export async function triggerAutomation(
   error?: string
 }> {
   try {
+    // Sends real email — treat as an edit-level campaign operation.
+    await requirePermission("campaigns", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     // Fetch automation details
@@ -420,6 +433,8 @@ export async function processScheduledAutomations(eventId: string): Promise<{
   error?: string
 }> {
   try {
+    // Sends real email — treat as an edit-level campaign operation.
+    await requirePermission("campaigns", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     // Fetch event start_date

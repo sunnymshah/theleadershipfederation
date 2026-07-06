@@ -174,8 +174,8 @@ export default function AdminContactPage() {
                     <Field label="Name *"><input name="name" required defaultValue={p?.name ?? ""} className={inputCls} /></Field>
                     <Field label="Role"><input name="role" defaultValue={p?.role ?? ""} className={inputCls} placeholder="VP Marketing" /></Field>
                     <Field label="Email"><input name="email" type="email" defaultValue={p?.email ?? ""} className={inputCls} /></Field>
-                    <Field label="Phone (display)"><input name="phone" defaultValue={p?.phone ?? ""} className={inputCls} placeholder="+91 72279 93338" /></Field>
-                    <Field label="Phone (raw for tel:)"><input name="phone_raw" defaultValue={p?.phone_raw ?? ""} className={inputCls} placeholder="+917227993338" /></Field>
+                    <Field label="Phone (display)"><input name="phone" defaultValue={p?.phone ?? ""} className={inputCls} placeholder="+91 99092 49566" /></Field>
+                    <Field label="Phone (raw for tel:)"><input name="phone_raw" defaultValue={p?.phone_raw ?? ""} className={inputCls} placeholder="+919909249566" /></Field>
                   </div>
                 </>
               )

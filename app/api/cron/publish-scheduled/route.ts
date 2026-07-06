@@ -7,16 +7,25 @@
  */
 
 import { NextResponse } from "next/server"
+import { timingSafeEqual } from "crypto"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { publishBuilderAtomic } from "@/app/actions/eventBuilderActions"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/** Constant-time string compare — avoids leaking the secret via timing. */
+function safeEqual(a: string, b: string): boolean {
+  const ba = Buffer.from(a)
+  const bb = Buffer.from(b)
+  if (ba.length !== bb.length) return false
+  return timingSafeEqual(ba, bb)
+}
+
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET
   const auth = req.headers.get("authorization") ?? ""
-  if (secret && auth !== `Bearer ${secret}`) {
+  if (secret && !safeEqual(auth, `Bearer ${secret}`)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
   let admin

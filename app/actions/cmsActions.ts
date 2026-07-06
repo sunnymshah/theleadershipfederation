@@ -22,13 +22,21 @@ import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createStaticClient } from "@/utils/supabase/static"
+import { getCurrentUserContext } from "@/lib/server-permissions"
 
+/**
+ * Auth helper for every admin-side CMS read/mutation in this file.
+ *
+ * getCurrentUserContext() enforces actual TEAM MEMBERSHIP (a
+ * team_members row, or the one-time empty-table bootstrap) — a bare
+ * Supabase session is NOT enough. Public reads never come through
+ * here; they use getPublicClient() below.
+ */
 async function getAuthenticatedClient() {
+  const ctx = await getCurrentUserContext() // throws unless team member
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Unauthorized")
-  return { supabase, user }
+  return { supabase, user: { id: ctx.userId, email: ctx.email } }
 }
 
 /**

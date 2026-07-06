@@ -60,7 +60,7 @@ export function ClosingCTA() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [errorMsg, setErrorMsg] = useState("")
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!email.trim()) return
     setStatus("loading")
@@ -68,6 +68,10 @@ export function ClosingCTA() {
     const fd = new FormData()
     fd.set("name", name)
     fd.set("email", email)
+    // Honeypot — hidden uncontrolled input; bots that autofill it are
+    // silently dropped server-side.
+    const hp = e.currentTarget.elements.namedItem("company_website") as HTMLInputElement | null
+    fd.set("company_website", hp?.value ?? "")
     const res = await subscribeToNewsletter(fd)
     if (res.success) {
       setStatus("success")
@@ -183,6 +187,15 @@ export function ClosingCTA() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-2.5">
+                  {/* Honeypot — hidden from humans, bots fill it */}
+                  <input
+                    type="text"
+                    name="company_website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    className="absolute left-[-9999px] w-px h-px opacity-0"
+                    aria-hidden="true"
+                  />
                   <input
                     type="text"
                     value={name}
