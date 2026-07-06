@@ -3,8 +3,14 @@
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { requirePermission, getCurrentUserContext } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
+  // Team-membership gate: getCurrentUserContext() throws unless the
+  // caller has a team_members row (or is the one-time empty-table
+  // bootstrap). A bare Supabase session — e.g. a self-registered
+  // account — is NOT enough to reach admin data.
+  await getCurrentUserContext()
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   const { data: { user } } = await supabase.auth.getUser()
@@ -94,6 +100,8 @@ export async function getAllAdvisoryBoardMembers() {
  */
 export async function createAdvisoryBoardMember(formData: FormData) {
   try {
+    // Same module that gates /admin/advisory-board in lib/permissions.ts.
+    await requirePermission("speakers", "create")
     const { supabase } = await getAuthenticatedClient()
 
     const name        = formData.get("name") as string
@@ -147,6 +155,7 @@ export async function createAdvisoryBoardMember(formData: FormData) {
  */
 export async function updateAdvisoryBoardMember(formData: FormData) {
   try {
+    await requirePermission("speakers", "edit")
     const { supabase } = await getAuthenticatedClient()
 
     const id = formData.get("id") as string
@@ -208,6 +217,7 @@ export async function updateAdvisoryBoardMember(formData: FormData) {
  */
 export async function deleteAdvisoryBoardMember(id: string) {
   try {
+    await requirePermission("speakers", "delete")
     const { supabase } = await getAuthenticatedClient()
 
     const { data: existing } = await supabase

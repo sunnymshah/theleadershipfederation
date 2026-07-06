@@ -4,8 +4,14 @@ import { createHmac, createHash, randomBytes } from "crypto"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
+import { getCurrentUserContext } from "@/lib/server-permissions"
 
 async function getAuthenticatedClient() {
+  // Team-membership gate: getCurrentUserContext() throws unless the
+  // caller has a team_members row (or is the one-time empty-table
+  // bootstrap). A bare Supabase session — e.g. a self-registered
+  // account — is NOT enough to reach admin data.
+  await getCurrentUserContext()
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   const { data: { user } } = await supabase.auth.getUser()

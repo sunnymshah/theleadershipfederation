@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import Razorpay from "razorpay"
 import { randomBytes } from "crypto"
+import { isValidUUID, isValidEmail } from "@/lib/security"
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +27,12 @@ export async function POST(request: NextRequest) {
         { error: "Ticket ID, name, and email are required." },
         { status: 400 }
       )
+    }
+    if (!isValidUUID(ticketId)) {
+      return NextResponse.json({ error: "Invalid ticket." }, { status: 400 })
+    }
+    if (!isValidEmail(attendeeDetails.email)) {
+      return NextResponse.json({ error: "Invalid email address." }, { status: 400 })
     }
 
     const cookieStore = await cookies()

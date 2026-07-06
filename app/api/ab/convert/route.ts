@@ -7,6 +7,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createAdminClient } from "@/utils/supabase/admin"
+import { isValidUUID } from "@/lib/security"
 
 export const runtime = "nodejs"
 
@@ -20,6 +21,10 @@ export async function POST(req: Request) {
   try { body = await req.json() } catch { return NextResponse.json({ error: "Bad body" }, { status: 400 }) }
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: "Bad payload" }, { status: 400 })
+  // testId feeds a service-role query — fail fast on non-UUIDs.
+  if (!isValidUUID(parsed.data.testId)) {
+    return NextResponse.json({ error: "Bad testId" }, { status: 400 })
+  }
   try {
     const admin = createAdminClient()
     const { data: row } = await admin

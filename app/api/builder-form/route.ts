@@ -12,6 +12,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { isValidUUID } from "@/lib/security"
+import { rateLimit } from "@/lib/rate-limit"
 import { fireWebhooks } from "@/lib/webhooks"
 
 export const runtime = "nodejs"
@@ -23,7 +24,35 @@ const Schema = z.object({
   webhookUrl: z.string().url().optional(),
 })
 
+/**
+ * SSRF guard for the client-supplied per-block webhook URL: https only,
+ * a real hostname (never an IP literal, localhost or internal-looking
+ * name). Without this, anyone could make the server POST form data to
+ * arbitrary internal/external targets.
+ */
+function isSafeWebhookUrl(raw: string): boolean {
+  let u: URL
+  try { u = new URL(raw) } catch { return false }
+  if (u.protocol !== "https:") return false
+  const host = u.hostname.toLowerCase()
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) return false
+  // IPv4 literal or bracketed IPv6 literal → reject
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return false
+  if (host.includes(":")) return false
+  return host.includes(".")
+}
+
 export async function POST(req: Request) {
+  // Rate limit per IP: 10 per minute.
+  const ip =
+    req.headers.get("x-real-ip") ||
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    "unknown"
+  const rl = rateLimit({ key: `builder-form:${ip}`, limit: 10, windowMs: 60 * 1000 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many submissions" }, { status: 429 })
+  }
+
   let body: unknown
   try {
     body = await req.json()
@@ -68,7 +97,9 @@ export async function POST(req: Request) {
   })
 
   // Optional per-block webhook fan-out (fire and forget, 5s timeout).
-  if (webhookUrl) {
+  // SSRF-guarded: https-only, no IP-literal/localhost/internal hosts,
+  // and redirects are refused so the target can't bounce us elsewhere.
+  if (webhookUrl && isSafeWebhookUrl(webhookUrl)) {
     const ctrl = new AbortController()
     const t = setTimeout(() => ctrl.abort(), 5000)
     void fetch(webhookUrl, {
@@ -76,6 +107,7 @@ export async function POST(req: Request) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ eventId, sourcePage, fields: cleanFields }),
       signal: ctrl.signal,
+      redirect: "error",
     }).catch((err) => {
       console.error("[builder-form] webhook failed:", (err as Error).message)
     }).finally(() => clearTimeout(t))

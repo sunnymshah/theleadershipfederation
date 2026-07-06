@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers"
 import { createClient } from "@/utils/supabase/server"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { writeAuditEvent } from "@/lib/security"
+import { getCurrentUserContext } from "@/lib/server-permissions"
 
 /* Hard timeout so auth / DB calls can never hang the admin UI. Accepts
  * PromiseLike because Supabase query builders are thenable but not strict
@@ -118,6 +119,9 @@ void PROFILE_COLORS
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
 async function getAuthenticatedClient() {
+  // Team-membership gate — a bare Supabase session (e.g. a
+  // self-registered account) must not reach profile/team data.
+  await getCurrentUserContext()
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
   const {
@@ -147,14 +151,32 @@ async function requireSuperAdmin() {
     "roleCheck",
   )
 
-  // Bootstrap semantics — matches app/admin/(console)/layout.tsx which does
-  // `const userRole = teamMember?.role ?? "super_admin"`. If this authenticated
-  // user has NO team_members row yet, they are the bootstrap super_admin (the
-  // first person in). A row MUST exist with a different role for us to block.
-  if (member && member.role !== "super_admin") {
-    throw new Error("Access not allowed. Please contact the super admin (Sunny Shah) to request permissions.")
+  // STRICT: the caller must have a team_members row with role
+  // super_admin. The ONLY exception is the one-time first-setup
+  // bootstrap (empty table + email in ADMIN_BOOTSTRAP_EMAIL) —
+  // mirroring (console)/layout.tsx. The old "no row = super_admin"
+  // fallback let any self-registered Supabase account manage profiles.
+  if (member?.role === "super_admin") return { supabase, user }
+
+  if (!member) {
+    const bootstrapAllowlist = (process.env.ADMIN_BOOTSTRAP_EMAIL ?? "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+    const { count } = await withTimeout(
+      adminForRoleCheck
+        .from("team_members")
+        .select("*", { count: "exact", head: true }),
+      8_000,
+      "bootstrapCount",
+    )
+    const userEmail = (user.email ?? "").toLowerCase()
+    if ((count ?? 0) === 0 && userEmail && bootstrapAllowlist.includes(userEmail)) {
+      return { supabase, user }
+    }
   }
-  return { supabase, user }
+
+  throw new Error("Access not allowed. Please contact the super admin (Sunny Shah) to request permissions.")
 }
 
 /* ── Get all profiles ─────────────────────────────────────────────────── */

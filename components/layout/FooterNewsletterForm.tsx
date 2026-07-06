@@ -13,7 +13,7 @@ export function FooterNewsletterForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [errorMsg, setErrorMsg] = useState("")
 
-  async function handleSubscribe(e: React.FormEvent) {
+  async function handleSubscribe(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!email.trim()) return
 
@@ -23,6 +23,9 @@ export function FooterNewsletterForm() {
     const formData = new FormData()
     formData.set("name", "")
     formData.set("email", email)
+    // Honeypot — bots that autofill the hidden field get dropped server-side.
+    const hp = e.currentTarget.elements.namedItem("company_website") as HTMLInputElement | null
+    formData.set("company_website", hp?.value ?? "")
 
     const result = await subscribeToNewsletter(formData)
 
@@ -40,6 +43,15 @@ export function FooterNewsletterForm() {
   return (
     <div>
       <form onSubmit={handleSubscribe} className="flex gap-2">
+        {/* Honeypot — hidden from humans, bots fill it */}
+        <input
+          type="text"
+          name="company_website"
+          tabIndex={-1}
+          autoComplete="off"
+          className="absolute left-[-9999px] w-px h-px opacity-0"
+          aria-hidden="true"
+        />
         <input
           type="email"
           value={email}

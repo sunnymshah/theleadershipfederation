@@ -61,8 +61,37 @@ export async function getCurrentUserContext(): Promise<UserContext> {
     .eq("user_id", user.id)
     .maybeSingle()
 
-  // Bootstrap rule: no row → treat as super_admin (matches layout)
-  const role: TeamRole = (member?.role as TeamRole) ?? "super_admin"
+  // No team_members row → NOT a team member. The ONLY exception is the
+  // one-time first-setup bootstrap, mirroring (console)/layout.tsx:
+  // the table must be COMPLETELY EMPTY and the user's email must be in
+  // ADMIN_BOOTSTRAP_EMAIL. The previous behaviour (any signed-in user
+  // without a row = super_admin) let anyone who self-registered a
+  // Supabase account pass every requirePermission() check.
+  if (!member) {
+    const bootstrapAllowlist = (process.env.ADMIN_BOOTSTRAP_EMAIL ?? "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+    const userEmail = (user.email ?? "").toLowerCase()
+    const { count: totalMembers } = await admin
+      .from("team_members")
+      .select("*", { count: "exact", head: true })
+    const isBootstrap =
+      (totalMembers ?? 0) === 0 &&
+      userEmail.length > 0 &&
+      bootstrapAllowlist.includes(userEmail)
+    if (!isBootstrap) {
+      throw new Error("Unauthorized: not a team member")
+    }
+    return {
+      userId: user.id,
+      email: user.email ?? "",
+      role: "super_admin",
+      permissions: null,
+    }
+  }
+
+  const role: TeamRole = member.role as TeamRole
 
   let permissions: ProfilePermissions | null = null
   if (role !== "super_admin" && member?.profile_id) {
