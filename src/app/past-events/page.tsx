@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 
 import { PageShell } from '@/components/layout/PageShell';
-import { FilmCard } from '@/components/sections/FilmCard';
+import { ArchiveFilmCard } from '@/components/sections/FilmCard';
 import { ProgrammeGrid } from '@/components/sections/ProgrammeGrid';
 import { SectionHeading } from '@/components/sections/SectionHeading';
 import { PillLink } from '@/components/ui/PillLink';
 import { Reveal } from '@/components/ui/Reveal';
-import { FILMS } from '@/data/films';
+import { ARCHIVE_FILMS } from '@/data/films';
 import { PAST_EVENTS } from '@/data/programmes';
 import { STAGE_METRICS } from '@/config/site';
 
@@ -36,8 +36,8 @@ export default function PastEventsPage() {
         />
 
         <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-16 md:grid-cols-2 lg:grid-cols-3">
-          {FILMS.map((film) => (
-            <FilmCard key={film.slug} film={film} />
+          {ARCHIVE_FILMS.map((film) => (
+            <ArchiveFilmCard key={film.title + film.tag} film={film} />
           ))}
         </div>
       </section>

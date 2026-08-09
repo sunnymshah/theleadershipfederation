@@ -1,13 +1,15 @@
 import { Footer } from '@/components/layout/Footer';
-import { FilmCard } from '@/components/sections/FilmCard';
+import { EditionsTimeline } from '@/components/sections/EditionsTimeline';
 import { Hero } from '@/components/sections/Hero';
+import { LeadersMarquee } from '@/components/sections/LeadersMarquee';
 import { PartnerMarquee } from '@/components/sections/PartnerMarquee';
 import { ProgrammeGrid } from '@/components/sections/ProgrammeGrid';
+import { RoomFilms } from '@/components/sections/RoomFilms';
 import { SectionHeading } from '@/components/sections/SectionHeading';
+import { SponsorWall } from '@/components/sections/SponsorWall';
 import { PillLink } from '@/components/ui/PillLink';
 import { Reveal } from '@/components/ui/Reveal';
-import { FILMS } from '@/data/films';
-import { HUBS, UPCOMING_CONCLAVES } from '@/data/programmes';
+import { UPCOMING_CONCLAVES } from '@/data/programmes';
 
 export default function HomePage() {
   return (
@@ -18,7 +20,7 @@ export default function HomePage() {
         <PartnerMarquee />
       </div>
 
-      {/* ── Upcoming ───────────────────────────────────────────────────── */}
+      {/* ── 02 · Upcoming ──────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <SectionHeading
@@ -40,85 +42,41 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Films ──────────────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
-        <SectionHeading
-          index="03"
-          eyebrow="Event films"
-          title="The archive,"
-          italic="on film."
-          standfirst="Every programme is filmed. The cut-downs travel further than the room ever could."
-        />
+      {/* ── 04 · Motion proof: see the room ────────────────────────────── */}
+      <RoomFilms />
 
-        <div className="mt-20 grid grid-cols-1 gap-x-8 gap-y-16 md:grid-cols-2 lg:grid-cols-3">
-          {FILMS.map((film) => (
-            <FilmCard key={film.slug} film={film} />
-          ))}
-        </div>
-      </section>
+      {/* ── 05 · The calibre of the room ───────────────────────────────── */}
+      <LeadersMarquee />
 
-      {/* ── Hubs ───────────────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
-          <div className="lg:col-span-5">
-            <SectionHeading
-              index="04"
-              eyebrow="Footprint"
-              title="Fourteen hubs,"
-              italic="one federation."
-              standfirst="The platform follows the capability map — not the conference circuit."
-            />
-            <Reveal delay={0.2} className="mt-10">
-              <PillLink href="/about" variant="outline">
-                The thesis
-              </PillLink>
-            </Reveal>
-          </div>
+      {/* ── 06 · Brands that back the platform ─────────────────────────── */}
+      <SponsorWall />
 
-          <div className="lg:col-span-7">
-            <Reveal>
-              <ul className="grid grid-cols-2 border-l border-t border-obsidian/10 sm:grid-cols-3">
-                {HUBS.map((hub, index) => (
-                  <li
-                    key={hub}
-                    className="group flex items-baseline gap-3 border-b border-r border-obsidian/10 px-5 py-6 transition-colors hover:bg-white/40"
-                  >
-                    <span className="label-caps text-obsidian/25">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="font-serif text-xl text-obsidian transition-colors group-hover:text-terracotta">
-                      {hub}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
-        </div>
-      </section>
+      {/* ── 07 · Every edition ─────────────────────────────────────────── */}
+      <EditionsTimeline />
 
       {/* ── Closing CTA ────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
         <Reveal className="relative bg-obsidian px-8 py-20 md:px-20 md:py-28">
-          <p className="label-caps text-champagne">Inner Circle</p>
+          <p className="label-caps text-champagne">
+            Your brand. The right room.
+          </p>
           <h2 className="mt-8 max-w-3xl font-serif text-4xl leading-[1.05] text-white md:text-6xl">
-            Membership is by
-            <span className="italic text-champagne"> invitation</span>, and the
-            room stays small on purpose.
+            Let’s build the next
+            <span className="italic text-champagne"> high-trust gathering.</span>
           </h2>
           <p className="mt-8 max-w-lg text-base font-light leading-relaxed text-white/70">
             Continuity between events is the point. Members carry the same
-            conversation from a Chatham House breakfast to the main stage.
+            conversation from a closed-door breakfast to the main stage.
           </p>
           <div className="mt-12 flex flex-wrap gap-4">
-            <PillLink href="/inner-circle">Request consideration</PillLink>
+            <PillLink href="/inquire">Start a conversation</PillLink>
             <PillLink
-              href="/inquire"
+              href="/inner-circle"
               variant="outline"
               withArrow={false}
               className="border-white/40 text-white hover:bg-white hover:text-obsidian"
             >
-              Partner with us
+              Join the Inner Circle
             </PillLink>
           </div>
         </Reveal>

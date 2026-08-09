@@ -1,10 +1,9 @@
 import { Marquee } from '@/components/sections/Marquee';
-import { PARTNERS } from '@/data/partners';
+import { PRIORITY_SPONSORS } from '@/data/sponsors';
 
 /**
- * Partner enterprises, set as typographic wordmarks. When cleared logo files
- * land in /public/partners, swap the <span> for an <Image> keyed off
- * `partner.logo` — the marquee itself needs no changes.
+ * Compact partner strip — the lead marks only. The full roster lives in
+ * <SponsorWall />. Plain <img> to keep 24 tiny logos off the image optimiser.
  */
 export function PartnerMarquee() {
   return (
@@ -13,14 +12,21 @@ export function PartnerMarquee() {
         Enterprises on our stages
       </p>
 
-      <Marquee speed={60} itemClassName="px-10">
-        {PARTNERS.map((partner) => (
-          <span
-            key={partner.name}
-            className="whitespace-nowrap font-serif text-2xl text-obsidian/50 transition-colors hover:text-obsidian md:text-3xl"
+      <Marquee speed={70} itemClassName="px-8">
+        {PRIORITY_SPONSORS.map((sponsor) => (
+          <div
+            key={sponsor.name}
+            title={sponsor.name}
+            className="flex h-16 w-[150px] items-center justify-center"
           >
-            {partner.name}
-          </span>
+            <img
+              src={sponsor.logo}
+              alt={sponsor.name}
+              loading="lazy"
+              decoding="async"
+              className="max-h-full w-auto max-w-full object-contain opacity-65 grayscale transition-all duration-500 ease-editorial hover:opacity-100 hover:grayscale-0"
+            />
+          </div>
         ))}
       </Marquee>
     </section>
