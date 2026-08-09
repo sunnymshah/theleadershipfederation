@@ -68,8 +68,14 @@ export const PRIMARY_CTA = {
 export const SITE = {
   name: 'The Leadership Federation',
   shortName: 'TLF',
-  /** Update this once the production domain is attached in Vercel. */
-  url: 'https://www.theleadershipfederation.com',
+  /**
+   * Canonical origin — drives metadataBase, sitemap.xml and robots.txt.
+   * Set NEXT_PUBLIC_SITE_URL in Vercel to override without a code change;
+   * update the fallback when a custom domain is attached.
+   */
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    'https://theleadershipfederation-ochre.vercel.app',
   tagline: 'Global platform for GCC leaders & executive decision makers.',
   description:
     'The Leadership Federation convenes GCC leaders, CXOs, policymakers and enterprise solution providers across global hubs through conclaves, closed-door roundtables and an invitation-only inner circle.',
