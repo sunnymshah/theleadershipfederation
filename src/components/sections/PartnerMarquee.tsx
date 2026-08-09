@@ -24,7 +24,7 @@ export function PartnerMarquee() {
               alt={sponsor.name}
               loading="lazy"
               decoding="async"
-              className="max-h-full w-auto max-w-full object-contain opacity-65 grayscale transition-all duration-500 ease-editorial hover:opacity-100 hover:grayscale-0"
+              className="max-h-full w-auto max-w-full object-contain opacity-90 transition-opacity duration-300 ease-editorial hover:opacity-100"
             />
           </div>
         ))}

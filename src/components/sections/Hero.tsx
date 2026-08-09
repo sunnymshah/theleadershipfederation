@@ -122,17 +122,11 @@ export function Hero() {
   );
 }
 
-const TREATMENT_CLASS = {
-  'full-colour': '',
-  sepia: 'sepia-[0.35]',
-  grayscale: 'grayscale',
-} as const;
-
 function CollageFrame({
   image,
   className,
 }: {
-  image: { src: string; alt: string; treatment?: keyof typeof TREATMENT_CLASS };
+  image: { src: string; alt: string };
   className?: string;
 }) {
   return (
@@ -143,9 +137,7 @@ function CollageFrame({
         fill
         sizes="(max-width: 1024px) 50vw, 25vw"
         priority
-        className={`object-cover ${
-          TREATMENT_CLASS[image.treatment ?? 'full-colour']
-        }`}
+        className="object-cover"
       />
     </div>
   );

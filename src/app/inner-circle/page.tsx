@@ -87,7 +87,7 @@ export default function InnerCirclePage() {
                   alt={IMAGES.boardroom.alt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-cover grayscale"
+                  className="object-cover"
                 />
               </div>
             </div>

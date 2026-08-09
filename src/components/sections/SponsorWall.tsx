@@ -53,7 +53,7 @@ export function SponsorWall() {
                   alt={sponsor.name}
                   loading="lazy"
                   decoding="async"
-                  className="max-h-12 w-auto max-w-full object-contain opacity-55 grayscale transition-all duration-500 ease-editorial hover:opacity-100 hover:grayscale-0"
+                  className="max-h-12 w-auto max-w-full object-contain opacity-95 transition-opacity duration-300 ease-editorial hover:opacity-100"
                 />
               </li>
             ))}
@@ -88,7 +88,7 @@ function SponsorMark({
         alt={name}
         loading="lazy"
         decoding="async"
-        className="max-h-full w-auto max-w-full object-contain opacity-70 grayscale transition-all duration-500 ease-editorial hover:opacity-100 hover:grayscale-0"
+        className="max-h-full w-auto max-w-full object-contain opacity-95 transition-opacity duration-300 ease-editorial hover:opacity-100"
       />
     </div>
   );
