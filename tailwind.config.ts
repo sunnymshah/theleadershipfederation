@@ -1,0 +1,120 @@
+import type { Config } from 'tailwindcss';
+
+/**
+ * Design tokens are transcribed verbatim from the Stitch theme export
+ * (DESIGN.md front-matter + code.html tailwind.config). Do not "tidy" values —
+ * the palette is the contract with the design system.
+ */
+const config: Config = {
+  darkMode: 'class',
+  content: ['./src/**/*.{ts,tsx,mdx}'],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#000000',
+        'surface-container-highest': '#e3e2df',
+        'surface-container-high': '#e9e8e4',
+        'on-background': '#1b1c1a',
+        'on-tertiary-fixed-variant': '#584323',
+        'secondary-fixed-dim': '#ffb4a3',
+        'secondary-container': '#fe6e4c',
+        'on-primary-container': '#858383',
+        secondary: '#ac3417',
+        'on-primary': '#ffffff',
+        'inverse-surface': '#30312e',
+        'outline-variant': '#c4c7c7',
+        error: '#ba1a1a',
+        'on-surface-variant': '#444748',
+        'on-primary-fixed-variant': '#474646',
+        'error-container': '#ffdad6',
+        'on-tertiary-fixed': '#281800',
+        'secondary-fixed': '#ffdad2',
+        obsidian: '#0A0A0A',
+        'on-secondary-fixed-variant': '#8a1b00',
+        'on-secondary-container': '#671200',
+        'surface-container-low': '#f5f4f0',
+        'surface-tint': '#5f5e5e',
+        background: '#faf9f5',
+        'on-primary-fixed': '#1c1b1b',
+        'inverse-on-surface': '#f2f1ed',
+        'on-secondary': '#ffffff',
+        'tertiary-container': '#281800',
+        'on-tertiary': '#ffffff',
+        'surface-container-lowest': '#ffffff',
+        'tertiary-fixed': '#fedeb2',
+        'on-secondary-fixed': '#3d0700',
+        'on-surface': '#1b1c1a',
+        'inverse-primary': '#c9c6c5',
+        sand: '#F4F3EF',
+        surface: '#faf9f5',
+        'sand-dark': '#E3E3DA',
+        'primary-fixed-dim': '#c9c6c5',
+        outline: '#747878',
+        'warm-silk-bg': '#F4F3EF',
+        'primary-container': '#1c1b1b',
+        'surface-container': '#efeeea',
+        'slate-copy': '#4A4A4F',
+        tertiary: '#000000',
+        terracotta: '#DF5838',
+        champagne: '#C5A880',
+        'surface-variant': '#e3e2df',
+        'surface-dim': '#dbdad6',
+        'surface-bright': '#faf9f5',
+        'on-tertiary-container': '#9a805b',
+        'on-error-container': '#93000a',
+        'primary-fixed': '#e5e2e1',
+        'tertiary-fixed-dim': '#e0c298',
+        'on-error': '#ffffff',
+      },
+      borderRadius: {
+        DEFAULT: '0.25rem',
+        lg: '0.5rem',
+        xl: '0.75rem',
+        full: '9999px',
+      },
+      spacing: {
+        'edge-margin-desktop': '64px',
+        gutter: '32px',
+        'accent-strip-width': '80px',
+        'container-max': '1600px',
+        'stack-section': '128px',
+        'edge-margin-mobile': '32px',
+      },
+      maxWidth: {
+        'container-max': '1600px',
+        canvas: '2000px',
+      },
+      fontFamily: {
+        'nav-link': ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
+        'body-lg': ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
+        'display-xl': ['var(--font-garamond)', 'EB Garamond', 'serif'],
+        'display-xl-mobile': ['var(--font-garamond)', 'EB Garamond', 'serif'],
+        'headline-md': ['var(--font-garamond)', 'EB Garamond', 'serif'],
+        'label-caps': ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
+        sans: ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
+        serif: ['var(--font-garamond)', 'EB Garamond', 'serif'],
+      },
+      keyframes: {
+        'scroll-pulse': {
+          '0%': { transform: 'translateY(0)', opacity: '0.5' },
+          '50%': { transform: 'translateY(10px)', opacity: '1' },
+          '100%': { transform: 'translateY(0)', opacity: '0.5' },
+        },
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'scroll-pulse': 'scroll-pulse 2s infinite ease-in-out',
+        'fade-up': 'fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both',
+      },
+      transitionTimingFunction: {
+        editorial: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;
