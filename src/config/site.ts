@@ -75,7 +75,7 @@ export const SITE = {
    */
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
-    'https://theleadershipfederation-ochre.vercel.app',
+    'https://theleadershipfederation.vercel.app',
   tagline: 'Global platform for GCC leaders & executive decision makers.',
   description:
     'The Leadership Federation convenes GCC leaders, CXOs, policymakers and enterprise solution providers across global hubs through conclaves, closed-door roundtables and an invitation-only inner circle.',
