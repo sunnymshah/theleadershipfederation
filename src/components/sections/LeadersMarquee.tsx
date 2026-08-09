@@ -88,7 +88,7 @@ function LeaderCard({ leader }: { leader: Leader }) {
           decoding="async"
           width={86}
           height={104}
-          className="h-full w-full object-cover grayscale transition-all duration-700 ease-editorial group-hover:grayscale-0"
+          className="h-full w-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-105"
         />
       </div>
 

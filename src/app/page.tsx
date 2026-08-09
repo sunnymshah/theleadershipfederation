@@ -1,5 +1,6 @@
 import { Footer } from '@/components/layout/Footer';
 import { EditionsTimeline } from '@/components/sections/EditionsTimeline';
+import { FiveRooms } from '@/components/sections/FiveRooms';
 import { Hero } from '@/components/sections/Hero';
 import { LeadersMarquee } from '@/components/sections/LeadersMarquee';
 import { PartnerMarquee } from '@/components/sections/PartnerMarquee';
@@ -10,6 +11,7 @@ import { SponsorWall } from '@/components/sections/SponsorWall';
 import { PillLink } from '@/components/ui/PillLink';
 import { Reveal } from '@/components/ui/Reveal';
 import { UPCOMING_CONCLAVES } from '@/data/programmes';
+import { INNER_CIRCLE_URL } from '@/config/site';
 
 export default function HomePage() {
   return (
@@ -41,6 +43,9 @@ export default function HomePage() {
           <ProgrammeGrid programmes={UPCOMING_CONCLAVES} />
         </div>
       </section>
+
+      {/* ── 03 · One community, five powerful rooms ────────────────────── */}
+      <FiveRooms />
 
       {/* ── 04 · Motion proof: see the room ────────────────────────────── */}
       <RoomFilms />

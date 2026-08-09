@@ -9,11 +9,14 @@ import { cn } from '@/lib/utils';
 
 /**
  * Full-canvas navigation overlay, opened from the accent strip. Below `lg`
- * this is the site's only navigation, so its show/hide is deliberately driven
- * by CSS classes rather than an animation library: the links must never depend
- * on a third-party chunk loading, and `requestAnimationFrame` is suspended in
+ * this is the site's only navigation, so its show/hide is driven by CSS
+ * classes rather than an animation library: the links must never depend on a
+ * third-party chunk loading, and `requestAnimationFrame` is suspended in
  * background tabs. The footer carries the same link set as plain markup, so
- * navigation survives even with scripting off entirely.
+ * navigation survives with scripting off entirely.
+ *
+ * Items with children list their event pages inline — on a phone there is no
+ * hover, so a nested dropdown would be unreachable.
  */
 export function GlobalMenu({
   open,
@@ -22,7 +25,6 @@ export function GlobalMenu({
   open: boolean;
   onClose: () => void;
 }) {
-  // Close on Escape and lock scroll while the overlay owns the viewport.
   useEffect(() => {
     if (!open) return;
 
@@ -68,26 +70,61 @@ export function GlobalMenu({
                 'border-b border-obsidian/10 transition-all duration-500 ease-editorial motion-reduce:transition-none',
                 open ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
               )}
-              style={{ transitionDelay: open ? `${80 + index * 60}ms` : '0ms' }}
+              style={{ transitionDelay: open ? `${70 + index * 50}ms` : '0ms' }}
             >
-              <Link
-                href={item.href}
-                onClick={onClose}
-                tabIndex={open ? undefined : -1}
-                className="group flex items-baseline justify-between gap-6 py-5 md:py-7"
-              >
+              <div className="flex items-baseline justify-between gap-6 py-5 md:py-6">
                 <span className="flex items-baseline gap-5">
                   <span className="label-caps w-8 shrink-0 text-obsidian/30">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <span className="font-serif text-3xl leading-none tracking-tight text-obsidian transition-colors group-hover:text-terracotta md:text-5xl">
-                    {item.label}
-                  </span>
+                  {item.external ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      tabIndex={open ? undefined : -1}
+                      className="font-serif text-3xl leading-none tracking-tight text-obsidian transition-colors hover:text-terracotta md:text-5xl"
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      tabIndex={open ? undefined : -1}
+                      className="font-serif text-3xl leading-none tracking-tight text-obsidian transition-colors hover:text-terracotta md:text-5xl"
+                    >
+                      {item.label}
+                    </Link>
+                  )}
                 </span>
                 <span className="hidden max-w-xs text-right text-sm font-light leading-relaxed text-obsidian/50 lg:block">
                   {item.blurb}
                 </span>
-              </Link>
+              </div>
+
+              {item.children?.length ? (
+                <ul className="mb-6 ml-[52px] flex flex-wrap gap-x-6 gap-y-2 border-l border-obsidian/15 pl-5">
+                  {item.children.map((child) => (
+                    <li key={child.href + child.label}>
+                      <a
+                        href={child.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        tabIndex={open ? undefined : -1}
+                        className="group inline-flex items-baseline gap-2 text-sm font-light text-obsidian/60 transition-colors hover:text-terracotta"
+                      >
+                        {child.label}
+                        {child.meta && (
+                          <span className="label-caps text-[9px] text-obsidian/30">
+                            {child.meta}
+                          </span>
+                        )}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </li>
           ))}
         </ul>
