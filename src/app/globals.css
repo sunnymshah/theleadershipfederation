@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------
+   THE LEADERSHIP FEDERATION — global surface
+   Warm Silk canvas, Sand-Glass materials, editorial rules.
+   Values transcribed from the Stitch theme export.
+------------------------------------------------------------------ */
+
+:root {
+  --warm-silk: #f4f3ef;
+  --obsidian: #0a0a0a;
+  --terracotta: #df5838;
+  --champagne: #c5a880;
+  --slate-copy: #4a4a4f;
+  --strip-width: 80px;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* The fixed accent strip owns the right edge — keep anchors clear of it. */
+  scroll-padding-top: 140px;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--terracotta);
+  color: #ffffff;
+}
+
+@layer components {
+  /* The canvas: warm silk fabric photographed under raking light,
+     multiplied over the flat sand base so it reads as texture, not image. */
+  .bg-warm-silk {
+    background-color: var(--warm-silk);
+    background-image: url('/textures/warm-silk.jpg');
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: multiply;
+  }
+
+  .bg-warm-silk-fixed {
+    background-attachment: fixed;
+  }
+
+  /* Primary glass container — 15% white, 12px blur, 40% white hairline. */
+  .sand-glass {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Secondary glass — used as the passe-partout around collage imagery. */
+  .hairline-glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
+  }
+
+  /* Editorial card surface for content pages. */
+  .card-silk {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(17, 17, 17, 0.08);
+  }
+
+  .scroll-indicator {
+    animation: scroll-pulse 2s infinite ease-in-out;
+  }
+
+  /* Tiny, highly tracked label — the system's connective tissue. */
+  .label-caps {
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .nav-link {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+}
+
+@layer utilities {
+  /* Reserve the right accent strip on every full-bleed row. */
+  .pr-strip {
+    padding-right: 96px;
+  }
+
+  @media (min-width: 768px) {
+    .pr-strip {
+      padding-right: 120px;
+    }
+  }
+
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 8%,
+      #000 92%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 8%,
+      #000 92%,
+      transparent
+    );
+  }
+}
+
+@keyframes scroll-pulse {
+  0% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(10px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .scroll-indicator,
+  .marquee-track {
+    animation: none !important;
+  }
+
+  /* Drop straight to the resting state — never leave content mid-keyframe. */
+  .animate-fade-up {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
