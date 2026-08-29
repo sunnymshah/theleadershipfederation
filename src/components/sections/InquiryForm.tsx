@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { ArrowForwardIcon } from '@/components/ui/Icon';
 import { SITE } from '@/config/site';
+import { submitForm, type SubmitOutcome } from '@/lib/submit-form';
 
 const INTERESTS = [
   'A conclave seat',
@@ -21,13 +22,8 @@ const FIELD =
 /**
  * Enquiry form.
  *
- * Submitting composes a message in the visitor's own mail client — nothing is
- * transmitted from the page, so the form is fully functional with no backend
- * and no third-party data processor.
- *
- * TO SWITCH TO A HOSTED ENDPOINT: replace the body of `handleSubmit` with a
- * `fetch('/api/inquire', { method: 'POST', body: JSON.stringify(form) })` and
- * add the route handler. Keep the field names — they match the mail template.
+ * Posts to /api/submissions so the enquiry lands in the admin inbox, falling
+ * back to the visitor's mail client when no store is connected.
  */
 export function InquiryForm() {
   const [form, setForm] = useState({
@@ -39,6 +35,10 @@ export function InquiryForm() {
     interest: INTERESTS[0] as string,
     message: '',
   });
+  const [honeypot, setHoneypot] = useState('');
+  const [pending, setPending] = useState(false);
+  const [outcome, setOutcome] = useState<SubmitOutcome | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const update = (key: keyof typeof form) => (
     event: React.ChangeEvent<
@@ -46,8 +46,10 @@ export function InquiryForm() {
     >
   ) => setForm((previous) => ({ ...previous, [key]: event.target.value }));
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setPending(true);
+    setError(null);
 
     const subject = `${form.interest} — ${form.organisation || form.name}`;
     const body = [
@@ -62,13 +64,65 @@ export function InquiryForm() {
       form.message,
     ].join('\n');
 
-    window.location.href = `mailto:${SITE.email}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
+    const result = await submitForm(
+      {
+        kind: 'inquiry',
+        name: form.name,
+        email: form.email,
+        organisation: form.organisation,
+        role: form.role,
+        hub: form.hub,
+        intent: form.interest,
+        message: form.message,
+        company_website: honeypot,
+      },
+      SITE.email,
+      subject,
+      body
+    );
+
+    if (result === 'error') {
+      setError('Please check your name and work email, then try again.');
+    } else {
+      setOutcome(result);
+    }
+    setPending(false);
   };
+
+  if (outcome) {
+    return (
+      <div className="card-silk max-w-2xl p-8 md:p-10">
+        <p className="label-caps text-terracotta">
+          {outcome === 'stored' ? 'Received' : 'Almost there'}
+        </p>
+        <h3 className="mt-5 font-serif text-3xl leading-tight text-obsidian">
+          {outcome === 'stored'
+            ? 'Thank you — your enquiry is with us.'
+            : 'Finish sending in your mail client.'}
+        </h3>
+        <p className="mt-4 text-sm font-light leading-relaxed text-obsidian/70">
+          {outcome === 'stored'
+            ? 'The committee reads every enquiry and replies either way.'
+            : 'We opened a pre-filled message for you — press send and it reaches the committee.'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl">
+      <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+        <label htmlFor="inq_company_website">Company website</label>
+        <input
+          id="inq_company_website"
+          name="company_website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2">
         <Field label="Name" htmlFor="name">
           <input
@@ -170,20 +224,26 @@ export function InquiryForm() {
         </div>
       </div>
 
+      {error && (
+        <p role="alert" className="mt-8 border-l-2 border-terracotta bg-white/60 py-3 pl-4 text-sm font-light text-obsidian/80">
+          {error}
+        </p>
+      )}
+
       <div className="mt-12 flex flex-wrap items-center gap-6">
         <button
           type="submit"
-          className="group inline-flex items-center space-x-4 rounded-full bg-terracotta px-8 py-4 text-white shadow-lg transition-colors duration-300 hover:bg-obsidian"
+          disabled={pending}
+          className="group inline-flex items-center space-x-4 rounded-full bg-terracotta px-8 py-4 text-white shadow-lg transition-colors duration-300 hover:bg-obsidian disabled:opacity-50"
         >
           <span className="text-xs font-semibold uppercase tracking-widest">
-            Send enquiry
+            {pending ? 'Sending…' : 'Send enquiry'}
           </span>
           <ArrowForwardIcon className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </button>
 
         <p className="text-xs font-light text-obsidian/50">
-          Opens a pre-filled message in your mail client — nothing is sent from
-          this page.
+          We reply to every enquiry.
         </p>
       </div>
     </form>

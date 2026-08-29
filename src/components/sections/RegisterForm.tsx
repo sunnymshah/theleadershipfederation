@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { ArrowForwardIcon } from '@/components/ui/Icon';
 import { OFFICE } from '@/data/contact';
+import { submitForm, type SubmitOutcome } from '@/lib/submit-form';
 import { EDITIONS } from '@/data/editions';
 
 const PARTICIPATION = [
@@ -21,10 +22,10 @@ const FIELD =
 /**
  * Registration form.
  *
- * Submitting composes the enquiry in the visitor's own mail client, so the
- * form works with no backend and no third-party data processor. To move to a
- * hosted endpoint, swap the body of `handleSubmit` for a POST and keep the
- * field names — they match the mail template.
+ * Posts to /api/submissions so the lead lands in the admin inbox. If no store
+ * is connected the API says so and we fall back to the visitor's mail client,
+ * which is why the success copy differs between the two paths — it would be
+ * dishonest to show "received" for something that was never saved.
  */
 export function RegisterForm({ defaultAs }: { defaultAs?: string }) {
   const initialAs =
@@ -42,7 +43,12 @@ export function RegisterForm({ defaultAs }: { defaultAs?: string }) {
     participation: initialAs as string,
     message: '',
   });
+  /* Hidden from people, irresistible to bots. */
+  const [honeypot, setHoneypot] = useState('');
   const [consent, setConsent] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [outcome, setOutcome] = useState<SubmitOutcome | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const update =
     (key: keyof typeof form) =>
@@ -53,8 +59,10 @@ export function RegisterForm({ defaultAs }: { defaultAs?: string }) {
     ) =>
       setForm((previous) => ({ ...previous, [key]: event.target.value }));
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setPending(true);
+    setError(null);
 
     const subject = `${form.participation} — ${form.organisation || form.name}`;
     const body = [
@@ -69,17 +77,70 @@ export function RegisterForm({ defaultAs }: { defaultAs?: string }) {
       '',
       'Notes:',
       form.message || '—',
-      '',
-      'Consent given to be contacted by email, call or WhatsApp: yes',
     ].join('\n');
 
-    window.location.href = `mailto:${OFFICE.registerEmail}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
+    const result = await submitForm(
+      {
+        kind: 'register',
+        name: form.name,
+        email: form.email,
+        organisation: form.organisation,
+        role: form.role,
+        phone: form.phone,
+        linkedin: form.linkedin,
+        event: form.event,
+        intent: form.participation,
+        message: form.message,
+        company_website: honeypot,
+      },
+      OFFICE.registerEmail,
+      subject,
+      body
+    );
+
+    if (result === 'error') {
+      setError('Please check your name and work email, then try again.');
+    } else {
+      setOutcome(result);
+    }
+    setPending(false);
   };
+
+  if (outcome) {
+    return (
+      <div className="card-silk max-w-2xl p-8 md:p-10">
+        <p className="label-caps text-terracotta">
+          {outcome === 'stored' ? 'Received' : 'Almost there'}
+        </p>
+        <h3 className="mt-5 font-serif text-3xl leading-tight text-obsidian">
+          {outcome === 'stored'
+            ? 'Thank you — your registration is with us.'
+            : 'Finish sending in your mail client.'}
+        </h3>
+        <p className="mt-4 text-sm font-light leading-relaxed text-obsidian/70">
+          {outcome === 'stored'
+            ? 'The programme committee reads every submission and will come back to you either way.'
+            : 'We opened a pre-filled message for you — press send and it reaches the committee.'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl">
+      {/* Honeypot — hidden from people, irresistible to bots. */}
+      <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+        <label htmlFor="company_website">Company website</label>
+        <input
+          id="company_website"
+          name="company_website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2">
         <Field label="Name" htmlFor="name">
           <input id="name" required value={form.name} onChange={update('name')} className={FIELD} placeholder="Full name" autoComplete="name" />
@@ -166,20 +227,26 @@ export function RegisterForm({ defaultAs }: { defaultAs?: string }) {
         </span>
       </label>
 
+      {error && (
+        <p role="alert" className="mt-8 border-l-2 border-terracotta bg-white/60 py-3 pl-4 text-sm font-light text-obsidian/80">
+          {error}
+        </p>
+      )}
+
       <div className="mt-10 flex flex-wrap items-center gap-6">
         <button
           type="submit"
-          className="group inline-flex items-center space-x-4 rounded-full bg-terracotta px-8 py-4 text-white shadow-lg transition-colors duration-300 hover:bg-obsidian"
+          disabled={pending}
+          className="group inline-flex items-center space-x-4 rounded-full bg-terracotta px-8 py-4 text-white shadow-lg transition-colors duration-300 hover:bg-obsidian disabled:opacity-50"
         >
           <span className="text-xs font-semibold uppercase tracking-widest">
-            Nominate now
+            {pending ? 'Sending…' : 'Nominate now'}
           </span>
           <ArrowForwardIcon className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </button>
 
         <p className="text-xs font-light text-obsidian/50">
-          Opens a pre-filled message in your mail client — nothing is sent from
-          this page.
+          We reply to every submission.
         </p>
       </div>
     </form>
