@@ -25,7 +25,7 @@ export function EditionsTimeline() {
   return (
     <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
       <Reveal>
-        <Eyebrow index="07">The record</Eyebrow>
+        <Eyebrow index="08">The record</Eyebrow>
         <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <h2 className="max-w-2xl font-serif text-4xl font-medium leading-[1.05] tracking-tight text-obsidian md:text-5xl lg:text-6xl">
             Every edition.

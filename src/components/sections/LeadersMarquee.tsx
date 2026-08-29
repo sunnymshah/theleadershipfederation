@@ -20,7 +20,7 @@ export function LeadersMarquee() {
     <section className="relative overflow-hidden py-stack-section">
       <div className="mx-auto w-full max-w-canvas px-8 pr-24 md:px-16 md:pr-[120px]">
         <Reveal>
-          <Eyebrow index="05">The calibre of the room</Eyebrow>
+          <Eyebrow index="06">The calibre of the room</Eyebrow>
           <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
             <h2 className="max-w-2xl font-serif text-4xl font-medium leading-[1.05] tracking-tight text-obsidian md:text-5xl lg:text-6xl">
               Leaders who have
