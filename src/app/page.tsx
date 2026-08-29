@@ -1,6 +1,7 @@
 import { Footer } from '@/components/layout/Footer';
 import { EditionsTimeline } from '@/components/sections/EditionsTimeline';
 import { FiveRooms } from '@/components/sections/FiveRooms';
+import { WhatWeDo } from '@/components/sections/WhatWeDo';
 import { Hero } from '@/components/sections/Hero';
 import { LeadersMarquee } from '@/components/sections/LeadersMarquee';
 import { PartnerMarquee } from '@/components/sections/PartnerMarquee';
@@ -18,7 +19,10 @@ export default function HomePage() {
     <>
       <Hero />
 
-      <div className="mx-auto w-full max-w-canvas pr-24 md:pr-[120px]">
+      {/* ── 02 · What we do, in one scan ───────────────────────────────── */}
+      <WhatWeDo />
+
+      <div className="mx-auto mt-stack-section w-full max-w-canvas pr-24 md:pr-[120px]">
         <PartnerMarquee />
       </div>
 
@@ -26,7 +30,7 @@ export default function HomePage() {
       <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <SectionHeading
-            index="02"
+            index="03"
             eyebrow="Convenings"
             title="Where the room is"
             italic="the product."
@@ -44,19 +48,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 03 · One community, five powerful rooms ────────────────────── */}
+      {/* ── 04 · One community, five powerful rooms ────────────────────── */}
       <FiveRooms />
 
-      {/* ── 04 · Motion proof: see the room ────────────────────────────── */}
+      {/* ── 05 · Motion proof: see the room ────────────────────────────── */}
       <RoomFilms />
 
-      {/* ── 05 · The calibre of the room ───────────────────────────────── */}
+      {/* ── 06 · The calibre of the room ───────────────────────────────── */}
       <LeadersMarquee />
 
-      {/* ── 06 · Brands that back the platform ─────────────────────────── */}
+      {/* ── 07 · Brands that back the platform ─────────────────────────── */}
       <SponsorWall />
 
-      {/* ── 07 · Every edition ─────────────────────────────────────────── */}
+      {/* ── 08 · Every edition ─────────────────────────────────────────── */}
       <EditionsTimeline />
 
       {/* ── Closing CTA ────────────────────────────────────────────────── */}
