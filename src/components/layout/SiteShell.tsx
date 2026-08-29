@@ -24,6 +24,9 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const toggleMenu = useCallback(() => setMenuOpen((open) => !open), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
+  /* The admin area is a separate surface — no marketing nav, no accent strip. */
+  if (pathname.startsWith('/admin')) return <>{children}</>;
+
   return (
     <>
       <TopNav />
