@@ -19,7 +19,21 @@ export default async function DiagnosticsPage() {
     {
       label: 'Submission store',
       ok: health.ok,
-      detail: health.detail,
+      detail: `driver=${health.driver} · ${health.detail}`,
+    },
+    {
+      label: 'Blob token',
+      ok: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      detail: process.env.BLOB_READ_WRITE_TOKEN
+        ? `Present (${process.env.BLOB_READ_WRITE_TOKEN.slice(0, 18)}…).`
+        : 'BLOB_READ_WRITE_TOKEN is not visible to the running function.',
+    },
+    {
+      label: 'Deployed commit',
+      ok: true,
+      detail: `${(process.env.VERCEL_GIT_COMMIT_SHA ?? 'local').slice(0, 7)} · env=${
+        process.env.VERCEL_ENV ?? 'development'
+      }`,
     },
     {
       label: 'Admin credentials',
