@@ -2,16 +2,20 @@
  * ─────────────────────────────────────────────────────────────────────────
  *  SUBMISSION STORE
  * ─────────────────────────────────────────────────────────────────────────
- *  Two drivers, chosen automatically:
+ *  Three drivers, chosen automatically in this order:
  *
- *    kv    — Vercel KV / Upstash Redis over its REST API. Zero dependencies:
- *            it is plain fetch against the pipeline endpoint. Used whenever
- *            KV_REST_API_URL and KV_REST_API_TOKEN are present.
- *    file  — a JSON file under .data/, for local development only. Serverless
- *            filesystems are ephemeral, so this is never used in production.
+ *    blob  — Vercel Blob. One JSON object per submission under submissions/.
+ *            Writes are independent, so two people submitting at the same
+ *            moment cannot overwrite each other the way a single shared file
+ *            would. Used whenever BLOB_READ_WRITE_TOKEN is present.
+ *    kv    — Vercel KV / Upstash Redis over its REST API, if KV_REST_API_URL
+ *            and KV_REST_API_TOKEN are set. Kept so an existing KV can be
+ *            dropped in without touching this file.
+ *    file  — a JSON file under .data/, development only. Serverless
+ *            filesystems are ephemeral, so this never runs in production.
  *
- *  With neither configured the store reports `none` and the admin console
- *  shows how to connect one rather than pretending submissions are saved.
+ *  With none configured the store reports `none` and the admin console shows
+ *  how to connect one rather than pretending submissions are saved.
  */
 
 import type { Submission, SubmissionStatus } from './submissions';
@@ -19,9 +23,10 @@ import type { Submission, SubmissionStatus } from './submissions';
 const KEY_INDEX = 'tlf:submissions';
 const KEY_ITEM = (id: string) => `tlf:submission:${id}`;
 
-export type StoreDriver = 'kv' | 'file' | 'none';
+export type StoreDriver = 'blob' | 'kv' | 'file' | 'none';
 
 export function storeDriver(): StoreDriver {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return 'blob';
   if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) return 'kv';
   if (process.env.NODE_ENV !== 'production') return 'file';
   return 'none';
@@ -52,6 +57,61 @@ async function kv(commands: (string | number)[][]): Promise<unknown[]> {
   });
 }
 
+/* ── Vercel Blob ────────────────────────────────────────────────────────── */
+
+const BLOB_PREFIX = 'submissions/';
+const blobPath = (id: string) => `${BLOB_PREFIX}${id}.json`;
+
+async function blobApi() {
+  /* Imported lazily so the other drivers never pay for the SDK. */
+  return import('@vercel/blob');
+}
+
+async function blobPut(submission: Submission) {
+  const { put } = await blobApi();
+  /* Private: submissions carry personal data, so the blobs must never be
+     readable from their URL alone — every read goes through the token. */
+  await put(blobPath(submission.id), JSON.stringify(submission), {
+    access: 'private',
+    contentType: 'application/json',
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+}
+
+async function blobList(limit: number): Promise<Submission[]> {
+  const { list, get } = await blobApi();
+
+  const blobs: { url: string; pathname: string }[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const page = await list({ prefix: BLOB_PREFIX, cursor, limit: 1000 });
+    blobs.push(...page.blobs);
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor && blobs.length < limit);
+
+  /* Ids are time-prefixed, so sorting the pathname sorts by recency. */
+  blobs.sort((a, b) => (a.pathname < b.pathname ? 1 : -1));
+
+  const rows = await Promise.all(
+    blobs.slice(0, limit).map(async (blob) => {
+      try {
+        const result = await get(blob.pathname, {
+          access: 'private',
+          useCache: false,
+        });
+        if (!result) return null;
+        return (await new Response(result.stream).json()) as Submission;
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return rows.filter((row): row is Submission => row !== null);
+}
+
 /* ── file driver (development) ──────────────────────────────────────────── */
 
 const FILE = '.data/submissions.json';
@@ -77,6 +137,11 @@ export async function addSubmission(submission: Submission): Promise<void> {
   const driver = storeDriver();
   if (driver === 'none') throw new Error('No submission store configured');
 
+  if (driver === 'blob') {
+    await blobPut(submission);
+    return;
+  }
+
   if (driver === 'kv') {
     await kv([
       ['SET', KEY_ITEM(submission.id), JSON.stringify(submission)],
@@ -95,6 +160,8 @@ export async function addSubmission(submission: Submission): Promise<void> {
 export async function listSubmissions(limit = 500): Promise<Submission[]> {
   const driver = storeDriver();
   if (driver === 'none') return [];
+
+  if (driver === 'blob') return blobList(limit);
 
   if (driver === 'kv') {
     const [ids] = (await kv([['LRANGE', KEY_INDEX, 0, limit - 1]])) as [string[]];
@@ -119,6 +186,14 @@ export async function updateSubmissionStatus(
   const driver = storeDriver();
   if (driver === 'none') return false;
 
+  if (driver === 'blob') {
+    const rows = await blobList(5000);
+    const row = rows.find((entry) => entry.id === id);
+    if (!row) return false;
+    await blobPut({ ...row, status });
+    return true;
+  }
+
   if (driver === 'kv') {
     const [raw] = (await kv([['GET', KEY_ITEM(id)]])) as [string | null];
     if (!raw) return false;
@@ -138,6 +213,14 @@ export async function updateSubmissionStatus(
 export async function deleteSubmission(id: string): Promise<boolean> {
   const driver = storeDriver();
   if (driver === 'none') return false;
+
+  if (driver === 'blob') {
+    const { del, list } = await blobApi();
+    const page = await list({ prefix: blobPath(id), limit: 1 });
+    if (!page.blobs.length) return false;
+    await del(page.blobs[0].url);
+    return true;
+  }
 
   if (driver === 'kv') {
     await kv([
@@ -172,6 +255,18 @@ export async function storeHealth(): Promise<{
   }
 
   try {
+    if (driver === 'blob') {
+      const { list } = await blobApi();
+      const page = await list({ prefix: BLOB_PREFIX, limit: 1 });
+      return {
+        driver,
+        ok: true,
+        detail: `Vercel Blob connected — ${
+          page.blobs.length ? 'storing submissions.' : 'ready, nothing stored yet.'
+        }`,
+      };
+    }
+
     if (driver === 'kv') {
       await kv([['PING']]);
       return { driver, ok: true, detail: 'Vercel KV connected.' };
