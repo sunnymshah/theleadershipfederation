@@ -35,3 +35,6 @@ yarn-error.log*
 next-env.d.ts
 .data/
 .env*
+
+# Committed secrets are never acceptable in a public repo.
+.env.production
