@@ -360,24 +360,18 @@ export const LEADERS: Leader[] = [
 ];
 
 /**
- * An evenly-spaced sample of the roster for the marquee.
+ * Split the whole roster into bands for the marquee. Every leader appears.
  *
- * Rendering all 341 twice (the marquee is double-buffered) put ~680 <img> tags
- * in the initial HTML and pushed the homepage past 1.5MB, which is what made
- * it slow to first paint. A stride-based sample keeps the mix of events and
- * companies varied while rendering a fraction of the DOM; the full count is
- * still reported honestly next to the bands.
+ * This used to render a sample, on the theory that the page was slow because
+ * the HTML was large. It was not: Vercel serves the page brotli-compressed at
+ * roughly 32KB, so document size was never the constraint. The real cost was
+ * laying out and decoding everything at once, which is now handled by
+ * content-visibility on the section (see globals.css) rather than by showing
+ * people less.
  */
-export function leaderRows(rows: number, perRow = 22): Leader[][] {
-  const wanted = Math.min(rows * perRow, LEADERS.length);
-  const stride = LEADERS.length / wanted;
-
-  const sample = Array.from(
-    { length: wanted },
-    (_, i) => LEADERS[Math.floor(i * stride)]
-  );
-
+export function leaderRows(rows: number): Leader[][] {
+  const per = Math.ceil(LEADERS.length / rows);
   return Array.from({ length: rows }, (_, i) =>
-    sample.slice(i * perRow, (i + 1) * perRow)
+    LEADERS.slice(i * per, (i + 1) * per)
   );
 }

@@ -75,6 +75,18 @@ body {
     border: 1px solid rgba(17, 17, 17, 0.08);
   }
 
+  /*
+   * Heavy below-the-fold sections opt out of layout and paint until they are
+   * near the viewport. The page still contains everything — this only stops
+   * the browser doing the work for content nobody is looking at yet, which is
+   * what actually made the homepage feel slow. contain-intrinsic-size keeps a
+   * placeholder box so the scrollbar does not jump as sections resolve.
+   */
+  .cv-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 1200px;
+  }
+
   .scroll-indicator {
     animation: scroll-pulse 2s infinite ease-in-out;
   }

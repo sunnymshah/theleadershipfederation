@@ -32,7 +32,7 @@ export function EditionsTimeline({ pastOnly = false }: { pastOnly?: boolean }) {
   const upcoming = EDITIONS.filter((e) => e.status === 'Upcoming').length;
 
   return (
-    <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
+    <section className="cv-section mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px] [contain-intrinsic-size:auto_1400px]">
       <Reveal>
         <Eyebrow index="07">The record</Eyebrow>
         <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
