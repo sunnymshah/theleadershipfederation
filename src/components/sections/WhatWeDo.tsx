@@ -1,43 +1,74 @@
+import Link from 'next/link';
+
 import { ArrowForwardIcon } from '@/components/ui/Icon';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Reveal } from '@/components/ui/Reveal';
+import { INNER_CIRCLE_URL } from '@/config/site';
 import { EDITIONS } from '@/data/editions';
-import { LEADERS } from '@/data/leaders';
-import { SPONSORS } from '@/data/sponsors';
 import { JURY } from '@/data/board';
 import { HUBS } from '@/data/programmes';
 
 /**
- * The plain-English answer to "what is this?", placed immediately under the
- * hero — the editorial display line sets a tone, but a first-time visitor
- * needs the sentence before they will scroll past it.
+ * What the federation actually sells, stated as services rather than mood.
  *
- * Every figure is derived from the data files rather than typed, so the
- * numbers can never drift from what the rest of the page shows.
+ * A first-time visitor should be able to point at the one row that applies to
+ * them and click it. Each service names who it is for, what they get, and
+ * where it goes — no abstractions like "we convene".
  */
+
 const nextUp = EDITIONS.find((e) => e.status === 'Upcoming');
 
-const PILLARS = [
+type Service = {
+  n: string;
+  name: string;
+  who: string;
+  what: string;
+  scale: string;
+  href: string;
+  external?: boolean;
+};
+
+const SERVICES: Service[] = [
   {
-    verb: 'We convene',
-    stat: `${EDITIONS.length}`,
-    statLabel: 'programmes',
-    detail:
-      'Conclaves, sector summits and closed-door round tables across every hub where global capability actually sits.',
+    n: '01',
+    name: 'Conclaves & Summits',
+    who: 'For GCC heads and enterprise CXOs',
+    what: 'Main-stage programmes on scaling a centre from delivery to ownership — flagship conclaves plus BFSI and AI sector summits.',
+    scale: '150–400 delegates',
+    href: '/conclaves',
   },
   {
-    verb: 'We recognise',
-    stat: `${JURY.length}`,
-    statLabel: 'jury members',
-    detail:
-      'Awards scored blind against evidence, not narrative — judged by operators who have carried the mandate themselves.',
+    n: '02',
+    name: 'CXO Round Tables',
+    who: 'For leaders with one hard problem',
+    what: 'Closed-door, non-attributable tables under the Chatham House Rule. One operating question, no vendors, no decks.',
+    scale: '12–20 seats',
+    href: '/roundtables',
   },
   {
-    verb: 'We connect',
-    stat: `${LEADERS.length}`,
-    statLabel: 'leaders on stage',
-    detail:
-      'An invitation-only circle that keeps the same conversation running between events, not just during them.',
+    n: '03',
+    name: 'Awards & Recognition',
+    who: 'For teams with results they can prove',
+    what: 'Submissions scored blind against evidence, transferability and durability by a jury of operators — not a popularity vote.',
+    scale: `${JURY.length}-member jury`,
+    href: '/advisory-board',
+  },
+  {
+    n: '04',
+    name: 'Sponsorship & Speaking',
+    who: 'For enterprises selling to this room',
+    what: 'Brand presence and a stage slot earned on the same evidence standard as everyone else. Sponsors fund the table; they do not buy the keynote.',
+    scale: 'Per programme',
+    href: '/register',
+  },
+  {
+    n: '05',
+    name: 'The Inner Circle',
+    who: 'For senior leaders who want continuity',
+    what: 'Invitation-only membership: a standing seat, the full archive, and peer introductions made against a stated need.',
+    scale: 'By invitation',
+    href: INNER_CIRCLE_URL,
+    external: true,
   },
 ];
 
@@ -47,54 +78,81 @@ export function WhatWeDo() {
       <Reveal>
         <Eyebrow index="02">What we do</Eyebrow>
 
-        <p className="mt-8 max-w-4xl font-serif text-3xl font-medium leading-[1.25] tracking-tight text-obsidian md:text-4xl lg:text-[44px]">
-          The Leadership Federation puts the people who run{' '}
+        <p className="mt-8 max-w-4xl font-serif text-3xl font-medium leading-[1.25] tracking-tight text-obsidian md:text-4xl lg:text-[42px]">
+          We run the rooms where{' '}
           <span className="italic text-terracotta/90">
-            Global Capability Centres
+            Global Capability Centre
           </span>{' '}
-          — and the CXOs, policymakers and enterprises around them — in rooms
-          sized for candour, across{' '}
-          <span className="italic text-terracotta/90">{HUBS.length} hubs</span>{' '}
-          worldwide.
+          leadership meets the enterprises, policymakers and peers that shape
+          it — across {HUBS.length} hubs worldwide.
         </p>
 
         <div className="mt-8 h-[2px] w-24 bg-champagne" />
       </Reveal>
 
-      {/* Three pillars — the whole business in one scan. */}
-      <div className="mt-16 grid grid-cols-1 gap-px border border-obsidian/10 bg-obsidian/10 md:grid-cols-3">
-        {PILLARS.map((pillar, index) => (
-          <Reveal
-            key={pillar.verb}
-            delay={index * 0.08}
-            className="bg-white/45 p-9 backdrop-blur-sm md:p-11"
-          >
-            <p className="label-caps text-terracotta">{pillar.verb}</p>
-            <p className="mt-6 flex items-baseline gap-3">
-              <span className="font-serif text-5xl leading-none text-obsidian md:text-6xl">
-                {pillar.stat}
-              </span>
-              <span className="label-caps text-obsidian/45">
-                {pillar.statLabel}
-              </span>
-            </p>
-            <p className="mt-6 text-sm font-light leading-relaxed text-obsidian/70">
-              {pillar.detail}
-            </p>
-          </Reveal>
-        ))}
-      </div>
+      {/* Five services, one row each — scan the "who" column and stop. */}
+      <Reveal delay={0.05}>
+        <ul className="mt-14 border-t border-obsidian/15">
+          {SERVICES.map((service) => {
+            const inner = (
+              <>
+                <span className="label-caps w-8 shrink-0 text-obsidian/25">
+                  {service.n}
+                </span>
 
-      {/* The single most useful thing on the page: what's next, and where. */}
+                <span className="min-w-0 flex-1 sm:grid sm:grid-cols-12 sm:items-baseline sm:gap-6">
+                  <span className="sm:col-span-4">
+                    <span className="block font-serif text-2xl leading-tight text-obsidian transition-colors group-hover:text-terracotta md:text-3xl">
+                      {service.name}
+                    </span>
+                    <span className="label-caps mt-2 block text-terracotta">
+                      {service.who}
+                    </span>
+                  </span>
+
+                  <span className="mt-3 block text-sm font-light leading-relaxed text-obsidian/70 sm:col-span-6 sm:mt-0">
+                    {service.what}
+                  </span>
+
+                  <span className="label-caps mt-3 block text-obsidian/40 sm:col-span-2 sm:mt-0 sm:text-right">
+                    {service.scale}
+                  </span>
+                </span>
+
+                <ArrowForwardIcon className="mt-1 hidden h-5 w-5 shrink-0 text-obsidian/25 transition-all group-hover:translate-x-1 group-hover:text-terracotta lg:block" />
+              </>
+            );
+
+            const cls =
+              'group flex items-start gap-5 border-b border-obsidian/15 py-7 transition-colors hover:bg-white/40 sm:px-2';
+
+            return (
+              <li key={service.n}>
+                {service.external ? (
+                  <a href={service.href} target="_blank" rel="noreferrer" className={cls}>
+                    {inner}
+                  </a>
+                ) : (
+                  <Link href={service.href} className={cls}>
+                    {inner}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </Reveal>
+
+      {/* The single most actionable thing on the page. */}
       {nextUp && (
-        <Reveal delay={0.1} className="mt-4">
+        <Reveal delay={0.1} className="mt-10">
           <a
             href={nextUp.href}
             target="_blank"
             rel="noreferrer"
             className="group flex flex-col gap-6 bg-obsidian p-8 transition-colors hover:bg-[#161616] md:flex-row md:items-center md:justify-between md:p-11"
           >
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-10">
+            <span className="flex flex-col gap-5 md:flex-row md:items-center md:gap-10">
               <span className="label-caps shrink-0 text-champagne">
                 Next in the calendar
               </span>
@@ -106,7 +164,7 @@ export function WhatWeDo() {
                   {nextUp.city} · {nextUp.date} · {nextUp.kind}
                 </span>
               </span>
-            </div>
+            </span>
 
             <span className="label-caps flex shrink-0 items-center gap-3 text-white/70 transition-colors group-hover:text-champagne">
               Registration open
@@ -115,14 +173,6 @@ export function WhatWeDo() {
           </a>
         </Reveal>
       )}
-
-      <Reveal delay={0.15}>
-        <p className="label-caps mt-8 flex flex-wrap gap-x-8 gap-y-3 text-obsidian/40">
-          <span>{SPONSORS.length} partner brands</span>
-          <span>{HUBS.length} global hubs</span>
-          <span>{EDITIONS.filter((e) => e.status === 'Upcoming').length} programmes open</span>
-        </p>
-      </Reveal>
     </section>
   );
 }

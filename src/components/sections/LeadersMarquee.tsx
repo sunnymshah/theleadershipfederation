@@ -9,12 +9,14 @@ import { STAGE_METRICS } from '@/config/site';
  * moving in alternating bands.
  *
  * Headshots are plain <img loading="lazy"> rather than next/image on purpose:
- * four bands double-buffered is ~680 thumbnails, and routing those through the
- * image optimiser would burn the account's optimisation quota for no gain —
- * the source files are already small (~31KB) and served at their display size.
+ * the source files are already small (~31KB) and served at their display size,
+ * so the optimiser would only spend quota.
+ *
+ * The bands show an evenly-spaced sample rather than the whole roster — see
+ * leaderRows(). The full figure is stated beneath them.
  */
 export function LeadersMarquee() {
-  const rows = leaderRows(4);
+  const rows = leaderRows(3);
 
   return (
     <section className="relative overflow-hidden py-stack-section">
@@ -66,7 +68,7 @@ export function LeadersMarquee() {
       </div>
 
       <p className="label-caps mx-auto mt-14 w-full max-w-canvas px-8 text-obsidian/40 md:px-16">
-        {LEADERS.length} leaders photographed across 17 programmes
+        A sample of {LEADERS.length} leaders photographed across 17 programmes
       </p>
     </section>
   );
