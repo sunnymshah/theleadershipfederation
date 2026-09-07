@@ -15,10 +15,10 @@ import { LEADERS, leaderRows, type Leader } from '@/data/leaders';
  * leaderRows(). The full figure is stated beneath them.
  */
 export function LeadersMarquee() {
-  const rows = leaderRows(3, 26);
+  const rows = leaderRows(4);
 
   return (
-    <section className="relative overflow-hidden py-stack-section">
+    <section className="cv-section relative overflow-hidden py-stack-section [contain-intrinsic-size:auto_1400px]">
       <div className="mx-auto w-full max-w-canvas px-8 pr-24 md:px-16 md:pr-[120px]">
         <Reveal>
           <Eyebrow index="04">The calibre of the room</Eyebrow>

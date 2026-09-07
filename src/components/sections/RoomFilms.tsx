@@ -18,7 +18,7 @@ import {
  */
 export function RoomFilms() {
   return (
-    <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
+    <section className="cv-section mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px] [contain-intrinsic-size:auto_2200px]">
       <Reveal>
         <Eyebrow index="05">Motion proof</Eyebrow>
         <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">

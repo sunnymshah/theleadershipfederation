@@ -15,7 +15,7 @@ export function SponsorWall() {
   const rest = SPONSORS.slice(PRIORITY_SPONSORS.length);
 
   return (
-    <section className="overflow-hidden pt-stack-section">
+    <section className="cv-section overflow-hidden pt-stack-section [contain-intrinsic-size:auto_1600px]">
       <div className="mx-auto w-full max-w-canvas px-8 pr-24 md:px-16 md:pr-[120px]">
         <Reveal>
           <Eyebrow index="06">Partners</Eyebrow>
