@@ -20,22 +20,22 @@ const RULES = [
   {
     rule: 'Chatham House Rule',
     detail:
-      'Participants are free to use what is said. Neither the speaker nor their organisation may be identified.',
+      'Participants may use what is said. Neither the speaker nor their organisation may be identified.',
   },
   {
-    rule: 'No vendors in the room',
+    rule: 'Peers only',
     detail:
-      'Sponsors fund the table. They do not sit at it unless they are there as a peer with an operating problem.',
+      'Partner organisations support the table. They take part only where they have a comparable operating problem.',
   },
   {
     rule: 'One question, three hours',
     detail:
-      'A single operating problem, circulated a fortnight ahead. No agenda beyond it.',
+      'A single operating problem, circulated a fortnight ahead.',
   },
   {
-    rule: 'Seats, not tickets',
+    rule: 'Curated seating',
     detail:
-      'Twelve to twenty people, curated for the question. A seat cannot be delegated downward.',
+      'Twelve to twenty people, selected for the question. Seats are personal and cannot be delegated.',
   },
 ];
 
@@ -46,7 +46,7 @@ export default function RoundtablesPage() {
       eyebrow="Closed door"
       title="CXO"
       italic="roundtables."
-      standfirst="Twelve to twenty leaders, one operating question, and no attribution. The format the federation was built around."
+      standfirst="Twelve to twenty leaders, one operating question, held without attribution."
       meta={[`${UPCOMING_TABLES.length} tables scheduled`, '12–20 seats per table', 'Non-attributable']}
     >
       <EditionGrid editions={UPCOMING_TABLES} />
@@ -57,8 +57,8 @@ export default function RoundtablesPage() {
             <SectionHeading
               index="03"
               eyebrow="The rules"
-              title="What makes it"
-              italic="worth saying."
+              title="How the format"
+              italic="works."
               standfirst="Four conditions. Remove any one and the conversation reverts to a panel."
             />
           </div>
@@ -93,7 +93,7 @@ export default function RoundtablesPage() {
       <section className="pt-stack-section">
         <Reveal className="card-silk p-10 md:p-16">
           <h2 className="max-w-2xl font-serif text-3xl leading-tight text-obsidian md:text-4xl">
-            Roundtable seats are allocated by the programme committee, not sold.
+            Roundtable seats are allocated by the programme committee.
           </h2>
           <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-obsidian/70">
             Tell us the problem you would bring to the table. If it matches a

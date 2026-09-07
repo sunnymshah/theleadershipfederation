@@ -17,22 +17,22 @@ const PATHS = [
   {
     title: 'Nomination for an award',
     detail:
-      'Put yourself or a colleague forward. Submissions are scored blind by the jury against evidence, transferability, durability and originality.',
+      'Put yourself or a colleague forward. Submissions are scored blind by the jury on evidence, transferability, durability and originality.',
   },
   {
     title: 'Delegate',
     detail:
-      'Connect with fellow leaders, take the insight back, and be part of the room rather than the audience.',
+      'Attend the full programme, join the working tracks, and meet peers running comparable mandates.',
   },
   {
     title: 'Sponsor',
     detail:
-      'Brand exposure to a curated senior audience — and a seat at the table on the same evidence standard as everyone else.',
+      'Brand presence across a curated senior audience, with speaking assessed on the same standard as every other session.',
   },
   {
     title: 'Speaker',
     detail:
-      'Bring a position and the measurement behind it. Chaired sessions only; we do not run open mics.',
+      'Propose a session with a clear position and the evidence behind it. All sessions are chaired.',
   },
 ];
 

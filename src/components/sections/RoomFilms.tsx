@@ -70,8 +70,7 @@ export function RoomFilms() {
             Event films, <span className="italic text-terracotta/90">embedded.</span>
           </h3>
           <p className="mt-4 max-w-lg text-sm font-light leading-relaxed text-obsidian/70">
-            Six films from past conclaves and private formats. Press play — none
-            of them download until you do.
+            Films from past conclaves and private formats.
           </p>
         </Reveal>
 

@@ -58,14 +58,14 @@ export const JURY: JuryMember[] = [
 export const BOARD_PROCESS = [
   { step: 'Nomination', detail: 'A member, an existing board seat or the programme committee puts a name forward. Self-nomination counts the same.' },
   { step: 'Review', detail: 'The committee weighs the mandate carried, the evidence behind it, and the balance of the board across regions and sectors.' },
-  { step: 'Conversation', detail: 'A short call on what you would bring to the room. No pitch deck.' },
+  { step: 'Conversation', detail: 'A short call about your experience and what you would contribute.' },
   { step: 'Seat', detail: 'Two-year terms. Jurors recuse themselves from their own organisation\'s submissions.' },
 ];
 
 /** What the jury scores award submissions against. */
 export const JURY_CRITERIA = [
-  { weight: '40%', criterion: 'Evidence', detail: 'Verifiable outcomes over narrative. Submissions without measurement do not advance.' },
+  { weight: '40%', criterion: 'Evidence', detail: 'Verifiable outcomes. Submissions without measurement do not advance.' },
   { weight: '25%', criterion: 'Transferability', detail: 'Whether another centre could adopt the approach and expect a result.' },
-  { weight: '20%', criterion: 'Durability', detail: 'Held for more than one reporting cycle, through a leadership change.' },
-  { weight: '15%', criterion: 'Originality', detail: 'Genuinely new practice rather than a well-executed standard.' },
+  { weight: '20%', criterion: 'Durability', detail: 'Sustained across more than one reporting cycle.' },
+  { weight: '15%', criterion: 'Originality', detail: 'New practice, rather than a well-executed version of the standard.' },
 ];

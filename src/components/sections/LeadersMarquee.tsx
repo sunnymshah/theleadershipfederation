@@ -15,7 +15,7 @@ import { LEADERS, leaderRows, type Leader } from '@/data/leaders';
  * leaderRows(). The full figure is stated beneath them.
  */
 export function LeadersMarquee() {
-  const rows = leaderRows(3);
+  const rows = leaderRows(3, 26);
 
   return (
     <section className="relative overflow-hidden py-stack-section">
@@ -55,7 +55,7 @@ export function LeadersMarquee() {
       </div>
 
       <p className="label-caps mx-auto mt-14 w-full max-w-canvas px-8 text-obsidian/40 md:px-16">
-        A sample of {LEADERS.length} leaders photographed across 17 programmes
+        {LEADERS.length} leaders photographed across 17 programmes
       </p>
     </section>
   );

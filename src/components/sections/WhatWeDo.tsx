@@ -27,7 +27,7 @@ export function WhatWeDo() {
             Global Capability Centre
           </span>{' '}
           leadership meets the enterprises, policymakers and peers that shape
-          it — across {HUBS.length} hubs worldwide.
+          it, across {HUBS.length} hubs worldwide.
         </p>
 
         <div className="mt-8 h-[2px] w-24 bg-champagne" />

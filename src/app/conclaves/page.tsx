@@ -20,17 +20,17 @@ const FORMAT_NOTES = [
   {
     title: 'Main stage',
     detail:
-      'Chaired sessions with a stated question and a named position — not vendor keynotes.',
+      'Chaired sessions built around a stated question, with speakers taking a clear position.',
   },
   {
     title: 'Working tracks',
     detail:
-      'Parallel rooms capped at forty, where the operating detail actually gets exchanged.',
+      'Parallel rooms capped at forty, where the operating detail gets exchanged.',
   },
   {
     title: 'Off-record hours',
     detail:
-      'Unfilmed, unbadged time built into the schedule. The reason people travel.',
+      'Unfilmed, unbadged time built into the schedule for conversations that need it.',
   },
 ];
 
@@ -52,7 +52,7 @@ export default function ConclavesPage() {
           eyebrow="Format"
           title="How a conclave"
           italic="is built."
-          standfirst="Three layers, in a fixed ratio. The proportions are the format."
+          standfirst="Every conclave is built from the same three layers."
         />
 
         <div className="mt-16 grid grid-cols-1 gap-px border border-obsidian/10 bg-obsidian/10 md:grid-cols-3">
