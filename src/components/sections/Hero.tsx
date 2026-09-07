@@ -90,15 +90,14 @@ export function Hero() {
         {/* ── Right: asymmetric collage ────────────────────────────────── */}
         <div className="relative h-[520px] w-full sm:h-[620px] lg:col-span-6 lg:h-full lg:min-h-[600px]">
           <div className="relative z-10 grid h-full grid-cols-2 gap-4">
-            {/* Every frame is above the fold, so none of them lazy-load. */}
             <div className="flex h-full flex-col gap-4">
-              <CollageFrame image={IMAGES.conferenceHall} className="flex-grow" />
+              <CollageFrame image={IMAGES.conferenceHall} className="flex-grow" priority />
               <CollageFrame image={IMAGES.workingSession} className="h-1/3" />
             </div>
 
             <div className="flex h-full flex-col gap-4 pt-16">
               <CollageFrame image={IMAGES.stageMic} className="h-1/4" />
-              <CollageFrame image={IMAGES.audience} className="flex-grow" />
+              <CollageFrame image={IMAGES.audience} className="flex-grow" priority />
               <CollageFrame image={IMAGES.boardroom} className="h-1/4" />
             </div>
           </div>
@@ -125,9 +124,12 @@ export function Hero() {
 function CollageFrame({
   image,
   className,
+  priority = false,
 }: {
   image: { src: string; alt: string };
   className?: string;
+  /* Only the two large plates preload; the small ones would just compete. */
+  priority?: boolean;
 }) {
   return (
     <div className={`relative overflow-hidden shadow-lg ${className ?? ''}`}>
@@ -136,7 +138,8 @@ function CollageFrame({
         alt={image.alt}
         fill
         sizes="(max-width: 1024px) 50vw, 25vw"
-        priority
+        priority={priority}
+        loading={priority ? undefined : 'lazy'}
         className="object-cover"
       />
     </div>

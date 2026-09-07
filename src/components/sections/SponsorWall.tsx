@@ -12,7 +12,9 @@ import { PRIORITY_SPONSORS, SPONSORS } from '@/data/sponsors';
  * already tiny.
  */
 export function SponsorWall() {
-  const rest = SPONSORS.slice(PRIORITY_SPONSORS.length);
+  /* Cap the grid — 125 marks is a lot of DOM for a supporting section. */
+  const rest = SPONSORS.slice(PRIORITY_SPONSORS.length, PRIORITY_SPONSORS.length + 40);
+  const remaining = SPONSORS.length - PRIORITY_SPONSORS.length - rest.length;
 
   return (
     <section className="overflow-hidden pt-stack-section">
@@ -60,6 +62,7 @@ export function SponsorWall() {
           </ul>
           <p className="label-caps mt-8 text-obsidian/40">
             {SPONSORS.length} partner and sponsor marks
+            {remaining > 0 ? ` · ${remaining} more not shown` : ''}
           </p>
         </Reveal>
       </div>

@@ -359,8 +359,25 @@ export const LEADERS: Leader[] = [
   { name: 'Vybhava Srinivasan', title: 'Managing Director & Head Availity India', company: 'Availity India', event: 'GCC Conclave Bengaluru — 6th Edition', photo: '/showcase/speakers/vybhavasrinivasan.jpg', href: 'https://gcc.theleadershipfederation.com/bengaluru' },
 ];
 
-/** Split into N roughly equal rows for the marquee. */
-export function leaderRows(count: number): Leader[][] {
-  const per = Math.ceil(LEADERS.length / count);
-  return Array.from({ length: count }, (_, i) => LEADERS.slice(i * per, (i + 1) * per));
+/**
+ * An evenly-spaced sample of the roster for the marquee.
+ *
+ * Rendering all 341 twice (the marquee is double-buffered) put ~680 <img> tags
+ * in the initial HTML and pushed the homepage past 1.5MB, which is what made
+ * it slow to first paint. A stride-based sample keeps the mix of events and
+ * companies varied while rendering a fraction of the DOM; the full count is
+ * still reported honestly next to the bands.
+ */
+export function leaderRows(rows: number, perRow = 22): Leader[][] {
+  const wanted = Math.min(rows * perRow, LEADERS.length);
+  const stride = LEADERS.length / wanted;
+
+  const sample = Array.from(
+    { length: wanted },
+    (_, i) => LEADERS[Math.floor(i * stride)]
+  );
+
+  return Array.from({ length: rows }, (_, i) =>
+    sample.slice(i * perRow, (i + 1) * perRow)
+  );
 }

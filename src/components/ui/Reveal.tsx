@@ -8,22 +8,14 @@ import { cn } from '@/lib/utils';
  * ─────────────────────────────────────────────────────────────────────────
  *  ENTRANCE ANIMATIONS
  * ─────────────────────────────────────────────────────────────────────────
- *  Both helpers are CSS-driven on purpose. A JS-driven `opacity: 0` start —
- *  the Framer `initial`/`whileInView` pattern — bakes the hidden state into
- *  the server-rendered HTML, so the copy stays invisible if the bundle is
- *  slow, blocked or fails. `requestAnimationFrame` is also suspended in a
- *  background tab, which can stall such a reveal indefinitely.
+ *  Rule: content is NEVER hidden waiting for JavaScript.
  *
- *  Here the resting state IS the visible state. Nothing is hidden until the
- *  component has mounted and confirmed it can observe scroll, so no-JS and
- *  failed-JS both render the full page.
- *
- *  Framer Motion still drives the things that genuinely need a JS timeline:
- *  the infinite marquee and the menu overlay's enter/exit.
+ *  An earlier version set `opacity-0` as soon as the component mounted and
+ *  only restored it when IntersectionObserver fired. On a heavy page that
+ *  briefly — sometimes permanently — blanked the whole site. Now the resting
+ *  state is the visible state, and the animation is additive: if the observer
+ *  never runs, the page simply appears without a fade.
  */
-
-const TRANSITION =
-  'transition-[opacity,transform] duration-700 ease-editorial motion-reduce:transition-none';
 
 export function Reveal({
   children,
@@ -38,27 +30,22 @@ export function Reveal({
   as?: 'div' | 'section' | 'li' | 'article';
 }) {
   const ref = useRef<HTMLElement | null>(null);
-  const [armed, setArmed] = useState(false);
-  const [shown, setShown] = useState(false);
+  const [entered, setEntered] = useState(false);
 
   useEffect(() => {
     const element = ref.current;
+    if (!element || typeof IntersectionObserver === 'undefined') return;
 
-    if (!element || typeof IntersectionObserver === 'undefined') {
-      setShown(true);
-      return;
-    }
-
-    setArmed(true);
-
+    /* Anything already on screen at mount is left alone — no point animating
+       what the visitor is looking at. */
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setShown(true);
+          setEntered(true);
           observer.disconnect();
         }
       },
-      { rootMargin: '0px 0px -80px 0px' }
+      { rootMargin: '0px 0px -60px 0px' }
     );
 
     observer.observe(element);
@@ -68,22 +55,15 @@ export function Reveal({
   return (
     <Tag
       ref={ref as React.RefObject<never>}
-      className={cn(
-        TRANSITION,
-        armed && !shown && 'translate-y-6 opacity-0',
-        className
-      )}
-      style={delay && armed ? { transitionDelay: `${delay}s` } : undefined}
+      className={cn(entered && 'animate-fade-up', className)}
+      style={entered && delay ? { animationDelay: `${delay}s` } : undefined}
     >
       {children}
     </Tag>
   );
 }
 
-/**
- * Above-the-fold entrance. Pure keyframes — plays once on load, and
- * `prefers-reduced-motion` drops straight to the resting state.
- */
+/** Above-the-fold entrance — pure keyframes, plays once on load. */
 export function RevealOnMount({
   children,
   delay = 0,
