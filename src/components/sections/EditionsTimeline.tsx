@@ -12,12 +12,21 @@ import { cn } from '@/lib/utils';
  * "Every edition. One growing platform." — the full run of programmes, newest
  * first, filterable by format. Each row links to its official event page.
  */
-export function EditionsTimeline() {
+/**
+ * The archive. `pastOnly` is used on the homepage, where the upcoming dates
+ * already have their own section and repeating them here read as clutter.
+ */
+export function EditionsTimeline({ pastOnly = false }: { pastOnly?: boolean }) {
   const [kind, setKind] = useState('All');
 
+  const source = useMemo(
+    () => (pastOnly ? EDITIONS.filter((e) => e.status === 'Past') : EDITIONS),
+    [pastOnly]
+  );
+
   const rows = useMemo(
-    () => (kind === 'All' ? EDITIONS : EDITIONS.filter((e) => e.kind === kind)),
-    [kind]
+    () => (kind === 'All' ? source : source.filter((e) => e.kind === kind)),
+    [kind, source]
   );
 
   const upcoming = EDITIONS.filter((e) => e.status === 'Upcoming').length;
@@ -25,16 +34,17 @@ export function EditionsTimeline() {
   return (
     <section className="mx-auto w-full max-w-canvas px-8 pr-24 pt-stack-section md:px-16 md:pr-[120px]">
       <Reveal>
-        <Eyebrow index="08">The record</Eyebrow>
+        <Eyebrow index="07">The record</Eyebrow>
         <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <h2 className="max-w-2xl font-serif text-4xl font-medium leading-[1.05] tracking-tight text-obsidian md:text-5xl lg:text-6xl">
-            Every edition.
+            {pastOnly ? 'Everything already' : 'Every edition.'}
             <span className="block italic text-terracotta/90">
-              One growing platform.
+              {pastOnly ? 'convened.' : 'One growing platform.'}
             </span>
           </h2>
           <p className="label-caps text-obsidian/50 lg:mb-3">
-            {EDITIONS.length} editions · {upcoming} upcoming
+            {source.length} {pastOnly ? 'past editions' : 'editions'}
+            {pastOnly ? '' : ` · ${upcoming} upcoming`}
           </p>
         </div>
       </Reveal>

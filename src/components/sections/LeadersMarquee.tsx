@@ -2,7 +2,6 @@ import { Marquee } from '@/components/sections/Marquee';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Reveal } from '@/components/ui/Reveal';
 import { LEADERS, leaderRows, type Leader } from '@/data/leaders';
-import { STAGE_METRICS } from '@/config/site';
 
 /**
  * "The calibre of the room" — every leader photographed on a Federation stage,
@@ -22,7 +21,7 @@ export function LeadersMarquee() {
     <section className="relative overflow-hidden py-stack-section">
       <div className="mx-auto w-full max-w-canvas px-8 pr-24 md:px-16 md:pr-[120px]">
         <Reveal>
-          <Eyebrow index="06">The calibre of the room</Eyebrow>
+          <Eyebrow index="04">The calibre of the room</Eyebrow>
           <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
             <h2 className="max-w-2xl font-serif text-4xl font-medium leading-[1.05] tracking-tight text-obsidian md:text-5xl lg:text-6xl">
               Leaders who have
@@ -36,18 +35,6 @@ export function LeadersMarquee() {
             </p>
           </div>
 
-          <div className="mt-12 flex flex-wrap items-baseline gap-x-12 gap-y-6 border-t border-obsidian/20 pt-8">
-            {STAGE_METRICS.map((metric) => (
-              <div key={metric.label} className="flex items-baseline gap-3">
-                <span className="font-serif text-4xl text-obsidian md:text-5xl">
-                  {metric.value}
-                </span>
-                <span className="label-caps text-obsidian/50">
-                  {metric.label}
-                </span>
-              </div>
-            ))}
-          </div>
         </Reveal>
       </div>
 

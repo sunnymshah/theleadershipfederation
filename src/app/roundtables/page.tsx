@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 
 import { PageShell } from '@/components/layout/PageShell';
-import { ProgrammeGrid } from '@/components/sections/ProgrammeGrid';
+import { EditionGrid } from '@/components/sections/EditionGrid';
 import { SectionHeading } from '@/components/sections/SectionHeading';
 import { PillLink } from '@/components/ui/PillLink';
 import { Reveal } from '@/components/ui/Reveal';
-import { ROUNDTABLES } from '@/data/programmes';
+import { EDITIONS } from '@/data/editions';
+
+const TABLES = EDITIONS.filter((e) => e.kind === 'Round Tables');
+const UPCOMING_TABLES = TABLES.filter((e) => e.status === 'Upcoming');
 
 export const metadata: Metadata = {
   title: 'CXO Roundtables',
@@ -44,9 +47,9 @@ export default function RoundtablesPage() {
       title="CXO"
       italic="roundtables."
       standfirst="Twelve to twenty leaders, one operating question, and no attribution. The format the federation was built around."
-      meta={['12–20 seats per table', 'Non-attributable', 'By invitation']}
+      meta={[`${UPCOMING_TABLES.length} tables scheduled`, '12–20 seats per table', 'Non-attributable']}
     >
-      <ProgrammeGrid programmes={ROUNDTABLES} />
+      <EditionGrid editions={UPCOMING_TABLES} />
 
       <section className="pt-stack-section">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
