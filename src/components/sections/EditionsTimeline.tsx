@@ -37,9 +37,9 @@ export function EditionsTimeline({ pastOnly = false }: { pastOnly?: boolean }) {
         <Eyebrow index="07">The record</Eyebrow>
         <div className="mt-8 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <h2 className="max-w-2xl font-serif text-4xl font-medium leading-[1.05] tracking-tight text-obsidian md:text-5xl lg:text-6xl">
-            {pastOnly ? 'Everything already' : 'Every edition.'}
+            {pastOnly ? 'Past' : 'Every edition.'}
             <span className="block italic text-terracotta/90">
-              {pastOnly ? 'convened.' : 'One growing platform.'}
+              {pastOnly ? 'editions.' : 'One growing platform.'}
             </span>
           </h2>
           <p className="label-caps text-obsidian/50 lg:mb-3">

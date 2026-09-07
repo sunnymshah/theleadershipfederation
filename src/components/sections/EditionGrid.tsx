@@ -23,7 +23,7 @@ export function EditionGrid({
   if (!editions.length) {
     return (
       <p className="text-sm font-light text-obsidian/55">
-        Nothing scheduled in this format right now.
+        No dates currently scheduled.
       </p>
     );
   }

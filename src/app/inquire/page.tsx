@@ -17,17 +17,17 @@ const ROUTES_IN = [
   {
     title: 'Delegates',
     detail:
-      'Seats at conclaves are allocated by the programme committee against the mandate you carry, not by order of payment.',
+      'Seats at conclaves are allocated by the programme committee based on the mandate you carry.',
   },
   {
     title: 'Partners',
     detail:
-      'Enterprises fund the table and take the stage on the same evidence standard as everyone else. No pay-to-keynote.',
+      'Partner organisations support the programme, with speaking assessed on the same standard as every other session.',
   },
   {
     title: 'Speakers',
     detail:
-      'Bring a position and the measurement behind it. Chaired sessions only — we do not run open mics.',
+      'Propose a session with a clear position and the evidence behind it. All sessions are chaired.',
   },
 ];
 

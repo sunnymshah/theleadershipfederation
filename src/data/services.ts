@@ -2,8 +2,7 @@
  * What the federation offers, as one list.
  *
  * This replaces the old split between "services" and "five formats", which
- * described the same five things in two places with different words — the
- * single biggest source of confusion on the homepage.
+ * described the same five things in two places with different words.
  */
 import { IMAGES, type LibraryImage } from './images';
 import { JURY } from './board';
@@ -26,7 +25,7 @@ export const SERVICES: Service[] = [
     n: '01',
     name: 'Conclaves & Summits',
     who: 'For GCC heads and enterprise CXOs',
-    what: 'Main-stage programmes on scaling a centre from delivery to ownership — the flagship conclave plus BFSI and AI sector summits.',
+    what: 'Main-stage programmes covering how centres move from delivery to ownership. Includes the flagship conclave and the BFSI and AI sector summits.',
     scale: '150–400 delegates',
     image: IMAGES.conferenceHall,
     href: '/conclaves',
@@ -34,8 +33,8 @@ export const SERVICES: Service[] = [
   {
     n: '02',
     name: 'CXO Round Tables',
-    who: 'For leaders with one hard problem',
-    what: 'Closed-door and non-attributable, under the Chatham House Rule. One operating question, no vendors at the table, no decks.',
+    who: 'For leaders working through a specific problem',
+    what: 'Closed-door and non-attributable, held under the Chatham House Rule. Each table works through a single operating question, circulated in advance.',
     scale: '12–20 seats',
     image: IMAGES.boardroom,
     href: '/roundtables',
@@ -43,8 +42,8 @@ export const SERVICES: Service[] = [
   {
     n: '03',
     name: 'Awards & Recognition',
-    who: 'For teams with results they can prove',
-    what: 'Submissions scored blind on evidence, transferability and durability by a jury of operators — not a popularity vote.',
+    who: 'For teams with measurable results',
+    what: 'Submissions are scored blind on evidence, transferability and durability by a jury of serving operators.',
     scale: `${JURY.length}-member jury`,
     image: IMAGES.stageMic,
     href: '/advisory-board',
@@ -52,8 +51,8 @@ export const SERVICES: Service[] = [
   {
     n: '04',
     name: 'Sponsorship & Speaking',
-    who: 'For enterprises selling into this room',
-    what: 'Brand presence and a stage slot earned on the same evidence standard as everyone else. Sponsors fund the table; they do not buy the keynote.',
+    who: 'For enterprises that work with GCCs',
+    what: 'Brand presence across a programme, with speaking slots assessed against the same standard as every other session.',
     scale: 'Per programme',
     image: IMAGES.audience,
     href: '/register',
@@ -61,8 +60,8 @@ export const SERVICES: Service[] = [
   {
     n: '05',
     name: 'The Inner Circle',
-    who: 'For leaders who want continuity between events',
-    what: 'Invitation-only membership: a standing seat, the full archive, and peer introductions made against a stated need.',
+    who: 'For senior leaders seeking year-round access',
+    what: 'Invitation-only membership covering a standing seat at regional programmes, the full archive, and introductions to other members.',
     scale: 'By invitation',
     image: IMAGES.workingSession,
     href: INNER_CIRCLE_URL,

@@ -75,8 +75,8 @@ export default function InnerCirclePage() {
           <SectionHeading
             index="07"
             eyebrow="What it carries"
-            title="Continuity,"
-            italic="not a lanyard."
+            title="What membership"
+            italic="includes."
             standfirst="Membership is the mechanism that keeps a conversation alive between convenings."
           />
           <Reveal delay={0.2} className="mt-10">
@@ -125,8 +125,8 @@ export default function InnerCirclePage() {
         <SectionHeading
           index="08"
           eyebrow="Admission"
-          title="Four steps,"
-          italic="no shortcuts."
+          title="How admission"
+          italic="works."
         />
 
         <div className="mt-16 grid grid-cols-1 gap-px border border-obsidian/10 bg-obsidian/10 md:grid-cols-2 lg:grid-cols-4">
