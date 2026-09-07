@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 
 import { PageShell } from '@/components/layout/PageShell';
-import { ProgrammeGrid } from '@/components/sections/ProgrammeGrid';
+import { EditionGrid } from '@/components/sections/EditionGrid';
 import { SectionHeading } from '@/components/sections/SectionHeading';
 import { PillLink } from '@/components/ui/PillLink';
 import { Reveal } from '@/components/ui/Reveal';
-import { PAST_EVENTS, UPCOMING_CONCLAVES } from '@/data/programmes';
+import { EDITIONS } from '@/data/editions';
+
+const UPCOMING = EDITIONS.filter((e) => e.status === 'Upcoming' && e.kind !== 'Round Tables');
+const PAST = EDITIONS.filter((e) => e.status === 'Past' && e.kind !== 'Round Tables');
 
 export const metadata: Metadata = {
   title: 'Upcoming Conclaves',
@@ -39,9 +42,9 @@ export default function ConclavesPage() {
       title="Upcoming"
       italic="conclaves."
       standfirst="Main-stage programming for GCC leadership, enterprise CXOs and the policymakers who shape the operating environment around them."
-      meta={['3 programmes scheduled', '830 delegate seats', '3 hub cities']}
+      meta={[`${UPCOMING.length} scheduled`, `${PAST.length} in the archive`, `${new Set(EDITIONS.map((e) => e.city)).size} hub cities`]}
     >
-      <ProgrammeGrid programmes={UPCOMING_CONCLAVES} />
+      <EditionGrid editions={UPCOMING} />
 
       <section className="pt-stack-section">
         <SectionHeading
@@ -83,7 +86,7 @@ export default function ConclavesPage() {
         />
 
         <div className="mt-16">
-          <ProgrammeGrid programmes={PAST_EVENTS.slice(0, 3)} />
+          <EditionGrid editions={PAST.slice(0, 3)} />
         </div>
 
         <Reveal delay={0.2} className="mt-14">

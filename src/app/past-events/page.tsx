@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 
 import { PageShell } from '@/components/layout/PageShell';
 import { ArchiveFilmCard } from '@/components/sections/FilmCard';
-import { ProgrammeGrid } from '@/components/sections/ProgrammeGrid';
+import { EditionGrid } from '@/components/sections/EditionGrid';
 import { SectionHeading } from '@/components/sections/SectionHeading';
 import { PillLink } from '@/components/ui/PillLink';
 import { Reveal } from '@/components/ui/Reveal';
 import { ARCHIVE_FILMS } from '@/data/films';
-import { PAST_EVENTS } from '@/data/programmes';
+import { EDITIONS } from '@/data/editions';
+
+const PAST = EDITIONS.filter((e) => e.status === 'Past');
 import { STAGE_METRICS } from '@/config/site';
 
 export const metadata: Metadata = {
@@ -52,7 +54,7 @@ export default function PastEventsPage() {
         />
 
         <div className="mt-16">
-          <ProgrammeGrid programmes={PAST_EVENTS} columns={2} />
+          <EditionGrid editions={PAST} columns={2} />
         </div>
       </section>
 
